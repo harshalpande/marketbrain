@@ -1,0 +1,25 @@
+services:
+  marketbrain-service:
+    build:
+      context: ./marketbrain-service
+    environment:
+      MARKETBRAIN_DB_URL: ${MARKETBRAIN_DB_URL:-jdbc:postgresql://host.docker.internal:5432/marketbrain}
+      MARKETBRAIN_DB_USERNAME: ${MARKETBRAIN_DB_USERNAME:-marketbrain_app}
+      MARKETBRAIN_DB_PASSWORD: ${MARKETBRAIN_DB_PASSWORD:?set MARKETBRAIN_DB_PASSWORD locally}
+      MARKETBRAIN_OLLAMA_BASE_URL: ${MARKETBRAIN_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      MARKETBRAIN_EXECUTION_MODE: PAPER
+      MARKETBRAIN_PAYTM_ENABLED: ${MARKETBRAIN_PAYTM_ENABLED:-false}
+      MARKETBRAIN_PAYTM_BASE_URL: ${MARKETBRAIN_PAYTM_BASE_URL:-https://developer.paytmmoney.com}
+      MARKETBRAIN_PAYTM_ACCESS_TOKEN: ${MARKETBRAIN_PAYTM_ACCESS_TOKEN:-}
+    ports:
+      - "127.0.0.1:8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  marketbrain-ui:
+    build:
+      context: ./marketbrain-ui
+    depends_on:
+      - marketbrain-service
+    ports:
+      - "127.0.0.1:8081:80"

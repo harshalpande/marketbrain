@@ -1,0 +1,46 @@
+package in.marketbrain.configuration;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
+import java.math.BigDecimal;
+
+@Validated
+@ConfigurationProperties(prefix = "marketbrain")
+public record MarketBrainProperties(
+        @NotBlank String executionMode,
+        @Valid Paper paper,
+        @Valid Ollama ollama,
+        @Valid Signal signal,
+        @Valid PaytmMoney paytmMoney
+) {
+    public record Paper(@DecimalMin("0.00") BigDecimal startingCash) {
+    }
+
+    public record Ollama(@NotBlank String baseUrl) {
+    }
+
+    public record Signal(
+            @Min(1) int maximumDataAgeSeconds,
+            @Min(1) int targetAlertSubmissionSeconds
+    ) {
+    }
+
+    /**
+     * The access token is intentionally optional.  A disabled or unconfigured
+     * provider must never make an external request.
+     */
+    public record PaytmMoney(
+            @NotBlank String baseUrl,
+            boolean enabled,
+            String accessToken
+    ) {
+        public boolean isConfigured() {
+            return enabled && accessToken != null && !accessToken.isBlank();
+        }
+    }
+}
