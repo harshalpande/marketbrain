@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: marketbrain-service
+  datasource:
+    url: ${MARKETBRAIN_DB_URL:jdbc:postgresql://host.docker.internal:5432/marketbrain}
+    username: ${MARKETBRAIN_DB_USERNAME:marketbrain_app}
+    password: ${MARKETBRAIN_DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  address: ${MARKETBRAIN_SERVER_ADDRESS:127.0.0.1}
+  port: ${MARKETBRAIN_SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+marketbrain:
+  execution-mode: ${MARKETBRAIN_EXECUTION_MODE:PAPER}
+  paper:
+    starting-cash: ${MARKETBRAIN_PAPER_STARTING_CASH:100000}
+  ollama:
+    base-url: ${MARKETBRAIN_OLLAMA_BASE_URL:http://host.docker.internal:11434}
+  signal:
+    maximum-data-age-seconds: ${MARKETBRAIN_MAXIMUM_DATA_AGE_SECONDS:90}
+    target-alert-submission-seconds: ${MARKETBRAIN_TARGET_ALERT_SUBMISSION_SECONDS:60}
+  paytm-money:
+    base-url: ${MARKETBRAIN_PAYTM_BASE_URL:https://developer.paytmmoney.com}
+    enabled: ${MARKETBRAIN_PAYTM_ENABLED:false}
+    access-token: ${MARKETBRAIN_PAYTM_ACCESS_TOKEN:}
