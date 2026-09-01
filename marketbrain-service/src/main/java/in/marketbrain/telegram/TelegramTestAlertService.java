@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ class TelegramTestAlertService {
                 .param("id", alertId)
                 .param("alertType", type.name())
                 .param("recipientHash", TelegramSecurity.identityHash(binding.userId(), binding.chatId()))
-                .param("expiresAt", expiresAt)
+                .param("expiresAt", Timestamp.from(expiresAt))
                 .update();
 
         Map<String, Object> replyMarkup = null;
@@ -110,7 +111,7 @@ class TelegramTestAlertService {
                 .param("alertId", alertId)
                 .param("action", action)
                 .param("tokenHash", TelegramSecurity.sha256(rawToken))
-                .param("expiresAt", expiresAt)
+                .param("expiresAt", Timestamp.from(expiresAt))
                 .param("idempotencyKey", "CREATED:" + actionId)
                 .update();
 
