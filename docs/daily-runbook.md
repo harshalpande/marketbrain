@@ -258,6 +258,37 @@ Start previously built containers again:
 docker compose --env-file .env up -d
 ```
 
+## Silent scheduled health monitoring and log retention
+
+The existing `HealthCheck.ps1` remains the health-check implementation. The
+tracked runner rotates its continuously appended `health.log` at the first run
+of each new day and removes dated health logs older than 30 days. A VBScript
+launcher runs the PowerShell runner without displaying a console window.
+
+After pulling the repository on the spare laptop, run the tracked installer. It
+copies the runner files and safely replaces the existing task definition:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+& '.\ops\windows\InstallHealthCheckTask.ps1'
+```
+
+It continues to run every 15 minutes under the signed-in Windows user, including
+while the laptop is on battery. Overlapping executions are suppressed.
+
+Test it immediately. No PowerShell window should appear:
+
+```powershell
+Start-ScheduledTask -TaskName 'MarketBrain-HealthCheck'
+Get-ScheduledTaskInfo -TaskName 'MarketBrain-HealthCheck'
+Get-Content 'C:\MarketBrainData\Monitoring\health.log' -Tail 3
+```
+
+`LastTaskResult` should be `0` after the run completes. The active file remains
+`health.log`; completed days become `health-YYYY-MM-DD.log`. To change retention,
+edit `RunHealthCheck.ps1` and change the default `RetentionDays` value. Do not
+reduce it below seven days without a specific storage constraint.
+
 ## Basic troubleshooting
 
 If the backend does not start, inspect its logs first:
