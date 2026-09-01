@@ -29,3 +29,6 @@ buildNumber.properties
 # OS files
 Thumbs.db
 .DS_Store
+marketbrain-service/bin/.settings/org.eclipse.jdt.apt.core.prefs
+marketbrain-service/bin/.settings/org.eclipse.jdt.core.prefs
+marketbrain-service/bin/.settings/org.eclipse.m2e.core.prefs
