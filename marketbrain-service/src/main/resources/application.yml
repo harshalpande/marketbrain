@@ -39,3 +39,10 @@ marketbrain:
     base-url: ${MARKETBRAIN_PAYTM_BASE_URL:https://developer.paytmmoney.com}
     enabled: ${MARKETBRAIN_PAYTM_ENABLED:false}
     access-token: ${MARKETBRAIN_PAYTM_ACCESS_TOKEN:}
+  telegram:
+    enabled: ${MARKETBRAIN_TELEGRAM_ENABLED:false}
+    bot-token: ${MARKETBRAIN_TELEGRAM_BOT_TOKEN:}
+    pairing-code: ${MARKETBRAIN_TELEGRAM_PAIRING_CODE:}
+    long-poll-timeout-seconds: ${MARKETBRAIN_TELEGRAM_LONG_POLL_TIMEOUT_SECONDS:20}
+    poll-delay-millis: ${MARKETBRAIN_TELEGRAM_POLL_DELAY_MILLIS:1000}
+    test-alerts-enabled: ${MARKETBRAIN_TELEGRAM_TEST_ALERTS_ENABLED:false}

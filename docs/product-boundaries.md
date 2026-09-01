@@ -8,11 +8,11 @@ The initial execution mode is always `PAPER`:
 
 - virtual starting capital is INR 100,000;
 - market data can be live, but trades are simulated;
-- a WhatsApp approval can create only a paper order;
+- a Telegram approval can create only a paper order;
 - Paytm Money order placement is prohibited in PAPER mode;
 - a later LIVE mode requires a separate explicit release decision.
 
-## WhatsApp alert policy
+## Telegram alert policy
 
 Only three alert types exist:
 
@@ -22,7 +22,9 @@ Only three alert types exist:
 | `BUY` | Request a buy decision after signal and risk validation. | Approve, reject, or view details. |
 | `SELL_HOLDING` | Request sale of an existing holding after an exit condition. | Approve, reject, or view details. |
 
-The system must suppress duplicate and non-actionable alerts. Incoming WhatsApp actions must be protected by a dedicated public callback boundary; no private service is exposed publicly.
+The system must suppress duplicate and non-actionable alerts. Telegram actions are received using outbound long polling, so no public callback is required. The bot accepts actions only from the configured private user and chat, and every action uses an expiring, one-time token with idempotent processing. No private service is exposed publicly.
+
+The current Telegram foundation supports secure pairing and fixed test alerts only. An APPROVE test callback is audited but blocked; it cannot create a paper fill until live quote retrieval and risk revalidation are implemented.
 
 ## Signal validity
 

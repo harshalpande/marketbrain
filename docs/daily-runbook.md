@@ -6,6 +6,7 @@ This is the single operational guide for building, running, checking, and stoppi
 
 - MarketBrain is currently **PAPER MODE only**. The application creates no real broker orders.
 - Never commit `.env`, credentials, access tokens, passwords, or OTPs.
+- Telegram uses outbound long polling and one private paired identity. Never commit or paste its bot token or pairing code into source files, Git, logs, or chat.
 - PostgreSQL and Ollama run natively on the spare Windows laptop. Docker runs only the MarketBrain backend and dashboard.
 - Docker services bind to `127.0.0.1` only. They are not publicly exposed and are not yet available from another device over Tailscale.
 
@@ -114,7 +115,31 @@ MARKETBRAIN_PAYTM_ACCESS_TOKEN=
 
 Do not add a Paytm token yet. We will enable it only for a deliberately small, read-only feasibility check.
 
-### 4. Validate and start Docker services
+### 4. Configure the private Telegram bot once
+
+Keep the values only in the spare laptop's ignored `.env` file. Generate a random pairing code locally:
+
+```powershell
+$telegramPairingCode = [Convert]::ToHexString(
+    [Security.Cryptography.RandomNumberGenerator]::GetBytes(16)
+)
+$telegramPairingCode
+```
+
+Open `.env` and add or update these entries. Enter the token supplied by BotFather and the generated code locally; never put either value in Git or chat.
+
+```properties
+MARKETBRAIN_TELEGRAM_ENABLED=true
+MARKETBRAIN_TELEGRAM_BOT_TOKEN=<enter the BotFather token locally>
+MARKETBRAIN_TELEGRAM_PAIRING_CODE=<enter the generated code locally>
+MARKETBRAIN_TELEGRAM_LONG_POLL_TIMEOUT_SECONDS=20
+MARKETBRAIN_TELEGRAM_POLL_DELAY_MILLIS=1000
+MARKETBRAIN_TELEGRAM_TEST_ALERTS_ENABLED=false
+```
+
+The bot uses outbound HTTPS only. It needs no public webhook, Cloudflare Tunnel, router port forwarding, or inbound firewall rule. Run only one MarketBrain backend with this bot token; two pollers would compete for the same updates.
+
+### 5. Validate and start Docker services
 
 ```powershell
 docker compose --env-file .env config --quiet
@@ -124,12 +149,13 @@ docker compose --env-file .env ps
 
 The first start applies the versioned MarketBrain database migration. It adds MarketBrain tables and types to the existing `marketbrain` database; it does not change PostgreSQL itself and does not create any broker order.
 
-### 5. Check the running application
+### 6. Check the running application
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8080/actuator/health
 Invoke-RestMethod http://127.0.0.1:8080/api/v1/system/status
 Invoke-RestMethod http://127.0.0.1:8080/api/v1/data-sources
+Invoke-RestMethod http://127.0.0.1:8080/api/v1/telegram/status
 
 Start-Process http://127.0.0.1:8081
 ```
@@ -139,7 +165,57 @@ Expected:
 - health returns `UP`;
 - system status reports `PAPER`;
 - Paytm Money reports `DISABLED`;
+- Telegram reports `enabled=True`, `configured=True`, and initially `paired=False`;
 - the dashboard shows a permanent PAPER MODE label.
+
+### 7. Pair the private Telegram identity
+
+In the private bot chat on the smartphone, send the following with the actual locally generated value:
+
+```text
+/pair <your local pairing code>
+```
+
+Do not send that code to a group or paste it into chat here. The bot should reply that MarketBrain was paired successfully. Verify from PowerShell:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8080/api/v1/telegram/status
+```
+
+Expected: `paired=True`. The bot now ignores messages and callbacks from every other Telegram identity. The earlier plain `/start` message does not pair an account by itself.
+
+### 8. Perform the controlled Telegram test
+
+Temporarily change this one `.env` value:
+
+```properties
+MARKETBRAIN_TELEGRAM_TEST_ALERTS_ENABLED=true
+```
+
+Recreate only the backend, then send one alert of each supported type manually:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+Invoke-RestMethod -Method Post 'http://127.0.0.1:8080/api/v1/telegram/test-alert?type=NOTE'
+Invoke-RestMethod -Method Post 'http://127.0.0.1:8080/api/v1/telegram/test-alert?type=BUY'
+Invoke-RestMethod -Method Post 'http://127.0.0.1:8080/api/v1/telegram/test-alert?type=SELL_HOLDING'
+```
+
+Expected:
+
+- NOTE has no action buttons;
+- BUY and SELL_HOLDING have `APPROVE`, `REJECT`, and `DETAILS`;
+- each message is visibly labelled `TEST` and `PAPER MODE`;
+- APPROVE is recorded but blocked because fresh-price and risk revalidation are not connected;
+- no paper fill and no Paytm Money order can be created.
+
+After testing, set `MARKETBRAIN_TELEGRAM_TEST_ALERTS_ENABLED=false` and apply it:
+
+```powershell
+docker compose --env-file .env up -d marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/api/v1/telegram/status
+```
 
 ## Spare runtime laptop: normal update and redeploy
 
@@ -197,6 +273,14 @@ To check the native PostgreSQL login from the spare laptop:
 ```
 
 If that command asks for a password, enter it locally. Do not paste it into chat. If it fails, correct only the local `.env` value and repeat the Docker start command.
+
+If Telegram is enabled but the backend does not start, confirm locally that both `MARKETBRAIN_TELEGRAM_BOT_TOKEN` and `MARKETBRAIN_TELEGRAM_PAIRING_CODE` are non-empty. Do not print their values. Inspect only sanitized backend logs:
+
+```powershell
+docker compose --env-file .env logs --tail=200 marketbrain-service
+```
+
+If Telegram polling repeatedly fails, confirm the spare laptop has internet access and that no other application is polling with the same bot token. Provider exception messages are deliberately excluded from application logs so the token-bearing request URL cannot leak.
 
 ## Runbook maintenance rule
 

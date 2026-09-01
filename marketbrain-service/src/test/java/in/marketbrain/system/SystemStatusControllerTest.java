@@ -16,7 +16,8 @@ class SystemStatusControllerTest {
                 new MarketBrainProperties.Paper(new BigDecimal("100000")),
                 new MarketBrainProperties.Ollama("http://127.0.0.1:11434"),
                 new MarketBrainProperties.Signal(90, 60),
-                new MarketBrainProperties.PaytmMoney("https://developer.paytmmoney.com", false, "")
+                new MarketBrainProperties.PaytmMoney("https://developer.paytmmoney.com", false, ""),
+                new MarketBrainProperties.Telegram(false, "", "", 20, 1000, false)
         );
 
         var status = new SystemStatusController(properties).status();

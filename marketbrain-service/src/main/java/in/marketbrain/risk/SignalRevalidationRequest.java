@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * The immutable information required to decide whether a WhatsApp approval can
+ * The immutable information required to decide whether an alert approval can
  * create a PAPER order. Prices are BigDecimal to avoid floating point errors.
  */
 public record SignalRevalidationRequest(

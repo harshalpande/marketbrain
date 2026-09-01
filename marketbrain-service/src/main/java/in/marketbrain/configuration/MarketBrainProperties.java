@@ -16,7 +16,8 @@ public record MarketBrainProperties(
         @Valid Paper paper,
         @Valid Ollama ollama,
         @Valid Signal signal,
-        @Valid PaytmMoney paytmMoney
+        @Valid PaytmMoney paytmMoney,
+        @Valid Telegram telegram
 ) {
     public record Paper(@DecimalMin("0.00") BigDecimal startingCash) {
     }
@@ -41,6 +42,25 @@ public record MarketBrainProperties(
     ) {
         public boolean isConfigured() {
             return enabled && accessToken != null && !accessToken.isBlank();
+        }
+    }
+
+    /**
+     * Telegram remains inert until explicitly enabled and supplied with local
+     * secrets. Neither the bot token nor pairing code is exposed by an API.
+     */
+    public record Telegram(
+            boolean enabled,
+            String botToken,
+            String pairingCode,
+            @Min(1) int longPollTimeoutSeconds,
+            @Min(100) int pollDelayMillis,
+            boolean testAlertsEnabled
+    ) {
+        public boolean isConfigured() {
+            return enabled
+                    && botToken != null && !botToken.isBlank()
+                    && pairingCode != null && pairingCode.length() >= 16;
         }
     }
 }

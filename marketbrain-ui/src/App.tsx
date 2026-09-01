@@ -66,7 +66,7 @@ export default function App() {
             <li>Data freshness must be within 90 seconds.</li>
             <li>Reference price becomes a valid price zone, never an exact-price demand.</li>
             <li>Risk revalidation happens immediately before every paper fill.</li>
-            <li>WhatsApp approval creates a virtual trade only.</li>
+            <li>Telegram approval creates a virtual trade only.</li>
           </ol>
         </aside>
       </section>
