@@ -8,7 +8,7 @@ This is the single operational guide for building, running, checking, and stoppi
 - Never commit `.env`, credentials, access tokens, passwords, or OTPs.
 - Telegram uses outbound long polling and one private paired identity. Never commit or paste its bot token or pairing code into source files, Git, logs, or chat.
 - PostgreSQL and Ollama run natively on the spare Windows laptop. Docker runs only the MarketBrain backend and dashboard.
-- Docker services bind to `127.0.0.1` only. They are not publicly exposed and are not yet available from another device over Tailscale.
+- Docker publishes both services on Windows `127.0.0.1` only. The backend listens on `0.0.0.0` only inside its isolated container so Docker port forwarding works; it is not publicly exposed and is not yet available from another device over Tailscale.
 
 ## Two-machine workflow
 

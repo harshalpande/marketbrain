@@ -6,6 +6,9 @@ services:
       MARKETBRAIN_DB_URL: ${MARKETBRAIN_DB_URL:-jdbc:postgresql://host.docker.internal:5432/marketbrain}
       MARKETBRAIN_DB_USERNAME: ${MARKETBRAIN_DB_USERNAME:-marketbrain_app}
       MARKETBRAIN_DB_PASSWORD: ${MARKETBRAIN_DB_PASSWORD:?set MARKETBRAIN_DB_PASSWORD locally}
+      # Listen on the container network so Docker can forward the host port.
+      # The published port below remains restricted to Windows localhost.
+      MARKETBRAIN_SERVER_ADDRESS: 0.0.0.0
       MARKETBRAIN_OLLAMA_BASE_URL: ${MARKETBRAIN_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       MARKETBRAIN_EXECUTION_MODE: PAPER
       MARKETBRAIN_PAYTM_ENABLED: ${MARKETBRAIN_PAYTM_ENABLED:-false}
