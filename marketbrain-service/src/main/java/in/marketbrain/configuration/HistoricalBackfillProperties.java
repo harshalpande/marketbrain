@@ -16,6 +16,7 @@ public record HistoricalBackfillProperties(
         @NotBlank String currentNifty500Url,
         @Min(500) long workerDelayMillis,
         @Min(1) @Max(3) int maximumAttempts,
+        @Min(1) @Max(50) int maximumExpansionBatchSize,
         @Size(min = 1, max = 10) List<String> pilotSymbols
 ) {
 }

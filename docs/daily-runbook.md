@@ -114,6 +114,7 @@ MARKETBRAIN_PAYTM_ACCESS_TOKEN=
 MARKETBRAIN_UPSTOX_ENABLED=false
 MARKETBRAIN_UPSTOX_ANALYTICS_TOKEN=
 MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=50
 ```
 
 Do not add a Paytm token yet. Upstox is the current primary read-only data candidate and is enabled in the controlled procedure below.
@@ -576,6 +577,7 @@ For the current ten-stock pilot, expect:
 - RELIANCE retains its genuine special-session candles;
 - missing candles for other symbols are classified as `MISSING_PROVIDER_DATA`, not deleted, copied, or forward-filled;
 - `duplicateRows=0`, `invalidRows=0`, and `blockingInstrumentCount=0` remain unchanged;
+- `reviewInstrumentCount=2` continues to expose the separate INFY and SBIN large-move findings even though both instruments also have the higher-priority `MISSING_PROVIDER_DATA` status;
 - `modelTrainingEligible=False` and `backtestingEligible=False` while any missing-data or review finding remains.
 
 The peer-confirmed check separately detects an absent candle on an ordinary date when at least 80 percent of comparable, active pilot instruments contain that date. An instrument is considered active only between its own first and last stored candle, which avoids treating years before a company's listing as missing data. Official special sessions are excluded from this peer calculation because they already have stronger exchange provenance.
@@ -591,7 +593,132 @@ $verifiedCoverage.providerSpotChecks |
     Format-Table symbol, status, comparisonDate, storedClose, providerClose, differencePercent -AutoSize
 ```
 
-This audit is diagnostic only. It does not fetch replacement candles, change PostgreSQL market data, generate signals, or start the remaining NIFTY 500 backfill. Keep the worker disabled and share the four summary outputs above for review before the expansion endpoint is implemented.
+This audit is diagnostic only. It does not fetch replacement candles, change PostgreSQL market data, generate signals, or start the remaining NIFTY 500 backfill. Keep the worker disabled and share the four summary outputs above for review before proceeding to Step 14.
+
+### 14. Create and run the first controlled NIFTY 500 expansion batch
+
+Run this step only after Step 13 has been reviewed. The expansion is deliberately manual and sequential: one batch is created, inspected, started, completed, and audited before another batch can be created. The default and maximum batch size is 50 stocks.
+
+Keep the worker disabled while deploying and creating the batch:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=50
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+docker compose --env-file .env logs --tail=150 marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+```
+
+Expected: health is `UP`, Flyway validates eight migrations, and the schema reaches V8. V8 classifies the existing job as `PILOT` and supports numbered expansion batches; it does not modify market candles.
+
+Confirm the pilot now reports the missing-data and large-move dimensions independently:
+
+```powershell
+$pilot = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$pilotQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$($pilot.jobId)"
+$pilotQuality | Select-Object qualityStatus, missingProviderDataInstrumentCount, reviewInstrumentCount, duplicateRows, invalidRows | Format-List
+```
+
+Expected for the reviewed pilot: `qualityStatus=MISSING_PROVIDER_DATA`, `missingProviderDataInstrumentCount=9`, `reviewInstrumentCount=2`, `duplicateRows=0`, and `invalidRows=0`.
+
+Create—but do not start—the first 50-stock expansion batch:
+
+```powershell
+$batch = Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch?years=15&batchSize=50'
+
+$batch | Select-Object batchNumber, selectedInstruments, remainingInstrumentsAfterBatch, maximumBatchSize, detail | Format-List
+$batch.job | Format-List
+$jobId = $batch.job.jobId
+```
+
+Expected for the first batch when approximately 500 snapshot members are matched:
+
+- `batchNumber=1`;
+- `selectedInstruments=50`;
+- approximately `440` instruments remain after excluding the ten pilot stocks;
+- `jobType=EXPANSION`, `status=CREATED`, and `workerEnabled=False`;
+- `instruments=50`, `totalChunks=750`, and `completedChunks=0` for a 15-year request.
+
+The exact remaining count can differ if the current snapshot has unmatched members. Inspect the complete deterministic symbol list before enabling the worker:
+
+```powershell
+$batchInstruments = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/instruments?jobId=$jobId"
+
+$batchInstruments |
+    Format-Table symbol, totalChunks, pendingChunks, runningChunks, retryChunks, completedChunks, failedChunks -AutoSize
+```
+
+Confirm there are exactly 50 unique symbols, none of the ten pilot symbols appear, every row has `totalChunks=15`, and every row initially has `pendingChunks=15`. If any condition fails, keep the worker disabled and stop.
+
+After inspection, enable the worker locally and recreate only the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+
+$started = Invoke-RestMethod -Method Post `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/start?jobId=$jobId"
+$started | Format-List
+```
+
+Monitor the persisted job exactly as in the pilot:
+
+```powershell
+do {
+    $batchStatus = Invoke-RestMethod `
+        "http://127.0.0.1:8080/api/v1/market-data/backfills/status?jobId=$jobId"
+    $batchStatus | Select-Object jobType, batchNumber, status, progressPercent, completedChunks, retryChunks, failedChunks, acceptedRows, rejectedRows, connectivityFailureCount, connectivityRetryAt, lastConnectivityErrorCode
+    if ($batchStatus.status -in @('COMPLETED', 'PARTIAL_FAILED')) { break }
+    Start-Sleep -Seconds 15
+} while ($true)
+```
+
+All existing Wi-Fi recovery, persisted checkpoint, retry, pause, resume, and Telegram system-NOTE protections apply unchanged. A second batch cannot be created while this batch is `CREATED`, `RUNNING`, `WAITING_FOR_CONNECTIVITY`, or `PAUSED`. A `PARTIAL_FAILED` expansion also blocks the next batch until it is investigated.
+
+After the job reaches `COMPLETED`, immediately disable the worker and recreate the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+
+$quality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$quality | Select-Object qualityStatus, instrumentCount, totalCandles, blockingInstrumentCount, missingProviderDataInstrumentCount, reviewInstrumentCount, duplicateRows, invalidRows, missingOfficialSessionCount, missingPeerConfirmedSessionCount, mutuallyAvailableTradingDateCount | Format-List
+
+$verifiedQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId&providerSpotCheck=true"
+$verifiedQuality | Select-Object qualityStatus, providerMismatchCount, providerCheckFailureCount, modelTrainingEligible, backtestingEligible | Format-List
+```
+
+Mandatory conditions before considering the next batch:
+
+- job `status=COMPLETED` and `failedChunks=0`;
+- `blockingInstrumentCount=0`, `duplicateRows=0`, and `invalidRows=0`;
+- `providerMismatchCount=0` and `providerCheckFailureCount=0`;
+- every peer-confirmed missing session and large-move finding is reviewed;
+- the worker is back to `False`.
+
+Do not create batch 2 yet. Share the job summary, database-only quality summary, provider-verified summary, and any missing-session or large-move findings first. Subsequent batches use the same `next-batch` command only after the previous completed batch has been reviewed. Completed expansion instruments are automatically excluded, and a smaller final batch is created when fewer than 50 remain.
 
 ## Spare runtime laptop: normal update and redeploy
 

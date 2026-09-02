@@ -6,6 +6,8 @@ import java.util.UUID;
 
 public record BackfillJobSummary(
         UUID jobId,
+        String jobType,
+        Integer batchNumber,
         String status,
         LocalDate fromDate,
         LocalDate toDate,

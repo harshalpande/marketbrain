@@ -27,6 +27,8 @@ class BackfillQualityRulesTest {
         assertThat(rules.instrumentStatus(10, 0, 0, 0, 0, 8, 0, 0, 7)).isEqualTo("REVIEW");
         assertThat(rules.instrumentStatus(10, 0, 0, 0, 0, 0, 1, 0, 7)).isEqualTo("REVIEW");
         assertThat(rules.instrumentStatus(10, 0, 0, 0, 0, 0, 0, 1, 7)).isEqualTo("REVIEW");
+        assertThat(rules.requiresReview(0, 0, 0, 1, 7)).isTrue();
+        assertThat(rules.requiresReview(0, 0, 0, 0, 7)).isFalse();
     }
 
     @Test

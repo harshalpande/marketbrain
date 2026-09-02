@@ -50,4 +50,17 @@ public class BackfillQualityRules {
         }
         return "PASS";
     }
+
+    public boolean requiresReview(
+            int leadingCoverageGapDays,
+            int trailingCoverageGapDays,
+            int suspiciousGapCount,
+            int largeMoveCount,
+            int suspiciousGapThresholdDays
+    ) {
+        return leadingCoverageGapDays > suspiciousGapThresholdDays
+                || trailingCoverageGapDays > suspiciousGapThresholdDays
+                || suspiciousGapCount > 0
+                || largeMoveCount > 0;
+    }
 }

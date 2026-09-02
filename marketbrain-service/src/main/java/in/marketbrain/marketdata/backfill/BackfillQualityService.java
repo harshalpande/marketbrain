@@ -77,7 +77,9 @@ public class BackfillQualityService {
         int missingProviderData = (int) instruments.stream()
                 .filter(item -> item.missingOfficialSessionCount() + item.missingPeerConfirmedSessionCount() > 0)
                 .count();
-        int review = (int) instruments.stream().filter(item -> "REVIEW".equals(item.status())).count();
+        int review = (int) instruments.stream().filter(instrument -> rules.requiresReview(
+                instrument.leadingCoverageGapDays(), instrument.trailingCoverageGapDays(),
+                instrument.suspiciousGapCount(), instrument.largeMoveCount(), SUSPICIOUS_GAP_DAYS)).count();
         int providerMismatches = (int) providerChecks.stream()
                 .filter(item -> List.of("PRICE_MISMATCH", "DATE_MISMATCH").contains(item.status()))
                 .count();

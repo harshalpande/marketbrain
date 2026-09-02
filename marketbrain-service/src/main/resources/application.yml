@@ -54,6 +54,7 @@ marketbrain:
     current-nifty500-url: ${MARKETBRAIN_CURRENT_NIFTY500_URL:https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv}
     worker-delay-millis: ${MARKETBRAIN_BACKFILL_WORKER_DELAY_MILLIS:1500}
     maximum-attempts: ${MARKETBRAIN_BACKFILL_MAXIMUM_ATTEMPTS:3}
+    maximum-expansion-batch-size: ${MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE:50}
     pilot-symbols: ${MARKETBRAIN_BACKFILL_PILOT_SYMBOLS:INFY,TCS,RELIANCE,HDFCBANK,ICICIBANK,SBIN,ITC,HINDUNILVR,LT,BHARTIARTL}
   telegram:
     enabled: ${MARKETBRAIN_TELEGRAM_ENABLED:false}

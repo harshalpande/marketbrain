@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -43,6 +44,18 @@ public class HistoricalBackfillController {
     public BackfillJobSummary createPilot(@RequestParam(defaultValue = "15") int years) {
         try {
             return jobService.createPilot(years);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/nifty500/next-batch")
+    public ExpansionBatchCreationResult createNextExpansionBatch(
+            @RequestParam(defaultValue = "15") int years,
+            @RequestParam(defaultValue = "50") int batchSize
+    ) {
+        try {
+            return jobService.createNextExpansionBatch(years, batchSize);
         } catch (IllegalArgumentException | IllegalStateException exception) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
         }
@@ -84,6 +97,15 @@ public class HistoricalBackfillController {
     public BackfillJobSummary latest() {
         try {
             return jobService.latestSummary();
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/instruments")
+    public List<BackfillJobInstrumentSummary> instruments(@RequestParam UUID jobId) {
+        try {
+            return jobService.instruments(jobId);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
