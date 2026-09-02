@@ -39,6 +39,11 @@ marketbrain:
     base-url: ${MARKETBRAIN_PAYTM_BASE_URL:https://developer.paytmmoney.com}
     enabled: ${MARKETBRAIN_PAYTM_ENABLED:false}
     access-token: ${MARKETBRAIN_PAYTM_ACCESS_TOKEN:}
+  upstox:
+    base-url: ${MARKETBRAIN_UPSTOX_BASE_URL:https://api.upstox.com}
+    nse-instrument-url: ${MARKETBRAIN_UPSTOX_NSE_INSTRUMENT_URL:https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz}
+    enabled: ${MARKETBRAIN_UPSTOX_ENABLED:false}
+    analytics-token: ${MARKETBRAIN_UPSTOX_ANALYTICS_TOKEN:}
   telegram:
     enabled: ${MARKETBRAIN_TELEGRAM_ENABLED:false}
     bot-token: ${MARKETBRAIN_TELEGRAM_BOT_TOKEN:}

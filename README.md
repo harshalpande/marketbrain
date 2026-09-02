@@ -12,7 +12,7 @@ Phase 1 establishes the data-first foundation. It is deliberately paper-only:
 - no broker order placement is implemented;
 - Telegram remains disabled until a private bot token and local pairing code are configured.
 
-The current increment adds private Telegram pairing over outbound long polling and manually invoked, clearly labelled test alerts. Test approvals are deliberately blocked until fresh-price and risk revalidation are connected. It still does not pull market data automatically, create a paper fill, or place any broker order.
+The current increment adds a disabled-by-default, read-only Upstox REST foundation for the official NSE instrument master, timestamped quotes, and bounded historical candles. Collection remains manually invoked; stale data is non-actionable. Private Telegram pairing and labelled test alerts remain available, while approvals stay blocked until live-price and risk revalidation are connected. The system still does not create a paper fill or place any broker order.
 
 ## Repository layout
 
@@ -30,9 +30,9 @@ The current increment adds private Telegram pairing over outbound long polling a
 - Node.js 22 or newer
 - PostgreSQL 18 running locally with the `marketbrain` database
 
-The backend reads database credentials only from environment variables. Never commit credentials, Telegram bot tokens, Paytm tokens, or broker passwords.
+The backend reads database credentials only from environment variables. Never commit credentials, Telegram bot tokens, Analytics Tokens, Paytm tokens, or broker passwords.
 
-For Paytm Money feasibility details and the Nifty 500 import format, see [data-provider-feasibility.md](docs/data-provider-feasibility.md).
+For Upstox and Paytm Money feasibility details and the Nifty 500 import format, see [data-provider-feasibility.md](docs/data-provider-feasibility.md).
 
 For daily build, deployment, verification, and troubleshooting commands, use [daily-runbook.md](docs/daily-runbook.md).
 

@@ -17,6 +17,7 @@ public record MarketBrainProperties(
         @Valid Ollama ollama,
         @Valid Signal signal,
         @Valid PaytmMoney paytmMoney,
+        @Valid Upstox upstox,
         @Valid Telegram telegram
 ) {
     public record Paper(@DecimalMin("0.00") BigDecimal startingCash) {
@@ -42,6 +43,21 @@ public record MarketBrainProperties(
     ) {
         public boolean isConfigured() {
             return enabled && accessToken != null && !accessToken.isBlank();
+        }
+    }
+
+    /**
+     * Read-only Upstox Analytics Token configuration. The token is optional so
+     * a fresh installation remains inert until explicitly enabled locally.
+     */
+    public record Upstox(
+            @NotBlank String baseUrl,
+            @NotBlank String nseInstrumentUrl,
+            boolean enabled,
+            String analyticsToken
+    ) {
+        public boolean isConfigured() {
+            return enabled && analyticsToken != null && !analyticsToken.isBlank();
         }
     }
 

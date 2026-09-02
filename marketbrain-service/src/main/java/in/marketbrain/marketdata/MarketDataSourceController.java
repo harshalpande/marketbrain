@@ -36,10 +36,13 @@ public class MarketDataSourceController {
     }
 
     private String statusFor(String code) {
-        if (!"PAYTM_MONEY".equals(code)) {
-            return "PLANNED";
-        }
-        return properties.paytmMoney().isConfigured() ? "CONFIGURED_NOT_TESTED" : "DISABLED";
+        return switch (code) {
+            case "PAYTM_MONEY" -> properties.paytmMoney().isConfigured()
+                    ? "CONFIGURED_NOT_TESTED" : "DISABLED";
+            case "UPSTOX" -> properties.upstox().isConfigured()
+                    ? "CONFIGURED_READ_ONLY" : "DISABLED";
+            default -> "PLANNED";
+        };
     }
 
     public record ProviderStatus(

@@ -89,6 +89,8 @@ class TelegramUpdateHandlerTest {
                 new MarketBrainProperties.Ollama("http://127.0.0.1:11434"),
                 new MarketBrainProperties.Signal(90, 60),
                 new MarketBrainProperties.PaytmMoney("https://developer.paytmmoney.com", false, ""),
+                new MarketBrainProperties.Upstox(
+                        "https://api.upstox.com", "https://example.test/NSE.json.gz", false, ""),
                 new MarketBrainProperties.Telegram(true, "bot-token", "LOCAL-ONLY-CODE-1", 20, 1000, false)
         );
     }

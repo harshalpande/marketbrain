@@ -111,9 +111,11 @@ MARKETBRAIN_OLLAMA_BASE_URL=http://host.docker.internal:11434
 MARKETBRAIN_PAPER_STARTING_CASH=100000
 MARKETBRAIN_PAYTM_ENABLED=false
 MARKETBRAIN_PAYTM_ACCESS_TOKEN=
+MARKETBRAIN_UPSTOX_ENABLED=false
+MARKETBRAIN_UPSTOX_ANALYTICS_TOKEN=
 ```
 
-Do not add a Paytm token yet. We will enable it only for a deliberately small, read-only feasibility check.
+Do not add a Paytm token yet. Upstox is the current primary read-only data candidate and is enabled in the controlled procedure below.
 
 ### 4. Configure the private Telegram bot once
 
@@ -165,6 +167,7 @@ Expected:
 - health returns `UP`;
 - system status reports `PAPER`;
 - Paytm Money reports `DISABLED`;
+- Upstox reports `DISABLED` until the controlled read-only setup below is completed;
 - Telegram reports `enabled=True`, `configured=True`, and initially `paired=False`;
 - the dashboard shows a permanent PAPER MODE label.
 
@@ -216,6 +219,68 @@ After testing, set `MARKETBRAIN_TELEGRAM_TEST_ALERTS_ENABLED=false` and apply it
 docker compose --env-file .env up -d marketbrain-service
 Invoke-RestMethod http://127.0.0.1:8080/api/v1/telegram/status
 ```
+
+### 9. Configure and verify Upstox read-only market data
+
+Prerequisite: generate an Upstox Analytics Token in the authenticated Upstox developer portal. The token is read-only and expires after its provider-defined lifetime. Never paste it into PowerShell history, Git, logs, source code, or chat.
+
+Open the spare laptop's ignored `.env` file:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+notepad .env
+```
+
+Set these values locally. Paste the full token only into `.env` after the equals sign:
+
+```properties
+MARKETBRAIN_UPSTOX_ENABLED=true
+MARKETBRAIN_UPSTOX_BASE_URL=https://api.upstox.com
+MARKETBRAIN_UPSTOX_NSE_INSTRUMENT_URL=https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz
+MARKETBRAIN_UPSTOX_ANALYTICS_TOKEN=<paste the full Analytics Token locally>
+```
+
+Rebuild and start the backend. Flyway will add only the provider-instrument and quote-snapshot tables required for this phase:
+
+```powershell
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+docker compose --env-file .env logs --tail=100 marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+Invoke-RestMethod http://127.0.0.1:8080/api/v1/data-sources
+```
+
+Expected: health is `UP`; Upstox reports `CONFIGURED_READ_ONLY`. The status call never displays the token.
+
+Import the official NSE instrument master once. This downloads Upstox's documented NSE JSON/GZIP file and stores only NSE cash equities; it does not import futures or options:
+
+```powershell
+$instrumentImport = Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/upstox/instruments/nse/import'
+$instrumentImport | Format-List
+```
+
+Expected: `status=SUCCESS`, with non-zero `received` and `accepted` counts. A large `rejected` count is normal because the source file also contains non-equity instruments.
+
+Run one controlled INFY quote check. `%7C` is the URL-encoded form of the `|` in the provider instrument key:
+
+```powershell
+$quote = Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/upstox/quote?instrumentKey=NSE_EQ%7CINE009A01021'
+$quote | Format-List
+```
+
+During market hours, expect `status=SUCCESS`, `qualityStatus=FRESH`, `actionable=True`, and `persisted=True`. Outside market hours, `STALE` and `actionable=False` are correct safety behavior—not a failure.
+
+Finally, import a small historical daily sample:
+
+```powershell
+$candles = Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/upstox/candles/import?instrumentKey=NSE_EQ%7CINE009A01021&unit=days&interval=1&fromDate=2026-08-25&toDate=2026-09-01'
+$candles | Format-List
+```
+
+Expected: `status=SUCCESS`; accepted candles are stored idempotently. Repeating the same import updates the same source/time rows instead of duplicating them. This phase does not schedule collection, generate a signal, send a Telegram alert, execute a paper trade, or place a real broker order.
 
 ## Spare runtime laptop: normal update and redeploy
 
@@ -312,6 +377,8 @@ docker compose --env-file .env logs --tail=200 marketbrain-service
 ```
 
 If Telegram polling repeatedly fails, confirm the spare laptop has internet access and that no other application is polling with the same bot token. Provider exception messages are deliberately excluded from application logs so the token-bearing request URL cannot leak.
+
+If Upstox returns `PROVIDER_ERROR`, confirm that `MARKETBRAIN_UPSTOX_ENABLED=true` and that the complete current Analytics Token is present in the local `.env`. Recreate the backend after changing `.env`. Do not print the token. An expired or replaced Analytics Token must be regenerated in Upstox and updated locally.
 
 ## Runbook maintenance rule
 

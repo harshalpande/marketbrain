@@ -18,14 +18,16 @@ public class ProviderCatalog {
                         "Paytm Money Open API",
                         Set.of(MarketDataCapability.INTRADAY_QUOTES, MarketDataCapability.HISTORICAL_CANDLES,
                                 MarketDataCapability.POSITIONS, MarketDataCapability.ORDERS, MarketDataCapability.TRADES),
-                        "Primary feasibility candidate. Historical API is documented as beta; disabled until a local "
+                        "Deferred broker candidate. Historical API is documented as beta; disabled until a local "
                                 + "read-only feasibility check succeeds."
                 ),
                 new ProviderDefinition(
                         "UPSTOX",
                         "Upstox Developer API",
-                        Set.of(MarketDataCapability.INTRADAY_QUOTES, MarketDataCapability.HISTORICAL_CANDLES),
-                        "Optional secondary provider; no account activation is assumed."
+                        Set.of(MarketDataCapability.INTRADAY_QUOTES, MarketDataCapability.HISTORICAL_CANDLES,
+                                MarketDataCapability.NEWS_EVENTS),
+                        "Primary read-only provider candidate. Analytics Token access was manually verified; "
+                                + "application ingestion remains disabled until configured locally."
                 ),
                 new ProviderDefinition(
                         "NSE_DATA",
