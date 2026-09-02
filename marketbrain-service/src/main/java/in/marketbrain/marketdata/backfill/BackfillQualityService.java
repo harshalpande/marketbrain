@@ -15,7 +15,9 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -25,6 +27,8 @@ public class BackfillQualityService {
     static final BigDecimal LARGE_MOVE_PERCENT = new BigDecimal("20.00");
     private static final BigDecimal PROVIDER_MATCH_TOLERANCE_PERCENT = new BigDecimal("0.01");
     private static final int MAXIMUM_FINDINGS_PER_TYPE = 100;
+    private static final int MAXIMUM_MISSING_SESSION_FINDINGS = 500;
+    private static final int PEER_SESSION_COVERAGE_PERCENT = 80;
     private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
 
     private final JdbcTemplate jdbcTemplate;
@@ -48,9 +52,21 @@ public class BackfillQualityService {
         }
 
         List<InstrumentMetrics> metrics = instrumentMetrics(job);
+        Map<Long, Integer> missingOfficialSessionsByInstrument = missingOfficialSessionCounts(job);
+        Map<Long, Integer> missingPeerSessionsByInstrument = missingPeerSessionCounts(job);
         List<BackfillQualityReport.InstrumentQuality> instruments = metrics.stream()
-                .map(metric -> toInstrumentQuality(job, metric))
+                .map(metric -> toInstrumentQuality(
+                        job, metric,
+                        missingOfficialSessionsByInstrument.getOrDefault(metric.instrumentId(), 0),
+                        missingPeerSessionsByInstrument.getOrDefault(metric.instrumentId(), 0)))
                 .toList();
+        List<BackfillQualityReport.OfficialSessionCoverage> officialSessionCoverage =
+                officialSessionCoverage(job);
+        List<BackfillQualityReport.MissingSessionFinding> missingOfficialSessions =
+                missingOfficialSessions(job);
+        PeerCoverageSummary peerCoverageSummary = peerCoverageSummary(job);
+        List<BackfillQualityReport.MissingSessionFinding> missingPeerConfirmedSessions =
+                missingPeerConfirmedSessions(job);
         List<BackfillQualityReport.GapFinding> gaps = suspiciousGaps(jobId);
         List<BackfillQualityReport.LargeMoveFinding> moves = largeMoves(jobId);
         List<BackfillQualityReport.ProviderSpotCheck> providerChecks = providerSpotCheck
@@ -58,6 +74,9 @@ public class BackfillQualityService {
                 : List.of();
 
         int blocking = (int) instruments.stream().filter(item -> "BLOCKED".equals(item.status())).count();
+        int missingProviderData = (int) instruments.stream()
+                .filter(item -> item.missingOfficialSessionCount() + item.missingPeerConfirmedSessionCount() > 0)
+                .count();
         int review = (int) instruments.stream().filter(item -> "REVIEW".equals(item.status())).count();
         int providerMismatches = (int) providerChecks.stream()
                 .filter(item -> List.of("PRICE_MISMATCH", "DATE_MISMATCH").contains(item.status()))
@@ -67,21 +86,287 @@ public class BackfillQualityService {
                 .filter(item -> !List.of("PRICE_MISMATCH", "DATE_MISMATCH").contains(item.status()))
                 .count();
         String qualityStatus = rules.overallStatus(
-                instruments.size(), blocking, review, providerMismatches, providerFailures);
+                instruments.size(), blocking, missingProviderData, review, providerMismatches, providerFailures);
+        int missingOfficialSessionCount = officialSessionCoverage.stream()
+                .mapToInt(BackfillQualityReport.OfficialSessionCoverage::missingInstrumentCount)
+                .sum();
+        boolean eligible = "PASS".equals(qualityStatus) && providerSpotCheck;
 
         return new BackfillQualityReport(
                 jobId, job.status(), qualityStatus, job.fromDate(), job.toDate(), instruments.size(),
                 instruments.stream().mapToLong(BackfillQualityReport.InstrumentQuality::candleCount).sum(),
-                blocking, review,
+                blocking, missingProviderData, review,
                 instruments.stream().mapToInt(BackfillQualityReport.InstrumentQuality::duplicateRows).sum(),
                 instruments.stream().mapToInt(BackfillQualityReport.InstrumentQuality::invalidRows).sum(),
                 instruments.stream().mapToInt(BackfillQualityReport.InstrumentQuality::suspiciousGapCount).sum(),
                 instruments.stream().mapToInt(BackfillQualityReport.InstrumentQuality::largeMoveCount).sum(),
-                providerMismatches, providerFailures, SUSPICIOUS_GAP_DAYS, LARGE_MOVE_PERCENT,
-                providerSpotCheck, instruments, gaps, moves, providerChecks,
-                "Calendar gaps over seven days and close moves over twenty percent are review candidates, "
-                        + "not automatic proof of missing data or a corporate action."
+                providerMismatches, providerFailures, officialSessionCoverage.size(),
+                missingOfficialSessionCount, peerCoverageSummary.sessionCount(),
+                peerCoverageSummary.missingCount(), mutuallyAvailableTradingDateCount(job),
+                SUSPICIOUS_GAP_DAYS, LARGE_MOVE_PERCENT,
+                providerSpotCheck, eligible, eligible, eligibilityReasons(
+                        blocking, missingOfficialSessionCount, peerCoverageSummary.missingCount(), review,
+                        providerMismatches, providerFailures, providerSpotCheck),
+                instruments, officialSessionCoverage, missingOfficialSessions, missingPeerConfirmedSessions,
+                gaps, moves, providerChecks,
+                "Official special sessions are audited separately from ordinary calendar gaps. Missing provider "
+                        + "candles are reported but never fabricated or forward-filled."
         );
+    }
+
+    private Map<Long, Integer> missingOfficialSessionCounts(JobScope job) {
+        Map<Long, Integer> counts = new HashMap<>();
+        List<MissingSessionCount> rows = jdbcTemplate.query(officialSessionCoverageCte() + """
+                SELECT eligible.instrument_id, COUNT(*) AS missing_count
+                FROM eligible_sessions eligible
+                LEFT JOIN daily ON daily.instrument_id = eligible.instrument_id
+                               AND daily.trading_date = eligible.trading_date
+                WHERE daily.instrument_id IS NULL
+                GROUP BY eligible.instrument_id
+                """, (rs, row) -> new MissingSessionCount(
+                        rs.getLong("instrument_id"), rs.getInt("missing_count")),
+                job.id());
+        rows.forEach(row -> counts.put(row.instrumentId(), row.count()));
+        return Map.copyOf(counts);
+    }
+
+    private List<BackfillQualityReport.OfficialSessionCoverage> officialSessionCoverage(JobScope job) {
+        return jdbcTemplate.query(officialSessionCoverageCte() + """
+                SELECT session.trading_date, session.session_type, session.session_name, session.source_url,
+                       COUNT(eligible.instrument_id) AS eligible_count,
+                       COUNT(daily.instrument_id) AS present_count,
+                       COUNT(eligible.instrument_id) - COUNT(daily.instrument_id) AS missing_count
+                FROM scoped_sessions session
+                LEFT JOIN eligible_sessions eligible ON eligible.trading_date = session.trading_date
+                LEFT JOIN daily ON daily.instrument_id = eligible.instrument_id
+                               AND daily.trading_date = eligible.trading_date
+                GROUP BY session.trading_date, session.session_type, session.session_name, session.source_url
+                ORDER BY session.trading_date
+                """, (rs, row) -> {
+            int missing = rs.getInt("missing_count");
+            return new BackfillQualityReport.OfficialSessionCoverage(
+                    rs.getDate("trading_date").toLocalDate(), rs.getString("session_type"),
+                    rs.getString("session_name"), rs.getInt("eligible_count"),
+                    rs.getInt("present_count"), missing, missing == 0 ? "PASS" : "MISSING_PROVIDER_DATA",
+                    rs.getString("source_url"));
+        }, job.id());
+    }
+
+    private List<BackfillQualityReport.MissingSessionFinding> missingOfficialSessions(JobScope job) {
+        return jdbcTemplate.query(officialSessionCoverageCte() + """
+                SELECT eligible.source_symbol, eligible.trading_date, eligible.session_type,
+                       eligible.session_name, eligible.source_url
+                FROM eligible_sessions eligible
+                LEFT JOIN daily ON daily.instrument_id = eligible.instrument_id
+                               AND daily.trading_date = eligible.trading_date
+                WHERE daily.instrument_id IS NULL
+                ORDER BY eligible.trading_date, eligible.source_symbol
+                LIMIT ?
+                """, (rs, row) -> new BackfillQualityReport.MissingSessionFinding(
+                rs.getString("source_symbol"), rs.getDate("trading_date").toLocalDate(),
+                rs.getString("session_type"), rs.getString("session_name"),
+                "OFFICIAL_NSE_SPECIAL_SESSION", "MISSING_PROVIDER_DATA", rs.getString("source_url")),
+                job.id(),
+                MAXIMUM_MISSING_SESSION_FINDINGS);
+    }
+
+    private String officialSessionCoverageCte() {
+        return """
+                WITH job_scope AS (
+                    SELECT id, requested_from, requested_to
+                    FROM historical_backfill_job
+                    WHERE id = ?
+                ), job_instruments AS (
+                    SELECT DISTINCT instrument_id, source_symbol
+                    FROM historical_backfill_chunk chunk
+                    JOIN job_scope ON job_scope.id = chunk.job_id
+                ), daily AS (
+                    SELECT ji.instrument_id,
+                           (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
+                    FROM job_instruments ji
+                    JOIN market_candle candle ON candle.instrument_id = ji.instrument_id
+                    JOIN market_data_source source ON source.id = candle.source_id AND source.code = 'UPSTOX'
+                    CROSS JOIN job_scope
+                    WHERE candle.interval_code = 'days:1'
+                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                          BETWEEN job_scope.requested_from AND job_scope.requested_to
+                    GROUP BY ji.instrument_id,
+                             (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                ), bounds AS (
+                    SELECT ji.instrument_id, ji.source_symbol,
+                           MIN(daily.trading_date) AS first_date,
+                           MAX(daily.trading_date) AS last_date
+                    FROM job_instruments ji
+                    LEFT JOIN daily ON daily.instrument_id = ji.instrument_id
+                    GROUP BY ji.instrument_id, ji.source_symbol
+                ), scoped_sessions AS (
+                    SELECT trading_date, session_type, session_name, source_url
+                    FROM exchange_special_trading_session
+                    CROSS JOIN job_scope
+                    WHERE exchange_code = 'NSE' AND segment_code = 'EQ'
+                      AND trading_date BETWEEN job_scope.requested_from AND job_scope.requested_to
+                ), eligible_sessions AS (
+                    SELECT bounds.instrument_id, bounds.source_symbol, session.trading_date,
+                           session.session_type, session.session_name, session.source_url
+                    FROM bounds
+                    CROSS JOIN scoped_sessions session
+                    WHERE session.trading_date BETWEEN bounds.first_date AND bounds.last_date
+                )
+                """;
+    }
+
+    private Map<Long, Integer> missingPeerSessionCounts(JobScope job) {
+        Map<Long, Integer> counts = new HashMap<>();
+        List<MissingSessionCount> rows = jdbcTemplate.query(peerSessionCoverageCte() + """
+                SELECT eligible.instrument_id, COUNT(*) AS missing_count
+                FROM eligible_peer_sessions eligible
+                LEFT JOIN daily ON daily.instrument_id = eligible.instrument_id
+                               AND daily.trading_date = eligible.trading_date
+                WHERE daily.instrument_id IS NULL
+                GROUP BY eligible.instrument_id
+                """, (rs, row) -> new MissingSessionCount(
+                rs.getLong("instrument_id"), rs.getInt("missing_count")), job.id());
+        rows.forEach(row -> counts.put(row.instrumentId(), row.count()));
+        return Map.copyOf(counts);
+    }
+
+    private PeerCoverageSummary peerCoverageSummary(JobScope job) {
+        List<PeerCoverageSummary> summaries = jdbcTemplate.query(peerSessionCoverageCte() + """
+                SELECT COUNT(DISTINCT peer.trading_date) AS session_count,
+                       COUNT(eligible.instrument_id) FILTER (WHERE daily.instrument_id IS NULL) AS missing_count
+                FROM peer_sessions peer
+                LEFT JOIN eligible_peer_sessions eligible ON eligible.trading_date = peer.trading_date
+                LEFT JOIN daily ON daily.instrument_id = eligible.instrument_id
+                               AND daily.trading_date = eligible.trading_date
+                """, (rs, row) -> new PeerCoverageSummary(
+                rs.getInt("session_count"), rs.getInt("missing_count")), job.id());
+        return summaries.isEmpty() ? new PeerCoverageSummary(0, 0) : summaries.getFirst();
+    }
+
+    private List<BackfillQualityReport.MissingSessionFinding> missingPeerConfirmedSessions(JobScope job) {
+        return jdbcTemplate.query(peerSessionCoverageCte() + """
+                SELECT eligible.source_symbol, eligible.trading_date
+                FROM eligible_peer_sessions eligible
+                LEFT JOIN daily ON daily.instrument_id = eligible.instrument_id
+                               AND daily.trading_date = eligible.trading_date
+                WHERE daily.instrument_id IS NULL
+                ORDER BY eligible.trading_date, eligible.source_symbol
+                LIMIT ?
+                """, (rs, row) -> new BackfillQualityReport.MissingSessionFinding(
+                rs.getString("source_symbol"), rs.getDate("trading_date").toLocalDate(),
+                "REGULAR_OR_EXCHANGE_SESSION", "Peer-confirmed trading session",
+                "AT_LEAST_80_PERCENT_OF_JOB_INSTRUMENTS_HAVE_A_CANDLE",
+                "MISSING_PROVIDER_DATA", null), job.id(), MAXIMUM_MISSING_SESSION_FINDINGS);
+    }
+
+    private String peerSessionCoverageCte() {
+        return """
+                WITH job_scope AS (
+                    SELECT id, requested_from, requested_to
+                    FROM historical_backfill_job
+                    WHERE id = ?
+                ), job_instruments AS (
+                    SELECT DISTINCT chunk.instrument_id, chunk.source_symbol
+                    FROM historical_backfill_chunk chunk
+                    JOIN job_scope ON job_scope.id = chunk.job_id
+                ), daily AS (
+                    SELECT ji.instrument_id,
+                           (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
+                    FROM job_instruments ji
+                    JOIN market_candle candle ON candle.instrument_id = ji.instrument_id
+                    JOIN market_data_source source ON source.id = candle.source_id AND source.code = 'UPSTOX'
+                    CROSS JOIN job_scope
+                    WHERE candle.interval_code = 'days:1'
+                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                          BETWEEN job_scope.requested_from AND job_scope.requested_to
+                    GROUP BY ji.instrument_id,
+                             (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                ), bounds AS (
+                    SELECT ji.instrument_id, ji.source_symbol,
+                           MIN(daily.trading_date) AS first_date,
+                           MAX(daily.trading_date) AS last_date
+                    FROM job_instruments ji
+                    LEFT JOIN daily ON daily.instrument_id = ji.instrument_id
+                    GROUP BY ji.instrument_id, ji.source_symbol
+                ), candidate_sessions AS (
+                    SELECT DISTINCT daily.trading_date
+                    FROM daily
+                    LEFT JOIN exchange_special_trading_session special
+                           ON special.exchange_code = 'NSE' AND special.segment_code = 'EQ'
+                          AND special.trading_date = daily.trading_date
+                    WHERE special.trading_date IS NULL
+                ), peer_sessions AS (
+                    SELECT candidate.trading_date
+                    FROM candidate_sessions candidate
+                    JOIN bounds ON candidate.trading_date BETWEEN bounds.first_date AND bounds.last_date
+                    LEFT JOIN daily ON daily.instrument_id = bounds.instrument_id
+                                   AND daily.trading_date = candidate.trading_date
+                    GROUP BY candidate.trading_date
+                    HAVING COUNT(bounds.instrument_id) >= 2
+                       AND COUNT(daily.instrument_id) * 100 >=
+                           COUNT(bounds.instrument_id) * """ + PEER_SESSION_COVERAGE_PERCENT + """
+                ), eligible_peer_sessions AS (
+                    SELECT bounds.instrument_id, bounds.source_symbol, peer.trading_date
+                    FROM bounds
+                    CROSS JOIN peer_sessions peer
+                    WHERE peer.trading_date BETWEEN bounds.first_date AND bounds.last_date
+                )
+                """;
+    }
+
+    private long mutuallyAvailableTradingDateCount(JobScope job) {
+        Long count = jdbcTemplate.queryForObject("""
+                WITH job_instruments AS (
+                    SELECT DISTINCT instrument_id
+                    FROM historical_backfill_chunk
+                    WHERE job_id = ?
+                ), shared_dates AS (
+                    SELECT (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
+                    FROM market_candle candle
+                    JOIN job_instruments job_instrument ON job_instrument.instrument_id = candle.instrument_id
+                    JOIN market_data_source source ON source.id = candle.source_id AND source.code = 'UPSTOX'
+                    WHERE candle.interval_code = 'days:1'
+                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date BETWEEN ? AND ?
+                    GROUP BY (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                    HAVING COUNT(DISTINCT candle.instrument_id) = (SELECT COUNT(*) FROM job_instruments)
+                )
+                SELECT COUNT(*) FROM shared_dates
+                """, Long.class, job.id(), Date.valueOf(job.fromDate()), Date.valueOf(job.toDate()));
+        return count == null ? 0 : count;
+    }
+
+    private List<String> eligibilityReasons(
+            int blocking,
+            int missingOfficialSessions,
+            int missingPeerConfirmedSessions,
+            int review,
+            int providerMismatches,
+            int providerFailures,
+            boolean providerSpotCheck
+    ) {
+        List<String> reasons = new ArrayList<>();
+        if (blocking > 0) {
+            reasons.add("One or more instruments contain missing, duplicate, or invalid structural data.");
+        }
+        if (missingOfficialSessions > 0) {
+            reasons.add("Official NSE special-session candles are missing from the provider dataset.");
+        }
+        if (missingPeerConfirmedSessions > 0) {
+            reasons.add("Candles are missing on dates present for at least eighty percent of comparable instruments.");
+        }
+        if (review > 0) {
+            reasons.add("One or more calendar-gap or large-move findings still require review.");
+        }
+        if (providerMismatches > 0) {
+            reasons.add("Stored candles do not match the provider spot check.");
+        }
+        if (providerFailures > 0) {
+            reasons.add("One or more provider spot checks could not be completed.");
+        }
+        if (!providerSpotCheck) {
+            reasons.add("The final provider spot check has not been requested for this audit.");
+        }
+        return reasons.isEmpty() ? List.of("All configured quality gates passed.") : List.copyOf(reasons);
     }
 
     private JobScope jobScope(UUID jobId) {
@@ -282,15 +567,23 @@ public class BackfillQualityService {
         return closes.isEmpty() ? null : closes.getFirst();
     }
 
-    private BackfillQualityReport.InstrumentQuality toInstrumentQuality(JobScope job, InstrumentMetrics metric) {
+    private BackfillQualityReport.InstrumentQuality toInstrumentQuality(
+            JobScope job,
+            InstrumentMetrics metric,
+            int missingOfficialSessionCount,
+            int missingPeerConfirmedSessionCount
+    ) {
         int leadingGap = boundaryGap(job.fromDate(), metric.firstDate());
         int trailingGap = boundaryGap(metric.lastDate(), job.toDate());
         String status = rules.instrumentStatus(
-                metric.candleCount(), metric.duplicateRows(), metric.invalidRows(), leadingGap, trailingGap,
-                metric.suspiciousGapCount(), metric.largeMoveCount(), SUSPICIOUS_GAP_DAYS);
+                metric.candleCount(), metric.duplicateRows(), metric.invalidRows(),
+                missingOfficialSessionCount + missingPeerConfirmedSessionCount,
+                leadingGap, trailingGap, metric.suspiciousGapCount(), metric.largeMoveCount(),
+                SUSPICIOUS_GAP_DAYS);
         return new BackfillQualityReport.InstrumentQuality(
                 metric.symbol(), metric.firstDate(), metric.lastDate(), metric.candleCount(),
-                leadingGap, trailingGap, metric.longestGapDays(), metric.suspiciousGapCount(),
+                missingOfficialSessionCount, missingPeerConfirmedSessionCount, leadingGap, trailingGap,
+                metric.longestGapDays(), metric.suspiciousGapCount(),
                 metric.largeMoveCount(), metric.maximumMovePercent(), metric.duplicateRows(),
                 metric.invalidRows(), status);
     }
@@ -339,5 +632,11 @@ public class BackfillQualityService {
     }
 
     private record StoredClose(LocalDate date, BigDecimal close) {
+    }
+
+    private record MissingSessionCount(long instrumentId, int count) {
+    }
+
+    private record PeerCoverageSummary(int sessionCount, int missingCount) {
     }
 }

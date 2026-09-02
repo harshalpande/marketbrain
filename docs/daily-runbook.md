@@ -521,6 +521,78 @@ WHERE interval_code = 'days:1'
 
 Both counts must be `0`. The common ingestion path now protects every future stock. Identical same-date provider rows are collapsed before persistence. A difference of at most one paisa in high or low retains the wider range; material differences stop that chunk for review. Do not start the remaining-instrument expansion until all checks in this section pass and the expansion endpoint has been implemented and reviewed.
 
+### 13. Deploy and verify calendar-aware coverage auditing
+
+This step installs Flyway V7 and expands the existing read-only quality endpoint. V7 creates an auditable calendar containing the twelve officially verified NSE equity special sessions encountered during the pilot. It does not update or delete any candle.
+
+Keep the historical worker disabled during this deployment:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+docker compose --env-file .env logs --tail=150 marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+```
+
+Expected: health is `UP`, Flyway validates seven migrations, and the schema reaches V7. If Flyway fails, do not edit Flyway history or rerun the SQL manually; retain the logs and stop here.
+
+Run the enhanced audit against the completed pilot:
+
+```powershell
+$pilot = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $pilot.jobId
+
+$coverage = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+
+$coverage | Select-Object qualityStatus, instrumentCount, totalCandles, blockingInstrumentCount, missingProviderDataInstrumentCount, reviewInstrumentCount, duplicateRows, invalidRows, officialSpecialSessionCount, missingOfficialSessionCount, peerConfirmedSessionCount, missingPeerConfirmedSessionCount, mutuallyAvailableTradingDateCount, modelTrainingEligible, backtestingEligible | Format-List
+
+$coverage.officialSessionCoverage |
+    Format-Table tradingDate, sessionType, eligibleInstrumentCount, presentInstrumentCount, missingInstrumentCount, status -AutoSize
+
+$coverage.instruments |
+    Format-Table symbol, candleCount, missingOfficialSessionCount, missingPeerConfirmedSessionCount, largeMoveCount, status -AutoSize
+
+$coverage.missingOfficialSessions |
+    Format-Table symbol, tradingDate, sessionType, evidenceType, status -AutoSize
+
+$coverage.missingPeerConfirmedSessions |
+    Format-Table symbol, tradingDate, evidenceType, status -AutoSize
+
+$coverage.eligibilityReasons
+```
+
+For the current ten-stock pilot, expect:
+
+- `officialSpecialSessionCount=12`;
+- RELIANCE retains its genuine special-session candles;
+- missing candles for other symbols are classified as `MISSING_PROVIDER_DATA`, not deleted, copied, or forward-filled;
+- `duplicateRows=0`, `invalidRows=0`, and `blockingInstrumentCount=0` remain unchanged;
+- `modelTrainingEligible=False` and `backtestingEligible=False` while any missing-data or review finding remains.
+
+The peer-confirmed check separately detects an absent candle on an ordinary date when at least 80 percent of comparable, active pilot instruments contain that date. An instrument is considered active only between its own first and last stored candle, which avoids treating years before a company's listing as missing data. Official special sessions are excluded from this peer calculation because they already have stronger exchange provenance.
+
+Finally, repeat the provider spot check. Eligibility can never become true unless this explicit check was requested and every other gate passed:
+
+```powershell
+$verifiedCoverage = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId&providerSpotCheck=true"
+
+$verifiedCoverage | Select-Object qualityStatus, providerMismatchCount, providerCheckFailureCount, modelTrainingEligible, backtestingEligible | Format-List
+$verifiedCoverage.providerSpotChecks |
+    Format-Table symbol, status, comparisonDate, storedClose, providerClose, differencePercent -AutoSize
+```
+
+This audit is diagnostic only. It does not fetch replacement candles, change PostgreSQL market data, generate signals, or start the remaining NIFTY 500 backfill. Keep the worker disabled and share the four summary outputs above for review before the expansion endpoint is implemented.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
