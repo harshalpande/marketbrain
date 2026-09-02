@@ -42,6 +42,8 @@ public class UpstoxMarketDataController {
         try {
             return service.importHistoricalCandles(new UpstoxHistoricalRequest(
                     requireInstrumentKey(instrumentKey), unit, interval, fromDate, toDate));
+        } catch (ConflictingCandleDataException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
         }

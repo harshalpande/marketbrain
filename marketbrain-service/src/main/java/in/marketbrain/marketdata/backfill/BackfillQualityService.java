@@ -139,7 +139,7 @@ public class BackfillQualityService {
                                 THEN ABS((seq.close_price - seq.previous_close) * 100.0 / seq.previous_close)
                            END
                        ), 0) AS maximum_move_percent,
-                       COUNT(seq.opened_at) - COUNT(DISTINCT seq.opened_at) AS duplicate_rows,
+                       COUNT(seq.opened_at) - COUNT(DISTINCT seq.trading_date) AS duplicate_rows,
                        COUNT(seq.opened_at) FILTER (
                            WHERE seq.open_price <= 0 OR seq.high_price <= 0 OR seq.low_price <= 0
                               OR seq.close_price <= 0 OR seq.volume < 0

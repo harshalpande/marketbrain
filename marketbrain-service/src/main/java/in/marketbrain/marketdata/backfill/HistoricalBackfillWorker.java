@@ -1,6 +1,7 @@
 package in.marketbrain.marketdata.backfill;
 
 import in.marketbrain.configuration.HistoricalBackfillProperties;
+import in.marketbrain.marketdata.upstox.ConflictingCandleDataException;
 import in.marketbrain.marketdata.upstox.UpstoxHistoricalRequest;
 import in.marketbrain.marketdata.upstox.UpstoxImportResult;
 import in.marketbrain.marketdata.upstox.UpstoxMarketDataService;
@@ -71,6 +72,8 @@ public class HistoricalBackfillWorker {
             } else {
                 failOrRetry(chunk, result.status());
             }
+        } catch (ConflictingCandleDataException conflict) {
+            failOrRetry(chunk, "CONFLICTING_CANDLE_DATA");
         } catch (RuntimeException unexpected) {
             failOrRetry(chunk, "WORKER_RUNTIME_FAILURE");
         }

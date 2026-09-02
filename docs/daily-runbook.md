@@ -287,7 +287,7 @@ Expected: `status=SUCCESS`; accepted candles are stored idempotently. Repeating 
 
 This pilot covers only these ten configured symbols: `INFY`, `TCS`, `RELIANCE`, `HDFCBANK`, `ICICIBANK`, `SBIN`, `ITC`, `HINDUNILVR`, `LT`, and `BHARTIARTL`. Do not expand the list during this verification.
 
-After pulling this increment, keep the worker disabled and deploy first. Flyway V5 creates only snapshot, job, chunk, and quality-control tables:
+After pulling this increment, keep the worker disabled and deploy first. Flyway V5 creates the snapshot, job, chunk, and quality-control tables. Flyway V6 adds canonical daily-candle protection and safely collapses only identical same-date historical rows:
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -301,7 +301,7 @@ docker compose --env-file .env logs --tail=120 marketbrain-service
 Invoke-RestMethod http://127.0.0.1:8080/actuator/health
 ```
 
-Expected: health is `UP`, Flyway validates five migrations, and the schema reaches V5. No backfill starts merely because the service started.
+Expected: health is `UP`, Flyway validates six migrations, and the schema reaches V6. No backfill starts merely because the service started.
 
 Import and record the official current NIFTY 500 snapshot:
 
@@ -445,6 +445,80 @@ $verifiedQuality.providerSpotChecks |
 ```
 
 Expected provider result: ten `MATCHED` rows, `providerMismatchCount=0`, and `providerCheckFailureCount=0`. A provider error does not change stored data; check connectivity and token validity before repeating the read-only audit. Stop before expanding the backfill if any instrument is `BLOCKED`, any stored/provider comparison is mismatched, or any finding cannot be explained.
+
+### 12. Apply and verify the daily-candle correction before expansion
+
+This correction must pass before creating the future job for the remaining NIFTY 500 instruments. Keep the historical worker disabled while deploying it:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+docker compose --env-file .env logs --tail=150 marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+```
+
+Flyway V6 performs these guarded operations:
+
+- preserves the original Upstox timestamp in `provider_opened_at`;
+- collapses identical OHLCV rows representing the same Indian trading date;
+- normalizes the stored daily-candle key to midnight in `Asia/Kolkata`;
+- refuses the migration if same-date rows contain different OHLCV values;
+- prevents a non-canonical daily timestamp from being stored again.
+
+If the backend does not become healthy and the logs report conflicting daily candles, do not alter the Flyway history or manually delete data. Keep the worker disabled and investigate the reported data first.
+
+Re-run the pilot quality report after a successful deployment:
+
+```powershell
+$pilot = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $pilot.jobId
+
+$quality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+
+$quality | Select-Object qualityStatus, instrumentCount, totalCandles, blockingInstrumentCount, reviewInstrumentCount, duplicateRows, invalidRows, suspiciousGapCount, largeMoveCount | Format-List
+```
+
+For the pilot result that contained nine identical duplicate rows, `totalCandles` should decrease from `37071` to `37062`; `duplicateRows` and `invalidRows` must both remain `0`. `INFY` and `SBIN` can remain under review for the separately observed large historical moves.
+
+Use this read-only database check to verify that no duplicate daily trading-date groups remain and that all daily storage keys are canonical:
+
+```powershell
+$sql = @"
+SELECT COUNT(*) AS duplicate_trading_date_groups
+FROM (
+    SELECT instrument_id, source_id,
+           (opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
+    FROM market_candle
+    WHERE interval_code = 'days:1'
+    GROUP BY instrument_id, source_id,
+             (opened_at AT TIME ZONE 'Asia/Kolkata')::date
+    HAVING COUNT(*) > 1
+) duplicates;
+
+SELECT COUNT(*) AS noncanonical_daily_timestamps
+FROM market_candle
+WHERE interval_code = 'days:1'
+  AND (opened_at AT TIME ZONE 'Asia/Kolkata')::time <> TIME '00:00:00';
+"@
+
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' `
+    -h 127.0.0.1 `
+    -p 5432 `
+    -U marketbrain_app `
+    -d marketbrain `
+    -c $sql
+```
+
+Both counts must be `0`. The common ingestion path now protects every future stock. Identical same-date provider rows are collapsed before persistence; different OHLCV values for the same date stop that chunk for review. Do not start the remaining-instrument expansion until all checks in this section pass and the expansion endpoint has been implemented and reviewed.
 
 ## Spare runtime laptop: normal update and redeploy
 
