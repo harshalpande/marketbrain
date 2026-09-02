@@ -1,6 +1,7 @@
 package in.marketbrain.marketdata.upstox;
 
 import in.marketbrain.configuration.MarketBrainProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class UpstoxReadOnlyClient {
     private final MarketBrainProperties.Upstox upstox;
     private final UpstoxResponseParser parser;
 
+    @Autowired
     public UpstoxReadOnlyClient(
             RestClient.Builder restClientBuilder,
             MarketBrainProperties properties,

@@ -1,6 +1,7 @@
 package in.marketbrain.marketdata.upstox;
 
 import in.marketbrain.configuration.MarketBrainProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -15,6 +16,7 @@ public class UpstoxDataQualityService {
     private final Clock clock;
     private final int maximumDataAgeSeconds;
 
+    @Autowired
     public UpstoxDataQualityService(MarketBrainProperties properties) {
         this(properties, Clock.systemUTC());
     }
