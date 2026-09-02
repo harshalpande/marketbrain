@@ -14,7 +14,7 @@ The provider remains disabled by default. The one-year Analytics Token must exis
 
 Every quote is classified as `FRESH`, `STALE`, or `INVALID`. Only a quote inside MarketBrain's configured 90-second freshness window is eligible for a future actionable signal. Stale quotes may be retained for audit but are not actionable. Historical rows must pass timestamp, positive-price, OHLC, and non-negative-volume checks before persistence.
 
-This REST increment is a prerequisite for, but separate from, the Upstox V3 live WebSocket collector. Streaming will be added only after the spare-laptop REST verification passes.
+The spare-laptop REST verification passed for instrument import, a fresh INFY quote, and a historical sample. The next controlled increment records the official current NIFTY 500 snapshot and backfills ten pilot stocks in resumable yearly chunks. It does not activate full-universe collection or live WebSocket streaming.
 
 ## Paytm Money: deferred broker candidate
 
@@ -29,6 +29,10 @@ Paytm Money API access and tokens must remain in the spare laptop's untracked `.
 
 ## Nifty 500 membership history
 
+The official current constituent file is obtained from the NIFTY Indices NIFTY 500 page. MarketBrain records the retrieval date, source URL, SHA-256 digest, complete source membership, and whether each row matched the current Upstox instrument master. This is an observed current snapshot only; it is never presented as historical membership.
+
+The pilot backfill uses ten configured symbols from the latest current snapshot. A 15-year pilot becomes 150 independently checkpointed yearly chunks. The worker is disabled by default and requires an explicit job start. Data and authentication failures are retried at most three times. Connectivity, rate-limit, and temporary provider failures instead enter a persisted `WAITING_FOR_CONNECTIVITY` state with 1, 5, and 15 minute backoff, do not consume data attempts, and automatically continue when a retry succeeds. No credential-bearing provider error text is stored.
+
 Backtesting requires date-effective index membership to avoid survivor bias. The initial import format is:
 
 ```csv
@@ -39,5 +43,5 @@ INFY,INE009A01021,Infosys Limited,2026-01-01,
 - Dates are ISO `YYYY-MM-DD`.
 - `effectiveTo` is blank for an active membership period.
 - Company names containing commas must be quoted using normal CSV syntax.
-- The current parser validates this file only; it does not download, scrape, or change the database.
+- The separate date-effective parser validates this historical format but does not claim that current constituents were historical constituents.
 - We will obtain membership history through an official or appropriately licensed source, record the source/version, validate it, and then add a separately reviewed persistence job.

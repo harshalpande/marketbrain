@@ -113,6 +113,7 @@ MARKETBRAIN_PAYTM_ENABLED=false
 MARKETBRAIN_PAYTM_ACCESS_TOKEN=
 MARKETBRAIN_UPSTOX_ENABLED=false
 MARKETBRAIN_UPSTOX_ANALYTICS_TOKEN=
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
 ```
 
 Do not add a Paytm token yet. Upstox is the current primary read-only data candidate and is enabled in the controlled procedure below.
@@ -281,6 +282,118 @@ $candles | Format-List
 ```
 
 Expected: `status=SUCCESS`; accepted candles are stored idempotently. Repeating the same import updates the same source/time rows instead of duplicating them. This phase does not schedule collection, generate a signal, send a Telegram alert, execute a paper trade, or place a real broker order.
+
+### 10. Run the controlled 15-year pilot backfill
+
+This pilot covers only these ten configured symbols: `INFY`, `TCS`, `RELIANCE`, `HDFCBANK`, `ICICIBANK`, `SBIN`, `ITC`, `HINDUNILVR`, `LT`, and `BHARTIARTL`. Do not expand the list during this verification.
+
+After pulling this increment, keep the worker disabled and deploy first. Flyway V5 creates only snapshot, job, chunk, and quality-control tables:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+# Confirm this remains false in the ignored .env before the first deployment.
+# MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+docker compose --env-file .env logs --tail=120 marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+```
+
+Expected: health is `UP`, Flyway validates five migrations, and the schema reaches V5. No backfill starts merely because the service started.
+
+Import and record the official current NIFTY 500 snapshot:
+
+```powershell
+$snapshot = Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/current-snapshot'
+$snapshot | Format-List
+```
+
+Expected: `status=SUCCESS`, approximately 500 source members, and approximately 500 matched members. Review `unmatchedSymbols`. Stop before creating a pilot if more than five symbols are unmatched, or if any of the ten pilot symbols is unmatched.
+
+Create -- but do not start -- the 15-year pilot:
+
+```powershell
+$pilot = Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/pilot?years=15'
+$pilot | Format-List
+$jobId = $pilot.jobId
+```
+
+If the PowerShell window is closed later, recover the persisted job ID with:
+
+```powershell
+$pilot = Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $pilot.jobId
+$pilot | Format-List
+```
+
+Expected before starting:
+
+- `status=CREATED`;
+- `instruments=10`;
+- `totalChunks=150`;
+- `completedChunks=0`;
+- `workerEnabled=False`.
+
+If those values are correct, open the ignored `.env`, change only the worker flag, and recreate the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+```
+
+Start the reviewed job explicitly:
+
+```powershell
+$started = Invoke-RestMethod -Method Post `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/start?jobId=$jobId"
+$started | Format-List
+```
+
+Monitor persisted checkpoints without printing credentials:
+
+```powershell
+do {
+    $pilotStatus = Invoke-RestMethod `
+        "http://127.0.0.1:8080/api/v1/market-data/backfills/status?jobId=$jobId"
+    $pilotStatus | Select-Object status, progressPercent, completedChunks, retryChunks, failedChunks, acceptedRows, rejectedRows, connectivityFailureCount, connectivityRetryAt, lastConnectivityErrorCode
+    if ($pilotStatus.status -in @('COMPLETED', 'PARTIAL_FAILED')) { break }
+    Start-Sleep -Seconds 15
+} while ($true)
+```
+
+Expected final state: `COMPLETED`, `completedChunks=150`, `failedChunks=0`, and non-zero `acceptedRows`. Some early yearly chunks may legitimately contain zero candles for companies listed less than 15 years ago.
+
+If Wi-Fi, DNS, an Upstox rate limit, or a temporary Upstox server outage interrupts processing, the job changes to `WAITING_FOR_CONNECTIVITY`. The active chunk is returned to `RETRY` without consuming one of its three data-quality attempts. Automatic retries use persisted delays of 1 minute, 5 minutes, and then 15 minutes until connectivity returns. Completed chunks remain stored and are not repeated. If Telegram is enabled and paired, one system `NOTE` is attempted for the outage; it has no action buttons and creates no order.
+
+The worker automatically continues when a retry succeeds. To retry immediately after restoring connectivity, use the manual resume endpoint:
+
+```powershell
+$resumed = Invoke-RestMethod -Method Post `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/resume?jobId=$jobId"
+$resumed | Format-List
+```
+
+Use manual resume only when the status is `PAUSED` or `WAITING_FOR_CONNECTIVITY`. It remains blocked while the worker flag is false. Provider authentication errors and invalid response data are not mistaken for Wi-Fi failures; those remain subject to the maximum three controlled attempts and can result in `PARTIAL_FAILED` for investigation.
+
+To stop new work safely at any point:
+
+```powershell
+Invoke-RestMethod -Method Post `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/pause?jobId=$jobId"
+```
+
+Pausing does not terminate an in-flight HTTPS request; that one chunk may finish. After the pilot reaches a terminal state, return `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false` in `.env` and recreate the backend. Keep it disabled until the pilot results are reviewed.
+
+This pilot stores raw daily candles only. It does not adjust corporate actions, claim historical NIFTY 500 membership, schedule daily updates, generate recommendations, send Telegram trade alerts, or create paper/live orders.
 
 ## Spare runtime laptop: normal update and redeploy
 

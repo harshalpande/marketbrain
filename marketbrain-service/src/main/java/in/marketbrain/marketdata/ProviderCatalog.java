@@ -26,8 +26,8 @@ public class ProviderCatalog {
                         "Upstox Developer API",
                         Set.of(MarketDataCapability.INTRADAY_QUOTES, MarketDataCapability.HISTORICAL_CANDLES,
                                 MarketDataCapability.NEWS_EVENTS),
-                        "Primary read-only provider candidate. Analytics Token access was manually verified; "
-                                + "application ingestion remains disabled until configured locally."
+                        "Primary read-only provider. Manual REST ingestion is verified; automated collection "
+                                + "remains separately controlled."
                 ),
                 new ProviderDefinition(
                         "NSE_DATA",

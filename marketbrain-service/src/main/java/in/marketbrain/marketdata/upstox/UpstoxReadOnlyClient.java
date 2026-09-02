@@ -56,8 +56,10 @@ public class UpstoxReadOnlyClient {
             return UpstoxFetchResult.success(parser.parseInstruments(body));
         } catch (RestClientResponseException exception) {
             return providerFailure(exception);
-        } catch (RestClientException | java.io.IOException exception) {
+        } catch (RestClientException exception) {
             return connectionFailure(exception);
+        } catch (java.io.IOException exception) {
+            return formatFailure(exception);
         }
     }
 
@@ -77,8 +79,10 @@ public class UpstoxReadOnlyClient {
             return UpstoxFetchResult.success(parser.parseQuote(body, instrumentKey));
         } catch (RestClientResponseException exception) {
             return providerFailure(exception);
-        } catch (RestClientException | java.io.IOException exception) {
+        } catch (RestClientException exception) {
             return connectionFailure(exception);
+        } catch (java.io.IOException exception) {
+            return formatFailure(exception);
         }
     }
 
@@ -100,8 +104,10 @@ public class UpstoxReadOnlyClient {
             return UpstoxFetchResult.success(parser.parseCandles(body));
         } catch (RestClientResponseException exception) {
             return providerFailure(exception);
-        } catch (RestClientException | java.io.IOException exception) {
+        } catch (RestClientException exception) {
             return connectionFailure(exception);
+        } catch (java.io.IOException exception) {
+            return formatFailure(exception);
         }
     }
 
@@ -120,18 +126,30 @@ public class UpstoxReadOnlyClient {
     }
 
     private <T> UpstoxFetchResult<T> providerFailure(RestClientResponseException exception) {
+        int statusCode = exception.getStatusCode().value();
+        String status = statusCode == 429
+                ? "RATE_LIMITED"
+                : statusCode >= 500 ? "PROVIDER_UNAVAILABLE" : "PROVIDER_ERROR";
         return UpstoxFetchResult.failure(
-                "PROVIDER_ERROR",
-                exception.getStatusCode().value(),
+                status,
+                statusCode,
                 "Upstox rejected the read-only request. Check token validity, request values, and provider limits."
         );
     }
 
     private <T> UpstoxFetchResult<T> connectionFailure(Exception exception) {
         return UpstoxFetchResult.failure(
-                "CONNECTION_OR_FORMAT_FAILED",
+                "CONNECTION_FAILED",
                 0,
-                "Upstox response could not be safely consumed: " + exception.getClass().getSimpleName()
+                "Upstox could not be reached. The request may be retried safely."
+        );
+    }
+
+    private <T> UpstoxFetchResult<T> formatFailure(Exception exception) {
+        return UpstoxFetchResult.failure(
+                "INVALID_PROVIDER_RESPONSE",
+                0,
+                "Upstox returned a response that could not be safely parsed."
         );
     }
 }
