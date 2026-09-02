@@ -43,6 +43,43 @@ class UpstoxCandleBatchNormalizerTest {
     }
 
     @Test
+    void mergesAOnePaisaHighOrLowRoundingDifferenceUsingTheWiderRange() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle("2015-12-30T18:30:00Z", "238.27", "239.86", "236.49", "237.59", "8546445");
+        UpstoxCandle marketOpen = candle("2015-12-31T03:45:00Z", "238.27", "239.85", "236.50", "237.59", "8546445");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(marketOpen, midnight));
+
+        assertThat(result.hasConflicts()).isFalse();
+        assertThat(result.collapsedDuplicates()).isEqualTo(1);
+        assertThat(result.candles().getFirst().candle().high()).isEqualByComparingTo("239.86");
+        assertThat(result.candles().getFirst().candle().low()).isEqualByComparingTo("236.49");
+    }
+
+    @Test
+    void blocksHighOrLowDifferencesGreaterThanOnePaisa() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle first = candle("2015-12-30T18:30:00Z", "238.27", "239.86", "236.49", "237.59", "8546445");
+        UpstoxCandle second = candle("2015-12-31T03:45:00Z", "238.27", "239.86", "236.51", "237.59", "8546445");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(first, second));
+
+        assertThat(result.hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksAChainOfSmallDifferencesWhoseFullRangeExceedsOnePaisa() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle first = candle("2015-12-30T18:30:00Z", "238.27", "239.86", "236.49", "237.59", "8546445");
+        UpstoxCandle second = candle("2015-12-31T03:45:00Z", "238.27", "239.87", "236.49", "237.59", "8546445");
+        UpstoxCandle third = candle("2015-12-31T04:45:00Z", "238.27", "239.88", "236.49", "237.59", "8546445");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(first, second, third));
+
+        assertThat(result.hasConflicts()).isTrue();
+    }
+
+    @Test
     void doesNotNormalizeIntradayCandleTimestamps() {
         UpstoxHistoricalRequest request = new UpstoxHistoricalRequest(
                 "NSE_EQ|TEST", "minutes", 1,

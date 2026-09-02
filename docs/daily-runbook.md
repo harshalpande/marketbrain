@@ -467,9 +467,10 @@ Invoke-RestMethod http://127.0.0.1:8080/actuator/health
 Flyway V6 performs these guarded operations:
 
 - preserves the original Upstox timestamp in `provider_opened_at`;
-- collapses identical OHLCV rows representing the same Indian trading date;
+- collapses identical rows representing the same Indian trading date;
+- safely merges a provider rounding difference of at most one paisa in the daily high or low by retaining the wider price range;
 - normalizes the stored daily-candle key to midnight in `Asia/Kolkata`;
-- refuses the migration if same-date rows contain different OHLCV values;
+- refuses the migration if same-date rows differ in open, close, volume, completion state, or by more than one paisa in high or low;
 - prevents a non-canonical daily timestamp from being stored again.
 
 If the backend does not become healthy and the logs report conflicting daily candles, do not alter the Flyway history or manually delete data. Keep the worker disabled and investigate the reported data first.
@@ -518,7 +519,7 @@ WHERE interval_code = 'days:1'
     -c $sql
 ```
 
-Both counts must be `0`. The common ingestion path now protects every future stock. Identical same-date provider rows are collapsed before persistence; different OHLCV values for the same date stop that chunk for review. Do not start the remaining-instrument expansion until all checks in this section pass and the expansion endpoint has been implemented and reviewed.
+Both counts must be `0`. The common ingestion path now protects every future stock. Identical same-date provider rows are collapsed before persistence. A difference of at most one paisa in high or low retains the wider range; material differences stop that chunk for review. Do not start the remaining-instrument expansion until all checks in this section pass and the expansion endpoint has been implemented and reviewed.
 
 ## Spare runtime laptop: normal update and redeploy
 

@@ -15,6 +15,7 @@ import java.util.Map;
 public class UpstoxCandleBatchNormalizer {
 
     private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
+    private static final BigDecimal ONE_PAISA = new BigDecimal("0.01");
 
     public Result normalize(UpstoxHistoricalRequest request, List<UpstoxCandle> validCandles) {
         if (!"days:1".equals(request.intervalCode())) {
@@ -23,7 +24,7 @@ public class UpstoxCandleBatchNormalizer {
                     .toList(), 0, List.of());
         }
 
-        Map<LocalDate, NormalizedCandle> candlesByTradingDate = new LinkedHashMap<>();
+        Map<LocalDate, DailyCandleGroup> candlesByTradingDate = new LinkedHashMap<>();
         List<LocalDate> conflictingTradingDates = new ArrayList<>();
         int collapsedDuplicates = 0;
 
@@ -40,29 +41,21 @@ public class UpstoxCandleBatchNormalizer {
                     ),
                     providerCandle.openedAt()
             );
-            NormalizedCandle existing = candlesByTradingDate.get(tradingDate);
+            DailyCandleGroup existing = candlesByTradingDate.get(tradingDate);
             if (existing == null) {
-                candlesByTradingDate.put(tradingDate, candidate);
-            } else if (sameMarketValues(existing.candle(), candidate.candle())) {
+                candlesByTradingDate.put(tradingDate, new DailyCandleGroup(candidate));
+            } else if (existing.canMerge(candidate)) {
                 collapsedDuplicates++;
-                if (candidate.providerOpenedAt().isBefore(existing.providerOpenedAt())) {
-                    candlesByTradingDate.put(tradingDate, candidate);
-                }
+                existing.merge(candidate);
             } else if (!conflictingTradingDates.contains(tradingDate)) {
                 conflictingTradingDates.add(tradingDate);
             }
         }
 
-        return new Result(List.copyOf(candlesByTradingDate.values()), collapsedDuplicates,
+        return new Result(candlesByTradingDate.values().stream()
+                .map(DailyCandleGroup::normalizedCandle)
+                .toList(), collapsedDuplicates,
                 List.copyOf(conflictingTradingDates));
-    }
-
-    private boolean sameMarketValues(UpstoxCandle first, UpstoxCandle second) {
-        return sameNumber(first.open(), second.open())
-                && sameNumber(first.high(), second.high())
-                && sameNumber(first.low(), second.low())
-                && sameNumber(first.close(), second.close())
-                && sameNumber(first.volume(), second.volume());
     }
 
     private boolean sameNumber(BigDecimal first, BigDecimal second) {
@@ -70,6 +63,59 @@ public class UpstoxCandleBatchNormalizer {
             return first == second;
         }
         return first.compareTo(second) == 0;
+    }
+
+    private final class DailyCandleGroup {
+
+        private NormalizedCandle normalizedCandle;
+        private BigDecimal minimumProviderHigh;
+        private BigDecimal maximumProviderHigh;
+        private BigDecimal minimumProviderLow;
+        private BigDecimal maximumProviderLow;
+
+        private DailyCandleGroup(NormalizedCandle candle) {
+            this.normalizedCandle = candle;
+            this.minimumProviderHigh = candle.candle().high();
+            this.maximumProviderHigh = candle.candle().high();
+            this.minimumProviderLow = candle.candle().low();
+            this.maximumProviderLow = candle.candle().low();
+        }
+
+        private boolean canMerge(NormalizedCandle candidate) {
+            UpstoxCandle current = normalizedCandle.candle();
+            UpstoxCandle next = candidate.candle();
+            BigDecimal nextMinimumHigh = minimumProviderHigh.min(next.high());
+            BigDecimal nextMaximumHigh = maximumProviderHigh.max(next.high());
+            BigDecimal nextMinimumLow = minimumProviderLow.min(next.low());
+            BigDecimal nextMaximumLow = maximumProviderLow.max(next.low());
+            return sameNumber(current.open(), next.open())
+                    && sameNumber(current.close(), next.close())
+                    && sameNumber(current.volume(), next.volume())
+                    && nextMaximumHigh.subtract(nextMinimumHigh).compareTo(ONE_PAISA) <= 0
+                    && nextMaximumLow.subtract(nextMinimumLow).compareTo(ONE_PAISA) <= 0;
+        }
+
+        private void merge(NormalizedCandle candidate) {
+            UpstoxCandle current = normalizedCandle.candle();
+            UpstoxCandle next = candidate.candle();
+            minimumProviderHigh = minimumProviderHigh.min(next.high());
+            maximumProviderHigh = maximumProviderHigh.max(next.high());
+            minimumProviderLow = minimumProviderLow.min(next.low());
+            maximumProviderLow = maximumProviderLow.max(next.low());
+            Instant providerOpenedAt = normalizedCandle.providerOpenedAt().isBefore(candidate.providerOpenedAt())
+                    ? normalizedCandle.providerOpenedAt() : candidate.providerOpenedAt();
+            normalizedCandle = new NormalizedCandle(
+                    new UpstoxCandle(
+                            current.openedAt(), current.open(), maximumProviderHigh, minimumProviderLow,
+                            current.close(), current.volume()
+                    ),
+                    providerOpenedAt
+            );
+        }
+
+        private NormalizedCandle normalizedCandle() {
+            return normalizedCandle;
+        }
     }
 
     public record NormalizedCandle(UpstoxCandle candle, Instant providerOpenedAt) {

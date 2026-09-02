@@ -17,14 +17,39 @@ BEGIN
         GROUP BY instrument_id, source_id,
                  (opened_at AT TIME ZONE 'Asia/Kolkata')::date
         HAVING COUNT(*) > 1
-           AND COUNT(DISTINCT ROW(
-               open_price, high_price, low_price, close_price, volume, is_complete
-           )) > 1
+           AND (
+               MIN(open_price) <> MAX(open_price)
+               OR MIN(close_price) <> MAX(close_price)
+               OR MAX(high_price) - MIN(high_price) > 0.01
+               OR MAX(low_price) - MIN(low_price) > 0.01
+               OR COUNT(DISTINCT ROW(volume IS NULL, volume)) > 1
+               OR BOOL_AND(is_complete) <> BOOL_OR(is_complete)
+           )
     ) THEN
         RAISE EXCEPTION
             'Conflicting daily candles exist for the same instrument, source, and trading date';
     END IF;
 END $$;
+
+WITH duplicate_daily_envelopes AS (
+    SELECT instrument_id,
+           source_id,
+           (opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date,
+           MAX(high_price) AS merged_high_price,
+           MIN(low_price) AS merged_low_price
+    FROM market_candle
+    WHERE interval_code = 'days:1'
+    GROUP BY instrument_id, source_id,
+             (opened_at AT TIME ZONE 'Asia/Kolkata')::date
+    HAVING COUNT(*) > 1
+)
+UPDATE market_candle candle
+SET high_price = duplicate.merged_high_price,
+    low_price = duplicate.merged_low_price
+FROM duplicate_daily_envelopes duplicate
+WHERE candle.instrument_id = duplicate.instrument_id
+  AND candle.source_id = duplicate.source_id
+  AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date = duplicate.trading_date;
 
 WITH ranked_daily_candles AS (
     SELECT id,
