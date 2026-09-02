@@ -395,6 +395,57 @@ Pausing does not terminate an in-flight HTTPS request; that one chunk may finish
 
 This pilot stores raw daily candles only. It does not adjust corporate actions, claim historical NIFTY 500 membership, schedule daily updates, generate recommendations, send Telegram trade alerts, or create paper/live orders.
 
+### 11. Audit the completed pilot data
+
+Keep `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`. This audit is read-only: it does not update candles, create another backfill job, generate a recommendation, or place an order.
+
+Recover the completed job ID and run the database-only audit first:
+
+```powershell
+$pilot = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $pilot.jobId
+
+$quality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+
+$quality | Select-Object qualityStatus, instrumentCount, totalCandles, blockingInstrumentCount, reviewInstrumentCount, duplicateRows, invalidRows, suspiciousGapCount, largeMoveCount | Format-List
+
+$quality.instruments |
+    Format-Table symbol, firstCandleDate, lastCandleDate, candleCount, longestCalendarGapDays, suspiciousGapCount, largeMoveCount, duplicateRows, invalidRows, status -AutoSize
+```
+
+Mandatory acceptance conditions:
+
+- `instrumentCount=10` and `totalCandles` is non-zero;
+- `blockingInstrumentCount=0`;
+- `duplicateRows=0`;
+- `invalidRows=0`.
+
+`qualityStatus=REVIEW` is not automatically a failure. The audit deliberately treats calendar gaps over seven days and close-to-close moves over 20 percent as review candidates. These may indicate a suspension, a later listing, a split/bonus, or a genuine provider-data issue. Inspect the bounded finding lists:
+
+```powershell
+$quality.suspiciousGaps |
+    Format-Table symbol, previousTradingDate, nextTradingDate, calendarGapDays -AutoSize
+
+$quality.largeMoves |
+    Format-Table symbol, tradingDate, previousClose, close, absoluteMovePercent -AutoSize
+```
+
+After the database checks pass, request the optional read-only Upstox spot comparison. This makes one historical-data request for each of the ten pilot stocks and compares the provider's latest candle within the completed job range with the stored candle:
+
+```powershell
+$verifiedQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId&providerSpotCheck=true"
+
+$verifiedQuality | Select-Object qualityStatus, providerMismatchCount, providerCheckFailureCount | Format-List
+
+$verifiedQuality.providerSpotChecks |
+    Format-Table symbol, status, comparisonDate, storedClose, providerClose, differencePercent -AutoSize
+```
+
+Expected provider result: ten `MATCHED` rows, `providerMismatchCount=0`, and `providerCheckFailureCount=0`. A provider error does not change stored data; check connectivity and token validity before repeating the read-only audit. Stop before expanding the backfill if any instrument is `BLOCKED`, any stored/provider comparison is mismatched, or any finding cannot be explained.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

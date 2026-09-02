@@ -12,7 +12,7 @@ Phase 1 establishes the data-first foundation. It is deliberately paper-only:
 - no broker order placement is implemented;
 - Telegram remains disabled until a private bot token and local pairing code are configured.
 
-The current increment adds a disabled-by-default historical pilot: an official current NIFTY 500 snapshot, resumable yearly Upstox candle chunks, persistent progress, bounded retries, and quality-issue recording. Transient connectivity/provider outages pause safely with persisted 1, 5, and 15 minute backoff and automatic continuation. It is restricted to ten configured pilot stocks until runtime acceptance succeeds. Stale data remains non-actionable, Telegram remains private, and the system still cannot create a real broker order.
+The current increment adds a disabled-by-default historical pilot: an official current NIFTY 500 snapshot, resumable yearly Upstox candle chunks, persistent progress, bounded retries, quality-issue recording, and a read-only post-load audit with an optional provider spot comparison. Transient connectivity/provider outages pause safely with persisted 1, 5, and 15 minute backoff and automatic continuation. It is restricted to ten configured pilot stocks until runtime acceptance succeeds. Stale data remains non-actionable, Telegram remains private, and the system still cannot create a real broker order.
 
 ## Repository layout
 

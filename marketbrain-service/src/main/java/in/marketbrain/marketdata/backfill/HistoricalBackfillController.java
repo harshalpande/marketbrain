@@ -22,13 +22,16 @@ public class HistoricalBackfillController {
 
     private final Nifty500SnapshotService snapshotService;
     private final HistoricalBackfillJobService jobService;
+    private final BackfillQualityService qualityService;
 
     public HistoricalBackfillController(
             Nifty500SnapshotService snapshotService,
-            HistoricalBackfillJobService jobService
+            HistoricalBackfillJobService jobService,
+            BackfillQualityService qualityService
     ) {
         this.snapshotService = snapshotService;
         this.jobService = jobService;
+        this.qualityService = qualityService;
     }
 
     @PostMapping("/nifty500/current-snapshot")
@@ -83,6 +86,20 @@ public class HistoricalBackfillController {
             return jobService.latestSummary();
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/quality")
+    public BackfillQualityReport quality(
+            @RequestParam UUID jobId,
+            @RequestParam(defaultValue = "false") boolean providerSpotCheck
+    ) {
+        try {
+            return qualityService.audit(jobId, providerSpotCheck);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
         }
     }
 }

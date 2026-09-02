@@ -33,6 +33,8 @@ The official current constituent file is obtained from the NIFTY Indices NIFTY 5
 
 The pilot backfill uses ten configured symbols from the latest current snapshot. A 15-year pilot becomes 150 independently checkpointed yearly chunks. The worker is disabled by default and requires an explicit job start. Data and authentication failures are retried at most three times. Connectivity, rate-limit, and temporary provider failures instead enter a persisted `WAITING_FOR_CONNECTIVITY` state with 1, 5, and 15 minute backoff, do not consume data attempts, and automatically continue when a retry succeeds. No credential-bearing provider error text is stored.
 
+After completion, a read-only quality audit reports per-symbol coverage, logical duplicates, invalid OHLC/volume rows, calendar gaps over seven days, and close-to-close moves over 20 percent. Gaps and large moves are review candidates rather than automatic errors because listings, suspensions, splits, and bonuses can produce them. An optional ten-request Upstox spot comparison verifies the latest stored close in the completed job range without mutating stored candles.
+
 Backtesting requires date-effective index membership to avoid survivor bias. The initial import format is:
 
 ```csv
