@@ -66,7 +66,7 @@ public class HistoricalBackfillWorker {
             if ("SUCCESS".equals(result.status())) {
                 ConnectivityRecovery recovery = complete(
                         chunk, result.accepted(), result.rejected(), result.normalizedDuplicates(),
-                        result.normalizedDuplicateDates());
+                        result.normalizedDuplicateDates(), result.normalizationDetails());
                 notifyRecoveryIfNeeded(recovery);
             } else if (connectivityPolicy.isTransientInfrastructureFailure(result.status())) {
                 ConnectivityWait wait = waitForConnectivity(chunk, result.status());
@@ -124,7 +124,8 @@ public class HistoricalBackfillWorker {
             int accepted,
             int rejected,
             int normalizedDuplicates,
-            List<LocalDate> normalizedDuplicateDates
+            List<LocalDate> normalizedDuplicateDates,
+            List<String> normalizationDetails
     ) {
         return transactionTemplate.execute(status -> {
             List<ConnectivityRecovery> recoveries = jdbcTemplate.query("""
@@ -163,8 +164,9 @@ public class HistoricalBackfillWorker {
                                       details = EXCLUDED.details,
                                       detected_at = CURRENT_TIMESTAMP
                         """, normalizedDuplicates,
-                        "Normalized near-identical provider daily candles for trading date(s): "
-                                + normalizedDuplicateDates,
+                        "Normalized near-identical provider daily candles for trading date(s) "
+                                + normalizedDuplicateDates + ". Evidence: "
+                                + String.join("; ", normalizationDetails),
                         chunk.id());
             }
             jdbcTemplate.update("""

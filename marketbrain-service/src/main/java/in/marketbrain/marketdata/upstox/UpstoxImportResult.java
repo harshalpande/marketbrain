@@ -10,14 +10,17 @@ public record UpstoxImportResult(
         int rejected,
         int normalizedDuplicates,
         List<LocalDate> normalizedDuplicateDates,
+        List<String> normalizationDetails,
         String detail
 ) {
     public UpstoxImportResult {
         normalizedDuplicateDates = normalizedDuplicateDates == null
                 ? List.of() : List.copyOf(normalizedDuplicateDates);
+        normalizationDetails = normalizationDetails == null
+                ? List.of() : List.copyOf(normalizationDetails);
     }
 
     public static UpstoxImportResult providerFailure(UpstoxFetchResult<?> result) {
-        return new UpstoxImportResult(result.status(), 0, 0, 0, 0, List.of(), result.detail());
+        return new UpstoxImportResult(result.status(), 0, 0, 0, 0, List.of(), List.of(), result.detail());
     }
 }

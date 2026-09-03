@@ -93,6 +93,72 @@ class UpstoxCandleBatchNormalizerTest {
     }
 
     @Test
+    void normalizesTheReviewedAlkemTimestampTransitionVolumeVariance() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "1460.0", "1496.6", "1442.5", "1485.25", "774495");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "1460.0", "1496.6", "1442.5", "1485.25", "774426");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(midnight, marketOpen));
+
+        assertThat(result.hasConflicts()).isFalse();
+        assertThat(result.collapsedDuplicates()).isEqualTo(1);
+        assertThat(result.candles()).hasSize(1);
+        assertThat(result.candles().getFirst().providerOpenedAt())
+                .isEqualTo(Instant.parse("2015-12-31T03:45:00Z"));
+        assertThat(result.candles().getFirst().candle().volume()).isEqualByComparingTo("774426");
+        assertThat(result.normalizationDetails().getFirst())
+                .contains("reason=MIDNIGHT_MARKET_OPEN_VOLUME_VARIANCE")
+                .contains("retainedVolume=774426")
+                .contains("discardedVolume=774495");
+    }
+
+    @Test
+    void blocksTimestampTransitionWhenAbsoluteVolumeDifferenceExceedsOneHundred() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "100", "105", "99", "104", "1000000");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "100", "105", "99", "104", "1000101");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksTimestampTransitionWhenRelativeVolumeDifferenceExceedsPointZeroOnePercent() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "100", "105", "99", "104", "1000");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "100", "105", "99", "104", "1001");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksVolumeVarianceOutsideTheKnownMidnightMarketOpenTimestampPair() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "100", "105", "99", "104", "1000000");
+        UpstoxCandle tenOClock = candle(
+                "2015-12-31T04:30:00Z", "100", "105", "99", "104", "1000001");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, tenOClock)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksVolumeVarianceWhenOhlcIsNotExactlyIdentical() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "100.00", "105", "99", "104", "1000000");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "100.01", "105", "99", "104", "1000001");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
     void blocksHighOrLowDifferencesGreaterThanOnePaisa() {
         UpstoxHistoricalRequest request = dailyRequest();
         UpstoxCandle first = candle("2015-12-30T18:30:00Z", "238.27", "239.86", "236.49", "237.59", "8546445");

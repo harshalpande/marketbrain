@@ -722,7 +722,7 @@ Do not create batch 2 yet. Share the job summary, database-only quality summary,
 
 ### 15. Apply the reviewed one-paisa normalization and recover batch 1
 
-This step applies the correction reviewed after the first 50-stock expansion. It does four narrowly
+This step applies the correction reviewed after the first 50-stock expansion. It does five narrowly
 scoped things:
 
 - Flyway V9 records authoritative listing boundaries for `ANGELONE` and `360ONE`;
@@ -730,6 +730,8 @@ scoped things:
   existing raw rows in PostgreSQL;
 - near-identical same-date daily candles can be normalized only when every OHLC difference is at most
   one paisa and volume is identical;
+- the known midnight/09:15 timestamp-transition pair can also be normalized when OHLC is exactly
+  identical and the volume difference is both at most 100 shares and at most 0.01 percent;
 - an explicit endpoint resets only failed `INVALID_DATA` chunks. Completed checkpoints are untouched.
 
 Keep the worker disabled for the initial deployment:
@@ -780,8 +782,10 @@ $batchStatus | Format-List
 $jobId = $batchStatus.jobId
 ```
 
-Proceed only when this is expansion batch 1 with `status=PARTIAL_FAILED`, `failedChunks=3`, and the
-worker is `False`. Then enable the worker locally and recreate only the backend:
+Proceed only when this is expansion batch 1 with `status=PARTIAL_FAILED`, between one and four reviewed
+`INVALID_DATA` chunks, and the worker is `False`. The original run found four affected chunks. If the
+first three price-only cases were already recovered, only the remaining ALKEM chunk should be failed.
+Then enable the worker locally and recreate only the backend:
 
 ```properties
 MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
@@ -797,10 +801,12 @@ $retry = Invoke-RestMethod -Method Post `
 $retry | Format-List
 ```
 
-Expected: `retriedChunks=3` and `status=RUNNING`. The endpoint resets only chunks whose persisted state
-is `FAILED / INVALID_DATA`; it cannot retry connectivity, runtime, or conflicting stored-data failures.
+Expected: `status=RUNNING`. `retriedChunks=4` when running the complete correction once, or
+`retriedChunks=1` when the first three chunks were recovered before the ALKEM correction. The endpoint
+resets only chunks whose persisted state is `FAILED / INVALID_DATA`; it cannot retry connectivity,
+runtime, or conflicting stored-data failures.
 
-Monitor until the three chunks finish:
+Monitor until all retried chunks finish:
 
 ```powershell
 do {
@@ -812,8 +818,9 @@ do {
 } while ($true)
 ```
 
-Expected: `status=COMPLETED`, `failedChunks=0`, and the three recovered chunks each accept 246 canonical
-daily candles. Immediately disable the worker again and recreate the backend:
+Expected: `status=COMPLETED`, `failedChunks=0`; ADANIENSOL, ADANIPORTS, and APOLLOTYRE each accept 246
+canonical daily candles, while ALKEM accepts 172. Immediately disable the worker again and recreate the
+backend:
 
 ```properties
 MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
@@ -832,7 +839,7 @@ SELECT source_symbol, from_date, to_date, status, attempts,
        accepted_rows, rejected_rows, last_error_code
 FROM historical_backfill_chunk
 WHERE job_id = '$jobId'::uuid
-  AND source_symbol IN ('ADANIENSOL','ADANIPORTS','APOLLOTYRE')
+  AND source_symbol IN ('ADANIENSOL','ADANIPORTS','ALKEM','APOLLOTYRE')
   AND from_date = DATE '2015-09-02'
   AND to_date = DATE '2016-09-01'
 ORDER BY source_symbol;
@@ -854,8 +861,10 @@ ORDER BY chunk.source_symbol;
     -c $sql
 ```
 
-Expected: all three chunks are `COMPLETED`, each has `accepted_rows=246`, and each has one open
-`PROVIDER_DUPLICATE_NORMALIZED / INFO` audit record with `affected_rows=1`.
+Expected: all four chunks are `COMPLETED`. The three longer-history chunks each have
+`accepted_rows=246`; ALKEM has `accepted_rows=172`. Each has one open
+`PROVIDER_DUPLICATE_NORMALIZED / INFO` record with `affected_rows=1`. ALKEM's audit details must show
+the retained 09:15 timestamp and volume 774426 plus the discarded midnight timestamp and volume 774495.
 
 Finally repeat both quality audits:
 
@@ -865,7 +874,7 @@ $quality = Invoke-RestMethod `
 $quality | Select-Object qualityStatus, instrumentCount, totalCandles, blockingInstrumentCount, missingProviderDataInstrumentCount, reviewInstrumentCount, duplicateRows, invalidRows, missingOfficialSessionCount, missingPeerConfirmedSessionCount, mutuallyAvailableTradingDateCount | Format-List
 
 $quality.instruments |
-    Where-Object symbol -in @('360ONE','ANGELONE','APARINDS','ADANIENSOL','ADANIPORTS','APOLLOTYRE') |
+    Where-Object symbol -in @('360ONE','ANGELONE','APARINDS','ADANIENSOL','ADANIPORTS','ALKEM','APOLLOTYRE') |
     Format-Table symbol, firstCandleDate, lastCandleDate, candleCount, leadingCoverageGapDays, suspiciousGapCount, largeMoveCount, missingPeerConfirmedSessionCount, status -AutoSize
 
 $quality.missingPeerConfirmedSessions |
@@ -880,7 +889,7 @@ $verifiedQuality | Select-Object qualityStatus, providerMismatchCount, providerC
 Expected interpretation:
 
 - structural duplicates and invalid rows remain zero;
-- the three one-year gaps disappear;
+- all four failed yearly chunks are recovered without weakening the general conflict rule;
 - `ANGELONE` begins at 2020-10-05 and `360ONE` begins at 2019-09-19 for analysis;
 - APARINDS 2012-10-16 remains explicitly reported because Upstox currently supplies no candle for it;
 - official special-session gaps remain separately reported and are never filled synthetically;
