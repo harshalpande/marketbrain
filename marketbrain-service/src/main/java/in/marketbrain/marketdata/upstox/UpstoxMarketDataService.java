@@ -41,7 +41,7 @@ public class UpstoxMarketDataService {
         List<UpstoxInstrument> accepted = fetch.data().stream().filter(UpstoxInstrument::isNseEquity).toList();
         if (accepted.isEmpty()) {
             markSourceFailure();
-            return new UpstoxImportResult("INVALID_DATA", fetch.data().size(), 0, fetch.data().size(),
+            return new UpstoxImportResult("INVALID_DATA", fetch.data().size(), 0, fetch.data().size(), 0, List.of(),
                     "The provider file contained no valid NSE cash-equity instruments.");
         }
         jdbcTemplate.update("""
@@ -78,7 +78,7 @@ public class UpstoxMarketDataService {
         }
         markSourceSuccess();
         return new UpstoxImportResult("SUCCESS", fetch.data().size(), accepted.size(),
-                fetch.data().size() - accepted.size(),
+                fetch.data().size() - accepted.size(), 0, List.of(),
                 "Official Upstox NSE instrument file imported; only NSE cash equities were accepted.");
     }
 
@@ -138,14 +138,14 @@ public class UpstoxMarketDataService {
         Long instrumentId = findInstrumentId(request.instrumentKey());
         if (instrumentId == null) {
             return new UpstoxImportResult("INSTRUMENT_NOT_IMPORTED", fetch.data().size(), 0,
-                    fetch.data().size(), "Import the NSE instrument master before candle ingestion.");
+                    fetch.data().size(), 0, List.of(), "Import the NSE instrument master before candle ingestion.");
         }
 
         List<UpstoxCandle> validCandles = fetch.data().stream().filter(qualityService::validCandle).toList();
         UpstoxCandleBatchNormalizer.Result normalized = candleBatchNormalizer.normalize(request, validCandles);
         if (normalized.hasConflicts()) {
             markSourceFailure();
-            return new UpstoxImportResult("INVALID_DATA", fetch.data().size(), 0, fetch.data().size(),
+            return new UpstoxImportResult("INVALID_DATA", fetch.data().size(), 0, fetch.data().size(), 0, List.of(),
                     "Upstox returned different daily OHLCV values for the same trading date(s): "
                             + normalized.conflictingTradingDates() + ". Nothing from this response was persisted.");
         }
@@ -185,8 +185,9 @@ public class UpstoxMarketDataService {
         markSourceSuccess();
         int invalidRows = fetch.data().size() - validCandles.size();
         return new UpstoxImportResult("SUCCESS", fetch.data().size(), normalized.candles().size(), invalidRows,
+                normalized.collapsedDuplicates(), normalized.normalizedTradingDates(),
                 "Historical candles passed OHLC, timestamp, and volume validation; "
-                        + normalized.collapsedDuplicates() + " identical same-date row(s) were collapsed.");
+                        + normalized.collapsedDuplicates() + " near-identical same-date row(s) were normalized.");
     }
 
     private Long findInstrumentId(String instrumentKey) {

@@ -14,7 +14,7 @@ class UpstoxCandleBatchNormalizerTest {
     private final UpstoxCandleBatchNormalizer normalizer = new UpstoxCandleBatchNormalizer();
 
     @Test
-    void collapsesIdenticalDailyCandlesAndKeepsTheOriginalProviderTimestamp() {
+    void collapsesIdenticalDailyCandlesAndKeepsTheExchangeAlignedProviderTimestamp() {
         UpstoxHistoricalRequest request = dailyRequest();
         UpstoxCandle midnight = candle("2015-12-30T18:30:00Z", "327.85", "335.45", "326.30", "334.15", "3007696");
         UpstoxCandle marketOpen = candle("2015-12-31T03:45:00Z", "327.8500", "335.450", "326.3", "334.150", "3007696.0");
@@ -23,11 +23,12 @@ class UpstoxCandleBatchNormalizerTest {
 
         assertThat(result.hasConflicts()).isFalse();
         assertThat(result.collapsedDuplicates()).isEqualTo(1);
+        assertThat(result.normalizedTradingDates()).containsExactly(LocalDate.of(2015, 12, 31));
         assertThat(result.candles()).hasSize(1);
         assertThat(result.candles().getFirst().candle().openedAt())
                 .isEqualTo(Instant.parse("2015-12-30T18:30:00Z"));
         assertThat(result.candles().getFirst().providerOpenedAt())
-                .isEqualTo(Instant.parse("2015-12-30T18:30:00Z"));
+                .isEqualTo(Instant.parse("2015-12-31T03:45:00Z"));
     }
 
     @Test
@@ -54,6 +55,41 @@ class UpstoxCandleBatchNormalizerTest {
         assertThat(result.collapsedDuplicates()).isEqualTo(1);
         assertThat(result.candles().getFirst().candle().high()).isEqualByComparingTo("239.86");
         assertThat(result.candles().getFirst().candle().low()).isEqualByComparingTo("236.49");
+    }
+
+    @Test
+    void mergesOnePaisaDifferencesAcrossEveryOhlcFieldUsingTheExchangeAlignedOpenAndClose() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "36.54", "37.50", "36.29", "36.89", "1573101");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "36.55", "37.49", "36.30", "36.90", "1573101");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(midnight, marketOpen));
+
+        assertThat(result.hasConflicts()).isFalse();
+        assertThat(result.collapsedDuplicates()).isEqualTo(1);
+        assertThat(result.normalizedTradingDates()).containsExactly(LocalDate.of(2015, 12, 31));
+        assertThat(result.candles()).hasSize(1);
+        assertThat(result.candles().getFirst().candle().open()).isEqualByComparingTo("36.55");
+        assertThat(result.candles().getFirst().candle().high()).isEqualByComparingTo("37.50");
+        assertThat(result.candles().getFirst().candle().low()).isEqualByComparingTo("36.29");
+        assertThat(result.candles().getFirst().candle().close()).isEqualByComparingTo("36.90");
+        assertThat(result.candles().getFirst().providerOpenedAt())
+                .isEqualTo(Instant.parse("2015-12-31T03:45:00Z"));
+    }
+
+    @Test
+    void blocksAnOpenOrCloseDifferenceGreaterThanOnePaisa() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle first = candle(
+                "2015-12-30T18:30:00Z", "36.54", "37.50", "36.29", "36.89", "1573101");
+        UpstoxCandle second = candle(
+                "2015-12-31T03:45:00Z", "36.56", "37.50", "36.29", "36.91", "1573101");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(first, second));
+
+        assertThat(result.hasConflicts()).isTrue();
     }
 
     @Test

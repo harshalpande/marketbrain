@@ -43,6 +43,6 @@ class ExpansionBatchSelectorTest {
     }
 
     private ExpansionBatchSelector.Candidate candidate(long id, String symbol) {
-        return new ExpansionBatchSelector.Candidate(id, "NSE_EQ|" + id, symbol);
+        return new ExpansionBatchSelector.Candidate(id, "NSE_EQ|" + id, symbol, null);
     }
 }

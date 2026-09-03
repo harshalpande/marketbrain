@@ -84,6 +84,15 @@ public class HistoricalBackfillController {
         }
     }
 
+    @PostMapping("/retry-invalid-data")
+    public BackfillRetryResult retryInvalidData(@RequestParam UUID jobId) {
+        try {
+            return jobService.retryInvalidDataChunks(jobId);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
     @GetMapping("/status")
     public BackfillJobSummary status(@RequestParam UUID jobId) {
         try {

@@ -64,7 +64,9 @@ public class HistoricalBackfillWorker {
             UpstoxImportResult result = marketDataService.importHistoricalCandles(new UpstoxHistoricalRequest(
                     chunk.providerInstrumentKey(), "days", 1, chunk.fromDate(), chunk.toDate()));
             if ("SUCCESS".equals(result.status())) {
-                ConnectivityRecovery recovery = complete(chunk, result.accepted(), result.rejected());
+                ConnectivityRecovery recovery = complete(
+                        chunk, result.accepted(), result.rejected(), result.normalizedDuplicates(),
+                        result.normalizedDuplicateDates());
                 notifyRecoveryIfNeeded(recovery);
             } else if (connectivityPolicy.isTransientInfrastructureFailure(result.status())) {
                 ConnectivityWait wait = waitForConnectivity(chunk, result.status());
@@ -117,7 +119,13 @@ public class HistoricalBackfillWorker {
         });
     }
 
-    private ConnectivityRecovery complete(BackfillChunk chunk, int accepted, int rejected) {
+    private ConnectivityRecovery complete(
+            BackfillChunk chunk,
+            int accepted,
+            int rejected,
+            int normalizedDuplicates,
+            List<LocalDate> normalizedDuplicateDates
+    ) {
         return transactionTemplate.execute(status -> {
             List<ConnectivityRecovery> recoveries = jdbcTemplate.query("""
                     SELECT connectivity_wait_started_at,
@@ -142,6 +150,22 @@ public class HistoricalBackfillWorker {
                                'REJECTED_CANDLE_ROWS', 'WARNING', ?
                         FROM historical_backfill_chunk chunk WHERE chunk.id = ?
                         """, rejected, chunk.id());
+            }
+            if (normalizedDuplicates > 0) {
+                jdbcTemplate.update("""
+                        INSERT INTO market_data_quality_issue
+                            (job_id, chunk_id, instrument_id, issue_code, severity, affected_rows, details)
+                        SELECT chunk.job_id, chunk.id, chunk.instrument_id,
+                               'PROVIDER_DUPLICATE_NORMALIZED', 'INFO', ?, ?
+                        FROM historical_backfill_chunk chunk WHERE chunk.id = ?
+                        ON CONFLICT (chunk_id, issue_code) WHERE chunk_id IS NOT NULL AND resolved_at IS NULL
+                        DO UPDATE SET affected_rows = EXCLUDED.affected_rows,
+                                      details = EXCLUDED.details,
+                                      detected_at = CURRENT_TIMESTAMP
+                        """, normalizedDuplicates,
+                        "Normalized near-identical provider daily candles for trading date(s): "
+                                + normalizedDuplicateDates,
+                        chunk.id());
             }
             jdbcTemplate.update("""
                     UPDATE historical_backfill_job

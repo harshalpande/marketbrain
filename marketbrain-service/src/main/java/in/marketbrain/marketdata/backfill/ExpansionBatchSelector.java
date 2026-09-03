@@ -2,6 +2,7 @@ package in.marketbrain.marketdata.backfill;
 
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,7 @@ public class ExpansionBatchSelector {
         return new Selection(selected, remaining.size() - selected.size());
     }
 
-    public record Candidate(long instrumentId, String providerInstrumentKey, String symbol) {
+    public record Candidate(long instrumentId, String providerInstrumentKey, String symbol, LocalDate listedOn) {
     }
 
     public record Selection(List<Candidate> selected, int remainingAfterBatch) {

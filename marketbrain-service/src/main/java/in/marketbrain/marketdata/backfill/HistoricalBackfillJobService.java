@@ -154,6 +154,39 @@ public class HistoricalBackfillJobService {
         return summary(jobId, "Backfill job resumed from persisted chunk checkpoints.");
     }
 
+    public BackfillRetryResult retryInvalidDataChunks(UUID jobId) {
+        if (!properties.workerEnabled()) {
+            throw new IllegalStateException("Backfill worker is disabled in local configuration");
+        }
+        Integer retriedChunks = transactionTemplate.execute(status -> {
+            int reset = jdbcTemplate.update("""
+                    UPDATE historical_backfill_chunk
+                    SET status = 'PENDING', attempts = 0,
+                        accepted_rows = 0, rejected_rows = 0,
+                        last_error_code = NULL, next_attempt_at = NULL,
+                        started_at = NULL, completed_at = NULL,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE job_id = ? AND status = 'FAILED' AND last_error_code = 'INVALID_DATA'
+                    """, jobId);
+            if (reset == 0) {
+                throw new IllegalStateException("No failed INVALID_DATA chunks exist for this job");
+            }
+            int reopened = jdbcTemplate.update("""
+                    UPDATE historical_backfill_job
+                    SET status = 'RUNNING', completed_at = NULL,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND status = 'PARTIAL_FAILED'
+                    """, jobId);
+            if (reopened == 0) {
+                throw new IllegalStateException("Only a PARTIAL_FAILED job can retry invalid-data chunks");
+            }
+            return reset;
+        });
+        return new BackfillRetryResult(
+                jobId, retriedChunks == null ? 0 : retriedChunks, "RUNNING",
+                "Only FAILED chunks with error code INVALID_DATA were reset; all completed checkpoints were retained.");
+    }
+
     public BackfillJobSummary summary(UUID jobId) {
         return summary(jobId, "Backfill progress is calculated from persisted chunk checkpoints.");
     }
@@ -262,12 +295,15 @@ public class HistoricalBackfillJobService {
 
     private List<ExpansionBatchSelector.Candidate> matchedInstruments(UUID snapshotId) {
         return jdbcTemplate.query("""
-                SELECT instrument_id, provider_instrument_key, source_symbol
-                FROM universe_snapshot_member
-                WHERE snapshot_id = ? AND match_status = 'MATCHED'
+                SELECT member.instrument_id, member.provider_instrument_key, member.source_symbol,
+                       instrument.listed_on
+                FROM universe_snapshot_member member
+                JOIN instrument ON instrument.id = member.instrument_id
+                WHERE member.snapshot_id = ? AND member.match_status = 'MATCHED'
                 """, (rs, row) -> new ExpansionBatchSelector.Candidate(
                 rs.getLong("instrument_id"), rs.getString("provider_instrument_key"),
-                rs.getString("source_symbol")), snapshotId);
+                rs.getString("source_symbol"),
+                rs.getDate("listed_on") == null ? null : rs.getDate("listed_on").toLocalDate()), snapshotId);
     }
 
     private void ensureNoActiveJob() {
@@ -341,7 +377,8 @@ public class HistoricalBackfillJobService {
                     """, jobId, snapshotId, Date.valueOf(fromDate), Date.valueOf(toDate), instruments.size(),
                     jobType, batchNumber);
             for (ExpansionBatchSelector.Candidate instrument : instruments) {
-                for (YearlyBackfillChunkPlanner.DateChunk chunk : chunkPlanner.plan(fromDate, toDate)) {
+                LocalDate instrumentFromDate = effectiveFromDate(fromDate, instrument.listedOn());
+                for (YearlyBackfillChunkPlanner.DateChunk chunk : chunkPlanner.plan(instrumentFromDate, toDate)) {
                     jdbcTemplate.update("""
                             INSERT INTO historical_backfill_chunk
                                 (job_id, instrument_id, provider_instrument_key, source_symbol,
@@ -352,6 +389,10 @@ public class HistoricalBackfillJobService {
                 }
             }
         });
+    }
+
+    static LocalDate effectiveFromDate(LocalDate requestedFrom, LocalDate listedOn) {
+        return listedOn == null || listedOn.isBefore(requestedFrom) ? requestedFrom : listedOn;
     }
 
     private Instant instantOrNull(Timestamp value) {

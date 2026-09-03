@@ -179,9 +179,10 @@ public class BackfillQualityService {
                     FROM historical_backfill_job
                     WHERE id = ?
                 ), job_instruments AS (
-                    SELECT DISTINCT instrument_id, source_symbol
+                    SELECT DISTINCT chunk.instrument_id, chunk.source_symbol, instrument.listed_on
                     FROM historical_backfill_chunk chunk
                     JOIN job_scope ON job_scope.id = chunk.job_id
+                    JOIN instrument ON instrument.id = chunk.instrument_id
                 ), daily AS (
                     SELECT ji.instrument_id,
                            (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
@@ -191,7 +192,10 @@ public class BackfillQualityService {
                     CROSS JOIN job_scope
                     WHERE candle.interval_code = 'days:1'
                       AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                          BETWEEN job_scope.requested_from AND job_scope.requested_to
+                          BETWEEN GREATEST(
+                              job_scope.requested_from,
+                              COALESCE(ji.listed_on, job_scope.requested_from)
+                          ) AND job_scope.requested_to
                     GROUP BY ji.instrument_id,
                              (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
                 ), bounds AS (
@@ -268,9 +272,10 @@ public class BackfillQualityService {
                     FROM historical_backfill_job
                     WHERE id = ?
                 ), job_instruments AS (
-                    SELECT DISTINCT chunk.instrument_id, chunk.source_symbol
+                    SELECT DISTINCT chunk.instrument_id, chunk.source_symbol, instrument.listed_on
                     FROM historical_backfill_chunk chunk
                     JOIN job_scope ON job_scope.id = chunk.job_id
+                    JOIN instrument ON instrument.id = chunk.instrument_id
                 ), daily AS (
                     SELECT ji.instrument_id,
                            (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
@@ -280,7 +285,10 @@ public class BackfillQualityService {
                     CROSS JOIN job_scope
                     WHERE candle.interval_code = 'days:1'
                       AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                          BETWEEN job_scope.requested_from AND job_scope.requested_to
+                          BETWEEN GREATEST(
+                              job_scope.requested_from,
+                              COALESCE(ji.listed_on, job_scope.requested_from)
+                          ) AND job_scope.requested_to
                     GROUP BY ji.instrument_id,
                              (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
                 ), bounds AS (
@@ -319,21 +327,24 @@ public class BackfillQualityService {
     private long mutuallyAvailableTradingDateCount(JobScope job) {
         Long count = jdbcTemplate.queryForObject("""
                 WITH job_instruments AS (
-                    SELECT DISTINCT instrument_id
-                    FROM historical_backfill_chunk
-                    WHERE job_id = ?
+                    SELECT DISTINCT chunk.instrument_id, instrument.listed_on
+                    FROM historical_backfill_chunk chunk
+                    JOIN instrument ON instrument.id = chunk.instrument_id
+                    WHERE chunk.job_id = ?
                 ), shared_dates AS (
                     SELECT (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
                     FROM market_candle candle
                     JOIN job_instruments job_instrument ON job_instrument.instrument_id = candle.instrument_id
                     JOIN market_data_source source ON source.id = candle.source_id AND source.code = 'UPSTOX'
                     WHERE candle.interval_code = 'days:1'
-                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date BETWEEN ? AND ?
+                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                          BETWEEN GREATEST(?, COALESCE(job_instrument.listed_on, ?)) AND ?
                     GROUP BY (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
                     HAVING COUNT(DISTINCT candle.instrument_id) = (SELECT COUNT(*) FROM job_instruments)
                 )
                 SELECT COUNT(*) FROM shared_dates
-                """, Long.class, job.id(), Date.valueOf(job.fromDate()), Date.valueOf(job.toDate()));
+                """, Long.class, job.id(), Date.valueOf(job.fromDate()), Date.valueOf(job.fromDate()),
+                Date.valueOf(job.toDate()));
         return count == null ? 0 : count;
     }
 
@@ -388,12 +399,14 @@ public class BackfillQualityService {
     private List<InstrumentMetrics> instrumentMetrics(JobScope job) {
         return jdbcTemplate.query("""
                 WITH job_instruments AS (
-                    SELECT DISTINCT instrument_id, provider_instrument_key, source_symbol
-                    FROM historical_backfill_chunk
-                    WHERE job_id = ?
+                    SELECT DISTINCT chunk.instrument_id, chunk.provider_instrument_key, chunk.source_symbol,
+                           GREATEST(?, COALESCE(instrument.listed_on, ?)) AS effective_from
+                    FROM historical_backfill_chunk chunk
+                    JOIN instrument ON instrument.id = chunk.instrument_id
+                    WHERE chunk.job_id = ?
                 ), daily AS (
                     SELECT ji.instrument_id, ji.provider_instrument_key, ji.source_symbol,
-                           candle.opened_at,
+                           ji.effective_from, candle.opened_at,
                            (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date,
                            candle.open_price, candle.high_price, candle.low_price,
                            candle.close_price, candle.volume
@@ -401,7 +414,8 @@ public class BackfillQualityService {
                     JOIN market_candle candle ON candle.instrument_id = ji.instrument_id
                     JOIN market_data_source source ON source.id = candle.source_id AND source.code = 'UPSTOX'
                     WHERE candle.interval_code = 'days:1'
-                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date BETWEEN ? AND ?
+                      AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                          BETWEEN ji.effective_from AND ?
                 ), sequenced AS (
                     SELECT daily.*,
                            LAG(trading_date) OVER (PARTITION BY instrument_id ORDER BY trading_date) AS previous_date,
@@ -409,6 +423,7 @@ public class BackfillQualityService {
                     FROM daily
                 )
                 SELECT ji.instrument_id, ji.provider_instrument_key, ji.source_symbol,
+                       ji.effective_from,
                        MIN(seq.trading_date) AS first_date,
                        MAX(seq.trading_date) AS last_date,
                        COUNT(seq.opened_at) AS candle_count,
@@ -435,24 +450,28 @@ public class BackfillQualityService {
                        ) AS invalid_rows
                 FROM job_instruments ji
                 LEFT JOIN sequenced seq ON seq.instrument_id = ji.instrument_id
-                GROUP BY ji.instrument_id, ji.provider_instrument_key, ji.source_symbol
+                GROUP BY ji.instrument_id, ji.provider_instrument_key, ji.source_symbol, ji.effective_from
                 ORDER BY ji.source_symbol
                 """, (rs, row) -> new InstrumentMetrics(
                 rs.getLong("instrument_id"), rs.getString("provider_instrument_key"),
-                rs.getString("source_symbol"), localDateOrNull(rs.getDate("first_date")),
+                rs.getString("source_symbol"), rs.getDate("effective_from").toLocalDate(),
+                localDateOrNull(rs.getDate("first_date")),
                 localDateOrNull(rs.getDate("last_date")), rs.getLong("candle_count"),
                 rs.getInt("longest_gap_days"), rs.getInt("suspicious_gap_count"),
                 rs.getInt("large_move_count"), scaled(rs.getBigDecimal("maximum_move_percent")),
                 rs.getInt("duplicate_rows"), rs.getInt("invalid_rows")),
-                job.id(), Date.valueOf(job.fromDate()), Date.valueOf(job.toDate()),
+                Date.valueOf(job.fromDate()), Date.valueOf(job.fromDate()), job.id(),
+                Date.valueOf(job.toDate()),
                 SUSPICIOUS_GAP_DAYS, LARGE_MOVE_PERCENT);
     }
 
     private List<BackfillQualityReport.GapFinding> suspiciousGaps(UUID jobId) {
         return jdbcTemplate.query("""
                 WITH job_instruments AS (
-                    SELECT DISTINCT instrument_id, source_symbol
-                    FROM historical_backfill_chunk WHERE job_id = ?
+                    SELECT DISTINCT chunk.instrument_id, chunk.source_symbol, instrument.listed_on
+                    FROM historical_backfill_chunk chunk
+                    JOIN instrument ON instrument.id = chunk.instrument_id
+                    WHERE chunk.job_id = ?
                 ), dates AS (
                     SELECT ji.source_symbol,
                            (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date
@@ -462,7 +481,10 @@ public class BackfillQualityService {
                     JOIN historical_backfill_job job ON job.id = ?
                     WHERE candle.interval_code = 'days:1'
                       AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                          BETWEEN job.requested_from AND job.requested_to
+                          BETWEEN GREATEST(
+                              job.requested_from,
+                              COALESCE(ji.listed_on, job.requested_from)
+                          ) AND job.requested_to
                 ), sequenced AS (
                     SELECT source_symbol, trading_date,
                            LAG(trading_date) OVER (PARTITION BY source_symbol ORDER BY trading_date) AS previous_date
@@ -483,8 +505,10 @@ public class BackfillQualityService {
     private List<BackfillQualityReport.LargeMoveFinding> largeMoves(UUID jobId) {
         return jdbcTemplate.query("""
                 WITH job_instruments AS (
-                    SELECT DISTINCT instrument_id, source_symbol
-                    FROM historical_backfill_chunk WHERE job_id = ?
+                    SELECT DISTINCT chunk.instrument_id, chunk.source_symbol, instrument.listed_on
+                    FROM historical_backfill_chunk chunk
+                    JOIN instrument ON instrument.id = chunk.instrument_id
+                    WHERE chunk.job_id = ?
                 ), prices AS (
                     SELECT ji.source_symbol,
                            (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date,
@@ -498,7 +522,10 @@ public class BackfillQualityService {
                     JOIN historical_backfill_job job ON job.id = ?
                     WHERE candle.interval_code = 'days:1'
                       AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                          BETWEEN job.requested_from AND job.requested_to
+                          BETWEEN GREATEST(
+                              job.requested_from,
+                              COALESCE(ji.listed_on, job.requested_from)
+                          ) AND job.requested_to
                 )
                 SELECT source_symbol, trading_date, previous_close, close_price,
                        ABS((close_price - previous_close) * 100.0 / previous_close) AS move_percent
@@ -575,7 +602,7 @@ public class BackfillQualityService {
             int missingOfficialSessionCount,
             int missingPeerConfirmedSessionCount
     ) {
-        int leadingGap = boundaryGap(job.fromDate(), metric.firstDate());
+        int leadingGap = boundaryGap(metric.effectiveFromDate(), metric.firstDate());
         int trailingGap = boundaryGap(metric.lastDate(), job.toDate());
         String status = rules.instrumentStatus(
                 metric.candleCount(), metric.duplicateRows(), metric.invalidRows(),
@@ -621,6 +648,7 @@ public class BackfillQualityService {
             long instrumentId,
             String providerInstrumentKey,
             String symbol,
+            LocalDate effectiveFromDate,
             LocalDate firstDate,
             LocalDate lastDate,
             long candleCount,
