@@ -24,8 +24,16 @@ public record BackfillQualityReport(
         int providerCheckFailureCount,
         int officialSpecialSessionCount,
         int missingOfficialSessionCount,
+        int unresolvedMissingOfficialSessionCount,
         int peerConfirmedSessionCount,
         int missingPeerConfirmedSessionCount,
+        int unresolvedMissingPeerConfirmedSessionCount,
+        int unresolvedSuspiciousGapCount,
+        int unresolvedLargeMoveCount,
+        int resolvedFindingCount,
+        int documentedFindingCount,
+        int unresolvedFindingCount,
+        int truncatedFindingCount,
         long mutuallyAvailableTradingDateCount,
         int suspiciousGapThresholdDays,
         BigDecimal largeMoveThresholdPercent,
@@ -39,6 +47,8 @@ public record BackfillQualityReport(
         List<MissingSessionFinding> missingPeerConfirmedSessions,
         List<GapFinding> suspiciousGaps,
         List<LargeMoveFinding> largeMoves,
+        List<QualityFinding> qualityFindings,
+        List<QualityResolutionRecord> currentResolutions,
         List<ProviderSpotCheck> providerSpotChecks,
         String detail
 ) {
@@ -50,11 +60,15 @@ public record BackfillQualityReport(
             long candleCount,
             int missingOfficialSessionCount,
             int missingPeerConfirmedSessionCount,
+            int unresolvedMissingOfficialSessionCount,
+            int unresolvedMissingPeerConfirmedSessionCount,
             int leadingCoverageGapDays,
             int trailingCoverageGapDays,
             int longestCalendarGapDays,
             int suspiciousGapCount,
             int largeMoveCount,
+            int unresolvedSuspiciousGapCount,
+            int unresolvedLargeMoveCount,
             BigDecimal maximumAbsoluteCloseMovePercent,
             int duplicateRows,
             int invalidRows,
@@ -99,6 +113,23 @@ public record BackfillQualityReport(
             BigDecimal previousClose,
             BigDecimal close,
             BigDecimal absoluteMovePercent
+    ) {
+    }
+
+    public record QualityFinding(
+            QualityFindingType findingType,
+            String symbol,
+            LocalDate findingDate,
+            LocalDate relatedDate,
+            String rawStatus,
+            String reviewStatus,
+            QualityResolutionType resolutionType,
+            boolean allowsTraining,
+            LocalDate exclusionFrom,
+            LocalDate exclusionTo,
+            String evidenceSource,
+            String evidenceUrl,
+            List<String> corporateActionTypes
     ) {
     }
 

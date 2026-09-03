@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -69,5 +70,48 @@ class UpstoxResponseParserTest {
         assertThat(candles).hasSize(1);
         assertThat(candles.getFirst().openedAt()).isEqualTo(Instant.parse("2026-09-01T03:45:00Z"));
         assertThat(candles.getFirst().close()).isEqualByComparingTo("105");
+    }
+
+    @Test
+    void parsesCorporateActionsAndPrefersTheExplicitExDate() throws Exception {
+        String json = """
+                {"status":"success","data":[{
+                  "name":"Special Dividend","expiry_date":"24 Apr 2024","amount":118,"ratio":null,
+                  "event_details":[
+                    {"name":"Announcement date","value":"12 Apr 2024"},
+                    {"name":"Ex dividend date","value":"23 Apr 2024"},
+                    {"name":"Record date","value":"23 Apr 2024"},
+                    {"name":"Details","value":"Rs.118 per share special dividend"}
+                  ]
+                }]}
+                """;
+
+        var actions = parser.parseCorporateActions(json);
+
+        assertThat(actions).singleElement().satisfies(action -> {
+            assertThat(action.actionType()).isEqualTo("DIVIDEND");
+            assertThat(action.effectiveOn()).isEqualTo(LocalDate.of(2024, 4, 23));
+            assertThat(action.announcedOn()).isEqualTo(LocalDate.of(2024, 4, 12));
+            assertThat(action.recordOn()).isEqualTo(LocalDate.of(2024, 4, 23));
+            assertThat(action.amount()).isEqualByComparingTo("118");
+            assertThat(action.details()).contains("Rs.118 per share special dividend");
+        });
+    }
+
+    @Test
+    void skipsIncompleteCorporateActionsInsteadOfInventingDates() throws Exception {
+        String json = """
+                {"status":"success","data":[
+                  {"name":"Split","expiry_date":null,"event_details":[]},
+                  {"name":"Bonus","expiry_date":"2025-01-10","ratio":"1:1","event_details":[]}
+                ]}
+                """;
+
+        var actions = parser.parseCorporateActions(json);
+
+        assertThat(actions).singleElement().satisfies(action -> {
+            assertThat(action.actionType()).isEqualTo("BONUS");
+            assertThat(action.effectiveOn()).isEqualTo(LocalDate.of(2025, 1, 10));
+        });
     }
 }

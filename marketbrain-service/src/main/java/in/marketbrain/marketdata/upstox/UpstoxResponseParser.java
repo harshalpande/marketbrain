@@ -9,13 +9,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 @Component
 public class UpstoxResponseParser {
+
+    private static final DateTimeFormatter PROVIDER_DATE = new DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .appendPattern("d MMM uuuu")
+            .toFormatter(Locale.ENGLISH);
 
     private final ObjectMapper objectMapper;
 
@@ -68,6 +80,109 @@ public class UpstoxResponseParser {
         return result;
     }
 
+    public List<UpstoxCorporateAction> parseCorporateActions(String payload) throws IOException {
+        JsonNode events = objectMapper.readTree(payload).path("data");
+        if (!events.isArray()) {
+            throw new IOException("Provider response did not contain corporate-action data");
+        }
+        List<UpstoxCorporateAction> result = new ArrayList<>();
+        for (JsonNode event : events) {
+            String name = textOrNull(event.path("name"));
+            Map<String, String> details = eventDetails(event.path("event_details"));
+            LocalDate recordOn = detailDate(details, "record date");
+            LocalDate announcedOn = detailDate(details, "announcement date");
+            LocalDate effectiveOn = exDate(details);
+            if (effectiveOn == null) {
+                effectiveOn = dateOrNull(event.path("expiry_date"));
+            }
+            if (effectiveOn == null) {
+                effectiveOn = recordOn;
+            }
+            if (name == null || effectiveOn == null) {
+                continue;
+            }
+            result.add(new UpstoxCorporateAction(
+                    name,
+                    actionType(name),
+                    effectiveOn,
+                    announcedOn,
+                    recordOn,
+                    decimalOrNull(event.path("amount")),
+                    textOrNull(event.path("ratio")),
+                    flattenedDetails(details)
+            ));
+        }
+        return List.copyOf(result);
+    }
+
+    private Map<String, String> eventDetails(JsonNode node) {
+        Map<String, String> details = new LinkedHashMap<>();
+        if (!node.isArray()) {
+            return details;
+        }
+        for (JsonNode item : node) {
+            String name = textOrNull(item.path("name"));
+            String value = textOrNull(item.path("value"));
+            if (name != null && value != null) {
+                details.put(name.trim(), value.trim());
+            }
+        }
+        return details;
+    }
+
+    private LocalDate detailDate(Map<String, String> details, String requiredName) {
+        return details.entrySet().stream()
+                .filter(entry -> entry.getKey().equalsIgnoreCase(requiredName))
+                .map(Map.Entry::getValue)
+                .map(this::dateOrNull)
+                .filter(value -> value != null)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private LocalDate exDate(Map<String, String> details) {
+        return details.entrySet().stream()
+                .filter(entry -> {
+                    String name = entry.getKey().toLowerCase(Locale.ROOT);
+                    return name.startsWith("ex ") && name.endsWith(" date");
+                })
+                .map(Map.Entry::getValue)
+                .map(this::dateOrNull)
+                .filter(value -> value != null)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String flattenedDetails(Map<String, String> details) {
+        return details.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .reduce((left, right) -> left + "; " + right)
+                .orElse("");
+    }
+
+    private String actionType(String name) {
+        String normalized = name.toLowerCase(Locale.ROOT);
+        if (normalized.contains("dividend")) {
+            return "DIVIDEND";
+        }
+        if (normalized.contains("bonus")) {
+            return "BONUS";
+        }
+        if (normalized.contains("split")) {
+            return "SPLIT";
+        }
+        if (normalized.contains("right")) {
+            return "RIGHTS";
+        }
+        if (normalized.contains("demerger")) {
+            return "DEMERGER";
+        }
+        if (normalized.contains("merger") || normalized.contains("amalgamation")) {
+            return "MERGER";
+        }
+        return "OTHER";
+    }
+
     private InputStream instrumentPayloadStream(byte[] payload) throws IOException {
         if (payload == null || payload.length == 0) {
             throw new IOException("Instrument payload was empty");
@@ -115,6 +230,25 @@ public class UpstoxResponseParser {
             try {
                 return Instant.parse(raw);
             } catch (RuntimeException invalidTimestamp) {
+                return null;
+            }
+        }
+    }
+
+    private LocalDate dateOrNull(JsonNode node) {
+        return node == null || node.isMissingNode() || node.isNull() ? null : dateOrNull(node.asText());
+    }
+
+    private LocalDate dateOrNull(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(raw.trim(), PROVIDER_DATE);
+        } catch (DateTimeParseException ignored) {
+            try {
+                return LocalDate.parse(raw.trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            } catch (DateTimeParseException invalidDate) {
                 return null;
             }
         }

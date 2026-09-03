@@ -2,10 +2,12 @@ package in.marketbrain.marketdata.backfill;
 
 import in.marketbrain.marketdata.universe.Nifty500SnapshotImportResult;
 import in.marketbrain.marketdata.universe.Nifty500SnapshotService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,15 +26,18 @@ public class HistoricalBackfillController {
     private final Nifty500SnapshotService snapshotService;
     private final HistoricalBackfillJobService jobService;
     private final BackfillQualityService qualityService;
+    private final QualityResolutionService resolutionService;
 
     public HistoricalBackfillController(
             Nifty500SnapshotService snapshotService,
             HistoricalBackfillJobService jobService,
-            BackfillQualityService qualityService
+            BackfillQualityService qualityService,
+            QualityResolutionService resolutionService
     ) {
         this.snapshotService = snapshotService;
         this.jobService = jobService;
         this.qualityService = qualityService;
+        this.resolutionService = resolutionService;
     }
 
     @PostMapping("/nifty500/current-snapshot")
@@ -127,6 +132,39 @@ public class HistoricalBackfillController {
     ) {
         try {
             return qualityService.audit(jobId, providerSpotCheck);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/quality-resolutions")
+    public QualityResolutionRecord resolveFinding(@Valid @RequestBody QualityResolutionRequest request) {
+        try {
+            return resolutionService.resolve(request);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/quality-resolutions/revoke")
+    public void revokeFinding(@Valid @RequestBody QualityResolutionRevocationRequest request) {
+        try {
+            resolutionService.revoke(request);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/quality-resolutions")
+    public List<QualityResolutionRecord> qualityResolutions(@RequestParam UUID jobId) {
+        try {
+            return resolutionService.current(jobId);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         } catch (IllegalStateException exception) {

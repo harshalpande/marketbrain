@@ -109,6 +109,23 @@ class UpstoxReadOnlyClientTest {
         server.verify();
     }
 
+    @Test
+    void requestsCorporateActionsByIsinWithTheReadOnlyToken() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        var client = client(builder, true, "analytics-token-value");
+        server.expect(once(), requestTo(
+                        "https://api.upstox.com/v2/fundamentals/INE914M01019/corporate-actions"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer analytics-token-value"))
+                .andRespond(withSuccess("{\"status\":\"success\",\"data\":[]}",
+                        MediaType.APPLICATION_JSON));
+
+        var result = client.fetchCorporateActions("INE914M01019");
+
+        assertThat(result.status()).isEqualTo("SUCCESS");
+        server.verify();
+    }
+
     private UpstoxHistoricalRequest historicalRequest() {
         return new UpstoxHistoricalRequest(
                 "NSE_EQ|INE009A01021", "days", 1,

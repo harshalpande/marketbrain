@@ -899,6 +899,184 @@ Expected interpretation:
 Do not create expansion batch 2. Share the retry result, recovered-chunk query, audit-record query, and
 both quality summaries for review.
 
+### 16. Deploy and verify governed quality resolutions
+
+Run this step only after expansion batch 1 has reached `COMPLETED` with all 750 chunks complete. This
+change does not alter or delete a market candle. It adds:
+
+- read-only Upstox corporate-action evidence;
+- an append-only review ledger with explicit revocation events;
+- a database view containing mandatory feature-exclusion windows;
+- resolved, documented, and unresolved counts in the quality response.
+
+Deploy with the worker still disabled:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git pull --ff-only
+notepad .env
+```
+
+Confirm `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, save, and then run:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    } catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+$latest = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $latest.jobId
+$latest | Select-Object status, completedChunks, failedChunks, acceptedRows, workerEnabled | Format-List
+```
+
+Expected: `status=COMPLETED`, `completedChunks=750`, `failedChunks=0`, `acceptedRows=125167`, and
+`workerEnabled=False`.
+
+Inspect the new review projection before recording any decision:
+
+```powershell
+$quality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+
+$quality | Select-Object qualityStatus, resolvedFindingCount, documentedFindingCount,
+    unresolvedFindingCount, truncatedFindingCount, unresolvedMissingOfficialSessionCount,
+    unresolvedMissingPeerConfirmedSessionCount, unresolvedSuspiciousGapCount,
+    unresolvedLargeMoveCount, modelTrainingEligible, backtestingEligible | Format-List
+
+$quality.qualityFindings |
+    Format-Table findingType, symbol, findingDate, relatedDate, reviewStatus,
+        resolutionType, allowsTraining, corporateActionTypes -AutoSize
+```
+
+Corporate-action retrieval uses the existing read-only Analytics Token held by the service. Sync only
+symbols that have large-move findings, and do not paste the token into PowerShell:
+
+```powershell
+$largeMoveSymbols = @($quality.largeMoves.symbol | Sort-Object -Unique)
+
+foreach ($symbol in $largeMoveSymbols) {
+    Invoke-RestMethod -Method Post `
+        "http://127.0.0.1:8080/api/v1/market-data/upstox/corporate-actions/sync?symbol=$([uri]::EscapeDataString($symbol))" |
+        Select-Object status, symbol, isin, received, accepted, rejected
+}
+
+$quality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+
+$quality.qualityFindings |
+    Where-Object findingType -eq 'LARGE_MOVE' |
+    Format-Table symbol, findingDate, reviewStatus, corporateActionTypes -AutoSize
+```
+
+Corporate-action evidence is advisory and never resolves a finding automatically. Before creating a
+resolution, verify that the finding appears in `qualityFindings`, inspect its evidence, and choose one of
+these controlled outcomes:
+
+| Resolution | Allowed finding | Training effect |
+| --- | --- | --- |
+| `VERIFIED_EXCHANGE_MOVE` | Large move only | Preserves the genuine return. |
+| `CORPORATE_ACTION_TRANSITION` | Large move with stored corporate-action evidence | Requires an exclusion window. |
+| `PROVIDER_ADJUSTMENT` | Large move only | Requires an exclusion window. |
+| `FEATURE_WINDOW_EXCLUDED` | Any non-structural finding | Requires an exclusion window. |
+| `SECONDARY_SOURCE_BACKFILLED` | Missing session only | Accepted only if a non-Upstox candle already exists. |
+| `PROVIDER_OMISSION_CONFIRMED` | Missing session only | Documents evidence but remains ineligible. |
+
+This example safely documents the confirmed APARINDS omission without making the dataset eligible:
+
+```powershell
+$body = @{
+    jobId = $jobId
+    symbol = 'APARINDS'
+    findingType = 'PEER_CONFIRMED_SESSION'
+    findingDate = '2012-10-16'
+    relatedDate = $null
+    resolutionType = 'PROVIDER_OMISSION_CONFIRMED'
+    evidenceSource = 'NSE official daily BhavCopy'
+    evidenceUrl = 'https://nsearchives.nseindia.com/content/historical/EQUITIES/2012/OCT/cm16OCT2012bhav.csv.zip'
+    notes = 'NSE EQ contains APARINDS, but the Upstox historical endpoint returns no candle.'
+    reviewedBy = 'Harshal Pande'
+    exclusionFrom = $null
+    exclusionTo = $null
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions' `
+    -ContentType 'application/json' `
+    -Body $body | Format-List
+```
+
+Do not record the remaining resolutions in bulk. Review corporate-action evidence and NSE daily evidence
+first. A corporate-action or provider-adjustment exclusion must include the finding date and remain inside
+the backfill window. If a decision is wrong, append a revocation instead of deleting history:
+
+```powershell
+$revokeBody = @{
+    jobId = $jobId
+    symbol = 'APARINDS'
+    findingType = 'PEER_CONFIRMED_SESSION'
+    findingDate = '2012-10-16'
+    relatedDate = $null
+    evidenceSource = 'Operator correction'
+    evidenceUrl = 'https://nsearchives.nseindia.com/content/historical/EQUITIES/2012/OCT/cm16OCT2012bhav.csv.zip'
+    notes = 'Revoked for renewed review; no market candle was changed.'
+    reviewedBy = 'Harshal Pande'
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions/revoke' `
+    -ContentType 'application/json' `
+    -Body $revokeBody
+```
+
+Inspect current resolutions and the exclusion view:
+
+```powershell
+Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId" |
+    Format-Table findingType, symbol, findingDate, resolutionType, allowsTraining,
+        exclusionFrom, exclusionTo, reviewedBy -AutoSize
+
+$sql = @"
+SELECT job_id, instrument_id, finding_type, finding_date,
+       exclusion_from, exclusion_to, resolution_type, evidence_url
+FROM market_data_feature_exclusion
+WHERE job_id = '$jobId'::uuid
+ORDER BY exclusion_from, instrument_id;
+"@
+
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' `
+    -h 127.0.0.1 `
+    -p 5432 `
+    -U marketbrain_app `
+    -d marketbrain `
+    -c $sql
+```
+
+Finally request a fresh provider spot check:
+
+```powershell
+$verifiedQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId&providerSpotCheck=true"
+
+$verifiedQuality | Select-Object qualityStatus, providerMismatchCount,
+    providerCheckFailureCount, resolvedFindingCount, documentedFindingCount,
+    unresolvedFindingCount, truncatedFindingCount, modelTrainingEligible, backtestingEligible | Format-List
+
+$verifiedQuality.eligibilityReasons
+```
+
+`modelTrainingEligible` and `backtestingEligible` must remain `False` while any finding is merely
+documented or unresolved. Structural duplicate/invalid-candle findings can never be overridden. Do not
+create expansion batch 2 until this output has been reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

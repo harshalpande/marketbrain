@@ -16,8 +16,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -26,23 +29,26 @@ public class BackfillQualityService {
     static final int SUSPICIOUS_GAP_DAYS = 7;
     static final BigDecimal LARGE_MOVE_PERCENT = new BigDecimal("20.00");
     private static final BigDecimal PROVIDER_MATCH_TOLERANCE_PERCENT = new BigDecimal("0.01");
-    private static final int MAXIMUM_FINDINGS_PER_TYPE = 100;
-    private static final int MAXIMUM_MISSING_SESSION_FINDINGS = 500;
+    private static final int MAXIMUM_FINDINGS_PER_TYPE = 10_000;
+    private static final int MAXIMUM_MISSING_SESSION_FINDINGS = 10_000;
     private static final int PEER_SESSION_COVERAGE_PERCENT = 80;
     private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
 
     private final JdbcTemplate jdbcTemplate;
     private final UpstoxReadOnlyClient upstoxClient;
     private final BackfillQualityRules rules;
+    private final QualityResolutionService resolutionService;
 
     public BackfillQualityService(
             JdbcTemplate jdbcTemplate,
             UpstoxReadOnlyClient upstoxClient,
-            BackfillQualityRules rules
+            BackfillQualityRules rules,
+            QualityResolutionService resolutionService
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.upstoxClient = upstoxClient;
         this.rules = rules;
+        this.resolutionService = resolutionService;
     }
 
     public BackfillQualityReport audit(UUID jobId, boolean providerSpotCheck) {
@@ -54,12 +60,6 @@ public class BackfillQualityService {
         List<InstrumentMetrics> metrics = instrumentMetrics(job);
         Map<Long, Integer> missingOfficialSessionsByInstrument = missingOfficialSessionCounts(job);
         Map<Long, Integer> missingPeerSessionsByInstrument = missingPeerSessionCounts(job);
-        List<BackfillQualityReport.InstrumentQuality> instruments = metrics.stream()
-                .map(metric -> toInstrumentQuality(
-                        job, metric,
-                        missingOfficialSessionsByInstrument.getOrDefault(metric.instrumentId(), 0),
-                        missingPeerSessionsByInstrument.getOrDefault(metric.instrumentId(), 0)))
-                .toList();
         List<BackfillQualityReport.OfficialSessionCoverage> officialSessionCoverage =
                 officialSessionCoverage(job);
         List<BackfillQualityReport.MissingSessionFinding> missingOfficialSessions =
@@ -69,17 +69,41 @@ public class BackfillQualityService {
                 missingPeerConfirmedSessions(job);
         List<BackfillQualityReport.GapFinding> gaps = suspiciousGaps(jobId);
         List<BackfillQualityReport.LargeMoveFinding> moves = largeMoves(jobId);
+        List<QualityResolutionRecord> currentResolutions = resolutionService.current(jobId);
+        List<DetectedFinding> detectedFindings = detectedFindings(
+                job, metrics, missingOfficialSessions, missingPeerConfirmedSessions, gaps, moves);
+        List<BackfillQualityReport.QualityFinding> qualityFindings = qualityFindings(
+                detectedFindings, currentResolutions, corporateActions(jobId));
+        FindingSummary findingSummary = summarizeFindings(qualityFindings);
+        int missingOfficialSessionCount = officialSessionCoverage.stream()
+                .mapToInt(BackfillQualityReport.OfficialSessionCoverage::missingInstrumentCount)
+                .sum();
+        int boundaryFindingCount = (int) detectedFindings.stream()
+                .filter(finding -> finding.type() == QualityFindingType.LEADING_COVERAGE_GAP
+                        || finding.type() == QualityFindingType.TRAILING_COVERAGE_GAP)
+                .count();
+        int expectedFindingCount = missingOfficialSessionCount + peerCoverageSummary.missingCount()
+                + metrics.stream().mapToInt(InstrumentMetrics::suspiciousGapCount).sum()
+                + metrics.stream().mapToInt(InstrumentMetrics::largeMoveCount).sum()
+                + boundaryFindingCount;
+        int truncatedFindingCount = Math.max(0, expectedFindingCount - detectedFindings.size());
+        List<BackfillQualityReport.InstrumentQuality> instruments = metrics.stream()
+                .map(metric -> toInstrumentQuality(
+                        job, metric,
+                        missingOfficialSessionsByInstrument.getOrDefault(metric.instrumentId(), 0),
+                        missingPeerSessionsByInstrument.getOrDefault(metric.instrumentId(), 0),
+                        findingSummary))
+                .toList();
         List<BackfillQualityReport.ProviderSpotCheck> providerChecks = providerSpotCheck
                 ? providerSpotChecks(job, metrics)
                 : List.of();
 
         int blocking = (int) instruments.stream().filter(item -> "BLOCKED".equals(item.status())).count();
-        int missingProviderData = (int) instruments.stream()
-                .filter(item -> item.missingOfficialSessionCount() + item.missingPeerConfirmedSessionCount() > 0)
-                .count();
-        int review = (int) instruments.stream().filter(instrument -> rules.requiresReview(
-                instrument.leadingCoverageGapDays(), instrument.trailingCoverageGapDays(),
-                instrument.suspiciousGapCount(), instrument.largeMoveCount(), SUSPICIOUS_GAP_DAYS)).count();
+        int missingProviderData = findingSummary.missingProviderSymbols().size();
+        int review = findingSummary.reviewSymbols().size();
+        if (truncatedFindingCount > 0) {
+            review = Math.max(review, 1);
+        }
         int providerMismatches = (int) providerChecks.stream()
                 .filter(item -> List.of("PRICE_MISMATCH", "DATE_MISMATCH").contains(item.status()))
                 .count();
@@ -89,9 +113,6 @@ public class BackfillQualityService {
                 .count();
         String qualityStatus = rules.overallStatus(
                 instruments.size(), blocking, missingProviderData, review, providerMismatches, providerFailures);
-        int missingOfficialSessionCount = officialSessionCoverage.stream()
-                .mapToInt(BackfillQualityReport.OfficialSessionCoverage::missingInstrumentCount)
-                .sum();
         boolean eligible = "PASS".equals(qualityStatus) && providerSpotCheck;
 
         return new BackfillQualityReport(
@@ -103,16 +124,23 @@ public class BackfillQualityService {
                 instruments.stream().mapToInt(BackfillQualityReport.InstrumentQuality::suspiciousGapCount).sum(),
                 instruments.stream().mapToInt(BackfillQualityReport.InstrumentQuality::largeMoveCount).sum(),
                 providerMismatches, providerFailures, officialSessionCoverage.size(),
-                missingOfficialSessionCount, peerCoverageSummary.sessionCount(),
-                peerCoverageSummary.missingCount(), mutuallyAvailableTradingDateCount(job),
+                missingOfficialSessionCount, findingSummary.unresolvedOfficialSessions(),
+                peerCoverageSummary.sessionCount(), peerCoverageSummary.missingCount(),
+                findingSummary.unresolvedPeerSessions(), findingSummary.unresolvedSuspiciousGaps(),
+                findingSummary.unresolvedLargeMoves(), findingSummary.resolvedCount(),
+                findingSummary.documentedCount(), findingSummary.unresolvedCount() + truncatedFindingCount,
+                truncatedFindingCount,
+                mutuallyAvailableTradingDateCount(job),
                 SUSPICIOUS_GAP_DAYS, LARGE_MOVE_PERCENT,
                 providerSpotCheck, eligible, eligible, eligibilityReasons(
-                        blocking, missingOfficialSessionCount, peerCoverageSummary.missingCount(), review,
-                        providerMismatches, providerFailures, providerSpotCheck),
+                        blocking, findingSummary.unresolvedOfficialSessions(),
+                        findingSummary.unresolvedPeerSessions(), review,
+                        providerMismatches, providerFailures, providerSpotCheck, truncatedFindingCount),
                 instruments, officialSessionCoverage, missingOfficialSessions, missingPeerConfirmedSessions,
-                gaps, moves, providerChecks,
-                "Official special sessions are audited separately from ordinary calendar gaps. Missing provider "
-                        + "candles are reported but never fabricated or forward-filled."
+                gaps, moves, qualityFindings, currentResolutions, providerChecks,
+                "Raw provider candles remain unchanged. Training eligibility accepts only reviewed findings whose "
+                        + "resolution either preserves a verified move, supplies secondary data, or creates an "
+                        + "explicit feature-exclusion window."
         );
     }
 
@@ -348,6 +376,144 @@ public class BackfillQualityService {
         return count == null ? 0 : count;
     }
 
+    private List<DetectedFinding> detectedFindings(
+            JobScope job,
+            List<InstrumentMetrics> metrics,
+            List<BackfillQualityReport.MissingSessionFinding> missingOfficialSessions,
+            List<BackfillQualityReport.MissingSessionFinding> missingPeerSessions,
+            List<BackfillQualityReport.GapFinding> gaps,
+            List<BackfillQualityReport.LargeMoveFinding> moves
+    ) {
+        List<DetectedFinding> findings = new ArrayList<>();
+        missingOfficialSessions.forEach(finding -> findings.add(new DetectedFinding(
+                QualityFindingType.OFFICIAL_SPECIAL_SESSION, finding.symbol(), finding.tradingDate(), null,
+                "MISSING_PROVIDER_DATA")));
+        missingPeerSessions.forEach(finding -> findings.add(new DetectedFinding(
+                QualityFindingType.PEER_CONFIRMED_SESSION, finding.symbol(), finding.tradingDate(), null,
+                "MISSING_PROVIDER_DATA")));
+        gaps.forEach(finding -> findings.add(new DetectedFinding(
+                QualityFindingType.SUSPICIOUS_GAP, finding.symbol(), finding.nextTradingDate(),
+                finding.previousTradingDate(), "REVIEW")));
+        moves.forEach(finding -> findings.add(new DetectedFinding(
+                QualityFindingType.LARGE_MOVE, finding.symbol(), finding.tradingDate(), null, "REVIEW")));
+        for (InstrumentMetrics metric : metrics) {
+            int leadingGap = boundaryGap(metric.effectiveFromDate(), metric.firstDate());
+            if (leadingGap > SUSPICIOUS_GAP_DAYS) {
+                findings.add(new DetectedFinding(
+                        QualityFindingType.LEADING_COVERAGE_GAP, metric.symbol(), metric.effectiveFromDate(),
+                        metric.firstDate(), "REVIEW"));
+            }
+            int trailingGap = boundaryGap(metric.lastDate(), job.toDate());
+            if (trailingGap > SUSPICIOUS_GAP_DAYS) {
+                findings.add(new DetectedFinding(
+                        QualityFindingType.TRAILING_COVERAGE_GAP, metric.symbol(), job.toDate(),
+                        metric.lastDate(), "REVIEW"));
+            }
+        }
+        return List.copyOf(findings);
+    }
+
+    List<BackfillQualityReport.QualityFinding> qualityFindings(
+            List<DetectedFinding> detected,
+            List<QualityResolutionRecord> resolutions,
+            Map<SymbolDate, List<String>> corporateActions
+    ) {
+        Map<FindingKey, QualityResolutionRecord> resolutionByFinding = new LinkedHashMap<>();
+        for (QualityResolutionRecord resolution : resolutions) {
+            resolutionByFinding.put(new FindingKey(
+                    resolution.findingType(), resolution.symbol(), resolution.findingDate(),
+                    resolution.relatedDate()), resolution);
+        }
+        List<BackfillQualityReport.QualityFinding> findings = new ArrayList<>();
+        for (DetectedFinding finding : detected) {
+            QualityResolutionRecord resolution = resolutionByFinding.get(new FindingKey(
+                    finding.type(), finding.symbol(), finding.findingDate(), finding.relatedDate()));
+            if (resolution == null && finding.type() == QualityFindingType.OFFICIAL_SPECIAL_SESSION) {
+                resolution = resolutionByFinding.get(new FindingKey(
+                        finding.type(), null, finding.findingDate(), finding.relatedDate()));
+            }
+            boolean allowsTraining = resolution != null && resolution.allowsTraining();
+            String reviewStatus = resolution == null ? "OPEN" : allowsTraining ? "RESOLVED" : "DOCUMENTED";
+            findings.add(new BackfillQualityReport.QualityFinding(
+                    finding.type(), finding.symbol(), finding.findingDate(), finding.relatedDate(),
+                    finding.rawStatus(), reviewStatus,
+                    resolution == null ? null : resolution.resolutionType(), allowsTraining,
+                    resolution == null ? null : resolution.exclusionFrom(),
+                    resolution == null ? null : resolution.exclusionTo(),
+                    resolution == null ? null : resolution.evidenceSource(),
+                    resolution == null ? null : resolution.evidenceUrl(),
+                    finding.type() == QualityFindingType.LARGE_MOVE
+                            ? corporateActions.getOrDefault(
+                                    new SymbolDate(finding.symbol(), finding.findingDate()), List.of())
+                            : List.of()));
+        }
+        return List.copyOf(findings);
+    }
+
+    private FindingSummary summarizeFindings(List<BackfillQualityReport.QualityFinding> findings) {
+        Map<String, Map<QualityFindingType, Integer>> unresolvedBySymbol = new HashMap<>();
+        Set<String> missingProviderSymbols = new LinkedHashSet<>();
+        Set<String> reviewSymbols = new LinkedHashSet<>();
+        int unresolvedOfficial = 0;
+        int unresolvedPeer = 0;
+        int unresolvedGaps = 0;
+        int unresolvedMoves = 0;
+        int resolved = 0;
+        int documented = 0;
+        int unresolved = 0;
+        for (BackfillQualityReport.QualityFinding finding : findings) {
+            if (finding.allowsTraining()) {
+                resolved++;
+                continue;
+            }
+            unresolved++;
+            if (finding.resolutionType() != null) {
+                documented++;
+            }
+            unresolvedBySymbol.computeIfAbsent(finding.symbol(), ignored -> new HashMap<>())
+                    .merge(finding.findingType(), 1, Integer::sum);
+            switch (finding.findingType()) {
+                case OFFICIAL_SPECIAL_SESSION -> {
+                    unresolvedOfficial++;
+                    missingProviderSymbols.add(finding.symbol());
+                }
+                case PEER_CONFIRMED_SESSION -> {
+                    unresolvedPeer++;
+                    missingProviderSymbols.add(finding.symbol());
+                }
+                case SUSPICIOUS_GAP -> {
+                    unresolvedGaps++;
+                    reviewSymbols.add(finding.symbol());
+                }
+                case LARGE_MOVE -> {
+                    unresolvedMoves++;
+                    reviewSymbols.add(finding.symbol());
+                }
+                case LEADING_COVERAGE_GAP, TRAILING_COVERAGE_GAP -> reviewSymbols.add(finding.symbol());
+            }
+        }
+        return new FindingSummary(
+                Map.copyOf(unresolvedBySymbol), Set.copyOf(missingProviderSymbols), Set.copyOf(reviewSymbols),
+                unresolvedOfficial, unresolvedPeer, unresolvedGaps, unresolvedMoves,
+                resolved, documented, unresolved);
+    }
+
+    private Map<SymbolDate, List<String>> corporateActions(UUID jobId) {
+        Map<SymbolDate, List<String>> actions = new HashMap<>();
+        jdbcTemplate.query("""
+                SELECT DISTINCT instrument.symbol, event.effective_on, event.action_type
+                FROM corporate_action_event event
+                JOIN instrument ON instrument.id = event.instrument_id
+                JOIN historical_backfill_chunk chunk ON chunk.instrument_id = instrument.id
+                WHERE chunk.job_id = ?
+                ORDER BY instrument.symbol, event.effective_on, event.action_type
+                """, (org.springframework.jdbc.core.RowCallbackHandler) rs -> actions.computeIfAbsent(
+                        new SymbolDate(rs.getString("symbol"), rs.getDate("effective_on").toLocalDate()),
+                        ignored -> new ArrayList<>()).add(rs.getString("action_type")), jobId);
+        actions.replaceAll((key, values) -> List.copyOf(values));
+        return Map.copyOf(actions);
+    }
+
     private List<String> eligibilityReasons(
             int blocking,
             int missingOfficialSessions,
@@ -355,20 +521,21 @@ public class BackfillQualityService {
             int review,
             int providerMismatches,
             int providerFailures,
-            boolean providerSpotCheck
+            boolean providerSpotCheck,
+            int truncatedFindings
     ) {
         List<String> reasons = new ArrayList<>();
         if (blocking > 0) {
             reasons.add("One or more instruments contain missing, duplicate, or invalid structural data.");
         }
         if (missingOfficialSessions > 0) {
-            reasons.add("Official NSE special-session candles are missing from the provider dataset.");
+            reasons.add("Unresolved official NSE special-session provider omissions remain.");
         }
         if (missingPeerConfirmedSessions > 0) {
-            reasons.add("Candles are missing on dates present for at least eighty percent of comparable instruments.");
+            reasons.add("Unresolved peer-confirmed provider omissions remain.");
         }
         if (review > 0) {
-            reasons.add("One or more calendar-gap or large-move findings still require review.");
+            reasons.add("One or more coverage-gap or large-move findings still require governed review.");
         }
         if (providerMismatches > 0) {
             reasons.add("Stored candles do not match the provider spot check.");
@@ -378,6 +545,9 @@ public class BackfillQualityService {
         }
         if (!providerSpotCheck) {
             reasons.add("The final provider spot check has not been requested for this audit.");
+        }
+        if (truncatedFindings > 0) {
+            reasons.add("The finding response limit was reached; eligibility remains blocked until every finding is visible.");
         }
         return reasons.isEmpty() ? List.of("All configured quality gates passed.") : List.copyOf(reasons);
     }
@@ -600,20 +770,32 @@ public class BackfillQualityService {
             JobScope job,
             InstrumentMetrics metric,
             int missingOfficialSessionCount,
-            int missingPeerConfirmedSessionCount
+            int missingPeerConfirmedSessionCount,
+            FindingSummary findingSummary
     ) {
         int leadingGap = boundaryGap(metric.effectiveFromDate(), metric.firstDate());
         int trailingGap = boundaryGap(metric.lastDate(), job.toDate());
+        int unresolvedOfficial = findingSummary.count(
+                metric.symbol(), QualityFindingType.OFFICIAL_SPECIAL_SESSION);
+        int unresolvedPeer = findingSummary.count(metric.symbol(), QualityFindingType.PEER_CONFIRMED_SESSION);
+        int unresolvedGaps = findingSummary.count(metric.symbol(), QualityFindingType.SUSPICIOUS_GAP);
+        int unresolvedMoves = findingSummary.count(metric.symbol(), QualityFindingType.LARGE_MOVE);
+        int unresolvedLeadingGap = findingSummary.count(
+                metric.symbol(), QualityFindingType.LEADING_COVERAGE_GAP) > 0 ? leadingGap : 0;
+        int unresolvedTrailingGap = findingSummary.count(
+                metric.symbol(), QualityFindingType.TRAILING_COVERAGE_GAP) > 0 ? trailingGap : 0;
         String status = rules.instrumentStatus(
                 metric.candleCount(), metric.duplicateRows(), metric.invalidRows(),
-                missingOfficialSessionCount + missingPeerConfirmedSessionCount,
-                leadingGap, trailingGap, metric.suspiciousGapCount(), metric.largeMoveCount(),
+                unresolvedOfficial + unresolvedPeer,
+                unresolvedLeadingGap, unresolvedTrailingGap, unresolvedGaps, unresolvedMoves,
                 SUSPICIOUS_GAP_DAYS);
         return new BackfillQualityReport.InstrumentQuality(
                 metric.symbol(), metric.firstDate(), metric.lastDate(), metric.candleCount(),
-                missingOfficialSessionCount, missingPeerConfirmedSessionCount, leadingGap, trailingGap,
+                missingOfficialSessionCount, missingPeerConfirmedSessionCount,
+                unresolvedOfficial, unresolvedPeer, leadingGap, trailingGap,
                 metric.longestGapDays(), metric.suspiciousGapCount(),
-                metric.largeMoveCount(), metric.maximumMovePercent(), metric.duplicateRows(),
+                metric.largeMoveCount(), unresolvedGaps, unresolvedMoves,
+                metric.maximumMovePercent(), metric.duplicateRows(),
                 metric.invalidRows(), status);
     }
 
@@ -668,5 +850,42 @@ public class BackfillQualityService {
     }
 
     private record PeerCoverageSummary(int sessionCount, int missingCount) {
+    }
+
+    record DetectedFinding(
+            QualityFindingType type,
+            String symbol,
+            LocalDate findingDate,
+            LocalDate relatedDate,
+            String rawStatus
+    ) {
+    }
+
+    private record FindingKey(
+            QualityFindingType type,
+            String symbol,
+            LocalDate findingDate,
+            LocalDate relatedDate
+    ) {
+    }
+
+    record SymbolDate(String symbol, LocalDate date) {
+    }
+
+    private record FindingSummary(
+            Map<String, Map<QualityFindingType, Integer>> unresolvedBySymbol,
+            Set<String> missingProviderSymbols,
+            Set<String> reviewSymbols,
+            int unresolvedOfficialSessions,
+            int unresolvedPeerSessions,
+            int unresolvedSuspiciousGaps,
+            int unresolvedLargeMoves,
+            int resolvedCount,
+            int documentedCount,
+            int unresolvedCount
+    ) {
+        int count(String symbol, QualityFindingType type) {
+            return unresolvedBySymbol.getOrDefault(symbol, Map.of()).getOrDefault(type, 0);
+        }
     }
 }

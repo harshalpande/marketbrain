@@ -25,9 +25,9 @@ public class ProviderCatalog {
                         "UPSTOX",
                         "Upstox Developer API",
                         Set.of(MarketDataCapability.INTRADAY_QUOTES, MarketDataCapability.HISTORICAL_CANDLES,
-                                MarketDataCapability.NEWS_EVENTS),
-                        "Primary read-only provider. Manual REST ingestion is verified; automated collection "
-                                + "remains separately controlled."
+                                MarketDataCapability.CORPORATE_ACTIONS, MarketDataCapability.NEWS_EVENTS),
+                        "Primary read-only provider. Manual REST ingestion and corporate-action evidence are "
+                                + "implemented; automated collection remains separately controlled."
                 ),
                 new ProviderDefinition(
                         "NSE_DATA",

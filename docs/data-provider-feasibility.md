@@ -4,11 +4,12 @@ MarketBrain does not scrape exchange or broker websites. Every collected market 
 
 ## Upstox: primary read-only market-data provider
 
-The Upstox Analytics Token was manually verified from the spare laptop against a read-only market quote endpoint. The implementation now supports three manually invoked operations:
+The Upstox Analytics Token was manually verified from the spare laptop against a read-only market quote endpoint. The implementation now supports four manually invoked operations:
 
 - import the official Upstox NSE instrument master and retain only `NSE_EQ` cash equities;
 - retrieve a full quote with provider and last-trade timestamps;
 - retrieve and persist a deliberately bounded historical-candle range.
+- retrieve corporate actions by ISIN and store them as evidence without changing raw candles.
 
 The provider remains disabled by default. The one-year Analytics Token must exist only in the spare laptop's ignored `.env` file. No Upstox order, funds, holdings, positions, or portfolio endpoint is implemented.
 
@@ -33,7 +34,9 @@ The official current constituent file is obtained from the NIFTY Indices NIFTY 5
 
 The pilot backfill uses ten configured symbols from the latest current snapshot. A 15-year pilot becomes 150 independently checkpointed yearly chunks. The worker is disabled by default and requires an explicit job start. Data and authentication failures are retried at most three times. Connectivity, rate-limit, and temporary provider failures instead enter a persisted `WAITING_FOR_CONNECTIVITY` state with 1, 5, and 15 minute backoff, do not consume data attempts, and automatically continue when a retry succeeds. No credential-bearing provider error text is stored.
 
-After completion, a read-only quality audit reports per-symbol coverage, logical duplicates, invalid OHLC/volume rows, calendar gaps over seven days, and close-to-close moves over 20 percent. Gaps and large moves are review candidates rather than automatic errors because listings, suspensions, splits, and bonuses can produce them. An optional ten-request Upstox spot comparison verifies the latest stored close in the completed job range without mutating stored candles.
+After completion, a read-only quality audit reports per-symbol coverage, logical duplicates, invalid OHLC/volume rows, calendar gaps over seven days, and close-to-close moves over 20 percent. Gaps and large moves are review candidates rather than automatic errors because listings, suspensions, splits, and bonuses can produce them. An optional one-request-per-instrument Upstox spot comparison verifies the latest stored close in the completed job range without mutating stored candles.
+
+Quality decisions are append-only. A reviewer can document a provider omission, verify a genuine exchange move, associate a move with stored corporate-action evidence, record a provider adjustment, confirm an approved secondary-source backfill, or define an explicit feature-exclusion window. Confirming an omission alone does not permit training. Corporate-action, provider-adjustment, and manual-exclusion resolutions require an exclusion window, which is exposed through the `market_data_feature_exclusion` database view. Structural duplicates and invalid OHLCV data remain non-overridable.
 
 Backtesting requires date-effective index membership to avoid survivor bias. The initial import format is:
 

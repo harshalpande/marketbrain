@@ -111,6 +111,27 @@ public class UpstoxReadOnlyClient {
         }
     }
 
+    public UpstoxFetchResult<List<UpstoxCorporateAction>> fetchCorporateActions(String isin) {
+        if (!upstox.isConfigured()) {
+            return UpstoxFetchResult.notConfigured();
+        }
+        try {
+            String body = restClient.get()
+                    .uri(builder -> builder.pathSegment("v2", "fundamentals", isin, "corporate-actions").build())
+                    .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(String.class);
+            return UpstoxFetchResult.success(parser.parseCorporateActions(body));
+        } catch (RestClientResponseException exception) {
+            return providerFailure(exception);
+        } catch (RestClientException exception) {
+            return connectionFailure(exception);
+        } catch (java.io.IOException exception) {
+            return formatFailure(exception);
+        }
+    }
+
     private String bearerToken() {
         return "Bearer " + upstox.analyticsToken();
     }

@@ -4,14 +4,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.sql.Timestamp;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HexFormat;
 import java.util.List;
 
 @Service
 public class UpstoxMarketDataService {
 
     private static final String SOURCE_CODE = "UPSTOX";
+    private static final String CORPORATE_ACTION_SOURCE_URL =
+            "https://upstox.com/developer/api-documentation/get-corporate-actions/";
 
     private final UpstoxReadOnlyClient client;
     private final UpstoxDataQualityService qualityService;
@@ -194,6 +202,78 @@ public class UpstoxMarketDataService {
                         + normalized.collapsedDuplicates() + " near-identical same-date row(s) were normalized.");
     }
 
+    @Transactional
+    public CorporateActionSyncResult syncCorporateActions(String symbol) {
+        InstrumentIdentity instrument = findInstrumentBySymbol(symbol);
+        if (instrument == null) {
+            throw new IllegalArgumentException("Active NSE instrument was not found for symbol " + symbol);
+        }
+        if (instrument.isin() == null || instrument.isin().isBlank()) {
+            throw new IllegalStateException("Instrument " + instrument.symbol() + " has no ISIN");
+        }
+
+        UpstoxFetchResult<List<UpstoxCorporateAction>> fetch = client.fetchCorporateActions(instrument.isin());
+        if (!fetch.succeeded()) {
+            markSourceFailureUnlessDisabled(fetch);
+            return CorporateActionSyncResult.providerFailure(instrument.symbol(), instrument.isin(), fetch);
+        }
+
+        int accepted = 0;
+        for (UpstoxCorporateAction event : fetch.data()) {
+            if (event.effectiveOn() == null || event.actionType() == null) {
+                continue;
+            }
+            accepted += jdbcTemplate.update("""
+                    INSERT INTO corporate_action_event
+                        (instrument_id, source_id, event_fingerprint, provider_name, action_type, effective_on,
+                         announced_on, record_on, amount, ratio, details, source_url)
+                    SELECT ?, source.id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    FROM market_data_source source
+                    WHERE source.code = ?
+                    ON CONFLICT (source_id, instrument_id, event_fingerprint) DO UPDATE SET
+                        provider_name = EXCLUDED.provider_name,
+                        action_type = EXCLUDED.action_type,
+                        effective_on = EXCLUDED.effective_on,
+                        announced_on = EXCLUDED.announced_on,
+                        record_on = EXCLUDED.record_on,
+                        amount = EXCLUDED.amount,
+                        ratio = EXCLUDED.ratio,
+                        details = EXCLUDED.details,
+                        source_url = EXCLUDED.source_url,
+                        received_at = CURRENT_TIMESTAMP
+                    """, instrument.id(), fingerprint(instrument.isin(), event), event.name(), event.actionType(),
+                    Date.valueOf(event.effectiveOn()), dateOrNull(event.announcedOn()), dateOrNull(event.recordOn()),
+                    event.amount(), event.ratio(), event.details(), CORPORATE_ACTION_SOURCE_URL, SOURCE_CODE);
+        }
+        markSourceSuccess();
+        List<CorporateActionEvidence> events = corporateActions(instrument.symbol());
+        return new CorporateActionSyncResult(
+                "SUCCESS", instrument.symbol(), instrument.isin(), fetch.data().size(), accepted,
+                fetch.data().size() - accepted, events,
+                "Read-only Upstox corporate actions were stored as evidence; no market candle was modified.");
+    }
+
+    public List<CorporateActionEvidence> corporateActions(String symbol) {
+        InstrumentIdentity instrument = findInstrumentBySymbol(symbol);
+        if (instrument == null) {
+            throw new IllegalArgumentException("Active NSE instrument was not found for symbol " + symbol);
+        }
+        return jdbcTemplate.query("""
+                SELECT instrument.symbol, instrument.isin, event.provider_name, event.action_type, event.effective_on,
+                       event.announced_on, event.record_on, event.amount, event.ratio,
+                       event.details, event.source_url
+                FROM corporate_action_event event
+                JOIN instrument ON instrument.id = event.instrument_id
+                WHERE event.instrument_id = ?
+                ORDER BY event.effective_on, event.action_type
+                """, (rs, row) -> new CorporateActionEvidence(
+                rs.getString("symbol"), rs.getString("isin"), rs.getString("provider_name"),
+                rs.getString("action_type"),
+                rs.getDate("effective_on").toLocalDate(), localDateOrNull(rs.getDate("announced_on")),
+                localDateOrNull(rs.getDate("record_on")), rs.getBigDecimal("amount"), rs.getString("ratio"),
+                rs.getString("details"), rs.getString("source_url")), instrument.id());
+    }
+
     private Long findInstrumentId(String instrumentKey) {
         List<Long> ids = jdbcTemplate.query("""
                 SELECT mapping.instrument_id
@@ -202,6 +282,34 @@ public class UpstoxMarketDataService {
                 WHERE source.code = ? AND mapping.provider_instrument_key = ? AND mapping.active = TRUE
                 """, (resultSet, rowNumber) -> resultSet.getLong(1), SOURCE_CODE, instrumentKey);
         return ids.isEmpty() ? null : ids.getFirst();
+    }
+
+    private InstrumentIdentity findInstrumentBySymbol(String symbol) {
+        List<InstrumentIdentity> instruments = jdbcTemplate.query("""
+                SELECT id, symbol, isin
+                FROM instrument
+                WHERE exchange = 'NSE' AND UPPER(symbol) = UPPER(?) AND active = TRUE
+                """, (rs, row) -> new InstrumentIdentity(
+                rs.getLong("id"), rs.getString("symbol"), rs.getString("isin")), symbol);
+        return instruments.isEmpty() ? null : instruments.getFirst();
+    }
+
+    private String fingerprint(String isin, UpstoxCorporateAction event) {
+        String canonical = String.join("|", isin, event.name(), event.actionType(), event.effectiveOn().toString());
+        try {
+            return HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private Date dateOrNull(LocalDate value) {
+        return value == null ? null : Date.valueOf(value);
+    }
+
+    private LocalDate localDateOrNull(Date value) {
+        return value == null ? null : value.toLocalDate();
     }
 
     private void markSourceSuccess() {
@@ -228,5 +336,8 @@ public class UpstoxMarketDataService {
 
     private Timestamp timestampOrNull(Instant value) {
         return value == null ? null : Timestamp.from(value);
+    }
+
+    private record InstrumentIdentity(long id, String symbol, String isin) {
     }
 }
