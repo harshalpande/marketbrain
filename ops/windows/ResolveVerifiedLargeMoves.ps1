@@ -81,8 +81,10 @@ if ($latest.workerEnabled) {
 
 $jobId = $latest.jobId
 $beforeQuality = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality?jobId=$jobId"
+$beforeResolutionResponse = Invoke-RestMethod `
+    "$BaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
 $beforeResolutions = @(
-    Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+    $beforeResolutionResponse | Where-Object { $null -ne $_ }
 )
 $evidence = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/large-move-evidence?jobId=$jobId"
 
@@ -214,8 +216,10 @@ foreach ($candidate in $pendingCandidates) {
 }
 
 $afterQuality = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality?jobId=$jobId"
+$afterResolutionResponse = Invoke-RestMethod `
+    "$BaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
 $afterResolutions = @(
-    Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+    $afterResolutionResponse | Where-Object { $null -ne $_ }
 )
 
 if ($afterQuality.totalCandles -ne $beforeQuality.totalCandles) {

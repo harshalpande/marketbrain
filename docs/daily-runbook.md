@@ -1119,9 +1119,10 @@ $jobId = $latest.jobId
 
 $beforeQuality = Invoke-RestMethod `
     "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$beforeResolutionResponse = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
 $beforeResolutionCount = @(
-    Invoke-RestMethod `
-        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+    $beforeResolutionResponse | Where-Object { $null -ne $_ }
 ).Count
 
 $latest |
@@ -1183,9 +1184,10 @@ $evidence.findings |
 
 $afterQuality = Invoke-RestMethod `
     "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$afterResolutionResponse = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
 $afterResolutionCount = @(
-    Invoke-RestMethod `
-        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+    $afterResolutionResponse | Where-Object { $null -ne $_ }
 ).Count
 
 [pscustomobject]@{
@@ -1242,9 +1244,10 @@ $jobId = $latest.jobId
 
 $beforeQuality = Invoke-RestMethod `
     "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$beforeResolutionResponse = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
 $beforeResolutionCount = @(
-    Invoke-RestMethod `
-        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+    $beforeResolutionResponse | Where-Object { $null -ne $_ }
 ).Count
 
 $evidence = Invoke-RestMethod `
@@ -1277,9 +1280,10 @@ Complete the read-only safety check:
 ```powershell
 $afterQuality = Invoke-RestMethod `
     "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$afterResolutionResponse = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
 $afterResolutionCount = @(
-    Invoke-RestMethod `
-        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+    $afterResolutionResponse | Where-Object { $null -ne $_ }
 ).Count
 
 [pscustomobject]@{
