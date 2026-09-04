@@ -46,6 +46,72 @@ class LargeMoveEvidenceServiceTest {
     }
 
     @Test
+    void recognizesAConsistentlyRescaledSeriesByItsReturn() {
+        LocalDate date = LocalDate.of(2013, 5, 17);
+        var finding = finding("ABB", date, "426.35", "515.60", "20.93");
+        var official = new NseBhavcopyRecord(
+                "ABB", "INE117A01022", "EQ", date,
+                new BigDecimal("545.25"), null, null, null, new BigDecimal("659.40"), null);
+
+        var result = service.evaluate(finding, "INE117A01022", archive(date, official), List.of());
+
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_RETURN_MATCH_ADJUSTED_PRICES");
+        assertThat(result.reviewPath()).isEqualTo("REVIEW_VERIFIED_ADJUSTED_EXCHANGE_MOVE");
+        assertThat(result.returnDifferencePercentagePoints()).isLessThan(new BigDecimal("0.01"));
+        assertThat(result.scaleRatioDifferencePercent()).isLessThan(new BigDecimal("0.01"));
+    }
+
+    @Test
+    void doesNotTreatAnInconsistentScaleAsAnAdjustedReturnMatch() {
+        LocalDate date = LocalDate.of(2012, 9, 10);
+        var finding = finding("ACE", date, "18.00", "23.55", "30.83");
+        var official = new NseBhavcopyRecord(
+                "ACE", "INE731H01025", "EQ", date,
+                new BigDecimal("19.65"), null, null, null, new BigDecimal("23.55"), null);
+
+        var result = service.evaluate(finding, "INE731H01025", archive(date, official), List.of());
+
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_PREVIOUS_CLOSE_MISMATCH");
+        assertThat(result.returnDifferencePercentagePoints()).isGreaterThan(new BigDecimal("10"));
+        assertThat(result.reviewPath()).isEqualTo("REVIEW_PROVIDER_ADJUSTMENT");
+    }
+
+    @Test
+    void matchesAnEffectiveDatedHistoricalIsin() {
+        LocalDate date = LocalDate.of(2025, 1, 29);
+        var finding = finding("ACUTAAS", date, "940.90", "1129.10", "20.00");
+        var official = new NseBhavcopyRecord(
+                "AMIORG", "INE00FF01017", "EQ", date,
+                new BigDecimal("1881.85"), null, null, null, new BigDecimal("2258.20"), null);
+        var aliases = List.of(new LargeMoveEvidenceService.HistoricalIdentity(
+                "AMIORG", "INE00FF01017", LocalDate.of(2025, 1, 29), LocalDate.of(2025, 4, 24)));
+
+        var result = service.evaluate(
+                finding, "INE00FF01025", aliases, archive(date, official), List.of());
+
+        assertThat(result.officialSymbol()).isEqualTo("AMIORG");
+        assertThat(result.matchBasis()).isEqualTo("HISTORICAL_ISIN");
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_RETURN_MATCH_ADJUSTED_PRICES");
+    }
+
+    @Test
+    void ignoresAHistoricalIdentityOutsideItsEvidenceBackedPeriod() {
+        LocalDate date = LocalDate.of(2024, 1, 29);
+        var finding = finding("ACUTAAS", date, "940.90", "1129.10", "20.00");
+        var official = new NseBhavcopyRecord(
+                "AMIORG", "INE00FF01017", "EQ", date,
+                new BigDecimal("1881.85"), null, null, null, new BigDecimal("2258.20"), null);
+        var aliases = List.of(new LargeMoveEvidenceService.HistoricalIdentity(
+                "AMIORG", "INE00FF01017", LocalDate.of(2025, 1, 29), LocalDate.of(2025, 4, 24)));
+
+        var result = service.evaluate(
+                finding, "INE00FF01025", aliases, archive(date, official), List.of());
+
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_INSTRUMENT_NOT_FOUND");
+        assertThat(result.reviewPath()).isEqualTo("KEEP_OPEN");
+    }
+
+    @Test
     void corporateActionOnTheFindingDateTakesTheCorporateActionReviewPath() {
         LocalDate date = LocalDate.of(2024, 4, 23);
         var finding = finding("ASTERDM", date, "513.35", "399.50", "22.18");

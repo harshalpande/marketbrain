@@ -1202,6 +1202,99 @@ $afterResolutionCount = @(
 it is not an approved resolution. Do not create resolution records or expansion batch 2. Share both sample
 reports, the full summary/table, and the final before/after safety check for review.
 
+### 18. Re-run large-move evidence with adjusted-return and historical-identity classification
+
+Run this only after step 17 reports all 28 source requests without an unavailable archive. This refinement
+keeps the endpoint read-only while distinguishing an adjusted price series from a genuine return mismatch.
+It compares both close-to-close returns and the official/stored scale ratio. A non-exact price pair is treated
+as an adjusted-return match only when the return difference is at most 0.50 percentage points and the two
+scale ratios differ by at most 0.50 percent.
+
+The migration also records evidence-backed, effective-dated AMIORG identities for the current ACUTAAS
+lineage. The audited 29 January 2025 row is matched using the historical ISIN; no current instrument or candle
+identity is rewritten.
+
+Keep the backfill worker disabled and deploy:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git pull --ff-only
+notepad .env
+```
+
+Confirm `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, save, and run:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    } catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+$latest = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $latest.jobId
+
+$beforeQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$beforeResolutionCount = @(
+    Invoke-RestMethod `
+        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+).Count
+
+$evidence = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/large-move-evidence?jobId=$jobId"
+
+$evidence |
+    Select-Object findingCount, sourceRequestCount, officialMatchCount,
+        officialAdjustedReturnMatchCount, officialMismatchCount,
+        sourceUnavailableFindingCount, symbolNotFoundCount,
+        corporateActionDateMatchCount, resolutionsWritten |
+    Format-List
+
+$evidence.findings |
+    Format-Table symbol, findingDate, evidenceStatus, officialSymbol, matchBasis,
+        storedReturnPercent, officialReturnPercent, returnDifferencePercentagePoints,
+        previousCloseScaleRatio, closeScaleRatio, scaleRatioDifferencePercent, reviewPath -AutoSize
+```
+
+Expected full-report reconciliation:
+
+- `findingCount=28` and `sourceRequestCount=28`;
+- `officialMatchCount=16` for exact official prices;
+- `officialAdjustedReturnMatchCount=6` for ABB, three ADANIPOWER dates, ANANTRAJ, and ACUTAAS;
+- `officialMismatchCount=6` for the two ACE and four ASHOKLEY findings;
+- `sourceUnavailableFindingCount=0`, `symbolNotFoundCount=0`, and `resolutionsWritten=False`;
+- ACUTAAS on 29 January 2025 has `officialSymbol=AMIORG` and `matchBasis=HISTORICAL_ISIN`.
+
+Complete the read-only safety check:
+
+```powershell
+$afterQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$afterResolutionCount = @(
+    Invoke-RestMethod `
+        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+).Count
+
+[pscustomobject]@{
+    CandlesBefore = $beforeQuality.totalCandles
+    CandlesAfter = $afterQuality.totalCandles
+    ResolutionsBefore = $beforeResolutionCount
+    ResolutionsAfter = $afterResolutionCount
+    ResolutionsWrittenByReport = $evidence.resolutionsWritten
+} | Format-List
+```
+
+The candle and resolution counts must remain unchanged, and `ResolutionsWrittenByReport` must be `False`.
+Do not create governed resolutions or expansion batch 2 yet. Share the summary, full classification table,
+and safety check for review.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
