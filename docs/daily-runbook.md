@@ -1655,6 +1655,46 @@ corresponding raw NSE date and reconciliation status remain visible.
 Share the complete enrichment summary, decision table, and regenerated preview. Do not create batch 2 or
 enable the worker until Step 25 is explicitly approved.
 
+### 25. Create the exact reviewed expansion batch 2 without starting it
+
+Run this only after the complete Step 24 output has been reviewed and explicitly approved. The script requires
+the exact reviewed manifest hash and the saved Step 24 preview file. It recalculates the live selection before
+calling the creation endpoint, and the backend independently rejects a stale or changed manifest.
+
+Creation writes one `CREATED` job and its `PENDING` chunk checkpoints in a single database transaction. It does
+not download or write any candle, and it never enables the worker or calls the start endpoint.
+
+Keep `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, pull the reviewed script, and run it with the manifest hash
+from Step 24:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\CreateReviewedExpansionBatch.ps1' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8' `
+    -ReviewedBy 'Harshal Pande'
+```
+
+For the reviewed Batch 2 manifest, mandatory conditions are:
+
+- `Status=CREATED_NOT_STARTED`, `BatchNumber=2`, and the returned manifest hash exactly matches Step 24;
+- `SelectedInstruments=50`, `RemainingAfterBatch=390`, and `TotalChunks=623`;
+- `PendingChunks=623`, while running, completed, and failed chunks are all zero;
+- `ListingEvidenceComplete=True`, `ManifestMismatchCount=0`, and `NonPendingInstrumentCount=0`;
+- `WorkerEnabled=False`;
+- all 50 instrument rows have only pending chunks, with their per-symbol totals matching the reviewed preview;
+- a complete creation report is saved under `C:\MarketBrainData\Review`.
+
+The script is intentionally not a retry command. Once Batch 2 exists, the backend prevents another active batch
+from being created. If the terminal response is interrupted, inspect `/backfills/latest` and the saved report
+before taking any action; never delete or recreate the job manually.
+
+Share the complete Step 25 summary and instrument table. Do not enable the worker or start Batch 2 until the
+creation checkpoint is reviewed and the next step is explicitly approved.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
