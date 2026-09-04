@@ -1295,6 +1295,85 @@ The candle and resolution counts must remain unchanged, and `ResolutionsWrittenB
 Do not create governed resolutions or expansion batch 2 yet. Share the summary, full classification table,
 and safety check for review.
 
+### 19. Preview and apply the 22 verified large-move resolutions
+
+Run this only after step 18 returns the exact `16 + 6 + 6` classification and passes its read-only safety
+check. The script has two explicit modes:
+
+- preview mode validates the completed job, disabled worker, full 22-finding identity set, evidence statuses,
+  and a fixed SHA-256 manifest; it writes nothing;
+- apply mode requires the exact hash printed by the reviewed preview, skips an already-correct resolution,
+  rejects a conflicting resolution, and appends only `VERIFIED_EXCHANGE_MOVE` audit events.
+
+The two ACE and four ASHOKLEY findings are not in the approved manifest and remain open. The backend also
+rejects a second current resolution for the same finding, so an interrupted apply can be safely reviewed and
+resumed without intentionally duplicating a current resolution.
+
+Deploy with the worker disabled:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git pull --ff-only
+notepad .env
+```
+
+Confirm `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, save, and run:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    } catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+```
+
+Run preview mode first:
+
+```powershell
+& '.\ops\windows\ResolveVerifiedLargeMoves.ps1'
+```
+
+Expected preview invariants:
+
+- `Mode=PREVIEW_ONLY`;
+- `ManifestHash=726ab4d0cb4c697e9dd35d801ebfa87ad4bca1adb854517c994d662999eed4c1`;
+- `CandidateCount=22`;
+- `PendingCandidateCount=22`, unless an identical verified resolution already exists;
+- `CandlesBefore=124858` and `WorkerEnabled=False`;
+- the final message states that no resolution or candle was written.
+
+The preview also prints every current resolution. Stop if the existing-resolution list or any manifest value
+is unexpected, and share the complete preview. Do not proceed merely because the command returned without an
+HTTP error.
+
+After the preview has been explicitly reviewed, apply that exact manifest. `ReviewedBy` is audit metadata;
+use the name of the person who actually reviewed the preview:
+
+```powershell
+& '.\ops\windows\ResolveVerifiedLargeMoves.ps1' `
+    -Apply `
+    -ReviewedBy 'Harshal Pande' `
+    -ExpectedManifestHash '726ab4d0cb4c697e9dd35d801ebfa87ad4bca1adb854517c994d662999eed4c1'
+```
+
+Expected final invariants:
+
+- `Status=COMPLETED` and `WrittenResolutionCount=22`, reduced only by already-correct candidates;
+- the current resolution count increases by the written count;
+- `CandlesBefore=124858` and `CandlesAfter=124858`;
+- `UnresolvedLargeMovesBefore=28` and `UnresolvedLargeMovesAfter=6` on the first apply;
+- training and backtesting remain ineligible because missing-session and leading-coverage findings are still
+  unresolved.
+
+If the apply is interrupted, run preview mode again before resuming. The remaining pending count must explain
+the difference. Do not manually delete resolution events, edit candles, or start expansion batch 2. Share the
+preview and final apply summaries for review.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

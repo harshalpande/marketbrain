@@ -28,6 +28,8 @@ public class QualityResolutionService {
         policy.validate(request.findingType(), request.resolutionType(),
                 request.findingDate(), request.exclusionFrom(), request.exclusionTo(),
                 job.fromDate(), job.toDate());
+        requireNoCurrentResolution(request.jobId(), instrumentIdOrNull(instrument), request.findingType(),
+                request.findingDate(), request.relatedDate());
         if (request.resolutionType() == QualityResolutionType.SECONDARY_SOURCE_BACKFILLED) {
             requireSecondaryCandle(instrument, request.findingDate());
         }
@@ -131,6 +133,31 @@ public class QualityResolutionService {
                 instrumentId, dateOrNull(relatedDate));
         if (count == null || count == 0) {
             throw new IllegalStateException("No current resolution exists for this finding");
+        }
+    }
+
+    private void requireNoCurrentResolution(
+            UUID jobId,
+            Long instrumentId,
+            QualityFindingType findingType,
+            LocalDate findingDate,
+            LocalDate relatedDate
+    ) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM current_market_data_quality_resolution
+                WHERE job_id = ? AND finding_type = ? AND finding_date = ?
+                  AND instrument_id IS NOT DISTINCT FROM ?
+                  AND related_date IS NOT DISTINCT FROM ?
+                """, Integer.class, jobId, findingType.name(), Date.valueOf(findingDate),
+                instrumentId, dateOrNull(relatedDate));
+        rejectExistingCurrentResolution(count);
+    }
+
+    void rejectExistingCurrentResolution(Integer count) {
+        if (count != null && count > 0) {
+            throw new IllegalStateException(
+                    "A current resolution already exists for this finding; revoke it before replacing it");
         }
     }
 
