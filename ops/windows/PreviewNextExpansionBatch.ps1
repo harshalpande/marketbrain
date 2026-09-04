@@ -58,6 +58,15 @@ $preview = Invoke-RestMethod `
 $instruments = @($preview.instruments | Where-Object { $null -ne $_ })
 $uniqueSymbols = @($instruments.symbol | Sort-Object -Unique)
 $expectedBatchNumber = [int]$latest.batchNumber + 1
+$acceptedListingStatuses = @(
+    'BEFORE_REQUEST_WINDOW',
+    'EXISTING_BOUNDARY',
+    'VERIFIED_LISTING_BOUNDARY',
+    'EARLIER_PROVIDER_HISTORY'
+)
+$unreconciledListingEvidence = @(
+    $instruments | Where-Object { $_.listingBoundaryStatus -notin $acceptedListingStatuses }
+)
 
 if ($preview.batchNumber -ne $expectedBatchNumber -or
     $preview.selectedInstruments -lt 1 -or
@@ -65,9 +74,13 @@ if ($preview.batchNumber -ne $expectedBatchNumber -or
     $instruments.Count -ne $preview.selectedInstruments -or
     $uniqueSymbols.Count -ne $instruments.Count -or
     @($instruments | Where-Object { $_.totalChunks -lt 1 }).Count -ne 0 -or
+    @($instruments | Where-Object { [string]::IsNullOrWhiteSpace($_.listingBoundaryStatus) }).Count -ne 0 -or
     $preview.manifestHash -notmatch '^[0-9a-f]{64}$' -or
     $preview.databaseWritesPerformed) {
     throw 'The next-batch preview failed one or more manifest invariants.'
+}
+if ($preview.listingEvidenceComplete -and $unreconciledListingEvidence.Count -ne 0) {
+    throw 'The preview claims complete listing evidence but contains an unreconciled instrument.'
 }
 
 $calculatedChunks = ($instruments | Measure-Object -Property totalChunks -Sum).Sum
@@ -94,7 +107,11 @@ $outputPath = Join-Path $OutputDirectory `
 } | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $outputPath -Encoding utf8
 
 [pscustomobject]@{
-    Status                         = 'REVIEW_REQUIRED'
+    Status                         = if ($preview.listingEvidenceComplete) {
+        'REVIEW_REQUIRED'
+    } else {
+        'LISTING_EVIDENCE_REQUIRED'
+    }
     CompletedBatchJobId            = $latest.jobId
     CompletedBatchNumber           = $latest.batchNumber
     CompletedBatchQualityStatus    = $quality.qualityStatus
@@ -107,6 +124,7 @@ $outputPath = Join-Path $OutputDirectory `
     RemainingInstrumentsAfterBatch = $preview.remainingInstrumentsAfterBatch
     TotalChunks                    = $preview.totalChunks
     ManifestHash                   = $preview.manifestHash
+    ListingEvidenceComplete        = $preview.listingEvidenceComplete
     DatabaseWritesPerformed        = $preview.databaseWritesPerformed
     WorkerEnabled                  = $latest.workerEnabled
     FullPreviewPath                = $outputPath
@@ -116,9 +134,13 @@ Write-Host ''
 Write-Host 'Proposed next-batch instruments'
 $instruments |
     Sort-Object symbol |
-    Format-Table symbol, providerInstrumentKey, listedOn, effectiveFrom, totalChunks -AutoSize
+    Format-Table symbol, listedOn, nseReportedListedOn, listingBoundaryStatus, providerPrelistingCandleOn, effectiveFrom, totalChunks -AutoSize
 
 Write-Host ''
 Write-Host 'NEXT EXPANSION BATCH PREVIEW COMPLETE.'
 Write-Host 'No backfill job, chunk, candle, finding, or resolution was written.'
-Write-Host 'Share this complete output for review. Do not create or start the batch yet.'
+if ($preview.listingEvidenceComplete) {
+    Write-Host 'Share this complete output for review. Do not create or start the batch yet.'
+} else {
+    Write-Host 'Listing evidence is incomplete. Run the governed listing-boundary enrichment before creation review.'
+}

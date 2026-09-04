@@ -83,6 +83,10 @@ public class HistoricalBackfillJobService {
             throw new IllegalStateException(
                     "The live expansion selection differs from the reviewed manifest; preview it again");
         }
+        if (!plan.preview().listingEvidenceComplete()) {
+            throw new IllegalStateException(
+                    "Every selected instrument requires reconciled NSE listing evidence before batch creation");
+        }
 
         UUID jobId = UUID.randomUUID();
         persistJob(jobId, plan.snapshotId(), "EXPANSION", plan.preview().batchNumber(),
@@ -126,12 +130,14 @@ public class HistoricalBackfillJobService {
                 .map(candidate -> previewInstrument(candidate, fromDate, toDate))
                 .toList();
         int totalChunks = instruments.stream().mapToInt(ExpansionBatchPreview.Instrument::totalChunks).sum();
+        boolean listingEvidenceComplete = instruments.stream()
+                .allMatch(instrument -> isAcceptedListingStatus(instrument.listingBoundaryStatus()));
         String manifestHash = manifestHash(snapshotId, batchNumber, years, fromDate, toDate,
                 selection.remainingAfterBatch(), instruments);
         ExpansionBatchPreview preview = new ExpansionBatchPreview(
                 snapshotId, batchNumber, years, fromDate, toDate, selection.selected().size(),
                 selection.remainingAfterBatch(), properties.maximumExpansionBatchSize(), totalChunks,
-                manifestHash, false, instruments,
+                manifestHash, listingEvidenceComplete, false, instruments,
                 "Read-only preview. Creating the batch requires this exact manifest hash.");
         return new NextExpansionBatchPlan(snapshotId, selection.selected(), preview);
     }
@@ -169,7 +175,15 @@ public class HistoricalBackfillJobService {
         int totalChunks = chunkPlanner.plan(effectiveFrom, requestedTo).size();
         return new ExpansionBatchPreview.Instrument(
                 candidate.symbol(), candidate.providerInstrumentKey(), candidate.listedOn(),
+                candidate.nseReportedListedOn(), candidate.listingBoundaryStatus(),
+                candidate.providerPrelistingCandleOn(),
                 effectiveFrom, totalChunks);
+    }
+
+    private boolean isAcceptedListingStatus(String status) {
+        return status != null && Set.of(
+                "BEFORE_REQUEST_WINDOW", "EXISTING_BOUNDARY",
+                "VERIFIED_LISTING_BOUNDARY", "EARLIER_PROVIDER_HISTORY").contains(status);
     }
 
     static String manifestHash(
@@ -195,6 +209,10 @@ public class HistoricalBackfillJobService {
                         .append(instrument.symbol()).append('|')
                         .append(instrument.providerInstrumentKey()).append('|')
                         .append(instrument.listedOn() == null ? "" : instrument.listedOn()).append('|')
+                        .append(instrument.nseReportedListedOn() == null ? "" : instrument.nseReportedListedOn()).append('|')
+                        .append(instrument.listingBoundaryStatus() == null ? "" : instrument.listingBoundaryStatus()).append('|')
+                        .append(instrument.providerPrelistingCandleOn() == null
+                                ? "" : instrument.providerPrelistingCandleOn()).append('|')
                         .append(instrument.effectiveFrom()).append('|')
                         .append(instrument.totalChunks()));
         try {
@@ -417,14 +435,27 @@ public class HistoricalBackfillJobService {
     private List<ExpansionBatchSelector.Candidate> matchedInstruments(UUID snapshotId) {
         return jdbcTemplate.query("""
                 SELECT member.instrument_id, member.provider_instrument_key, member.source_symbol,
-                       instrument.listed_on
+                       instrument.listed_on, evidence.reported_listed_on,
+                       evidence.reconciliation_status, evidence.provider_prelisting_candle_on
                 FROM universe_snapshot_member member
                 JOIN instrument ON instrument.id = member.instrument_id
+                LEFT JOIN LATERAL (
+                    SELECT reported_listed_on, reconciliation_status, provider_prelisting_candle_on
+                    FROM instrument_listing_evidence
+                    WHERE instrument_id = instrument.id
+                    ORDER BY received_at DESC, id DESC
+                    LIMIT 1
+                ) evidence ON TRUE
                 WHERE member.snapshot_id = ? AND member.match_status = 'MATCHED'
                 """, (rs, row) -> new ExpansionBatchSelector.Candidate(
                 rs.getLong("instrument_id"), rs.getString("provider_instrument_key"),
                 rs.getString("source_symbol"),
-                rs.getDate("listed_on") == null ? null : rs.getDate("listed_on").toLocalDate()), snapshotId);
+                rs.getDate("listed_on") == null ? null : rs.getDate("listed_on").toLocalDate(),
+                rs.getDate("reported_listed_on") == null ? null : rs.getDate("reported_listed_on").toLocalDate(),
+                rs.getString("reconciliation_status") == null
+                        ? "NOT_ENRICHED" : rs.getString("reconciliation_status"),
+                rs.getDate("provider_prelisting_candle_on") == null
+                        ? null : rs.getDate("provider_prelisting_candle_on").toLocalDate()), snapshotId);
     }
 
     private void ensureNoActiveJob() {

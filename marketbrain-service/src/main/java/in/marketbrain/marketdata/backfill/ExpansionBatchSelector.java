@@ -33,7 +33,18 @@ public class ExpansionBatchSelector {
         return new Selection(selected, remaining.size() - selected.size());
     }
 
-    public record Candidate(long instrumentId, String providerInstrumentKey, String symbol, LocalDate listedOn) {
+    public record Candidate(
+            long instrumentId,
+            String providerInstrumentKey,
+            String symbol,
+            LocalDate listedOn,
+            LocalDate nseReportedListedOn,
+            String listingBoundaryStatus,
+            LocalDate providerPrelistingCandleOn
+    ) {
+        public Candidate(long instrumentId, String providerInstrumentKey, String symbol, LocalDate listedOn) {
+            this(instrumentId, providerInstrumentKey, symbol, listedOn, null, "NOT_ENRICHED", null);
+        }
     }
 
     public record Selection(List<Candidate> selected, int remainingAfterBatch) {

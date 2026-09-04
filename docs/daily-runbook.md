@@ -636,12 +636,28 @@ Preview the first 50-stock expansion batch without writing a job:
 $batchPreview = Invoke-RestMethod `
     'http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch-preview?years=15&batchSize=50'
 
-$batchPreview | Select-Object batchNumber, selectedInstruments, remainingInstrumentsAfterBatch, totalChunks, manifestHash, databaseWritesPerformed | Format-List
+$batchPreview | Select-Object batchNumber, selectedInstruments, remainingInstrumentsAfterBatch, totalChunks, manifestHash, listingEvidenceComplete, databaseWritesPerformed | Format-List
 $batchPreview.instruments |
-    Format-Table symbol, providerInstrumentKey, listedOn, effectiveFrom, totalChunks -AutoSize
+    Format-Table symbol, listedOn, nseReportedListedOn, listingBoundaryStatus, providerPrelistingCandleOn, effectiveFrom, totalChunks -AutoSize
 ```
 
-After the manifest has been inspected, create--but do not start--that exact batch:
+If `listingEvidenceComplete=False`, prepare NSE evidence and reconcile any in-window security date against
+earlier Upstox history. This writes only provenance and verified instrument boundaries; it does not create a
+job or candle:
+
+```powershell
+$encodedInputHash = [uri]::EscapeDataString($batchPreview.manifestHash)
+$listingEvidence = Invoke-RestMethod -Method Post `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch/listing-boundaries?years=15&batchSize=50&expectedManifestHash=$encodedInputHash" `
+    -TimeoutSec 3600
+$listingEvidence | Format-List
+
+$batchPreview = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch-preview?years=15&batchSize=50'
+```
+
+Proceed only when `listingEvidenceComplete=True`. After the resulting manifest has been inspected,
+create--but do not start--that exact batch:
 
 ```powershell
 $encodedManifestHash = [uri]::EscapeDataString($batchPreview.manifestHash)
@@ -1565,11 +1581,14 @@ Invoke-RestMethod http://127.0.0.1:8080/actuator/health
 The provider-backed prerequisite check makes one request per instrument and can take some time. Expected
 invariants for this checkpoint are:
 
-- `Status=REVIEW_REQUIRED`, `CompletedBatchNumber=1`, and `CompletedBatchQualityStatus=PASS`;
+- the initial result can be `Status=LISTING_EVIDENCE_REQUIRED`; after Step 24 it must be
+  `Status=REVIEW_REQUIRED`;
+- `CompletedBatchNumber=1` and `CompletedBatchQualityStatus=PASS`;
 - `CompletedBatchProviderChecks=50` and no mismatch or provider failure;
 - `NextBatchNumber=2`, `SelectedInstruments=50`, and `Years=15`;
 - every proposed symbol is unique and every instrument has at least one yearly chunk;
 - `ManifestHash` is a 64-character SHA-256 value;
+- `ListingEvidenceComplete=True` before creation can be approved;
 - `DatabaseWritesPerformed=False` and `WorkerEnabled=False`;
 - a complete JSON report is saved under `C:\MarketBrainData\Review`.
 
@@ -1579,7 +1598,62 @@ the preview is run later. If the snapshot, frozen boundary, completed-job set, o
 the hash changes and creation using an older reviewed hash is rejected.
 
 Share the complete summary and proposed instrument table for review. Do not call the creation endpoint and do
-not enable the worker until Step 24 is explicitly approved.
+not enable the worker until the listing-evidence result has been reviewed.
+
+### 24. Reconcile official listing evidence and regenerate the batch 2 manifest
+
+Run this only after the Step 23 preview has been reviewed and `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false` is
+confirmed. The command downloads the official NSE equity-security CSV, verifies the file structure and SHA-256
+identity, and matches every proposed symbol by both symbol and ISIN.
+
+For an NSE-reported date inside the requested history window, it searches Upstox backwards from the day before
+that date. If an older provider candle exists, the NSE date is preserved as security metadata but is not used
+to truncate history. If no older candle exists across the requested window, the boundary is applied with its
+NSE source URL. Any provider, identity, format, or connectivity failure causes the preparation to stop without
+writing partial evidence.
+
+Keep the worker disabled, deploy the reviewed code, and run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+
+$health = $null
+for ($attempt = 1; $attempt -le 24; $attempt++) {
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+        if ($health.status -eq 'UP') { break }
+    } catch {
+        # The backend may still be starting.
+    }
+    Start-Sleep -Seconds 5
+}
+if ($null -eq $health -or $health.status -ne 'UP') {
+    throw 'MarketBrain did not become healthy within two minutes.'
+}
+
+& '.\ops\windows\PrepareNextExpansionListingBoundaries.ps1'
+```
+
+The script writes a full evidence report under `C:\MarketBrainData\Review` and then automatically regenerates
+the read-only batch preview. Mandatory conditions are:
+
+- enrichment `Status=COMPLETED`, `CandidateCount=50`, and `MatchedEvidenceCount=50`;
+- the four classification counts sum to 50;
+- `ProviderCheckFailureCount=0`, `EvidenceRowsWritten=50`, and `ListingEvidenceComplete=True`;
+- the regenerated preview reports `Status=REVIEW_REQUIRED` and `ListingEvidenceComplete=True`;
+- the output manifest hash is 64 hexadecimal characters;
+- no backfill job or candle was created and the worker remains disabled.
+
+`TotalChunks` may now be below 750 because verified post-2011 listing boundaries avoid empty pre-listing yearly
+requests. Blank `listedOn` is acceptable only for `BEFORE_REQUEST_WINDOW` or `EARLIER_PROVIDER_HISTORY`; the
+corresponding raw NSE date and reconciliation status remain visible.
+
+Share the complete enrichment summary, decision table, and regenerated preview. Do not create batch 2 or
+enable the worker until Step 25 is explicitly approved.
 
 ## Spare runtime laptop: normal update and redeploy
 

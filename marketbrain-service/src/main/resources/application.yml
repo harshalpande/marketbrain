@@ -52,6 +52,7 @@ marketbrain:
   backfill:
     worker-enabled: ${MARKETBRAIN_BACKFILL_WORKER_ENABLED:false}
     current-nifty500-url: ${MARKETBRAIN_CURRENT_NIFTY500_URL:https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv}
+    nse-equity-security-url: ${MARKETBRAIN_NSE_EQUITY_SECURITY_URL:https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv}
     worker-delay-millis: ${MARKETBRAIN_BACKFILL_WORKER_DELAY_MILLIS:1500}
     maximum-attempts: ${MARKETBRAIN_BACKFILL_MAXIMUM_ATTEMPTS:3}
     maximum-expansion-batch-size: ${MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE:50}

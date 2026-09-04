@@ -15,6 +15,7 @@ public record ExpansionBatchPreview(
         int maximumBatchSize,
         int totalChunks,
         String manifestHash,
+        boolean listingEvidenceComplete,
         boolean databaseWritesPerformed,
         List<Instrument> instruments,
         String detail
@@ -27,6 +28,9 @@ public record ExpansionBatchPreview(
             String symbol,
             String providerInstrumentKey,
             LocalDate listedOn,
+            LocalDate nseReportedListedOn,
+            String listingBoundaryStatus,
+            LocalDate providerPrelistingCandleOn,
             LocalDate effectiveFrom,
             int totalChunks
     ) {

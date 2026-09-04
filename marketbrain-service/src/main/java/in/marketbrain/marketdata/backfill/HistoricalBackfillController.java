@@ -30,6 +30,7 @@ public class HistoricalBackfillController {
     private final LargeMoveEvidenceService largeMoveEvidenceService;
     private final RemainingDataAnalysisService remainingDataAnalysisService;
     private final RemainingDataRemediationService remainingDataRemediationService;
+    private final ListingBoundaryEnrichmentService listingBoundaryEnrichmentService;
 
     public HistoricalBackfillController(
             Nifty500SnapshotService snapshotService,
@@ -38,7 +39,8 @@ public class HistoricalBackfillController {
             QualityResolutionService resolutionService,
             LargeMoveEvidenceService largeMoveEvidenceService,
             RemainingDataAnalysisService remainingDataAnalysisService,
-            RemainingDataRemediationService remainingDataRemediationService
+            RemainingDataRemediationService remainingDataRemediationService,
+            ListingBoundaryEnrichmentService listingBoundaryEnrichmentService
     ) {
         this.snapshotService = snapshotService;
         this.jobService = jobService;
@@ -47,6 +49,7 @@ public class HistoricalBackfillController {
         this.largeMoveEvidenceService = largeMoveEvidenceService;
         this.remainingDataAnalysisService = remainingDataAnalysisService;
         this.remainingDataRemediationService = remainingDataRemediationService;
+        this.listingBoundaryEnrichmentService = listingBoundaryEnrichmentService;
     }
 
     @PostMapping("/nifty500/current-snapshot")
@@ -84,6 +87,21 @@ public class HistoricalBackfillController {
         try {
             return jobService.previewNextExpansionBatch(years, batchSize);
         } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/nifty500/next-batch/listing-boundaries")
+    public ListingBoundaryEnrichmentReport enrichNextBatchListingBoundaries(
+            @RequestParam(defaultValue = "15") int years,
+            @RequestParam(defaultValue = "50") int batchSize,
+            @RequestParam String expectedManifestHash
+    ) {
+        try {
+            return listingBoundaryEnrichmentService.enrich(years, batchSize, expectedManifestHash);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (IllegalStateException exception) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
         }
     }

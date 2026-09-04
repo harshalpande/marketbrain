@@ -44,6 +44,7 @@ class ExpansionBatchManifestTest {
             int chunks
     ) {
         return new ExpansionBatchPreview.Instrument(
-                symbol, providerKey, effectiveFrom, effectiveFrom, chunks);
+                symbol, providerKey, effectiveFrom, effectiveFrom,
+                "VERIFIED_LISTING_BOUNDARY", null, effectiveFrom, chunks);
     }
 }

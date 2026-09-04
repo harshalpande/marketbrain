@@ -14,6 +14,7 @@ import java.util.List;
 public record HistoricalBackfillProperties(
         boolean workerEnabled,
         @NotBlank String currentNifty500Url,
+        @NotBlank String nseEquitySecurityUrl,
         @Min(500) long workerDelayMillis,
         @Min(1) @Max(3) int maximumAttempts,
         @Min(1) @Max(50) int maximumExpansionBatchSize,
