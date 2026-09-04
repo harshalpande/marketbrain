@@ -1867,6 +1867,45 @@ and `reviewedAdjustment=1:2`. The final API status must show `COMPLETED`, 623 co
 Share the complete recovery summary, both SQL results, and the disabled-worker status. Do not run Batch 2
 quality remediation or prepare Batch 3 until this evidence is reviewed.
 
+### 28. Run the read-only Batch 2 database and provider quality audit
+
+Run this only after Step 27 reports all 623 chunks complete, zero failed or rejected rows, 149636 accepted
+rows, and `workerEnabled=False`. The audit is bound to the reviewed Batch 2 creation and recovery reports.
+
+It first runs the database-only quality audit and saves the complete response. It then makes one paced,
+read-only Upstox comparison for each of the 50 instruments and saves that response separately. It does not
+import a candle, synchronize corporate actions, record a resolution, or prepare Batch 3.
+
+After pulling the reviewed script on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\AuditReviewedExpansionBatch.ps1' `
+    -JobId '7e8a79ec-045c-4474-b3e8-78e716e11143' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8'
+```
+
+Mandatory structural conditions are:
+
+- the exact Batch 2 job remains `COMPLETED` with 50 instruments, 623 completed chunks, 149636 accepted rows,
+  zero failed or rejected rows, and a disabled worker;
+- `BlockingInstrumentCount=0`, `DuplicateRows=0`, `InvalidRows=0`, and `TruncatedFindingCount=0`;
+- all 50 provider spot checks are `MATCHED`, with zero provider mismatches and check failures;
+- database quality metrics do not change during the provider-backed read-only call;
+- the job checkpoint is unchanged and both full JSON reports are saved under `C:\MarketBrainData\Review`.
+
+`Status=REVIEW_REQUIRED` is expected when missing-session, calendar-gap, or large-move findings have not yet
+been reviewed. It is not a structural failure. `Status=PASS` is possible only when no unresolved finding
+remains and every provider comparison matches.
+
+Share the complete summary, instrument-quality table, four finding tables, provider-check table, and eligibility
+reasons. Do not synchronize corporate actions, add secondary candles, record exclusions or resolutions, or
+prepare Batch 3 until the Step 28 evidence is reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
