@@ -1983,6 +1983,42 @@ adjustment preserves its raw candle and excludes only the reviewed transition da
 Share the complete Step 30 result, including any failed-checkpoint table. Do not rerun Step 29 with altered
 inputs, perform the final audit manually, or prepare Batch 3 until Step 30 is reviewed.
 
+### 31. Run the final read-only Batch 2 eligibility gate
+
+Run this only after Step 30 completed all 515 plan items with no pending or failed checkpoint, 478 secondary
+candles ready, 515 current resolutions, zero unresolved finding, and a disabled worker. The verifier is bound
+to the exact Batch 2 job, reviewed manifest, immutable Step 29 plan hash, and saved Step 30 result.
+
+After committing and pulling the reviewed script on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\VerifyReviewedExpansionBatchQuality.ps1' `
+    -JobId '7e8a79ec-045c-4474-b3e8-78e716e11143' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8' `
+    -ExpectedPlanHash '8c61857a5ba64acdf66f4de4f1d658ecbb80bd1ff582066f89d773317336bc96'
+```
+
+The command first verifies the persisted Step 30 checkpoint. It then runs database-only quality and 50 live,
+read-only Upstox comparisons, proves the quality and provider reports agree, and proves neither the remediation
+nor backfill checkpoint changed. Both complete audit responses are saved under `C:\MarketBrainData\Review`.
+
+The accepted result is `Status=ELIGIBLE` and `QualityStatus=PASS`, with 149636 quality-scoped Upstox candles,
+478 secondary candles, 150114 total candles, 515 resolved/current findings, zero unresolved, duplicate, invalid,
+blocking, missing-provider, review, truncated, mismatch, or provider-failure counts, and all 50 provider checks
+matched. Both `ModelTrainingEligible` and `BacktestingEligible` must be true, and the worker must remain false.
+
+The raw finding counters intentionally remain visible: 423 missing official sessions, 71 peer-confirmed
+omissions, one suspicious gap, and 19 large moves. Their unresolved counters must be zero because each has an
+auditable resolution. Do not confuse preserved raw evidence with an unresolved defect.
+
+Share the complete Step 31 summary and provider-check table. Do not prepare Batch 3 until the final result is
+reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
