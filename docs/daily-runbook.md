@@ -1943,6 +1943,46 @@ action is incomplete. Share the output; do not apply a partial plan. Even when t
 the entire summary before the application step. Step 30 must be bound to the reviewed Step 29 plan hash and its
 actual recommendation counts, so do not run the old Batch 1 application script or prepare Batch 3.
 
+### 30. Apply the reviewed Batch 2 plan through resumable checkpoints
+
+The reviewed Step 29 plan completed with hash
+`8c61857a5ba64acdf66f4de4f1d658ecbb80bd1ff582066f89d773317336bc96`. It contains 515 actions: 478
+secondary-source candles, 18 feature exclusions, one provider adjustment, and 18 verified exchange moves.
+All 95 source requests succeeded, and no item was left open.
+
+Commit and pull the reviewed script, confirm the spare-laptop worktree is clean, and run exactly one application
+command:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\ApplyReviewedExpansionBatchPlan.ps1' `
+    -ReviewedBy 'Harshal Pande' `
+    -JobId '7e8a79ec-045c-4474-b3e8-78e716e11143' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8' `
+    -ExpectedPlanHash '8c61857a5ba64acdf66f4de4f1d658ecbb80bd1ff582066f89d773317336bc96'
+```
+
+The endpoint re-derives the live plan before its first write and refuses a different hash. It stores the plan and
+then applies each item in a separate durable checkpoint. If power, Wi-Fi, or the response fails, rerun the exact
+same command with the same reviewer and hashes; completed items are retained and only failed or pending items
+are attempted. Never construct, delete, or edit remediation rows manually.
+
+The accepted terminal result is `COMPLETED` with 515 completed and zero pending or failed items, 478 secondary
+candles ready, 149636 unchanged Upstox candles, 478 NSE BhavCopy candles, 150114 total candles, 515 written and
+current resolutions, zero unresolved findings, a disabled worker, and `FinalProviderSpotCheckRequired=True`.
+
+The 71 AWL official candles are retained under the separate NSE source. The conservative coverage resolution
+also excludes the original provider-gap window from future feature and return generation; it does not delete
+either source's raw candles. The CAMS pre-history exclusion contains no stored candle. The BPCL provider
+adjustment preserves its raw candle and excludes only the reviewed transition date.
+
+Share the complete Step 30 result, including any failed-checkpoint table. Do not rerun Step 29 with altered
+inputs, perform the final audit manually, or prepare Batch 3 until Step 30 is reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
