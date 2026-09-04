@@ -29,6 +29,7 @@ public class HistoricalBackfillController {
     private final QualityResolutionService resolutionService;
     private final LargeMoveEvidenceService largeMoveEvidenceService;
     private final RemainingDataAnalysisService remainingDataAnalysisService;
+    private final RemainingDataRemediationService remainingDataRemediationService;
 
     public HistoricalBackfillController(
             Nifty500SnapshotService snapshotService,
@@ -36,7 +37,8 @@ public class HistoricalBackfillController {
             BackfillQualityService qualityService,
             QualityResolutionService resolutionService,
             LargeMoveEvidenceService largeMoveEvidenceService,
-            RemainingDataAnalysisService remainingDataAnalysisService
+            RemainingDataAnalysisService remainingDataAnalysisService,
+            RemainingDataRemediationService remainingDataRemediationService
     ) {
         this.snapshotService = snapshotService;
         this.jobService = jobService;
@@ -44,6 +46,7 @@ public class HistoricalBackfillController {
         this.resolutionService = resolutionService;
         this.largeMoveEvidenceService = largeMoveEvidenceService;
         this.remainingDataAnalysisService = remainingDataAnalysisService;
+        this.remainingDataRemediationService = remainingDataRemediationService;
     }
 
     @PostMapping("/nifty500/current-snapshot")
@@ -196,6 +199,33 @@ public class HistoricalBackfillController {
     public RemainingDataAnalysisReport remainingDataAnalysis(@RequestParam UUID jobId) {
         try {
             return remainingDataAnalysisService.analyze(jobId);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/remaining-data-remediation/apply")
+    public RemainingDataRemediationReport applyRemainingDataRemediation(
+            @Valid @RequestBody RemainingDataRemediationRequest request
+    ) {
+        try {
+            return remainingDataRemediationService.apply(request);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/remaining-data-remediation/status")
+    public RemainingDataRemediationReport remainingDataRemediationStatus(
+            @RequestParam UUID jobId,
+            @RequestParam String expectedPlanHash
+    ) {
+        try {
+            return remainingDataRemediationService.status(jobId, expectedPlanHash);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         } catch (IllegalStateException exception) {

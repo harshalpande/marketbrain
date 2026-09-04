@@ -250,8 +250,11 @@ public class RemainingDataAnalysisService {
 
     private boolean validCandle(NseBhavcopyRecord record) {
         return record.open() != null && record.high() != null && record.low() != null && record.close() != null
+                && record.open().signum() > 0 && record.high().signum() > 0
+                && record.low().signum() > 0 && record.close().signum() > 0
                 && record.low().compareTo(record.open()) <= 0 && record.low().compareTo(record.close()) <= 0
-                && record.high().compareTo(record.open()) >= 0 && record.high().compareTo(record.close()) >= 0;
+                && record.high().compareTo(record.open()) >= 0 && record.high().compareTo(record.close()) >= 0
+                && (record.volume() == null || record.volume().signum() >= 0);
     }
 
     private Map<String, String> currentIsins(UUID jobId) {

@@ -1432,18 +1432,71 @@ Expected safety invariants:
 Share the complete summary, recommendation table, any keep-open table, and `PlanHash`. Do not share database
 credentials. Keep the JSON artifact for audit, but do not edit it or use it as an executable input.
 
-### 21. Apply the reviewed remaining-data plan through one resumable command (pending Step 20 review)
+### 21. Apply the reviewed remaining-data plan through one resumable command
 
-Step 21 will be one operator command, not hundreds of manual commands. Internally it will remain staged,
-idempotent, and checkpointed per finding so a Wi-Fi, provider, service, or power interruption cannot force the
-whole operation to restart or duplicate successful work. It will require the exact reviewed Step 20
-`PlanHash`, keep the worker disabled, validate each official candle before insertion, append its resolution
-only after the candle is durable, and safely skip already-correct checkpoints when resumed.
+The reviewed Step 20 plan is approved for job `e1d9ea5d-fcb2-4a81-b839-c154bb602243` with SHA-256 hash
+`3ea264d124b3618dc793a66677e1b040736d65ad49b230309b60647b1c64b7f8`. It contains exactly 331 actions:
 
-Do not implement or run Step 21 against this dataset until the Step 20 output has been reviewed. A single
-monolithic database transaction is intentionally not used: it would hold locks for too long and lose all
-progress on a late failure. The user-facing operation remains one command while the safety boundaries remain
-small and recoverable.
+- 277 validated NSE BhavCopy candles followed by `SECONDARY_SOURCE_BACKFILLED` resolutions;
+- 48 explicit `FEATURE_WINDOW_EXCLUDED` resolutions, comprising 25 leading-coverage windows and 23 sessions
+  where the official archive contained no supported instrument record;
+- six one-day `PROVIDER_ADJUSTMENT` exclusions for the reviewed ACE and ASHOKLEY mismatches.
+
+The operation is one command for the operator, but it is not one large transaction. On the first run the
+backend independently recreates Step 20 and refuses to proceed unless its live hash still equals the reviewed
+hash. It then persists the entire plan before changing market data. Every finding is completed in its own
+transaction: an NSE candle and its resolution either both commit or both roll back. Completed items are
+durable checkpoints, so rerunning the same command skips them and retries only pending or failed items.
+
+The 277 exchange candles use the separate `NSE_BHAVCOPY` source. Existing Upstox candles are never updated or
+deleted. If Wi-Fi fails before the reviewed plan is persisted, nothing is applied. Once the plan is persisted,
+the remaining work uses the stored official evidence and local PostgreSQL; a service or power interruption is
+recovered by running the same command again.
+
+Deploy with the worker disabled:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git pull --ff-only
+notepad .env
+```
+
+Confirm `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, save, and run:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    } catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\ApplyRemainingDataPlan.ps1' -ReviewedBy 'Harshal Pande'
+```
+
+The first run may take longer while the backend revalidates 20 immutable NSE archives. Keep the terminal open.
+Expected final invariants are:
+
+- `Status=COMPLETED`, `TotalItems=331`, `CompletedItems=331`, `PendingItems=0`, and `FailedItems=0`;
+- `SecondaryBackfillItems=277`, `FeatureExclusionItems=48`, and `ProviderAdjustmentItems=6`;
+- `SecondaryCandlesReady=277`;
+- `UpstoxDailyCandleCount=124858`, `SecondaryDailyCandleCount=277`, and
+  `AllSourceDailyCandleCount=125135`;
+- `PlanResolutionsWritten=331`, `CurrentResolutionCount=353`, and `UnresolvedFindingCount=0`;
+- `WorkerEnabled=False` and the returned hash exactly matches the reviewed Step 20 hash.
+
+If the result is `PARTIAL_FAILED`, do not delete a candle, resolution, plan, or checkpoint. Correct only the
+reported environmental problem and rerun the exact same command with the same `ReviewedBy` name. It will not
+download the plan again or duplicate completed work. If the PowerShell request itself is interrupted, run the
+same command again; the persisted checkpoints remain authoritative.
+
+Step 21 resolves the reviewed historical findings, but model-training and backtesting eligibility still
+require one final live provider spot check. Do not start expansion batch 2 until the Step 21 summary has been
+reviewed and that final gate has passed.
 
 ## Spare runtime laptop: normal update and redeploy
 
