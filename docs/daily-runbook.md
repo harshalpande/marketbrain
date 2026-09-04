@@ -1484,8 +1484,9 @@ Expected final invariants are:
 - `Status=COMPLETED`, `TotalItems=331`, `CompletedItems=331`, `PendingItems=0`, and `FailedItems=0`;
 - `SecondaryBackfillItems=277`, `FeatureExclusionItems=48`, and `ProviderAdjustmentItems=6`;
 - `SecondaryCandlesReady=277`;
-- `UpstoxDailyCandleCount=124858`, `SecondaryDailyCandleCount=277`, and
-  `AllSourceDailyCandleCount=125135`;
+- `UpstoxDailyCandleCount=125167`, `SecondaryDailyCandleCount=277`, and
+  `AllSourceDailyCandleCount=125444`; the quality audit separately reports 124858 Upstox candles inside each
+  instrument's effective listing and job boundaries;
 - `PlanResolutionsWritten=331`, `CurrentResolutionCount=353`, and `UnresolvedFindingCount=0`;
 - `WorkerEnabled=False` and the returned hash exactly matches the reviewed Step 20 hash.
 
