@@ -1378,6 +1378,73 @@ If the apply is interrupted, run preview mode again before resuming. The remaini
 the difference. Do not manually delete resolution events, edit candles, or start expansion batch 2. Share the
 preview and final apply summaries for review.
 
+### 20. Analyze every remaining 50-stock quality finding in one read-only run
+
+This step replaces manual finding-by-finding investigation with one governed analysis command. It analyzes
+all remaining missing-session, coverage-gap, and large-move findings, but does not modify a candle, feature
+exclusion, or quality resolution. The complete proposed plan is bound to a SHA-256 `PlanHash` and saved as a
+local JSON review artifact.
+
+Step 20 requires the reviewed Step 19 checkpoint: 50 instruments, 750 completed chunks, 124858 unique daily
+candles, 22 current verified resolutions, 331 unresolved findings, six unresolved large moves, no duplicate
+rows, no invalid rows, and a disabled backfill worker.
+
+Deploy with the worker disabled:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git pull --ff-only
+notepad .env
+```
+
+Confirm `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, save, and run:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    } catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\AnalyzeRemainingDataQuality.ps1'
+```
+
+The command can take longer than the previous checks because each distinct required NSE archive is fetched
+once. It prints a compact classification rather than hundreds of repetitive rows and saves the complete plan
+under `C:\MarketBrainData\Review`.
+
+Expected safety invariants:
+
+- `Status=COMPLETED`; if it says `REVIEW_REQUIRED`, stop and share the open/source-failure rows;
+- `UnresolvedFindingCount=331`, split across 298 official-session findings, two peer-session findings,
+  25 coverage gaps, and six large moves;
+- `KeepOpenCount=0` and `SourceFailureCount=0` before Step 21 can be designed for this exact plan;
+- `CandlesBefore=124858` and `CandlesAfter=124858`;
+- `ResolutionsBefore=22` and `ResolutionsAfter=22`;
+- `WorkerEnabled=False`, `candlesWritten=False`, and `resolutionsWritten=False`;
+- `PlanHash` is a 64-character lowercase SHA-256 value.
+
+Share the complete summary, recommendation table, any keep-open table, and `PlanHash`. Do not share database
+credentials. Keep the JSON artifact for audit, but do not edit it or use it as an executable input.
+
+### 21. Apply the reviewed remaining-data plan through one resumable command (pending Step 20 review)
+
+Step 21 will be one operator command, not hundreds of manual commands. Internally it will remain staged,
+idempotent, and checkpointed per finding so a Wi-Fi, provider, service, or power interruption cannot force the
+whole operation to restart or duplicate successful work. It will require the exact reviewed Step 20
+`PlanHash`, keep the worker disabled, validate each official candle before insertion, append its resolution
+only after the candle is durable, and safely skip already-correct checkpoints when resumed.
+
+Do not implement or run Step 21 against this dataset until the Step 20 output has been reviewed. A single
+monolithic database transaction is intentionally not used: it would hold locks for too long and lose all
+progress on a late failure. The user-facing operation remains one command while the safety boundaries remain
+small and recoverable.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

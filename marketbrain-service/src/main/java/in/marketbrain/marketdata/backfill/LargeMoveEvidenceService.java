@@ -166,7 +166,7 @@ public class LargeMoveEvidenceService {
                 actionTypes, reviewPath, archive.format(), archive.sourceUrl(), detail);
     }
 
-    private Match findOfficialRecord(
+    Match findOfficialRecord(
             List<NseBhavcopyRecord> records,
             String symbol,
             String isin,
@@ -180,6 +180,7 @@ public class LargeMoveEvidenceService {
             return currentIsin;
         }
         Match currentSymbol = records.stream()
+                .filter(record -> SERIES_PRIORITY.contains(record.series()))
                 .filter(record -> symbol.equalsIgnoreCase(record.symbol()))
                 .min(priority)
                 .map(record -> new Match(record, "SYMBOL"))
@@ -217,6 +218,7 @@ public class LargeMoveEvidenceService {
             return null;
         }
         return records.stream()
+                .filter(record -> SERIES_PRIORITY.contains(record.series()))
                 .filter(record -> isin.equalsIgnoreCase(record.isin()))
                 .min(priority)
                 .map(record -> new Match(record, basis))
@@ -330,7 +332,7 @@ public class LargeMoveEvidenceService {
         }
     }
 
-    private record Match(NseBhavcopyRecord record, String basis) {
+    record Match(NseBhavcopyRecord record, String basis) {
     }
 
     private record SymbolDate(String symbol, java.time.LocalDate date) {

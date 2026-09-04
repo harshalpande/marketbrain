@@ -28,19 +28,22 @@ public class HistoricalBackfillController {
     private final BackfillQualityService qualityService;
     private final QualityResolutionService resolutionService;
     private final LargeMoveEvidenceService largeMoveEvidenceService;
+    private final RemainingDataAnalysisService remainingDataAnalysisService;
 
     public HistoricalBackfillController(
             Nifty500SnapshotService snapshotService,
             HistoricalBackfillJobService jobService,
             BackfillQualityService qualityService,
             QualityResolutionService resolutionService,
-            LargeMoveEvidenceService largeMoveEvidenceService
+            LargeMoveEvidenceService largeMoveEvidenceService,
+            RemainingDataAnalysisService remainingDataAnalysisService
     ) {
         this.snapshotService = snapshotService;
         this.jobService = jobService;
         this.qualityService = qualityService;
         this.resolutionService = resolutionService;
         this.largeMoveEvidenceService = largeMoveEvidenceService;
+        this.remainingDataAnalysisService = remainingDataAnalysisService;
     }
 
     @PostMapping("/nifty500/current-snapshot")
@@ -182,6 +185,17 @@ public class HistoricalBackfillController {
     ) {
         try {
             return largeMoveEvidenceService.report(jobId, symbol);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/remaining-data-analysis")
+    public RemainingDataAnalysisReport remainingDataAnalysis(@RequestParam UUID jobId) {
+        try {
+            return remainingDataAnalysisService.analyze(jobId);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         } catch (IllegalStateException exception) {
