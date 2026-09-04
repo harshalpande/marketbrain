@@ -2062,6 +2062,40 @@ Batch 4 will reuse the same maximum of 200 but select only the final 190 instrum
 invariant therefore compares its result with the preview's actual selected count rather than incorrectly
 requiring a full 200.
 
+### 33. Enrich and regenerate the Batch 3 listing-boundary manifest
+
+The reviewed Step 32 preview selected 200 instruments, left 190 for Batch 4, and performed no database write.
+Its input manifest hash was `1d532625780bf9de5ded30ae59b9f9ff88c1dab573d08ac4f786510863ffb6b8`.
+All 200 instruments require listing evidence before Batch 3 can be created.
+
+The NSE security master can temporarily classify a normal cash equity under the `BE` or `BZ` surveillance
+series instead of `EQ`. Listing reconciliation accepts only these three governed cash-equity series and records
+the actual source series; SME, debt, derivatives, and unrelated series remain excluded.
+
+After committing, pulling, and rebuilding the corrected backend, keep the worker disabled and run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\PrepareNextExpansionListingBoundaries.ps1' -BatchSize 200
+```
+
+The accepted enrichment result is `Status=COMPLETED`, `CandidateCount=200`, `MatchedEvidenceCount=200`,
+`ProviderCheckFailureCount=0`, `EvidenceRowsWritten=200`, `ListingEvidenceComplete=True`, and
+`DatabaseWritesPerformed=True`. The script then automatically regenerates the read-only Batch 3 preview.
+That preview must still select 200 and leave 190, must report `ListingEvidenceComplete=True`, and may contain
+fewer than the provisional 3000 chunks after verified post-2011 listing boundaries are applied.
+
+If the endpoint rejects the request, its RFC 9457 problem response now includes the sanitized rejection detail.
+If a provider check fails, no evidence or boundary is written and the same command can be retried after
+connectivity returns. Share the complete enrichment summary, decision table, and regenerated preview. Do not
+create Batch 3 or enable the worker until the new manifest has been reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

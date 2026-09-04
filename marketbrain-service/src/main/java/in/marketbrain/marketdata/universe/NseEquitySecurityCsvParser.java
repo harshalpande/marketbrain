@@ -19,6 +19,7 @@ import java.util.Set;
 @Component
 public class NseEquitySecurityCsvParser {
 
+    private static final Set<String> ACCEPTED_CASH_EQUITY_SERIES = Set.of("EQ", "BE", "BZ");
     private static final List<String> EXPECTED_HEADER = List.of(
             "symbol", "nameofcompany", "series", "dateoflisting",
             "paidupvalue", "marketlot", "isinnumber", "facevalue");
@@ -56,7 +57,7 @@ public class NseEquitySecurityCsvParser {
                     throw new IllegalArgumentException("Expected 8 columns at line " + lineNumber);
                 }
                 String series = fields.get(2).trim().toUpperCase(Locale.ROOT);
-                if (!"EQ".equals(series)) {
+                if (!ACCEPTED_CASH_EQUITY_SERIES.contains(series)) {
                     continue;
                 }
                 String symbol = fields.get(0).trim().toUpperCase(Locale.ROOT);

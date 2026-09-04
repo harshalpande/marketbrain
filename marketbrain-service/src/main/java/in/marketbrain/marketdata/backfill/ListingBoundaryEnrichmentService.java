@@ -225,7 +225,7 @@ public class ListingBoundaryEnrichmentService {
             String detail
     ) {
         return new Decision(new ListingBoundaryEnrichmentReport.Item(
-                target.symbol(), target.isin(), target.providerInstrumentKey(), security.listedOn(),
+                target.symbol(), target.isin(), security.series(), target.providerInstrumentKey(), security.listedOn(),
                 target.existingListedOn(), providerPrelistingCandleOn, status,
                 providerRequestCount, boundaryApplied, detail), providerRequestCount);
     }
@@ -286,7 +286,7 @@ public class ListingBoundaryEnrichmentService {
                         (instrument_id, source_code, source_url, source_sha256,
                          source_symbol, source_isin, source_series, reported_listed_on,
                          provider_prelisting_candle_on, reconciliation_status, provider_request_count)
-                    VALUES (?, ?, ?, ?, ?, ?, 'EQ', ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT (instrument_id, source_sha256, source_series) DO UPDATE SET
                         source_url = EXCLUDED.source_url,
                         source_symbol = EXCLUDED.source_symbol,
@@ -297,7 +297,7 @@ public class ListingBoundaryEnrichmentService {
                         provider_request_count = EXCLUDED.provider_request_count,
                         received_at = CURRENT_TIMESTAMP
                     """, instrumentId, SOURCE_CODE, properties.nseEquitySecurityUrl(), source.sha256(),
-                    item.symbol(), item.isin(), Date.valueOf(item.nseReportedListedOn()),
+                    item.symbol(), item.isin(), item.nseSeries(), Date.valueOf(item.nseReportedListedOn()),
                     dateOrNull(item.providerPrelistingCandleOn()), item.reconciliationStatus(),
                     item.providerRequestCount());
             if ("VERIFIED_LISTING_BOUNDARY".equals(item.reconciliationStatus())) {

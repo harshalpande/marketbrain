@@ -9,6 +9,7 @@ import in.marketbrain.marketdata.upstox.UpstoxFetchResult;
 import in.marketbrain.marketdata.upstox.UpstoxReadOnlyClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.support.TransactionCallback;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -93,9 +95,14 @@ class ListingBoundaryEnrichmentServiceTest {
         assertThat(result.earlierProviderHistoryCount()).isEqualTo(1);
         assertThat(result.verifiedBoundaryCount()).isZero();
         assertThat(result.boundariesApplied()).isZero();
+        assertThat(result.items().getFirst().nseSeries()).isEqualTo("BE");
         assertThat(result.items().getFirst().providerPrelistingCandleOn())
                 .isEqualTo(LocalDate.of(2020, 9, 1));
         assertThat(result.outputManifestHash()).isEqualTo(OUTPUT_HASH);
+        ArgumentCaptor<Object[]> persistenceArguments = ArgumentCaptor.forClass(Object[].class);
+        verify(jdbcTemplate).update(
+                contains("INSERT INTO instrument_listing_evidence"), persistenceArguments.capture());
+        assertThat(persistenceArguments.getValue()[6]).isEqualTo("BE");
     }
 
     @Test
@@ -139,7 +146,7 @@ class ListingBoundaryEnrichmentServiceTest {
     private String sourceCsv() {
         StringBuilder csv = new StringBuilder(
                 "SYMBOL,NAME OF COMPANY, SERIES, DATE OF LISTING, PAID UP VALUE, MARKET LOT, ISIN NUMBER, FACE VALUE\n");
-        csv.append("RECENT,Recent Limited,EQ,05-OCT-2020,10,1,INE000000000,10\n");
+        csv.append("RECENT,Recent Limited,BE,05-OCT-2020,10,1,INE000000000,10\n");
         for (int index = 1; index < 500; index++) {
             csv.append("SYMBOL").append(index).append(",Company ").append(index)
                     .append(",EQ,01-JAN-2000,10,1,INE")

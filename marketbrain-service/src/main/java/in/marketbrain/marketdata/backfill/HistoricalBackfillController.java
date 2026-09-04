@@ -4,6 +4,8 @@ import in.marketbrain.marketdata.universe.Nifty500SnapshotImportResult;
 import in.marketbrain.marketdata.universe.Nifty500SnapshotService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -92,18 +94,30 @@ public class HistoricalBackfillController {
     }
 
     @PostMapping("/nifty500/next-batch/listing-boundaries")
-    public ListingBoundaryEnrichmentReport enrichNextBatchListingBoundaries(
+    public ResponseEntity<?> enrichNextBatchListingBoundaries(
             @RequestParam(defaultValue = "15") int years,
             @RequestParam(defaultValue = "50") int batchSize,
             @RequestParam String expectedManifestHash
     ) {
         try {
-            return listingBoundaryEnrichmentService.enrich(years, batchSize, expectedManifestHash);
+            return ResponseEntity.ok(listingBoundaryEnrichmentService.enrich(
+                    years, batchSize, expectedManifestHash));
         } catch (IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+            return enrichmentProblem(HttpStatus.BAD_REQUEST, exception);
         } catch (IllegalStateException exception) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+            return enrichmentProblem(HttpStatus.CONFLICT, exception);
         }
+    }
+
+    private ResponseEntity<ProblemDetail> enrichmentProblem(HttpStatus status, RuntimeException exception) {
+        String detail = exception.getMessage();
+        if (detail == null || detail.isBlank()) {
+            detail = "Listing-boundary enrichment was rejected without a diagnostic message.";
+        }
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setTitle("Listing-boundary enrichment rejected");
+        problem.setProperty("operation", "NIFTY500_LISTING_BOUNDARY_ENRICHMENT");
+        return ResponseEntity.status(status).body(problem);
     }
 
     @PostMapping("/start")

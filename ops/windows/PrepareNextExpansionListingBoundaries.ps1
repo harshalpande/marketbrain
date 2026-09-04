@@ -64,7 +64,7 @@ Write-Host ''
 Write-Host 'Listing-boundary decisions'
 $result.items |
     Sort-Object symbol |
-    Format-Table symbol, nseReportedListedOn, existingListedOn, providerPrelistingCandleOn, reconciliationStatus, providerRequestCount, boundaryApplied -AutoSize
+    Format-Table symbol, nseSeries, nseReportedListedOn, existingListedOn, providerPrelistingCandleOn, reconciliationStatus, providerRequestCount, boundaryApplied -AutoSize
 
 $classifiedCount = $result.beforeRequestWindowCount +
     $result.existingBoundaryCount +

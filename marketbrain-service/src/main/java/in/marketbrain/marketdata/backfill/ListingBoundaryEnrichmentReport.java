@@ -35,6 +35,7 @@ public record ListingBoundaryEnrichmentReport(
     public record Item(
             String symbol,
             String isin,
+            String nseSeries,
             String providerInstrumentKey,
             LocalDate nseReportedListedOn,
             LocalDate existingListedOn,
