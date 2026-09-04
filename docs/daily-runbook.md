@@ -2096,6 +2096,42 @@ If a provider check fails, no evidence or boundary is written and the same comma
 connectivity returns. Share the complete enrichment summary, decision table, and regenerated preview. Do not
 create Batch 3 or enable the worker until the new manifest has been reviewed.
 
+### 34. Create the exact reviewed Batch 3 checkpoint without starting it
+
+The regenerated Step 33 preview passed listing reconciliation for all 200 instruments. Its reviewed manifest is
+`d48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b`, with 2320 chunks and 190
+instruments remaining for Batch 4. Creation must remain bound to that exact hash and saved preview.
+
+After committing and pulling the generalized creation script on the spare laptop, keep the worker disabled and
+run exactly one creation command:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\CreateReviewedExpansionBatch.ps1' `
+    -BatchNumber 3 `
+    -BatchSize 200 `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b' `
+    -ReviewedBy 'Harshal Pande'
+```
+
+The script revalidates the saved Batch 2 provider-backed quality gate, recalculates the live Batch 3 selection,
+requires the exact reviewed manifest hash, creates the database checkpoint, and compares all 200 persisted
+instrument identities and chunk counts with the reviewed preview. It does not enable the worker or start the job.
+
+The accepted result is `Status=CREATED_NOT_STARTED` with `BatchNumber=3`, `SelectedInstruments=200`,
+`RemainingAfterBatch=190`, `TotalChunks=2320`, and `PendingChunks=2320`. Running, retry, completed, failed,
+accepted-row, rejected-row, manifest-mismatch, and non-pending-instrument counts must all be zero;
+`ListingEvidenceComplete=True` and `WorkerEnabled=False` are mandatory.
+
+If the HTTP response ends after the server commits creation, rerun this exact command with the same batch number,
+size, hash, and reviewer. It will recover and verify the matching inactive checkpoint instead of creating another
+job. Share the complete summary and 200-instrument table. Do not enable the worker or start Batch 3 until this
+checkpoint has been reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

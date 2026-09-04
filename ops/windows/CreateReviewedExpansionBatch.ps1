@@ -6,10 +6,12 @@ param(
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$ReviewedBy,
+    [ValidateRange(1, 500)]
+    [int]$BatchNumber = 2,
     [string]$BaseUrl = 'http://127.0.0.1:8080',
     [ValidateRange(1, 15)]
     [int]$Years = 15,
-    [ValidateRange(1, 50)]
+    [ValidateRange(1, 200)]
     [int]$BatchSize = 50,
     [string]$OutputDirectory = 'C:\MarketBrainData\Review'
 )
@@ -19,9 +21,9 @@ $ErrorActionPreference = 'Stop'
 
 $normalizedHash = $ReviewedManifestHash.Trim().ToLowerInvariant()
 $reviewedPreviewPath = Join-Path $OutputDirectory `
-    "expansion-batch-2-preview-$normalizedHash.json"
+    "expansion-batch-$BatchNumber-preview-$normalizedHash.json"
 if (-not (Test-Path -LiteralPath $reviewedPreviewPath -PathType Leaf)) {
-    throw "The reviewed Step 24 preview was not found at $reviewedPreviewPath. Do not create the batch."
+    throw "The reviewed Batch $BatchNumber preview was not found at $reviewedPreviewPath. Do not create the batch."
 }
 
 $reviewedReport = Get-Content -LiteralPath $reviewedPreviewPath -Raw | ConvertFrom-Json
@@ -29,10 +31,13 @@ $reviewedPreview = $reviewedReport.preview
 $reviewedInstruments = @($reviewedPreview.instruments | ForEach-Object { $_ })
 if ($null -eq $reviewedPreview -or
     $reviewedPreview.manifestHash -ne $normalizedHash -or
+    $reviewedPreview.batchNumber -ne $BatchNumber -or
+    $reviewedPreview.selectedInstruments -lt 1 -or
+    $reviewedPreview.selectedInstruments -gt $BatchSize -or
     $reviewedInstruments.Count -ne $reviewedPreview.selectedInstruments -or
     -not $reviewedPreview.listingEvidenceComplete -or
     $reviewedPreview.databaseWritesPerformed) {
-    throw 'The saved Step 24 preview does not match the approved manifest or failed its read-only evidence gate.'
+    throw "The saved Batch $BatchNumber preview does not match the approved manifest or failed its read-only evidence gate."
 }
 
 $health = Invoke-RestMethod "$BaseUrl/actuator/health"
@@ -42,9 +47,27 @@ if ($health.status -ne 'UP') {
 
 $latestAtStart = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
 if ($latestAtStart.workerEnabled) {
-    throw 'MARKETBRAIN_BACKFILL_WORKER_ENABLED must remain false during Step 25.'
+    throw 'MARKETBRAIN_BACKFILL_WORKER_ENABLED must remain false during reviewed batch creation.'
 }
-if ($reviewedReport.prerequisiteQuality.qualityStatus -ne 'PASS') {
+$prerequisiteChecks = @(
+    $reviewedReport.prerequisiteQuality.providerSpotChecks |
+        Where-Object { $null -ne $_ }
+)
+$prerequisiteNonMatches = @(
+    $prerequisiteChecks | Where-Object { $_.status -ne 'MATCHED' }
+)
+if ($reviewedReport.prerequisiteQuality.qualityStatus -ne 'PASS' -or
+    $reviewedReport.prerequisiteQuality.jobId -ne $reviewedReport.prerequisiteJob.jobId -or
+    $reviewedReport.prerequisiteQuality.instrumentCount -ne $reviewedReport.prerequisiteJob.instruments -or
+    $reviewedReport.prerequisiteJob.status -ne 'COMPLETED' -or
+    $reviewedReport.prerequisiteJob.failedChunks -ne 0 -or
+    -not $reviewedReport.prerequisiteQuality.providerSpotCheckRequested -or
+    $prerequisiteChecks.Count -ne $reviewedReport.prerequisiteQuality.instrumentCount -or
+    $prerequisiteNonMatches.Count -ne 0 -or
+    $reviewedReport.prerequisiteQuality.providerMismatchCount -ne 0 -or
+    $reviewedReport.prerequisiteQuality.providerCheckFailureCount -ne 0 -or
+    -not $reviewedReport.prerequisiteQuality.modelTrainingEligible -or
+    -not $reviewedReport.prerequisiteQuality.backtestingEligible) {
     throw 'The saved preview does not belong to the current completed provider-verified prerequisite batch.'
 }
 
@@ -55,7 +78,7 @@ $liveInstruments = $reviewedInstruments
 if ($latestAtStart.jobType -eq 'EXPANSION' -and
     $latestAtStart.batchNumber -eq $reviewedPreview.batchNumber -and
     $latestAtStart.status -eq 'CREATED') {
-    # A previous Step 25 request can succeed before its local post-creation checks are displayed.
+    # A previous request can succeed before its local post-creation checks are displayed.
     # Recover that exact inactive checkpoint read-only; never issue a second creation request.
     $recoveredExistingJob = $true
     $jobId = $latestAtStart.jobId
@@ -86,11 +109,14 @@ if ($latestAtStart.jobType -eq 'EXPANSION' -and
     $expectedBatchNumber = [int]$latestAtStart.batchNumber + 1
     if ($livePreview.manifestHash -ne $normalizedHash -or
         $livePreview.batchNumber -ne $expectedBatchNumber -or
-        $livePreview.selectedInstruments -ne $BatchSize -or
+        $livePreview.batchNumber -ne $BatchNumber -or
+        $livePreview.selectedInstruments -ne $reviewedPreview.selectedInstruments -or
+        $livePreview.remainingInstrumentsAfterBatch -ne $reviewedPreview.remainingInstrumentsAfterBatch -or
+        $livePreview.totalChunks -ne $reviewedPreview.totalChunks -or
         $liveInstruments.Count -ne $livePreview.selectedInstruments -or
         -not $livePreview.listingEvidenceComplete -or
         $livePreview.databaseWritesPerformed) {
-        throw 'The live selection differs from the reviewed Step 24 manifest. Preview and review it again.'
+        throw "The live selection differs from the reviewed Batch $BatchNumber manifest. Preview and review it again."
     }
 
     $calculatedChunks = ($liveInstruments | Measure-Object -Property totalChunks -Sum).Sum
@@ -219,16 +245,16 @@ $createdReportPath = Join-Path $OutputDirectory `
 } | Format-List
 
 Write-Host ''
-Write-Host 'Persisted Batch 2 instruments'
+Write-Host "Persisted Batch $BatchNumber instruments"
 $createdInstruments |
     Sort-Object symbol |
     Format-Table symbol, totalChunks, pendingChunks, runningChunks, retryChunks, completedChunks, failedChunks -AutoSize
 
 Write-Host ''
 if ($recoveredExistingJob) {
-    Write-Host 'STEP 25 RECOVERED: the existing Batch 2 checkpoint matches the exact reviewed manifest.'
+    Write-Host "BATCH $BatchNumber CREATION RECOVERED: the existing inactive checkpoint matches the exact reviewed manifest."
 } else {
-    Write-Host 'STEP 25 COMPLETE: the exact reviewed Batch 2 manifest was created but not started.'
+    Write-Host "BATCH $BatchNumber CREATION COMPLETE: the exact reviewed manifest was created but not started."
 }
 Write-Host 'The worker remains disabled and every chunk remains PENDING.'
-Write-Host 'Share this complete output for review. Do not enable the worker or start Batch 2 yet.'
+Write-Host "Share this complete output for review. Do not enable the worker or start Batch $BatchNumber yet."
