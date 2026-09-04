@@ -1,0 +1,93 @@
+package in.marketbrain.marketdata.backfill;
+
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class LargeMoveEvidenceServiceTest {
+
+    private final LargeMoveEvidenceService service = new LargeMoveEvidenceService(null, null, null);
+
+    @Test
+    void matchesHistoricalSymbolByIsinAndDoesNotWriteAResolution() {
+        LocalDate date = LocalDate.of(2019, 10, 11);
+        var finding = finding("ABREL", date, "882.20", "393.85", "55.36");
+        var official = new NseBhavcopyRecord(
+                "CENTURYTEX", "INE055A01016", "EQ", date,
+                new BigDecimal("882.20"), new BigDecimal("400.00"), new BigDecimal("410.00"),
+                new BigDecimal("390.00"), new BigDecimal("393.85"), new BigDecimal("100000"));
+        var archive = archive(date, official);
+
+        var result = service.evaluate(finding, "INE055A01016", archive, List.of());
+
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_PRICES_MATCH");
+        assertThat(result.officialSymbol()).isEqualTo("CENTURYTEX");
+        assertThat(result.matchBasis()).isEqualTo("ISIN");
+        assertThat(result.reviewPath()).isEqualTo("REVIEW_VERIFIED_EXCHANGE_MOVE");
+    }
+
+    @Test
+    void sendsOfficialPriceDifferencesToProviderAdjustmentReview() {
+        LocalDate date = LocalDate.of(2025, 1, 29);
+        var finding = finding("ACUTAAS", date, "940.90", "1129.10", "20.00");
+        var official = new NseBhavcopyRecord(
+                "ACUTAAS", "INE00FF01025", "EQ", date,
+                new BigDecimal("1000.00"), null, null, null, new BigDecimal("1100.00"), null);
+
+        var result = service.evaluate(finding, "INE00FF01025", archive(date, official), List.of());
+
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_CLOSE_MISMATCH");
+        assertThat(result.reviewPath()).isEqualTo("REVIEW_PROVIDER_ADJUSTMENT");
+        assertThat(result.closeDifferencePercent()).isPositive();
+    }
+
+    @Test
+    void corporateActionOnTheFindingDateTakesTheCorporateActionReviewPath() {
+        LocalDate date = LocalDate.of(2024, 4, 23);
+        var finding = finding("ASTERDM", date, "513.35", "399.50", "22.18");
+        var official = new NseBhavcopyRecord(
+                "ASTERDM", "INE914M01019", "EQ", date,
+                new BigDecimal("513.35"), null, null, null, new BigDecimal("399.50"), null);
+
+        var result = service.evaluate(finding, "INE914M01019", archive(date, official), List.of("DIVIDEND"));
+
+        assertThat(result.evidenceStatus()).isEqualTo("OFFICIAL_PRICES_MATCH");
+        assertThat(result.reviewPath()).isEqualTo("REVIEW_CORPORATE_ACTION_TRANSITION");
+    }
+
+    @Test
+    void unavailableOfficialArchiveKeepsFindingOpen() {
+        LocalDate date = LocalDate.of(2020, 3, 23);
+        var result = service.evaluate(
+                finding("ASHOKLEY", date, "19.50", "15.55", "20.26"),
+                "INE208A01029",
+                NseBhavcopyArchive.failure(
+                        "CONNECTION_FAILED", date, "LEGACY", NseBhavcopyClient.sourceUrl(date), "retry safely"),
+                List.of());
+
+        assertThat(result.evidenceStatus()).isEqualTo("CONNECTION_FAILED");
+        assertThat(result.reviewPath()).isEqualTo("KEEP_OPEN");
+        assertThat(result.officialClose()).isNull();
+    }
+
+    private BackfillQualityReport.LargeMoveFinding finding(
+            String symbol,
+            LocalDate date,
+            String previousClose,
+            String close,
+            String movePercent
+    ) {
+        return new BackfillQualityReport.LargeMoveFinding(
+                symbol, date, new BigDecimal(previousClose), new BigDecimal(close), new BigDecimal(movePercent));
+    }
+
+    private NseBhavcopyArchive archive(LocalDate date, NseBhavcopyRecord... records) {
+        return new NseBhavcopyArchive(
+                "SUCCESS", date, NseBhavcopyClient.formatFor(date), NseBhavcopyClient.sourceUrl(date),
+                List.of(records), "read only");
+    }
+}

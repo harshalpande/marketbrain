@@ -27,17 +27,20 @@ public class HistoricalBackfillController {
     private final HistoricalBackfillJobService jobService;
     private final BackfillQualityService qualityService;
     private final QualityResolutionService resolutionService;
+    private final LargeMoveEvidenceService largeMoveEvidenceService;
 
     public HistoricalBackfillController(
             Nifty500SnapshotService snapshotService,
             HistoricalBackfillJobService jobService,
             BackfillQualityService qualityService,
-            QualityResolutionService resolutionService
+            QualityResolutionService resolutionService,
+            LargeMoveEvidenceService largeMoveEvidenceService
     ) {
         this.snapshotService = snapshotService;
         this.jobService = jobService;
         this.qualityService = qualityService;
         this.resolutionService = resolutionService;
+        this.largeMoveEvidenceService = largeMoveEvidenceService;
     }
 
     @PostMapping("/nifty500/current-snapshot")
@@ -165,6 +168,20 @@ public class HistoricalBackfillController {
     public List<QualityResolutionRecord> qualityResolutions(@RequestParam UUID jobId) {
         try {
             return resolutionService.current(jobId);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/large-move-evidence")
+    public LargeMoveEvidenceReport largeMoveEvidence(
+            @RequestParam UUID jobId,
+            @RequestParam(required = false) String symbol
+    ) {
+        try {
+            return largeMoveEvidenceService.report(jobId, symbol);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         } catch (IllegalStateException exception) {

@@ -1077,6 +1077,131 @@ $verifiedQuality.eligibilityReasons
 documented or unresolved. Structural duplicate/invalid-candle findings can never be overridden. Do not
 create expansion batch 2 until this output has been reviewed.
 
+### 17. Generate the read-only official NSE large-move evidence report
+
+Run this only after step 16 has been reviewed. This endpoint downloads an official NSE Bhavcopy once for
+each distinct large-move date and compares its previous close and close with the stored Upstox values. It
+supports the legacy NSE cash-market Bhavcopy and the UDiFF format used from 8 July 2024. NSE documents the
+format transition on its [All Reports](https://www.nseindia.com/all-reports) page.
+
+This operation is deliberately read-only:
+
+- it does not insert or update a market candle;
+- it does not create a quality resolution or feature exclusion;
+- it matches by ISIN before symbol, so renamed securities can retain their historical NSE symbol;
+- unavailable archives and unmatched instruments remain open rather than being guessed.
+
+Deploy with the backfill worker still disabled:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git pull --ff-only
+notepad .env
+```
+
+Confirm `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, save, and then run:
+
+```powershell
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    } catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+$latest = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/latest'
+$jobId = $latest.jobId
+
+$beforeQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$beforeResolutionCount = @(
+    Invoke-RestMethod `
+        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+).Count
+
+$latest |
+    Select-Object status, completedChunks, failedChunks, acceptedRows, workerEnabled |
+    Format-List
+```
+
+Expected: the completed job remains at 750 completed chunks, zero failed chunks, 125167 accepted rows,
+and `workerEnabled=False`.
+
+Verify one legacy-format finding and one UDiFF-format finding before requesting the full report:
+
+```powershell
+$legacyEvidence = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/large-move-evidence?jobId=$jobId&symbol=ABB"
+
+$legacyEvidence |
+    Select-Object findingCount, sourceRequestCount, officialMatchCount, officialMismatchCount,
+        sourceUnavailableFindingCount, symbolNotFoundCount, resolutionsWritten |
+    Format-List
+
+$legacyEvidence.findings |
+    Format-Table symbol, findingDate, evidenceStatus, officialSymbol, matchBasis,
+        storedPreviousClose, officialPreviousClose, storedClose, officialClose, reviewPath -AutoSize
+
+$udiffEvidence = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/large-move-evidence?jobId=$jobId&symbol=ADANIGREEN"
+
+$udiffEvidence |
+    Select-Object findingCount, sourceRequestCount, officialMatchCount, officialMismatchCount,
+        sourceUnavailableFindingCount, symbolNotFoundCount, resolutionsWritten |
+    Format-List
+
+$udiffEvidence.findings |
+    Format-Table symbol, findingDate, evidenceStatus, officialSymbol, matchBasis,
+        storedPreviousClose, officialPreviousClose, storedClose, officialClose, reviewPath -AutoSize
+```
+
+For both samples, `resolutionsWritten` must be `False`. If either request returns
+`CONNECTION_FAILED`, `RATE_LIMITED`, `SOURCE_NOT_FOUND`, `SOURCE_REJECTED`, `SOURCE_UNAVAILABLE`, or
+`INVALID_SOURCE_ARCHIVE`, stop and share the result; do not record a resolution.
+
+If both formats were read successfully, request all 28 findings:
+
+```powershell
+$evidence = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/large-move-evidence?jobId=$jobId"
+
+$evidence |
+    Select-Object findingCount, sourceRequestCount, officialMatchCount, officialMismatchCount,
+        sourceUnavailableFindingCount, symbolNotFoundCount, corporateActionDateMatchCount,
+        resolutionsWritten |
+    Format-List
+
+$evidence.findings |
+    Format-Table symbol, findingDate, evidenceStatus, officialSymbol, matchBasis,
+        storedPreviousClose, officialPreviousClose, storedClose, officialClose,
+        corporateActionTypes, reviewPath -AutoSize
+
+$afterQuality = Invoke-RestMethod `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/quality?jobId=$jobId"
+$afterResolutionCount = @(
+    Invoke-RestMethod `
+        "http://127.0.0.1:8080/api/v1/market-data/backfills/quality-resolutions?jobId=$jobId"
+).Count
+
+[pscustomobject]@{
+    CandlesBefore = $beforeQuality.totalCandles
+    CandlesAfter = $afterQuality.totalCandles
+    ResolutionsBefore = $beforeResolutionCount
+    ResolutionsAfter = $afterResolutionCount
+    ResolutionsWrittenByReport = $evidence.resolutionsWritten
+} | Format-List
+```
+
+`CandlesBefore` must equal `CandlesAfter`, `ResolutionsBefore` must equal `ResolutionsAfter`, and
+`ResolutionsWrittenByReport` must be `False`. The `reviewPath` field is only a proposed human-review route;
+it is not an approved resolution. Do not create resolution records or expansion batch 2. Share both sample
+reports, the full summary/table, and the final before/after safety check for review.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
