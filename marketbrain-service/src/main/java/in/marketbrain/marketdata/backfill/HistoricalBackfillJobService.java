@@ -5,6 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -12,6 +15,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -62,7 +66,38 @@ public class HistoricalBackfillJobService {
         return summary(jobId, "Pilot created. Review it, enable the worker locally, then start it explicitly.");
     }
 
-    public ExpansionBatchCreationResult createNextExpansionBatch(int years, int batchSize) {
+    public ExpansionBatchPreview previewNextExpansionBatch(int years, int batchSize) {
+        return nextExpansionBatchPlan(years, batchSize).preview();
+    }
+
+    public ExpansionBatchCreationResult createNextExpansionBatch(
+            int years,
+            int batchSize,
+            String expectedManifestHash
+    ) {
+        NextExpansionBatchPlan plan = nextExpansionBatchPlan(years, batchSize);
+        if (expectedManifestHash == null || expectedManifestHash.isBlank()) {
+            throw new IllegalArgumentException("A reviewed expansion manifest hash is required");
+        }
+        if (!plan.preview().manifestHash().equalsIgnoreCase(expectedManifestHash.trim())) {
+            throw new IllegalStateException(
+                    "The live expansion selection differs from the reviewed manifest; preview it again");
+        }
+
+        UUID jobId = UUID.randomUUID();
+        persistJob(jobId, plan.snapshotId(), "EXPANSION", plan.preview().batchNumber(),
+                plan.preview().requestedFrom(), plan.preview().requestedTo(), plan.selected());
+
+        BackfillJobSummary job = summary(jobId,
+                "Expansion batch created but not started. Review the persisted instruments, then enable and start it explicitly.");
+        return new ExpansionBatchCreationResult(
+                job, plan.preview().batchNumber(), plan.preview().selectedInstruments(),
+                plan.preview().remainingInstrumentsAfterBatch(), plan.preview().maximumBatchSize(),
+                plan.preview().manifestHash(),
+                "The created batch exactly matches the reviewed manifest. Pilot symbols and instruments from completed expansion batches were excluded.");
+    }
+
+    private NextExpansionBatchPlan nextExpansionBatchPlan(int years, int batchSize) {
         if (years < 1 || years > 15) {
             throw new IllegalArgumentException("Expansion years must be between 1 and 15");
         }
@@ -84,17 +119,103 @@ public class HistoricalBackfillJobService {
         }
 
         int batchNumber = nextExpansionBatchNumber(snapshotId);
-        LocalDate toDate = LocalDate.now(INDIA).minusDays(1);
-        LocalDate fromDate = toDate.minusYears(years).plusDays(1);
-        UUID jobId = UUID.randomUUID();
-        persistJob(jobId, snapshotId, "EXPANSION", batchNumber, fromDate, toDate, selection.selected());
+        DateWindow dateWindow = expansionDateWindow(snapshotId, batchNumber, years);
+        LocalDate fromDate = dateWindow.fromDate();
+        LocalDate toDate = dateWindow.toDate();
+        List<ExpansionBatchPreview.Instrument> instruments = selection.selected().stream()
+                .map(candidate -> previewInstrument(candidate, fromDate, toDate))
+                .toList();
+        int totalChunks = instruments.stream().mapToInt(ExpansionBatchPreview.Instrument::totalChunks).sum();
+        String manifestHash = manifestHash(snapshotId, batchNumber, years, fromDate, toDate,
+                selection.remainingAfterBatch(), instruments);
+        ExpansionBatchPreview preview = new ExpansionBatchPreview(
+                snapshotId, batchNumber, years, fromDate, toDate, selection.selected().size(),
+                selection.remainingAfterBatch(), properties.maximumExpansionBatchSize(), totalChunks,
+                manifestHash, false, instruments,
+                "Read-only preview. Creating the batch requires this exact manifest hash.");
+        return new NextExpansionBatchPlan(snapshotId, selection.selected(), preview);
+    }
 
-        BackfillJobSummary job = summary(jobId,
-                "Expansion batch created but not started. Review the batch, then enable and start it explicitly.");
-        return new ExpansionBatchCreationResult(
-                job, batchNumber, selection.selected().size(), selection.remainingAfterBatch(),
-                properties.maximumExpansionBatchSize(),
-                "Pilot symbols and instruments from completed expansion batches were excluded.");
+    private DateWindow expansionDateWindow(UUID snapshotId, int batchNumber, int years) {
+        if (batchNumber == 1) {
+            LocalDate toDate = LocalDate.now(INDIA).minusDays(1);
+            return new DateWindow(toDate.minusYears(years).plusDays(1), toDate);
+        }
+        List<DateWindow> firstBatchWindows = jdbcTemplate.query("""
+                SELECT requested_from, requested_to
+                FROM historical_backfill_job
+                WHERE universe_snapshot_id = ? AND job_type = 'EXPANSION' AND batch_number = 1
+                """, (rs, row) -> new DateWindow(
+                rs.getDate("requested_from").toLocalDate(),
+                rs.getDate("requested_to").toLocalDate()), snapshotId);
+        if (firstBatchWindows.size() != 1) {
+            throw new IllegalStateException("The first expansion batch has no unique historical date window");
+        }
+        DateWindow firstBatchWindow = firstBatchWindows.getFirst();
+        if (!firstBatchWindow.fromDate().equals(
+                firstBatchWindow.toDate().minusYears(years).plusDays(1))) {
+            throw new IllegalArgumentException(
+                    "Expansion years must match the frozen first-batch historical window");
+        }
+        return firstBatchWindow;
+    }
+
+    private ExpansionBatchPreview.Instrument previewInstrument(
+            ExpansionBatchSelector.Candidate candidate,
+            LocalDate requestedFrom,
+            LocalDate requestedTo
+    ) {
+        LocalDate effectiveFrom = effectiveFromDate(requestedFrom, candidate.listedOn());
+        int totalChunks = chunkPlanner.plan(effectiveFrom, requestedTo).size();
+        return new ExpansionBatchPreview.Instrument(
+                candidate.symbol(), candidate.providerInstrumentKey(), candidate.listedOn(),
+                effectiveFrom, totalChunks);
+    }
+
+    static String manifestHash(
+            UUID snapshotId,
+            int batchNumber,
+            int years,
+            LocalDate requestedFrom,
+            LocalDate requestedTo,
+            int remainingAfterBatch,
+            List<ExpansionBatchPreview.Instrument> instruments
+    ) {
+        StringBuilder canonical = new StringBuilder()
+                .append(snapshotId).append('|')
+                .append(batchNumber).append('|')
+                .append(years).append('|')
+                .append(requestedFrom).append('|')
+                .append(requestedTo).append('|')
+                .append(remainingAfterBatch);
+        instruments.stream()
+                .sorted(java.util.Comparator.comparing(ExpansionBatchPreview.Instrument::symbol)
+                        .thenComparing(ExpansionBatchPreview.Instrument::providerInstrumentKey))
+                .forEach(instrument -> canonical.append('\n')
+                        .append(instrument.symbol()).append('|')
+                        .append(instrument.providerInstrumentKey()).append('|')
+                        .append(instrument.listedOn() == null ? "" : instrument.listedOn()).append('|')
+                        .append(instrument.effectiveFrom()).append('|')
+                        .append(instrument.totalChunks()));
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(canonical.toString().getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private record NextExpansionBatchPlan(
+            UUID snapshotId,
+            List<ExpansionBatchSelector.Candidate> selected,
+            ExpansionBatchPreview preview
+    ) {
+        private NextExpansionBatchPlan {
+            selected = List.copyOf(selected);
+        }
+    }
+
+    private record DateWindow(LocalDate fromDate, LocalDate toDate) {
     }
 
     public BackfillJobSummary start(UUID jobId) {

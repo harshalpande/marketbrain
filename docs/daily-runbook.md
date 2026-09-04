@@ -630,13 +630,25 @@ $pilotQuality | Select-Object qualityStatus, missingProviderDataInstrumentCount,
 
 Expected for the reviewed pilot: `qualityStatus=MISSING_PROVIDER_DATA`, `missingProviderDataInstrumentCount=9`, `reviewInstrumentCount=2`, `duplicateRows=0`, and `invalidRows=0`.
 
-Create—but do not start—the first 50-stock expansion batch:
+Preview the first 50-stock expansion batch without writing a job:
 
 ```powershell
-$batch = Invoke-RestMethod -Method Post `
-    'http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch?years=15&batchSize=50'
+$batchPreview = Invoke-RestMethod `
+    'http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch-preview?years=15&batchSize=50'
 
-$batch | Select-Object batchNumber, selectedInstruments, remainingInstrumentsAfterBatch, maximumBatchSize, detail | Format-List
+$batchPreview | Select-Object batchNumber, selectedInstruments, remainingInstrumentsAfterBatch, totalChunks, manifestHash, databaseWritesPerformed | Format-List
+$batchPreview.instruments |
+    Format-Table symbol, providerInstrumentKey, listedOn, effectiveFrom, totalChunks -AutoSize
+```
+
+After the manifest has been inspected, create--but do not start--that exact batch:
+
+```powershell
+$encodedManifestHash = [uri]::EscapeDataString($batchPreview.manifestHash)
+$batch = Invoke-RestMethod -Method Post `
+    "http://127.0.0.1:8080/api/v1/market-data/backfills/nifty500/next-batch?years=15&batchSize=50&expectedManifestHash=$encodedManifestHash"
+
+$batch | Select-Object batchNumber, selectedInstruments, remainingInstrumentsAfterBatch, maximumBatchSize, manifestHash, detail | Format-List
 $batch.job | Format-List
 $jobId = $batch.job.jobId
 ```
@@ -1530,6 +1542,44 @@ any data. Correct only that environmental problem and rerun the same command. Do
 manually alter its JSON report.
 
 Share the complete summary and any non-matching provider rows before starting expansion batch 2.
+
+### 23. Prepare the reviewed expansion batch 2 manifest
+
+Run this only after Step 22 reports `Status=ELIGIBLE`. This step revalidates the completed first expansion
+batch against Upstox and then calculates the next deterministic 50-stock selection. It is deliberately
+read-only: no backfill job, chunk, candle, finding, or resolution is inserted.
+
+Keep `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`, deploy the reviewed code, and run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+Invoke-RestMethod http://127.0.0.1:8080/actuator/health
+
+& '.\ops\windows\PreviewNextExpansionBatch.ps1'
+```
+
+The provider-backed prerequisite check makes one request per instrument and can take some time. Expected
+invariants for this checkpoint are:
+
+- `Status=REVIEW_REQUIRED`, `CompletedBatchNumber=1`, and `CompletedBatchQualityStatus=PASS`;
+- `CompletedBatchProviderChecks=50` and no mismatch or provider failure;
+- `NextBatchNumber=2`, `SelectedInstruments=50`, and `Years=15`;
+- every proposed symbol is unique and every instrument has at least one yearly chunk;
+- `ManifestHash` is a 64-character SHA-256 value;
+- `DatabaseWritesPerformed=False` and `WorkerEnabled=False`;
+- a complete JSON report is saved under `C:\MarketBrainData\Review`.
+
+All expansion batches reuse the historical date boundaries frozen by expansion batch 1. For the current
+snapshot, Step 23 should therefore report `RequestedFrom=2011-09-02` and `RequestedTo=2026-09-01`, even when
+the preview is run later. If the snapshot, frozen boundary, completed-job set, or symbol selection changes,
+the hash changes and creation using an older reviewed hash is rejected.
+
+Share the complete summary and proposed instrument table for review. Do not call the creation endpoint and do
+not enable the worker until Step 24 is explicitly approved.
 
 ## Spare runtime laptop: normal update and redeploy
 

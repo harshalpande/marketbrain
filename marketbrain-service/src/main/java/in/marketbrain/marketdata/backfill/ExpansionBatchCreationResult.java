@@ -6,6 +6,7 @@ public record ExpansionBatchCreationResult(
         int selectedInstruments,
         int remainingInstrumentsAfterBatch,
         int maximumBatchSize,
+        String manifestHash,
         String detail
 ) {
 }

@@ -66,10 +66,23 @@ public class HistoricalBackfillController {
     @PostMapping("/nifty500/next-batch")
     public ExpansionBatchCreationResult createNextExpansionBatch(
             @RequestParam(defaultValue = "15") int years,
+            @RequestParam(defaultValue = "50") int batchSize,
+            @RequestParam String expectedManifestHash
+    ) {
+        try {
+            return jobService.createNextExpansionBatch(years, batchSize, expectedManifestHash);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
+    }
+
+    @GetMapping("/nifty500/next-batch-preview")
+    public ExpansionBatchPreview previewNextExpansionBatch(
+            @RequestParam(defaultValue = "15") int years,
             @RequestParam(defaultValue = "50") int batchSize
     ) {
         try {
-            return jobService.createNextExpansionBatch(years, batchSize);
+            return jobService.previewNextExpansionBatch(years, batchSize);
         } catch (IllegalArgumentException | IllegalStateException exception) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
         }
