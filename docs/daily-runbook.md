@@ -2019,6 +2019,49 @@ auditable resolution. Do not confuse preserved raw evidence with an unresolved d
 Share the complete Step 31 summary and provider-check table. Do not prepare Batch 3 until the final result is
 reviewed.
 
+### 32. Preview the 200-stock Batch 3 manifest
+
+Run this only after Step 31 reports `Status=ELIGIBLE`, `QualityStatus=PASS`, all 50 provider checks matched,
+both eligibility flags are true, and the worker is disabled. Batch 3 deliberately increases the governed batch
+size from 50 to 200. With 390 instruments remaining after Batch 2, a clean Batch 3 preview must select 200 and
+leave 190 for the final Batch 4.
+
+The application still defaults to a maximum batch size of 50. On the spare laptop, change only this local ignored
+`.env` entry before rebuilding the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
+```
+
+Then deploy and generate the read-only preview:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+notepad .env
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\PreviewNextExpansionBatch.ps1' -BatchSize 200
+```
+
+This command revalidates Batch 2 with 50 live read-only provider checks before it selects anything. It then
+builds and saves the complete Batch 3 manifest without creating a job, chunk, candle, finding, or resolution.
+The expected summary is `NextBatchNumber=3`, `SelectedInstruments=200`,
+`RemainingInstrumentsAfterBatch=190`, `DatabaseWritesPerformed=False`, and `WorkerEnabled=False`.
+
+If `ListingEvidenceComplete=False`, that is an expected review gate rather than a backfill failure. Share the
+complete preview, including the instrument table, manifest hash, total chunks, and listing-evidence status. Do
+not run listing enrichment, create Batch 3, enable the worker, or start processing until the preview has been
+reviewed.
+
+Batch 4 will reuse the same maximum of 200 but select only the final 190 instruments. The listing-enrichment
+invariant therefore compares its result with the preview's actual selected count rather than incorrectly
+requiring a full 200.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

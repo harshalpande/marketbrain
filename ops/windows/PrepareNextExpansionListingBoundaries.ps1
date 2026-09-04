@@ -3,7 +3,7 @@ param(
     [string]$BaseUrl = 'http://127.0.0.1:8080',
     [ValidateRange(1, 15)]
     [int]$Years = 15,
-    [ValidateRange(1, 50)]
+    [ValidateRange(1, 200)]
     [int]$BatchSize = 50,
     [string]$OutputDirectory = 'C:\MarketBrainData\Review'
 )
@@ -71,7 +71,7 @@ $classifiedCount = $result.beforeRequestWindowCount +
     $result.verifiedBoundaryCount +
     $result.earlierProviderHistoryCount
 if ($result.status -ne 'COMPLETED' -or
-    $result.candidateCount -ne $BatchSize -or
+    $result.candidateCount -ne $previewBefore.selectedInstruments -or
     $result.matchedEvidenceCount -ne $result.candidateCount -or
     $classifiedCount -ne $result.candidateCount -or
     $result.providerCheckFailureCount -ne 0 -or

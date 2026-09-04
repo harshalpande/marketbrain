@@ -3,7 +3,7 @@ param(
     [string]$BaseUrl = 'http://127.0.0.1:8080',
     [ValidateRange(1, 15)]
     [int]$Years = 15,
-    [ValidateRange(1, 50)]
+    [ValidateRange(1, 200)]
     [int]$BatchSize = 50,
     [string]$OutputDirectory = 'C:\MarketBrainData\Review'
 )

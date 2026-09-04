@@ -17,7 +17,7 @@ public record HistoricalBackfillProperties(
         @NotBlank String nseEquitySecurityUrl,
         @Min(500) long workerDelayMillis,
         @Min(1) @Max(3) int maximumAttempts,
-        @Min(1) @Max(50) int maximumExpansionBatchSize,
+        @Min(1) @Max(200) int maximumExpansionBatchSize,
         @Size(min = 1, max = 10) List<String> pilotSymbols
 ) {
 }
