@@ -1906,6 +1906,43 @@ Share the complete summary, instrument-quality table, four finding tables, provi
 reasons. Do not synchronize corporate actions, add secondary candles, record exclusions or resolutions, or
 prepare Batch 3 until the Step 28 evidence is reviewed.
 
+### 29. Analyze every unresolved Batch 2 finding in one read-only plan
+
+Run this only after Step 28 reports the reviewed Batch 2 checkpoint: 149636 candles, zero blocking instruments,
+duplicates, invalid rows, provider mismatches, provider check failures, or truncated findings; all 50 provider
+checks matched; and the worker remained disabled.
+
+This step analyzes all 515 unresolved findings in one request: 423 official special-session omissions, 71
+peer-confirmed omissions, two coverage findings, and 19 large moves. Repeated missing sessions are summarized
+by date or incident in the console, while the complete 515-item plan is written to JSON. The analysis can fetch
+official NSE evidence, but it cannot write a candle, exclusion, remediation plan, or quality resolution.
+
+After committing and pulling the reviewed script on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\AnalyzeReviewedExpansionBatch.ps1' `
+    -JobId '7e8a79ec-045c-4474-b3e8-78e716e11143' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8'
+```
+
+The accepted result must report:
+
+- `Status=COMPLETED`, `UnresolvedFindingCount=515`, and `CandidateCount=515`;
+- 423 official-session, 71 peer-session, two coverage-gap, and 19 large-move findings;
+- `KeepOpenCount=0` and `SourceFailureCount=0`;
+- identical candle and resolution counts before and after, with `WorkerEnabled=False`;
+- a 64-character `PlanHash` and a complete immutable plan saved under `C:\MarketBrainData\Review`.
+
+`Status=REVIEW_REQUIRED` means the analysis remained read-only but at least one evidence source or proposed
+action is incomplete. Share the output; do not apply a partial plan. Even when the status is `COMPLETED`, share
+the entire summary before the application step. Step 30 must be bound to the reviewed Step 29 plan hash and its
+actual recommendation counts, so do not run the old Batch 1 application script or prepare Batch 3.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
