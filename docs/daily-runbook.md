@@ -1771,6 +1771,102 @@ Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/market-data/backfills/latest' |
 Share the complete Step 26 terminal summary, any failed-instrument table, and the disabled-worker status. Do not
 begin Batch 2 quality correction or prepare Batch 3 until this checkpoint is reviewed.
 
+### 27. Recover the reviewed BEML split-adjustment rounding duplicate
+
+Use this only for Batch 2 job `7e8a79ec-045c-4474-b3e8-78e716e11143` after Step 26 reports exactly one failed
+chunk: BEML, `2015-09-02` through `2016-09-01`, three attempts, and `INVALID_DATA`.
+
+The provider returned 247 rows with two representations of 31 December 2015. Both have open `640.60`, high
+`645.50`, low `633.00`, and volume `392016`; their closes are `640.50` at midnight and `640.60` at 09:15. The
+official NSE Bhavcopy has one pre-split row (`1281.15`, `1290.95`, `1266.10`, `1281.10`, volume `196008`), and
+BEML's official 2025 filing records the subsequent 1:2 face-value split.
+
+The correction is an exact authorization for this instrument key, date, timestamp pair, and OHLCV pair. It
+does not increase the general one-paisa rule. It retains the exchange-aligned 09:15 provider row and records
+both original OHLCV rows, the Bhavcopy URL, the split filing URL, and the adjustment ratio in the existing
+`PROVIDER_DUPLICATE_NORMALIZED` audit issue.
+
+Keep the worker disabled while deploying the correction:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+```
+
+Then change only the worker flag to true and recreate the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\RecoverReviewedBemlChunk.ps1' `
+    -JobId '7e8a79ec-045c-4474-b3e8-78e716e11143' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8'
+```
+
+The endpoint can reset only failed `INVALID_DATA` chunks, and the script additionally requires the reviewed
+reports and exactly one failed BEML instrument. A clean result has `Status=COMPLETED`, `RetriedChunks=1`,
+`CompletedChunks=623`, `FailedChunks=0`, `AcceptedRows=149636`, `RejectedRows=0`,
+`BemlCompletedChunks=15`, and `BemlFailedChunks=0`.
+
+Immediately set the worker flag back to false and recreate only the backend. Then verify the exact checkpoint
+and audit evidence:
+
+```powershell
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+
+$jobId = '7e8a79ec-045c-4474-b3e8-78e716e11143'
+$sql = @"
+SELECT source_symbol, from_date, to_date, status, attempts,
+       accepted_rows, rejected_rows, last_error_code
+FROM historical_backfill_chunk
+WHERE job_id = '$jobId'::uuid
+  AND source_symbol = 'BEML'
+  AND from_date = DATE '2015-09-02'
+  AND to_date = DATE '2016-09-01';
+
+SELECT issue.issue_code, issue.severity, issue.affected_rows, issue.details,
+       issue.detected_at, issue.resolved_at
+FROM market_data_quality_issue issue
+JOIN historical_backfill_chunk chunk ON chunk.id = issue.chunk_id
+WHERE issue.job_id = '$jobId'::uuid
+  AND chunk.source_symbol = 'BEML'
+  AND issue.issue_code = 'PROVIDER_DUPLICATE_NORMALIZED';
+"@
+
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' `
+    -h 127.0.0.1 `
+    -p 5432 `
+    -U marketbrain_app `
+    -d marketbrain `
+    -c $sql
+
+Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/market-data/backfills/latest' |
+    Select-Object status, completedChunks, failedChunks, acceptedRows, rejectedRows, workerEnabled |
+    Format-List
+```
+
+Expected: the BEML chunk is `COMPLETED` with 246 accepted rows and one normalized duplicate; the audit detail
+contains `REVIEWED_SPLIT_ADJUSTMENT_CLOSE_ROUNDING`, both provider OHLCV values, both official evidence URLs,
+and `reviewedAdjustment=1:2`. The final API status must show `COMPLETED`, 623 completed chunks, zero failures,
+149636 accepted rows, zero rejected rows, and `workerEnabled=False`.
+
+Share the complete recovery summary, both SQL results, and the disabled-worker status. Do not run Batch 2
+quality remediation or prepare Batch 3 until this evidence is reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

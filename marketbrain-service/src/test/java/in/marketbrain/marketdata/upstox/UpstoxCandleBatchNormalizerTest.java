@@ -110,8 +110,67 @@ class UpstoxCandleBatchNormalizerTest {
         assertThat(result.candles().getFirst().candle().volume()).isEqualByComparingTo("774426");
         assertThat(result.normalizationDetails().getFirst())
                 .contains("reason=MIDNIGHT_MARKET_OPEN_VOLUME_VARIANCE")
-                .contains("retainedVolume=774426")
-                .contains("discardedVolume=774495");
+                .contains("retainedOhlcv=[1460.0,1496.6,1442.5,1485.25,774426]")
+                .contains("discardedOhlcv=[1460.0,1496.6,1442.5,1485.25,774495]");
+    }
+
+    @Test
+    void normalizesOnlyTheExactlyReviewedBemlSplitAdjustmentRoundingPair() {
+        UpstoxHistoricalRequest request = bemlDailyRequest(LocalDate.of(2015, 12, 31));
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "640.60", "645.50", "633.00", "640.50", "392016");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "640.60", "645.50", "633.00", "640.60", "392016");
+
+        UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, List.of(midnight, marketOpen));
+
+        assertThat(result.hasConflicts()).isFalse();
+        assertThat(result.collapsedDuplicates()).isEqualTo(1);
+        assertThat(result.candles()).singleElement().satisfies(normalized -> {
+            assertThat(normalized.providerOpenedAt()).isEqualTo(Instant.parse("2015-12-31T03:45:00Z"));
+            assertThat(normalized.candle().close()).isEqualByComparingTo("640.60");
+            assertThat(normalized.candle().volume()).isEqualByComparingTo("392016");
+        });
+        assertThat(result.normalizationDetails()).singleElement().asString()
+                .contains("reason=REVIEWED_SPLIT_ADJUSTMENT_CLOSE_ROUNDING")
+                .contains("retainedOhlcv=[640.60,645.50,633.00,640.60,392016]")
+                .contains("discardedOhlcv=[640.60,645.50,633.00,640.50,392016]")
+                .contains("cm31DEC2015bhav.csv.zip")
+                .contains("BEML_29092025163552_RECORDDATESIGNED29092025.pdf")
+                .contains("reviewedAdjustment=1:2");
+    }
+
+    @Test
+    void blocksTheBemlValuesForAnUnreviewedInstrument() {
+        UpstoxHistoricalRequest request = dailyRequest();
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "640.60", "645.50", "633.00", "640.50", "392016");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "640.60", "645.50", "633.00", "640.60", "392016");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksAnUnreviewedVariationOfTheBemlPair() {
+        UpstoxHistoricalRequest request = bemlDailyRequest(LocalDate.of(2015, 12, 31));
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "640.60", "645.50", "633.00", "640.40", "392016");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "640.60", "645.50", "633.00", "640.60", "392016");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksTheReviewedBemlValuesOnAnotherDate() {
+        UpstoxHistoricalRequest request = bemlDailyRequest(LocalDate.of(2016, 1, 1));
+        UpstoxCandle midnight = candle(
+                "2015-12-31T18:30:00Z", "640.60", "645.50", "633.00", "640.50", "392016");
+        UpstoxCandle marketOpen = candle(
+                "2016-01-01T03:45:00Z", "640.60", "645.50", "633.00", "640.60", "392016");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
     }
 
     @Test
@@ -198,6 +257,11 @@ class UpstoxCandleBatchNormalizerTest {
         return new UpstoxHistoricalRequest(
                 "NSE_EQ|TEST", "days", 1,
                 LocalDate.of(2015, 12, 31), LocalDate.of(2015, 12, 31));
+    }
+
+    private UpstoxHistoricalRequest bemlDailyRequest(LocalDate tradingDate) {
+        return new UpstoxHistoricalRequest(
+                "NSE_EQ|INE258A01024", "days", 1, tradingDate, tradingDate);
     }
 
     private UpstoxCandle candle(

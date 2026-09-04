@@ -20,6 +20,18 @@ public class UpstoxCandleBatchNormalizer {
     private static final BigDecimal MAXIMUM_TRANSITION_VOLUME_DIFFERENCE = new BigDecimal("100");
     private static final BigDecimal RELATIVE_VOLUME_DENOMINATOR = new BigDecimal("10000");
     private static final LocalTime MARKET_OPEN = LocalTime.of(9, 15);
+    private static final String REVIEWED_BEML_INSTRUMENT_KEY = "NSE_EQ|INE258A01024";
+    private static final LocalDate REVIEWED_BEML_TRADING_DATE = LocalDate.of(2015, 12, 31);
+    private static final BigDecimal REVIEWED_BEML_OPEN = new BigDecimal("640.60");
+    private static final BigDecimal REVIEWED_BEML_HIGH = new BigDecimal("645.50");
+    private static final BigDecimal REVIEWED_BEML_LOW = new BigDecimal("633.00");
+    private static final BigDecimal REVIEWED_BEML_MIDNIGHT_CLOSE = new BigDecimal("640.50");
+    private static final BigDecimal REVIEWED_BEML_MARKET_OPEN_CLOSE = new BigDecimal("640.60");
+    private static final BigDecimal REVIEWED_BEML_VOLUME = new BigDecimal("392016");
+    private static final String REVIEWED_BEML_BHAVCOPY_URL =
+            "https://archives.nseindia.com/content/historical/EQUITIES/2015/DEC/cm31DEC2015bhav.csv.zip";
+    private static final String REVIEWED_BEML_SPLIT_URL =
+            "https://nsearchives.nseindia.com/corporate/BEML_29092025163552_RECORDDATESIGNED29092025.pdf";
 
     public Result normalize(UpstoxHistoricalRequest request, List<UpstoxCandle> validCandles) {
         if (!"days:1".equals(request.intervalCode())) {
@@ -50,9 +62,9 @@ public class UpstoxCandleBatchNormalizer {
             DailyCandleGroup existing = candlesByTradingDate.get(tradingDate);
             if (existing == null) {
                 candlesByTradingDate.put(tradingDate, new DailyCandleGroup(candidate));
-            } else if (existing.canMerge(candidate)) {
+            } else if (existing.canMerge(request, tradingDate, candidate)) {
                 collapsedDuplicates++;
-                normalizationDetails.add(existing.merge(tradingDate, candidate));
+                normalizationDetails.add(existing.merge(request, tradingDate, candidate));
                 if (!normalizedTradingDates.contains(tradingDate)) {
                     normalizedTradingDates.add(tradingDate);
                 }
@@ -99,7 +111,11 @@ public class UpstoxCandleBatchNormalizer {
             this.maximumProviderClose = candle.candle().close();
         }
 
-        private boolean canMerge(NormalizedCandle candidate) {
+        private boolean canMerge(
+                UpstoxHistoricalRequest request,
+                LocalDate tradingDate,
+                NormalizedCandle candidate
+        ) {
             UpstoxCandle current = normalizedCandle.candle();
             UpstoxCandle next = candidate.candle();
             boolean ohlcWithinOnePaisa = withinOnePaisa(minimumProviderOpen, maximumProviderOpen, next.open())
@@ -107,17 +123,24 @@ public class UpstoxCandleBatchNormalizer {
                     && withinOnePaisa(minimumProviderLow, maximumProviderLow, next.low())
                     && withinOnePaisa(minimumProviderClose, maximumProviderClose, next.close());
             if (sameNumber(current.volume(), next.volume())) {
-                return ohlcWithinOnePaisa;
+                return ohlcWithinOnePaisa
+                        || isReviewedBemlSplitAdjustmentRounding(request, tradingDate, candidate);
             }
             return exactOhlc(current, next)
                     && isMidnightMarketOpenTransition(normalizedCandle.providerOpenedAt(), candidate.providerOpenedAt())
                     && volumeDifferenceWithinTransitionLimit(current.volume(), next.volume());
         }
 
-        private String merge(LocalDate tradingDate, NormalizedCandle candidate) {
+        private String merge(
+                UpstoxHistoricalRequest request,
+                LocalDate tradingDate,
+                NormalizedCandle candidate
+        ) {
             NormalizedCandle previous = normalizedCandle;
             UpstoxCandle current = normalizedCandle.candle();
             UpstoxCandle next = candidate.candle();
+            boolean reviewedBemlRounding = isReviewedBemlSplitAdjustmentRounding(
+                    request, tradingDate, candidate);
             minimumProviderOpen = minimumProviderOpen.min(next.open());
             maximumProviderOpen = maximumProviderOpen.max(next.open());
             minimumProviderHigh = minimumProviderHigh.min(next.high());
@@ -136,15 +159,54 @@ public class UpstoxCandleBatchNormalizer {
                     preferred.providerOpenedAt()
             );
             NormalizedCandle discarded = preferred == previous ? candidate : previous;
-            String reason = sameNumber(previous.candle().volume(), candidate.candle().volume())
+            String reason = reviewedBemlRounding
+                    ? "REVIEWED_SPLIT_ADJUSTMENT_CLOSE_ROUNDING"
+                    : sameNumber(previous.candle().volume(), candidate.candle().volume())
                     ? "SAME_VOLUME_OHLC_ROUNDING"
                     : "MIDNIGHT_MARKET_OPEN_VOLUME_VARIANCE";
             return "date=" + tradingDate
                     + ", reason=" + reason
                     + ", retainedTimestamp=" + preferred.providerOpenedAt()
-                    + ", retainedVolume=" + preferred.candle().volume()
+                    + ", retainedOhlcv=" + ohlcv(preferred.candle())
                     + ", discardedTimestamp=" + discarded.providerOpenedAt()
-                    + ", discardedVolume=" + discarded.candle().volume();
+                    + ", discardedOhlcv=" + ohlcv(discarded.candle())
+                    + (reviewedBemlRounding
+                    ? ", officialBhavcopyUrl=" + REVIEWED_BEML_BHAVCOPY_URL
+                    + ", corporateActionUrl=" + REVIEWED_BEML_SPLIT_URL
+                    + ", officialRawOhlcv=[1281.15,1290.95,1266.1,1281.1,196008]"
+                    + ", reviewedAdjustment=1:2"
+                    : "");
+        }
+
+        private boolean isReviewedBemlSplitAdjustmentRounding(
+                UpstoxHistoricalRequest request,
+                LocalDate tradingDate,
+                NormalizedCandle candidate
+        ) {
+            UpstoxCandle current = normalizedCandle.candle();
+            UpstoxCandle next = candidate.candle();
+            if (!REVIEWED_BEML_INSTRUMENT_KEY.equals(request.instrumentKey())
+                    || !REVIEWED_BEML_TRADING_DATE.equals(tradingDate)
+                    || !isMidnightMarketOpenTransition(normalizedCandle.providerOpenedAt(), candidate.providerOpenedAt())
+                    || !sameNumber(current.open(), REVIEWED_BEML_OPEN)
+                    || !sameNumber(next.open(), REVIEWED_BEML_OPEN)
+                    || !sameNumber(current.high(), REVIEWED_BEML_HIGH)
+                    || !sameNumber(next.high(), REVIEWED_BEML_HIGH)
+                    || !sameNumber(current.low(), REVIEWED_BEML_LOW)
+                    || !sameNumber(next.low(), REVIEWED_BEML_LOW)
+                    || !sameNumber(current.volume(), REVIEWED_BEML_VOLUME)
+                    || !sameNumber(next.volume(), REVIEWED_BEML_VOLUME)) {
+                return false;
+            }
+            return (sameNumber(current.close(), REVIEWED_BEML_MIDNIGHT_CLOSE)
+                    && sameNumber(next.close(), REVIEWED_BEML_MARKET_OPEN_CLOSE))
+                    || (sameNumber(next.close(), REVIEWED_BEML_MIDNIGHT_CLOSE)
+                    && sameNumber(current.close(), REVIEWED_BEML_MARKET_OPEN_CLOSE));
+        }
+
+        private String ohlcv(UpstoxCandle candle) {
+            return "[" + candle.open() + "," + candle.high() + "," + candle.low() + ","
+                    + candle.close() + "," + candle.volume() + "]";
         }
 
         private boolean withinOnePaisa(BigDecimal minimum, BigDecimal maximum, BigDecimal candidate) {
