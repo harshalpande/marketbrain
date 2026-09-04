@@ -2132,6 +2132,72 @@ size, hash, and reviewer. It will recover and verify the matching inactive check
 job. Share the complete summary and 200-instrument table. Do not enable the worker or start Batch 3 until this
 checkpoint has been reviewed.
 
+### 35. Start and monitor the exact reviewed Batch 3 checkpoint
+
+Run this only after Step 34 reports the reviewed inactive checkpoint for job
+`66826ff9-1aa0-4f13-980b-8e6ed9693301`, manifest
+`d48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b`, 200 instruments, 2320
+pending chunks, no processed rows, and a disabled worker.
+
+Commit and push this runner change from the development laptop. On the spare laptop, pull it, then change only
+these local ignored `.env` entries:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
+```
+
+Recreate only the backend so the worker setting is applied, then start and monitor the exact reviewed job:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+notepad .env
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\RunReviewedExpansionBatch.ps1' `
+    -BatchNumber 3 `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b'
+```
+
+The script verifies the saved creation report, manifest, job identity, immutable date boundaries, all 200
+persisted instrument identities, and all 2320 chunk checkpoints before sending the start request. It can be
+rerun after a terminal, Wi-Fi, power, or local HTTP interruption: completed checkpoints remain in PostgreSQL,
+and an already-running job is monitored rather than started again. `Ctrl+C` stops only the local monitor, not
+the backend worker. Processing may take more than one hour because provider latency and governed request pacing
+are additional to roughly 58 minutes of fixed inter-request delay.
+
+The clean terminal result is `Status=COMPLETED`, `TotalChunks=2320`, `CompletedChunks=2320`, and zero pending,
+running, retry, failed, rejected-row, and failed-instrument counts. If the result is `PARTIAL_FAILED`, do not
+manually edit or retry any data; share the complete summary and failed-instrument table for reviewed recovery.
+
+After a clean completion, immediately restore the local `.env` worker setting to false and recreate only the
+backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/market-data/backfills/latest' |
+    Select-Object status, batchNumber, totalChunks, completedChunks, failedChunks,
+        acceptedRows, rejectedRows, workerEnabled |
+    Format-List
+```
+
+Share the complete Batch 3 run output and the final disabled-worker status. Do not start the Batch 3 quality
+audit or prepare Batch 4 until this checkpoint has been reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

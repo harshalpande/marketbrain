@@ -6,6 +6,8 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
     [string]$ReviewedManifestHash,
+    [ValidateRange(1, 500)]
+    [int]$BatchNumber = 2,
     [string]$BaseUrl = 'http://127.0.0.1:8080',
     [ValidateRange(5, 300)]
     [int]$PollSeconds = 15,
@@ -16,21 +18,24 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $normalizedHash = $ReviewedManifestHash.Trim().ToLowerInvariant()
-$creationPath = Join-Path $OutputDirectory "expansion-batch-2-created-$JobId.json"
+$creationPath = Join-Path $OutputDirectory "expansion-batch-$BatchNumber-created-$JobId.json"
 if (-not (Test-Path -LiteralPath $creationPath -PathType Leaf)) {
-    throw "The reviewed Step 25 creation report was not found at $creationPath. Do not start the job."
+    throw "The reviewed Batch $BatchNumber creation report was not found at $creationPath. Do not start the job."
 }
 
 $creationReport = Get-Content -LiteralPath $creationPath -Raw | ConvertFrom-Json
 $expectedInstruments = @($creationReport.instruments | ForEach-Object { $_ })
 if ($creationReport.reviewedManifestHash -ne $normalizedHash -or
     $creationReport.creation.manifestHash -ne $normalizedHash -or
+    $creationReport.creation.batchNumber -ne $BatchNumber -or
+    $creationReport.verifiedStatus.batchNumber -ne $BatchNumber -or
     [guid]$creationReport.verifiedStatus.jobId -ne $JobId -or
     $creationReport.verifiedStatus.status -ne 'CREATED' -or
     $creationReport.verifiedStatus.workerEnabled -or
     $creationReport.verifiedStatus.totalChunks -ne $creationReport.verifiedStatus.pendingChunks -or
+    $creationReport.creation.selectedInstruments -ne $expectedInstruments.Count -or
     $expectedInstruments.Count -ne $creationReport.verifiedStatus.instruments) {
-    throw 'The saved Step 25 creation checkpoint does not match the reviewed inactive job.'
+    throw "The saved Batch $BatchNumber creation checkpoint does not match the reviewed inactive job."
 }
 
 $health = Invoke-RestMethod "$BaseUrl/actuator/health"
@@ -42,12 +47,12 @@ $current = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/status?jobId
 $latest = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
 if ([guid]$latest.jobId -ne $JobId -or
     $current.jobType -ne 'EXPANSION' -or
-    $current.batchNumber -ne $creationReport.creation.batchNumber -or
+    $current.batchNumber -ne $BatchNumber -or
     $current.fromDate -ne $creationReport.verifiedStatus.fromDate -or
     $current.toDate -ne $creationReport.verifiedStatus.toDate -or
     $current.instruments -ne $creationReport.verifiedStatus.instruments -or
     $current.totalChunks -ne $creationReport.verifiedStatus.totalChunks) {
-    throw 'The live job identity or immutable boundaries differ from the reviewed Step 25 checkpoint.'
+    throw "The live job identity or immutable boundaries differ from the reviewed Batch $BatchNumber checkpoint."
 }
 if (-not $current.workerEnabled) {
     throw 'The backfill worker is disabled. Set MARKETBRAIN_BACKFILL_WORKER_ENABLED=true and recreate only the backend.'
@@ -62,7 +67,7 @@ $persistedInstruments = @($persistedPayload | ForEach-Object { $_ })
 $expectedBySymbol = @{}
 foreach ($instrument in $expectedInstruments) {
     if ($null -eq $instrument.PSObject.Properties['symbol']) {
-        throw 'The Step 25 report contains an instrument without a symbol property.'
+        throw "The Batch $BatchNumber creation report contains an instrument without a symbol property."
     }
     $expectedBySymbol[$instrument.symbol] = $instrument
 }
@@ -89,7 +94,7 @@ if ($persistedInstruments.Count -ne $expectedInstruments.Count -or
     $uniqueSymbols.Count -ne $persistedInstruments.Count -or
     $persistedChunkTotal -ne $current.totalChunks -or
     $instrumentMismatchCount -ne 0) {
-    throw 'The live job instruments differ from the reviewed Step 25 creation report.'
+    throw "The live job instruments differ from the reviewed Batch $BatchNumber creation report."
 }
 
 $startRequestSent = $false
@@ -116,7 +121,7 @@ if ($current.status -eq 'CREATED') {
 }
 
 Write-Host ''
-Write-Host 'Batch 2 progress (Ctrl+C stops only this monitor; backend processing continues safely)'
+Write-Host "Batch $BatchNumber progress (Ctrl+C stops only this monitor; backend processing continues safely)"
 $status = $current
 while ($true) {
     try {
@@ -155,7 +160,7 @@ $finalPayload = Invoke-RestMethod `
     "$BaseUrl/api/v1/market-data/backfills/instruments?jobId=$JobId"
 $finalInstruments = @($finalPayload | ForEach-Object { $_ })
 $failedInstruments = @($finalInstruments | Where-Object { $_.failedChunks -gt 0 })
-$finalReportPath = Join-Path $OutputDirectory "expansion-batch-2-run-$JobId.json"
+$finalReportPath = Join-Path $OutputDirectory "expansion-batch-$BatchNumber-run-$JobId.json"
 [pscustomobject]@{
     completedAt = (Get-Date).ToUniversalTime().ToString('o')
     creationPath = $creationPath
@@ -202,10 +207,10 @@ if ($status.status -ne 'COMPLETED' -or
     $status.failedChunks -ne 0 -or
     $status.rejectedRows -ne 0 -or
     $failedInstruments.Count -ne 0) {
-    throw 'Batch 2 did not finish cleanly. Do not alter or retry data manually; share this complete output for review.'
+    throw "Batch $BatchNumber did not finish cleanly. Do not alter or retry data manually; share this complete output for review."
 }
 
 Write-Host ''
-Write-Host 'STEP 26 PROCESSING COMPLETE: all Batch 2 chunks completed without a failed or rejected row.'
+Write-Host "BATCH $BatchNumber PROCESSING COMPLETE: all chunks completed without a failed or rejected row."
 Write-Host 'Disable MARKETBRAIN_BACKFILL_WORKER_ENABLED and recreate only the backend now.'
 Write-Host 'Then share this complete output and the disabled-worker status for quality review.'
