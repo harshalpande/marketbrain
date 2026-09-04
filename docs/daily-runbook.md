@@ -1499,6 +1499,38 @@ Step 21 resolves the reviewed historical findings, but model-training and backte
 require one final live provider spot check. Do not start expansion batch 2 until the Step 21 summary has been
 reviewed and that final gate has passed.
 
+### 22. Run the final provider-backed quality gate for the first 50 stocks
+
+This is a read-only gate. It first validates the persisted Step 21 checkpoint and then requests a fresh
+Upstox comparison for every instrument. It saves the complete response under `C:\MarketBrainData\Review` and
+proves that neither the remediation count nor the resolution count changed during verification.
+
+Keep `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false` and run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+& '.\ops\windows\VerifyFinalBackfillQuality.ps1'
+```
+
+The command makes 50 read-only provider requests, paced below the provider's standard per-second limit, and
+can take some time. Expected final invariants are:
+
+- `Status=ELIGIBLE`, `QualityStatus=PASS`, and `InstrumentCount=50`;
+- `QualityScopedUpstoxCandles=124858`, zero blocking instruments, zero unresolved findings, zero duplicates,
+  zero invalid rows, and zero truncated findings;
+- `ResolvedFindingCount=353` and `DocumentedFindingCount=0`;
+- `ProviderSpotCheckRequested=True`, `ProviderSpotCheckCount=50`, `ProviderMismatchCount=0`, and
+  `ProviderCheckFailureCount=0`;
+- every provider check has `status=MATCHED`;
+- `ModelTrainingEligible=True`, `BacktestingEligible=True`, and `WorkerEnabled=False`.
+
+The raw missing-session and large-move counts remain visible as audit history; their corresponding unresolved
+counts must be zero. A provider outage, token problem, or rate limit can make this gate fail without changing
+any data. Correct only that environmental problem and rerun the same command. Do not weaken the gate or
+manually alter its JSON report.
+
+Share the complete summary and any non-matching provider rows before starting expansion batch 2.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

@@ -32,6 +32,7 @@ public class BackfillQualityService {
     private static final int MAXIMUM_FINDINGS_PER_TYPE = 10_000;
     private static final int MAXIMUM_MISSING_SESSION_FINDINGS = 10_000;
     private static final int PEER_SESSION_COVERAGE_PERCENT = 80;
+    private static final long PROVIDER_SPOT_CHECK_DELAY_MILLIS = 25;
     private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
 
     private final JdbcTemplate jdbcTemplate;
@@ -716,7 +717,12 @@ public class BackfillQualityService {
             List<InstrumentMetrics> metrics
     ) {
         List<BackfillQualityReport.ProviderSpotCheck> checks = new ArrayList<>();
+        boolean firstRequest = true;
         for (InstrumentMetrics metric : metrics) {
+            if (!firstRequest) {
+                pauseBetweenProviderSpotChecks();
+            }
+            firstRequest = false;
             UpstoxFetchResult<List<UpstoxCandle>> fetch = upstoxClient.fetchHistoricalCandles(
                     new UpstoxHistoricalRequest(metric.providerInstrumentKey(), "days", 1,
                             job.toDate().minusDays(14), job.toDate()));
@@ -748,6 +754,15 @@ public class BackfillQualityService {
                     metric.symbol(), status, providerDate, stored.close(), providerCandle.close(), difference));
         }
         return List.copyOf(checks);
+    }
+
+    private void pauseBetweenProviderSpotChecks() {
+        try {
+            Thread.sleep(PROVIDER_SPOT_CHECK_DELAY_MILLIS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("The provider spot check was interrupted and can be retried safely");
+        }
     }
 
     private StoredClose latestStoredClose(long instrumentId, LocalDate toDate) {
