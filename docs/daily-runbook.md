@@ -1697,6 +1697,80 @@ recreates the job.
 Share the complete Step 25 summary and instrument table. Do not enable the worker or start Batch 2 until the
 creation checkpoint is reviewed and the next step is explicitly approved.
 
+### 26. Start and monitor the exact reviewed expansion batch 2
+
+Run this only after Step 25 reports a clean `CREATED_NOT_STARTED` or `RECOVERED_CREATED_NOT_STARTED` checkpoint
+and its complete output has been approved. First open the ignored local `.env` file and change only:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+```
+
+Recreate only the backend and wait for health:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+
+$health = $null
+for ($attempt = 1; $attempt -le 24; $attempt++) {
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+        if ($health.status -eq 'UP') { break }
+    } catch {
+        # The backend may still be starting.
+    }
+    Start-Sleep -Seconds 5
+}
+if ($null -eq $health -or $health.status -ne 'UP') {
+    throw 'MarketBrain did not become healthy within two minutes.'
+}
+```
+
+Start and monitor only the exact Step 25 job:
+
+```powershell
+& '.\ops\windows\RunReviewedExpansionBatch.ps1' `
+    -JobId '7e8a79ec-045c-4474-b3e8-78e716e11143' `
+    -ReviewedManifestHash '0f226d9fcf174f597a0d3c4bc510693a5fbe2e524bd089ffb1056d399fe356c8'
+```
+
+The script validates the saved Step 25 creation report, live job identity, immutable dates, 50-symbol manifest,
+provider keys, and all 623 chunk checkpoints before starting. It is restart-safe: rerunning it while the job is
+`RUNNING` or `WAITING_FOR_CONNECTIVITY` sends no new start request and resumes read-only monitoring. Closing the
+terminal stops only the monitor; the Docker backend continues from PostgreSQL checkpoints.
+
+During an internet or temporary Upstox outage, `WAITING_FOR_CONNECTIVITY` is expected. The affected chunk is
+kept as `RETRY`, completed chunks are not repeated, and the backend automatically resumes after the persisted
+delay. Do not manually start, resume, delete, or reset the job while automatic recovery is active.
+
+A clean terminal checkpoint requires:
+
+- `Status=COMPLETED`, `Instruments=50`, and `TotalChunks=623`;
+- pending, running, retry, and failed chunks all equal zero;
+- `CompletedChunks=623`, `RejectedRows=0`, and `FailedInstrumentCount=0`;
+- a full run report under `C:\MarketBrainData\Review`.
+
+Immediately after a terminal result, change the local `.env` flag back to false and recreate only the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env up -d marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/market-data/backfills/latest' |
+    Select-Object jobId, batchNumber, status, completedChunks, failedChunks, acceptedRows, rejectedRows, workerEnabled |
+    Format-List
+```
+
+Share the complete Step 26 terminal summary, any failed-instrument table, and the disabled-worker status. Do not
+begin Batch 2 quality correction or prepare Batch 3 until this checkpoint is reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
