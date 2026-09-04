@@ -1680,7 +1680,8 @@ Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
 
 For the reviewed Batch 2 manifest, mandatory conditions are:
 
-- `Status=CREATED_NOT_STARTED`, `BatchNumber=2`, and the returned manifest hash exactly matches Step 24;
+- `Status=CREATED_NOT_STARTED` (or `RECOVERED_CREATED_NOT_STARTED` after an interrupted first invocation),
+  `BatchNumber=2`, and the returned manifest hash exactly matches Step 24;
 - `SelectedInstruments=50`, `RemainingAfterBatch=390`, and `TotalChunks=623`;
 - `PendingChunks=623`, while running, completed, and failed chunks are all zero;
 - `ListingEvidenceComplete=True`, `ManifestMismatchCount=0`, and `NonPendingInstrumentCount=0`;
@@ -1688,9 +1689,10 @@ For the reviewed Batch 2 manifest, mandatory conditions are:
 - all 50 instrument rows have only pending chunks, with their per-symbol totals matching the reviewed preview;
 - a complete creation report is saved under `C:\MarketBrainData\Review`.
 
-The script is intentionally not a retry command. Once Batch 2 exists, the backend prevents another active batch
-from being created. If the terminal response is interrupted, inspect `/backfills/latest` and the saved report
-before taking any action; never delete or recreate the job manually.
+If an earlier invocation successfully created Batch 2 but failed or was interrupted during local verification,
+rerunning the same command recognizes the matching inactive `CREATED` job. It sends no creation request and
+performs the complete read-only checkpoint verification against the saved Step 24 manifest. It never deletes or
+recreates the job.
 
 Share the complete Step 25 summary and instrument table. Do not enable the worker or start Batch 2 until the
 creation checkpoint is reviewed and the next step is explicitly approved.

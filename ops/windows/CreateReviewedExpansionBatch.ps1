@@ -26,8 +26,10 @@ if (-not (Test-Path -LiteralPath $reviewedPreviewPath -PathType Leaf)) {
 
 $reviewedReport = Get-Content -LiteralPath $reviewedPreviewPath -Raw | ConvertFrom-Json
 $reviewedPreview = $reviewedReport.preview
+$reviewedInstruments = @($reviewedPreview.instruments | ForEach-Object { $_ })
 if ($null -eq $reviewedPreview -or
     $reviewedPreview.manifestHash -ne $normalizedHash -or
+    $reviewedInstruments.Count -ne $reviewedPreview.selectedInstruments -or
     -not $reviewedPreview.listingEvidenceComplete -or
     $reviewedPreview.databaseWritesPerformed) {
     throw 'The saved Step 24 preview does not match the approved manifest or failed its read-only evidence gate.'
@@ -38,53 +40,89 @@ if ($health.status -ne 'UP') {
     throw "MarketBrain health is $($health.status), not UP."
 }
 
-$latestBefore = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
-if ($latestBefore.jobType -ne 'EXPANSION' -or
-    $latestBefore.status -ne 'COMPLETED' -or
-    $latestBefore.failedChunks -ne 0 -or
-    $latestBefore.workerEnabled) {
-    throw 'Creation requires the completed clean prior expansion batch and a disabled worker.'
+$latestAtStart = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
+if ($latestAtStart.workerEnabled) {
+    throw 'MARKETBRAIN_BACKFILL_WORKER_ENABLED must remain false during Step 25.'
 }
-if ($reviewedReport.prerequisiteJob.jobId -ne $latestBefore.jobId -or
-    $reviewedReport.prerequisiteQuality.qualityStatus -ne 'PASS') {
+if ($reviewedReport.prerequisiteQuality.qualityStatus -ne 'PASS') {
     throw 'The saved preview does not belong to the current completed provider-verified prerequisite batch.'
 }
 
-$livePreview = Invoke-RestMethod `
-    "$BaseUrl/api/v1/market-data/backfills/nifty500/next-batch-preview?years=$Years&batchSize=$BatchSize"
-$liveInstruments = @($livePreview.instruments | Where-Object { $null -ne $_ })
-$expectedBatchNumber = [int]$latestBefore.batchNumber + 1
-if ($livePreview.manifestHash -ne $normalizedHash -or
-    $livePreview.batchNumber -ne $expectedBatchNumber -or
-    $livePreview.selectedInstruments -ne $BatchSize -or
-    $liveInstruments.Count -ne $livePreview.selectedInstruments -or
-    -not $livePreview.listingEvidenceComplete -or
-    $livePreview.databaseWritesPerformed) {
-    throw 'The live selection differs from the reviewed Step 24 manifest. Preview and review it again.'
+$recoveredExistingJob = $false
+$livePreview = $reviewedPreview
+$liveInstruments = $reviewedInstruments
+
+if ($latestAtStart.jobType -eq 'EXPANSION' -and
+    $latestAtStart.batchNumber -eq $reviewedPreview.batchNumber -and
+    $latestAtStart.status -eq 'CREATED') {
+    # A previous Step 25 request can succeed before its local post-creation checks are displayed.
+    # Recover that exact inactive checkpoint read-only; never issue a second creation request.
+    $recoveredExistingJob = $true
+    $jobId = $latestAtStart.jobId
+    $status = $latestAtStart
+    $latestAfter = $latestAtStart
+    $creation = [pscustomobject]@{
+        job = $status
+        batchNumber = $reviewedPreview.batchNumber
+        selectedInstruments = $reviewedPreview.selectedInstruments
+        remainingInstrumentsAfterBatch = $reviewedPreview.remainingInstrumentsAfterBatch
+        maximumBatchSize = $reviewedPreview.maximumBatchSize
+        manifestHash = $normalizedHash
+        detail = 'Recovered and verified the already-created inactive batch; no creation request was sent.'
+    }
+} else {
+    if ($latestAtStart.jobType -ne 'EXPANSION' -or
+        $latestAtStart.status -ne 'COMPLETED' -or
+        $latestAtStart.failedChunks -ne 0) {
+        throw 'Creation requires the completed clean prior expansion batch, or the matching inactive batch for recovery.'
+    }
+    if ($reviewedReport.prerequisiteJob.jobId -ne $latestAtStart.jobId) {
+        throw 'The saved preview does not belong to the current completed prerequisite batch.'
+    }
+
+    $livePreview = Invoke-RestMethod `
+        "$BaseUrl/api/v1/market-data/backfills/nifty500/next-batch-preview?years=$Years&batchSize=$BatchSize"
+    $liveInstruments = @($livePreview.instruments | ForEach-Object { $_ })
+    $expectedBatchNumber = [int]$latestAtStart.batchNumber + 1
+    if ($livePreview.manifestHash -ne $normalizedHash -or
+        $livePreview.batchNumber -ne $expectedBatchNumber -or
+        $livePreview.selectedInstruments -ne $BatchSize -or
+        $liveInstruments.Count -ne $livePreview.selectedInstruments -or
+        -not $livePreview.listingEvidenceComplete -or
+        $livePreview.databaseWritesPerformed) {
+        throw 'The live selection differs from the reviewed Step 24 manifest. Preview and review it again.'
+    }
+
+    $calculatedChunks = ($liveInstruments | Measure-Object -Property totalChunks -Sum).Sum
+    if ($calculatedChunks -ne $livePreview.totalChunks) {
+        throw 'The live manifest chunk total is inconsistent. Do not create the batch.'
+    }
+
+    $encodedHash = [uri]::EscapeDataString($normalizedHash)
+    $creation = Invoke-RestMethod -Method Post `
+        "$BaseUrl/api/v1/market-data/backfills/nifty500/next-batch?years=$Years&batchSize=$BatchSize&expectedManifestHash=$encodedHash"
+
+    $jobId = $creation.job.jobId
+    $status = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/status?jobId=$jobId"
+    $latestAfter = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
 }
 
-$calculatedChunks = ($liveInstruments | Measure-Object -Property totalChunks -Sum).Sum
-if ($calculatedChunks -ne $livePreview.totalChunks) {
-    throw 'The live manifest chunk total is inconsistent. Do not create the batch.'
-}
-
-$encodedHash = [uri]::EscapeDataString($normalizedHash)
-$creation = Invoke-RestMethod -Method Post `
-    "$BaseUrl/api/v1/market-data/backfills/nifty500/next-batch?years=$Years&batchSize=$BatchSize&expectedManifestHash=$encodedHash"
-
-$jobId = $creation.job.jobId
-$status = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/status?jobId=$jobId"
-$latestAfter = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
-$createdInstruments = @(
-    Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/instruments?jobId=$jobId"
-)
+$createdPayload = Invoke-RestMethod `
+    "$BaseUrl/api/v1/market-data/backfills/instruments?jobId=$jobId"
+$createdInstruments = @($createdPayload | ForEach-Object { $_ })
 
 $manifestMismatchCount = 0
 $expectedBySymbol = @{}
 foreach ($instrument in $liveInstruments) {
+    if ($null -eq $instrument.PSObject.Properties['symbol']) {
+        throw 'The reviewed preview contains an instrument without a symbol property.'
+    }
     $expectedBySymbol[$instrument.symbol] = $instrument
 }
 foreach ($instrument in $createdInstruments) {
+    if ($null -eq $instrument.PSObject.Properties['symbol']) {
+        throw 'The created-instrument response contains an item without a symbol property.'
+    }
     $expected = $expectedBySymbol[$instrument.symbol]
     if ($null -eq $expected -or
         $instrument.providerInstrumentKey -ne $expected.providerInstrumentKey -or
@@ -93,7 +131,11 @@ foreach ($instrument in $createdInstruments) {
     }
 }
 
-$uniqueSymbols = @($createdInstruments.symbol | Sort-Object -Unique)
+$uniqueSymbols = @(
+    $createdInstruments |
+        ForEach-Object { $_.symbol } |
+        Sort-Object -Unique
+)
 $createdChunkTotal = ($createdInstruments | Measure-Object -Property totalChunks -Sum).Sum
 $nonPendingInstrumentCount = @(
     $createdInstruments | Where-Object {
@@ -143,7 +185,8 @@ $createdReportPath = Join-Path $OutputDirectory `
     reviewedBy = $ReviewedBy.Trim()
     reviewedPreviewPath = $reviewedPreviewPath
     reviewedManifestHash = $normalizedHash
-    prerequisiteJob = $latestBefore
+    recoveredExistingJob = $recoveredExistingJob
+    prerequisiteJob = $reviewedReport.prerequisiteJob
     livePreview = $livePreview
     creation = $creation
     verifiedStatus = $status
@@ -151,10 +194,15 @@ $createdReportPath = Join-Path $OutputDirectory `
 } | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $createdReportPath -Encoding utf8
 
 [pscustomobject]@{
-    Status                    = 'CREATED_NOT_STARTED'
+    Status                    = if ($recoveredExistingJob) {
+        'RECOVERED_CREATED_NOT_STARTED'
+    } else {
+        'CREATED_NOT_STARTED'
+    }
     JobId                     = $jobId
     BatchNumber               = $creation.batchNumber
     ReviewedBy                = $ReviewedBy.Trim()
+    RecoveredExistingJob      = $recoveredExistingJob
     ManifestHash              = $creation.manifestHash
     SelectedInstruments       = $creation.selectedInstruments
     RemainingAfterBatch       = $creation.remainingInstrumentsAfterBatch
@@ -177,6 +225,10 @@ $createdInstruments |
     Format-Table symbol, totalChunks, pendingChunks, runningChunks, retryChunks, completedChunks, failedChunks -AutoSize
 
 Write-Host ''
-Write-Host 'STEP 25 COMPLETE: the exact reviewed Batch 2 manifest was created but not started.'
+if ($recoveredExistingJob) {
+    Write-Host 'STEP 25 RECOVERED: the existing Batch 2 checkpoint matches the exact reviewed manifest.'
+} else {
+    Write-Host 'STEP 25 COMPLETE: the exact reviewed Batch 2 manifest was created but not started.'
+}
 Write-Host 'The worker remains disabled and every chunk remains PENDING.'
 Write-Host 'Share this complete output for review. Do not enable the worker or start Batch 2 yet.'
