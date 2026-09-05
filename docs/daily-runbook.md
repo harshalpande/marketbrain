@@ -2386,9 +2386,10 @@ still preserved, a disabled worker, and a 64-character `PlanHash`. Share the com
 recommendation tables before applying anything.
 
 If the result is `REVIEW_REQUIRED`, no data has changed. Share the output and do not apply a partial plan.
-After a complete plan is reviewed, Step 39 will apply all 7036 actions in one checkpointed operation; the final
-provider-backed quality audit follows immediately. Batch 4 can be created as soon as that final audit makes
-Batch 3 eligible. Do not create Batch 4 directly from this analysis result.
+Run Step 39 to investigate every open record in one read-only evidence pass. A later complete plan can apply
+all 7036 actions in one checkpointed operation; the final provider-backed quality audit follows immediately.
+Batch 4 can be created as soon as that final audit makes Batch 3 eligible. Do not create Batch 4 directly from
+an incomplete analysis result.
 
 If the first Step 38 attempt made before the bounded-memory correction returned HTTP 500 with
 `OutOfMemoryError: Java heap space`, no plan or data change was written. Commit and deploy the correction,
@@ -2396,6 +2397,32 @@ rebuild the backend, verify the worker is still disabled, and rerun the same Ste
 processes one NSE trading-date archive at a time instead of retaining every parsed archive for the duration of
 the request; it also avoids repeated regular-expression allocation for already-normalized column names. Do
 not work around this failure by increasing the JVM heap or by splitting the reviewed finding set manually.
+
+### 39. Investigate all ten open Batch 3 findings in one read-only evidence pass
+
+Run this only when Step 38 reports the reviewed plan hash below with ten open findings and four source
+failures. The script binds itself to the exact Batch 3 manifest and incomplete plan, downloads only the seven
+distinct immutable NSE daily archives needed by those ten records, validates the reviewed DELHIVERY listing
+boundary, and produces one correction path per finding. It does not rerun the other 7026 completed analyses.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\InvestigateReviewedBatch3OpenFindings.ps1' `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b' `
+    -ReviewedPlanHash '7267e268c9b7b0aba76c242c61cfa7b8433320a95f937c5bdb87bc8bc6a1daf1'
+```
+
+The accepted result is `Status=COMPLETED`, ten open findings divided into four parser findings, five historical
+identity findings, and one pre-listing finding; seven archive requests; unchanged candle and resolution
+counts; and a disabled worker. The saved report includes archive SHA-256 hashes, the five exact historical
+official rows, the three effective-dated aliases, and the DELHIVERY listing evidence. Share the complete
+summary before the correction stage. Do not edit an identity alias, resolve a finding, or apply the incomplete
+Step 38 plan manually.
 
 ## Spare runtime laptop: normal update and redeploy
 
