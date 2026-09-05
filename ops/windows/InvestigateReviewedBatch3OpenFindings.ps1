@@ -102,6 +102,18 @@ function Get-Sha256Text {
     return Get-Sha256Bytes ([System.Text.Encoding]::UTF8.GetBytes($Text))
 }
 
+function Get-CurrentResolutions {
+    param(
+        [Parameter(Mandatory)][string]$ApiBaseUrl,
+        [Parameter(Mandatory)][guid]$BackfillJobId
+    )
+
+    $response = Invoke-RestMethod `
+        "$ApiBaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$BackfillJobId" `
+        -TimeoutSec 60
+    return @($response | Where-Object { $null -ne $_ })
+}
+
 function Get-NseArchiveEvidence {
     param(
         [Parameter(Mandatory)][System.Net.Http.HttpClient]$Client,
@@ -240,7 +252,7 @@ if ($health.status -ne 'UP') {
 }
 $latestBefore = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest" -TimeoutSec 60
 $qualityBefore = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality?jobId=$JobId" -TimeoutSec 1800
-$resolutionsBefore = @(Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$JobId" -TimeoutSec 60)
+$resolutionsBefore = @(Get-CurrentResolutions -ApiBaseUrl $BaseUrl -BackfillJobId $JobId)
 if ([guid]$latestBefore.jobId -ne $JobId -or
     $latestBefore.batchNumber -ne $batchNumber -or
     $latestBefore.status -ne 'COMPLETED' -or
@@ -336,7 +348,7 @@ $canonicalEvidence = @(
 $investigationHash = Get-Sha256Text $canonicalEvidence
 
 $qualityAfter = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality?jobId=$JobId" -TimeoutSec 1800
-$resolutionsAfter = @(Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/quality-resolutions?jobId=$JobId" -TimeoutSec 60)
+$resolutionsAfter = @(Get-CurrentResolutions -ApiBaseUrl $BaseUrl -BackfillJobId $JobId)
 $latestAfter = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest" -TimeoutSec 60
 if ($qualityAfter.totalCandles -ne $qualityBefore.totalCandles -or
     $qualityAfter.unresolvedFindingCount -ne $qualityBefore.unresolvedFindingCount -or
