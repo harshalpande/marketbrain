@@ -2467,6 +2467,34 @@ machine-readable checkpoint report, and a compact text log under `C:\MarketBrain
 analysis is retained locally and reused by the next invocation, so a checkpoint correction does not download
 all NSE archives again. A failed pre-remediation checkpoint does not write candles or resolutions.
 
+### 41. Verify Batch 3 and preview the final 190-stock Batch 4
+
+Run the exact Batch 3 provider-backed audit first. It verifies the saved and live remediation checkpoints,
+compares database-only and provider-backed quality metrics, checks all 200 instruments against Upstox, and
+performs no database write.
+
+```powershell
+& '.\ops\windows\VerifyReviewedBatch3Quality.ps1' `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b' `
+    -ExpectedPlanHash '6c26708b6aeadd4988fafb1aefcf21289a22dd5a3205c0851bf9b7b10ce3e82c'
+```
+
+The accepted result is `STEP 41 PASSED`, `Status=ELIGIBLE`, `QualityStatus=PASS`, 200 matched provider checks,
+zero unresolved findings, zero provider mismatches or failures, and unchanged remediation and job checkpoints.
+Only after that result, preview Batch 4 with the normal maximum batch size. Because 190 instruments remain,
+the selector will include exactly those 190 rather than inventing another 200 or splitting them further.
+
+```powershell
+& '.\ops\windows\PreviewNextExpansionBatch.ps1' -BatchSize 200
+```
+
+The preview must report `NextBatchNumber=4`, `SelectedInstruments=190`,
+`RemainingInstrumentsAfterBatch=0`, `DatabaseWritesPerformed=False`, a disabled worker, and a 64-character
+manifest hash. If listing evidence is incomplete, run the governed listing-boundary enrichment with
+`-BatchSize 200`, then review the regenerated Batch 4 preview. Do not create or start Batch 4 from an
+unreviewed manifest.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
