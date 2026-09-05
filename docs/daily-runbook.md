@@ -2351,6 +2351,42 @@ instrument table, provider-check table, and eligibility reasons. Do not prepare 
 stage will analyze all Batch 3 findings in one read-only plan; after review, a separate application stage can
 apply that entire immutable plan in one operation.
 
+### 38. Analyze all Batch 3 findings in one immutable read-only plan
+
+Run this only after Step 37 reports `REVIEW_REQUIRED` with zero blocking instruments, duplicate rows, invalid
+rows, truncated findings, provider mismatches, provider failures, or checkpoint changes. The reviewed Batch 3
+inventory contains 7036 unresolved findings: 1450 official-session omissions, 5469 peer-confirmed omissions,
+28 coverage findings (seven leading gaps and 21 suspicious gaps), and 89 large moves.
+
+This is one analysis operation across all findings. It does not correct candles or create resolutions. It
+downloads each distinct required NSE Bhavcopy archive once within the request, creates exactly one proposed
+outcome per finding, calculates an immutable SHA-256 plan hash, and saves the complete plan locally. Because
+the number of distinct trading dates can be large, let the command finish; its timeout is two hours.
+
+Commit and push this step from the development laptop. On the spare laptop, pull it and keep the worker
+disabled. No Docker rebuild is needed for this script-only change.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\AnalyzeReviewedBatch3.ps1' `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b'
+```
+
+The accepted result is `Status=COMPLETED`, `UnresolvedFindingCount=7036`, `CandidateCount=7036`, zero
+`KeepOpenCount`, zero `SourceFailureCount`, unchanged candle and resolution counts, six rejected provider rows
+still preserved, a disabled worker, and a 64-character `PlanHash`. Share the complete summary and grouped
+recommendation tables before applying anything.
+
+If the result is `REVIEW_REQUIRED`, no data has changed. Share the output and do not apply a partial plan.
+After a complete plan is reviewed, Step 39 will apply all 7036 actions in one checkpointed operation; the final
+provider-backed quality audit follows immediately. Batch 4 can be created as soon as that final audit makes
+Batch 3 eligible. Do not create Batch 4 directly from this analysis result.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
