@@ -2205,19 +2205,20 @@ instrument is `LALPATHLAB` (`NSE_EQ|INE600L01024`), whose 23 December 2015 throu
 failed after three attempts with `INVALID_DATA`. The other 199 instruments remain complete. Six rejected
 provider rows belong to completed CGCL, DEEPAKNTR, and IDEA chunks; preserve them for the Batch 3 quality audit.
 
-The reviewed Upstox response for 31 December 2015 contains two rows with the same open, close, and volume but
-different high and low values. The official NSE Bhavcopy reports raw OHLCV
+The reviewed Upstox response for 31 December 2015 contains two rows with the same open and close but different
+high, low, and volume values. The official NSE Bhavcopy reports raw OHLCV
 `[810,819.7,785,804.45,1411591]`. NSE's later 1:1 bonus allotment explains Upstox's adjusted price divisor of
 two and volume multiplier of two. The midnight row `[405,409.8,392.5,402.2,2823182]` aligns with that evidence;
-the 09:15 row `[405,409.6,393.6,402.2,2823182]` does not. The correction is therefore restricted to the exact
-instrument, date, timestamps, and values. It retains the midnight provider row and records both official URLs
-in a `PROVIDER_DUPLICATE_NORMALIZED` information finding. It does not relax the general duplicate rules.
+the 09:15 row `[405,409.6,393.6,402.2,2823162]` differs by 20 shares as well as in high and low. The correction
+is therefore restricted to the exact instrument, date, timestamps, and values. It retains the midnight provider
+row and records both official URLs in a `PROVIDER_DUPLICATE_NORMALIZED` information finding. It does not relax
+the general duplicate rules.
 
-Commit and push the reviewed correction from the development laptop. On the spare laptop, pull it, enable the
-worker locally, and rebuild the backend so the corrected normalizer is deployed:
+Commit and push the reviewed correction from the development laptop. On the spare laptop, pull it and keep the
+worker disabled while rebuilding the backend without cache:
 
 ```properties
-MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
 MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
 ```
 
@@ -2227,7 +2228,27 @@ git status --short
 git pull --ff-only
 notepad .env
 docker compose --env-file .env config --quiet
-docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+docker compose --env-file .env build --no-cache marketbrain-service
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\VerifyReviewedLalPathLabRuntime.ps1'
+```
+
+The verifier must report `Status=VERIFIED`, `RuntimeCorrectionPresent=True`,
+`ReviewedReasonPresent=True`, `ReviewedVolumePresent=True`, and `WorkerEnabled=False`. Do not retry if any value
+differs. Only after that verification succeeds, change the local worker setting to true and recreate the same
+verified image without building it again:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --force-recreate marketbrain-service
 Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
 
 & '.\ops\windows\RecoverReviewedLalPathLabChunk.ps1' `

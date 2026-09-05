@@ -40,7 +40,8 @@ public class UpstoxCandleBatchNormalizer {
     private static final BigDecimal REVIEWED_LALPATHLAB_MARKET_OPEN_HIGH = new BigDecimal("409.60");
     private static final BigDecimal REVIEWED_LALPATHLAB_MARKET_OPEN_LOW = new BigDecimal("393.60");
     private static final BigDecimal REVIEWED_LALPATHLAB_CLOSE = new BigDecimal("402.20");
-    private static final BigDecimal REVIEWED_LALPATHLAB_VOLUME = new BigDecimal("2823182");
+    private static final BigDecimal REVIEWED_LALPATHLAB_MIDNIGHT_VOLUME = new BigDecimal("2823182");
+    private static final BigDecimal REVIEWED_LALPATHLAB_MARKET_OPEN_VOLUME = new BigDecimal("2823162");
     private static final String REVIEWED_LALPATHLAB_BHAVCOPY_URL =
             "https://archives.nseindia.com/content/historical/EQUITIES/2015/DEC/cm31DEC2015bhav.csv.zip";
     private static final String REVIEWED_LALPATHLAB_BONUS_URL =
@@ -135,10 +136,12 @@ public class UpstoxCandleBatchNormalizer {
                     && withinOnePaisa(minimumProviderHigh, maximumProviderHigh, next.high())
                     && withinOnePaisa(minimumProviderLow, maximumProviderLow, next.low())
                     && withinOnePaisa(minimumProviderClose, maximumProviderClose, next.close());
+            if (isReviewedLalPathLabBonusAdjustedVariance(request, tradingDate, candidate)) {
+                return true;
+            }
             if (sameNumber(current.volume(), next.volume())) {
                 return ohlcWithinOnePaisa
-                        || isReviewedBemlSplitAdjustmentRounding(request, tradingDate, candidate)
-                        || isReviewedLalPathLabBonusAdjustedVariance(request, tradingDate, candidate);
+                        || isReviewedBemlSplitAdjustmentRounding(request, tradingDate, candidate);
             }
             return exactOhlc(current, next)
                     && isMidnightMarketOpenTransition(normalizedCandle.providerOpenedAt(), candidate.providerOpenedAt())
@@ -201,6 +204,7 @@ public class UpstoxCandleBatchNormalizer {
                     + ", officialRawOhlcv=[810,819.7,785,804.45,1411591]"
                     + ", officialAdjustedOhlcv=[405,409.85,392.5,402.225,2823182]"
                     + ", reviewedBonus=1:1, priceDivisor=2, volumeMultiplier=2"
+                    + ", providerVolumeDifference=20"
                     : "");
         }
 
@@ -227,7 +231,7 @@ public class UpstoxCandleBatchNormalizer {
                     && sameNumber(candle.high(), REVIEWED_LALPATHLAB_MIDNIGHT_HIGH)
                     && sameNumber(candle.low(), REVIEWED_LALPATHLAB_MIDNIGHT_LOW)
                     && sameNumber(candle.close(), REVIEWED_LALPATHLAB_CLOSE)
-                    && sameNumber(candle.volume(), REVIEWED_LALPATHLAB_VOLUME);
+                    && sameNumber(candle.volume(), REVIEWED_LALPATHLAB_MIDNIGHT_VOLUME);
         }
 
         private boolean isReviewedLalPathLabMarketOpen(NormalizedCandle candidate) {
@@ -237,7 +241,7 @@ public class UpstoxCandleBatchNormalizer {
                     && sameNumber(candle.high(), REVIEWED_LALPATHLAB_MARKET_OPEN_HIGH)
                     && sameNumber(candle.low(), REVIEWED_LALPATHLAB_MARKET_OPEN_LOW)
                     && sameNumber(candle.close(), REVIEWED_LALPATHLAB_CLOSE)
-                    && sameNumber(candle.volume(), REVIEWED_LALPATHLAB_VOLUME);
+                    && sameNumber(candle.volume(), REVIEWED_LALPATHLAB_MARKET_OPEN_VOLUME);
         }
 
         private NormalizedCandle reviewedLalPathLabMidnight(

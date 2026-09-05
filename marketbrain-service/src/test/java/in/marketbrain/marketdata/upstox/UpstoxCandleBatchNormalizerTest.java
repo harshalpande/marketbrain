@@ -179,7 +179,7 @@ class UpstoxCandleBatchNormalizerTest {
         UpstoxCandle midnight = candle(
                 "2015-12-30T18:30:00Z", "405.00", "409.80", "392.50", "402.20", "2823182");
         UpstoxCandle marketOpen = candle(
-                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823182");
+                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823162");
 
         for (List<UpstoxCandle> providerOrder : List.of(
                 List.of(midnight, marketOpen), List.of(marketOpen, midnight))) {
@@ -200,10 +200,12 @@ class UpstoxCandleBatchNormalizerTest {
                     .contains("reason=REVIEWED_BONUS_ADJUSTED_OHLC_VARIANCE")
                     .contains("retainedTimestamp=2015-12-30T18:30:00Z")
                     .contains("retainedOhlcv=[405.00,409.80,392.50,402.20,2823182]")
+                    .contains("discardedOhlcv=[405.00,409.60,393.60,402.20,2823162]")
                     .contains("cm31DEC2015bhav.csv.zip")
                     .contains("LALPATHLAB_22122025091806_IntimationAllotment.pdf")
                     .contains("officialRawOhlcv=[810,819.7,785,804.45,1411591]")
-                    .contains("reviewedBonus=1:1");
+                    .contains("reviewedBonus=1:1")
+                    .contains("providerVolumeDifference=20");
         }
     }
 
@@ -212,7 +214,7 @@ class UpstoxCandleBatchNormalizerTest {
         UpstoxCandle midnight = candle(
                 "2015-12-30T18:30:00Z", "405.00", "409.80", "392.50", "402.20", "2823182");
         UpstoxCandle marketOpen = candle(
-                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823182");
+                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823162");
 
         assertThat(normalizer.normalize(dailyRequest(), List.of(midnight, marketOpen)).hasConflicts()).isTrue();
     }
@@ -223,7 +225,7 @@ class UpstoxCandleBatchNormalizerTest {
         UpstoxCandle midnight = candle(
                 "2015-12-30T18:30:00Z", "405.00", "409.75", "392.50", "402.20", "2823182");
         UpstoxCandle marketOpen = candle(
-                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823182");
+                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823162");
 
         assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
     }
