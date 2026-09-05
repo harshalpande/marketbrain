@@ -32,6 +32,20 @@ class NseBhavcopyParserTest {
     }
 
     @Test
+    void parsesLegacyTwoDigitYearWithoutTreatingTheValidArchiveAsEmpty() throws Exception {
+        String csv = "SYMBOL,SERIES,OPEN,HIGH,LOW,CLOSE,LAST,PREVCLOSE,TOTTRDQTY,TIMESTAMP,ISIN\n"
+                + "INFY,EQ,900.00,910.00,890.00,905.00,905.00,895.00,12345,13-Jul-20,INE009A01021\n";
+
+        var records = parser.parse(zip(csv), LocalDate.of(2020, 7, 13));
+
+        assertThat(records).singleElement().satisfies(record -> {
+            assertThat(record.symbol()).isEqualTo("INFY");
+            assertThat(record.tradingDate()).isEqualTo(LocalDate.of(2020, 7, 13));
+            assertThat(record.close()).isEqualByComparingTo("905.00");
+        });
+    }
+
+    @Test
     void parsesUdiffRowsIncludingQuotedFields() throws Exception {
         String csv = "TradDt,BizDt,Sgmt,Src,FinInstrmTp,FinInstrmId,ISIN,TckrSymb,SctySrs,"
                 + "FinInstrmNm,OpnPric,HghPric,LwPric,ClsPric,LastPric,PrvsClsgPric,TtlTradgVol\n"

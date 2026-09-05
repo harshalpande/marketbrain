@@ -119,12 +119,34 @@ class RemainingDataAnalysisServiceTest {
                 new BigDecimal("23.55"), BigDecimal.TEN);
 
         var result = service.analyzeLargeMove(
-                qualityFinding, "INE731H01025", List.of(), archive(date, official), largeMove);
+                qualityFinding, "INE731H01025", List.of(), archive(date, official), largeMove, null);
 
         assertThat(result.analysisStatus()).isEqualTo("OFFICIAL_PREVIOUS_CLOSE_MISMATCH");
         assertThat(result.recommendedResolutionType()).isEqualTo(QualityResolutionType.PROVIDER_ADJUSTMENT);
         assertThat(result.exclusionFrom()).isEqualTo(date);
         assertThat(result.exclusionTo()).isEqualTo(date);
+    }
+
+    @Test
+    void excludesOnlyTheLargeMoveDateWhenNoIdentityExistsBeforeTheOfficialListing() {
+        LocalDate date = LocalDate.of(2016, 3, 8);
+        var qualityFinding = finding(QualityFindingType.LARGE_MOVE, "DELHIVERY", date, null);
+        var largeMove = new BackfillQualityReport.LargeMoveFinding(
+                "DELHIVERY", date, new BigDecimal("1.00"), new BigDecimal("100.00"),
+                new BigDecimal("9900.00"));
+        var listing = new RemainingDataAnalysisService.OfficialListingBoundary(
+                LocalDate.of(2022, 5, 24),
+                "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv");
+
+        var result = service.analyzeLargeMove(
+                qualityFinding, "INE148O01028", List.of(), archive(date), largeMove, listing);
+
+        assertThat(result.analysisStatus()).isEqualTo("OFFICIAL_INSTRUMENT_NOT_FOUND");
+        assertThat(result.recommendedResolutionType())
+                .isEqualTo(QualityResolutionType.FEATURE_WINDOW_EXCLUDED);
+        assertThat(result.exclusionFrom()).isEqualTo(date);
+        assertThat(result.exclusionTo()).isEqualTo(date);
+        assertThat(result.evidenceUrl()).isEqualTo(listing.evidenceUrl());
     }
 
     @Test

@@ -2424,6 +2424,38 @@ official rows, the three effective-dated aliases, and the DELHIVERY listing evid
 summary before the correction stage. Do not edit an identity alias, resolve a finding, or apply the incomplete
 Step 38 plan manually.
 
+### 40. Apply all investigated Batch 3 corrections in one governed operation
+
+Run this only after Step 39 reports the reviewed investigation hash below, ten classified open findings,
+unchanged candle and resolution counts, and a disabled worker. This deployment adds support for the valid NSE
+`dd-MMM-yy` legacy date representation and three narrowly effective-dated historical identities. The command
+then regenerates all 7036 recommendations, proves that the ten formerly open findings became exactly five
+feature exclusions and five verified historical moves, and applies the complete plan only when every guard
+passes. The original Upstox candles are never rewritten.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env build --no-cache marketbrain-service
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\ApplyInvestigatedBatch3Corrections.ps1' `
+    -ReviewedBy 'Harshal Pande' `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b' `
+    -ReviewedPlanHash '7267e268c9b7b0aba76c242c61cfa7b8433320a95f937c5bdb87bc8bc6a1daf1' `
+    -ReviewedInvestigationHash 'ca4e015b127f9593689f8895081f2bdd9c59d252f871cbbffedd6bf94dfb0ca2'
+```
+
+The accepted result is `STEP 40 COMPLETE`, 7036 completed items, zero pending or failed items, zero unresolved
+findings, 18 provider adjustments, 70 verified moves, a disabled worker, and
+`FinalProviderSpotCheckRequired=True`. Between 1466 and 1469 secondary candles are valid: the upper end occurs
+when the reviewed MMFSL identity also confirms the three NSE special sessions inside its evidence-bounded
+range; the feature-exclusion count decreases by the same amount. Share the complete corrected-plan summary,
+the ten-item table, and remediation result. Do not prepare Batch 4 until the final provider audit passes.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

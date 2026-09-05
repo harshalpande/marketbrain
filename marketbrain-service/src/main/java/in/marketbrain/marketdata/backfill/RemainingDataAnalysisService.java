@@ -54,6 +54,7 @@ public class RemainingDataAnalysisService {
         Map<String, String> currentIsins = currentIsins(jobId);
         Map<String, List<LargeMoveEvidenceService.HistoricalIdentity>> historicalIdentities =
                 historicalIdentities(jobId);
+        Map<String, OfficialListingBoundary> officialListingBoundaries = officialListingBoundaries(jobId);
         Map<SymbolDate, BackfillQualityReport.LargeMoveFinding> largeMoves = new HashMap<>();
         quality.largeMoves().forEach(move -> largeMoves.put(
                 new SymbolDate(move.symbol().toUpperCase(Locale.ROOT), move.tradingDate()), move));
@@ -82,7 +83,8 @@ public class RemainingDataAnalysisService {
                             finding, isin, aliases, archive);
                     case LARGE_MOVE -> analyzeLargeMove(
                             finding, isin, aliases, archive, largeMoves.get(
-                                    new SymbolDate(symbolKey, finding.findingDate())));
+                                    new SymbolDate(symbolKey, finding.findingDate())),
+                            officialListingBoundaries.get(symbolKey));
                     case LEADING_COVERAGE_GAP, TRAILING_COVERAGE_GAP, SUSPICIOUS_GAP ->
                             throw new IllegalStateException("Coverage finding was assigned to an NSE archive");
                 });
@@ -162,7 +164,8 @@ public class RemainingDataAnalysisService {
             String isin,
             List<LargeMoveEvidenceService.HistoricalIdentity> aliases,
             NseBhavcopyArchive archive,
-            BackfillQualityReport.LargeMoveFinding move
+            BackfillQualityReport.LargeMoveFinding move,
+            OfficialListingBoundary officialListingBoundary
     ) {
         if (move == null || archive == null) {
             return item(finding, "MISSING_LARGE_MOVE_CONTEXT", null, null, null,
@@ -182,17 +185,31 @@ public class RemainingDataAnalysisService {
             resolutionType = QualityResolutionType.PROVIDER_ADJUSTMENT;
             exclusionFrom = finding.findingDate();
             exclusionTo = finding.findingDate();
+        } else if ("OFFICIAL_INSTRUMENT_NOT_FOUND".equals(evidence.evidenceStatus())
+                && officialListingBoundary != null
+                && finding.findingDate().isBefore(officialListingBoundary.reportedListedOn())) {
+            resolutionType = QualityResolutionType.FEATURE_WINDOW_EXCLUDED;
+            exclusionFrom = finding.findingDate();
+            exclusionTo = finding.findingDate();
         } else {
             resolutionType = null;
         }
+        boolean prelistingExclusion = resolutionType == QualityResolutionType.FEATURE_WINDOW_EXCLUDED;
         return item(finding, evidence.evidenceStatus(), resolutionType, exclusionFrom, exclusionTo,
                 evidence.officialSymbol(), evidence.matchBasis(), evidence.officialSeries(),
                 evidence.officialOpen(), evidence.officialHigh(), evidence.officialLow(), evidence.officialClose(),
                 evidence.officialVolume(), evidence.storedReturnPercent(), evidence.officialReturnPercent(),
-                "NSE official daily BhavCopy", evidence.sourceUrl(),
+                prelistingExclusion
+                        ? "NSE listing metadata and official daily BhavCopy"
+                        : "NSE official daily BhavCopy",
+                prelistingExclusion ? officialListingBoundary.evidenceUrl() : evidence.sourceUrl(),
                 resolutionType == QualityResolutionType.PROVIDER_ADJUSTMENT
                         ? "Stored and official returns differ beyond tolerance; preserve the candle for audit but "
                         + "exclude this transition date from model features and backtests."
+                        : prelistingExclusion
+                        ? "The current and reviewed historical identities are absent from the official archive "
+                        + "before the NSE-reported listing date; exclude only this finding date without rewriting "
+                        + "or inventing a candle."
                         : evidence.detail());
     }
 
@@ -295,6 +312,27 @@ public class RemainingDataAnalysisService {
         return Map.copyOf(result);
     }
 
+    private Map<String, OfficialListingBoundary> officialListingBoundaries(UUID jobId) {
+        Map<String, OfficialListingBoundary> result = new HashMap<>();
+        jdbcTemplate.query("""
+                SELECT DISTINCT chunk.source_symbol, evidence.reported_listed_on, evidence.source_url
+                FROM historical_backfill_chunk chunk
+                JOIN LATERAL (
+                    SELECT listing.reported_listed_on, listing.source_url
+                    FROM instrument_listing_evidence listing
+                    WHERE listing.instrument_id = chunk.instrument_id
+                    ORDER BY listing.received_at DESC, listing.id DESC
+                    LIMIT 1
+                ) evidence ON TRUE
+                WHERE chunk.job_id = ?
+                """, (org.springframework.jdbc.core.RowCallbackHandler) rs -> result.put(
+                        rs.getString("source_symbol").toUpperCase(Locale.ROOT),
+                        new OfficialListingBoundary(
+                                rs.getDate("reported_listed_on").toLocalDate(),
+                                rs.getString("source_url"))), jobId);
+        return Map.copyOf(result);
+    }
+
     private int countType(List<RemainingDataAnalysisReport.Item> items, QualityFindingType type) {
         return (int) items.stream().filter(item -> item.findingType() == type).count();
     }
@@ -346,5 +384,8 @@ public class RemainingDataAnalysisService {
     }
 
     private record SymbolDate(String symbol, LocalDate date) {
+    }
+
+    record OfficialListingBoundary(LocalDate reportedListedOn, String evidenceUrl) {
     }
 }
