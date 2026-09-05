@@ -41,6 +41,12 @@ $investigationPath = Join-Path $OutputDirectory `
     "expansion-batch-$batchNumber-open-findings-investigation-$JobId.json"
 $correctedAnalysisPath = Join-Path $OutputDirectory `
     "expansion-batch-$batchNumber-corrected-analysis-$JobId.json"
+$checkpointPath = Join-Path $OutputDirectory `
+    "expansion-batch-$batchNumber-step40-checkpoints-$JobId.json"
+$logPath = Join-Path $OutputDirectory `
+    "expansion-batch-$batchNumber-step40-$JobId.log"
+
+New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($reviewer)) {
     throw 'ReviewedBy must contain the name of the person approving the investigated Batch 3 corrections.'
@@ -189,38 +195,80 @@ $correctedSecondaryItems = [int]$analysis.secondaryBackfillCandidateCount
 $correctedExclusionItems = [int]$analysis.featureExclusionCandidateCount
 $correctedAllSourceCandles = $expectedUpstoxCandles + $correctedSecondaryItems
 
-if ([guid]$analysis.jobId -ne $JobId -or
-    -not $analysis.analysisComplete -or
-    $analysis.unresolvedFindingCount -ne $expectedFindings -or
-    $analysis.officialSessionFindingCount -ne 1450 -or
-    $analysis.peerSessionFindingCount -ne 5469 -or
-    $analysis.coverageGapFindingCount -ne 28 -or
-    $analysis.largeMoveFindingCount -ne 89 -or
-    $analysis.sourceRequestCount -ne 2074 -or
-    $correctedSecondaryItems -lt $minimumSecondaryItems -or
-    $correctedSecondaryItems -gt $maximumSecondaryItems -or
-    $correctedExclusionItems -ne ($expectedFindings - $correctedSecondaryItems -
-        $expectedAdjustmentItems - $expectedVerifiedMoveItems) -or
-    $analysis.providerAdjustmentCandidateCount -ne $expectedAdjustmentItems -or
-    $analysis.verifiedMoveCandidateCount -ne $expectedVerifiedMoveItems -or
-    $candidateCount -ne $expectedFindings -or
-    $analysis.keepOpenCount -ne 0 -or
-    $analysis.sourceFailureCount -ne 0 -or
-    $analysis.planHash -notmatch '^[0-9a-f]{64}$' -or
-    $analysis.candlesWritten -or
-    $analysis.resolutionsWritten -or
-    $items.Count -ne $expectedFindings -or
-    $formerlyOpenItems.Count -ne 10 -or
-    $unresolvedFormerlyOpenItems.Count -ne 0 -or
-    $formerlyOpenFeatureExclusions.Count -ne 5 -or
-    $formerlyOpenVerifiedMoves.Count -ne 5 -or
-    $historicalIdentityMatches.Count -ne 5) {
-    throw 'The corrected analysis did not reach every reviewed checkpoint; no remediation was requested.'
-}
+$expectedExclusionItems = $expectedFindings - $correctedSecondaryItems -
+    $expectedAdjustmentItems - $expectedVerifiedMoveItems
+$checkpointResults = @(
+    [pscustomobject]@{ Checkpoint = 'JobId'; Expected = [string]$JobId; Actual = [string]$analysis.jobId; Passed = ([string]$analysis.jobId -eq [string]$JobId) }
+    [pscustomobject]@{ Checkpoint = 'AnalysisComplete'; Expected = 'True'; Actual = [string]$analysis.analysisComplete; Passed = [bool]$analysis.analysisComplete }
+    [pscustomobject]@{ Checkpoint = 'UnresolvedFindingCount'; Expected = [string]$expectedFindings; Actual = [string]$analysis.unresolvedFindingCount; Passed = ($analysis.unresolvedFindingCount -eq $expectedFindings) }
+    [pscustomobject]@{ Checkpoint = 'OfficialSessionFindingCount'; Expected = '1450'; Actual = [string]$analysis.officialSessionFindingCount; Passed = ($analysis.officialSessionFindingCount -eq 1450) }
+    [pscustomobject]@{ Checkpoint = 'PeerSessionFindingCount'; Expected = '5469'; Actual = [string]$analysis.peerSessionFindingCount; Passed = ($analysis.peerSessionFindingCount -eq 5469) }
+    [pscustomobject]@{ Checkpoint = 'CoverageGapFindingCount'; Expected = '28'; Actual = [string]$analysis.coverageGapFindingCount; Passed = ($analysis.coverageGapFindingCount -eq 28) }
+    [pscustomobject]@{ Checkpoint = 'LargeMoveFindingCount'; Expected = '89'; Actual = [string]$analysis.largeMoveFindingCount; Passed = ($analysis.largeMoveFindingCount -eq 89) }
+    [pscustomobject]@{ Checkpoint = 'SourceRequestCount'; Expected = '2074'; Actual = [string]$analysis.sourceRequestCount; Passed = ($analysis.sourceRequestCount -eq 2074) }
+    [pscustomobject]@{ Checkpoint = 'SecondaryBackfillCandidateCount'; Expected = "$minimumSecondaryItems..$maximumSecondaryItems"; Actual = [string]$correctedSecondaryItems; Passed = ($correctedSecondaryItems -ge $minimumSecondaryItems -and $correctedSecondaryItems -le $maximumSecondaryItems) }
+    [pscustomobject]@{ Checkpoint = 'FeatureExclusionCandidateCount'; Expected = [string]$expectedExclusionItems; Actual = [string]$correctedExclusionItems; Passed = ($correctedExclusionItems -eq $expectedExclusionItems) }
+    [pscustomobject]@{ Checkpoint = 'ProviderAdjustmentCandidateCount'; Expected = [string]$expectedAdjustmentItems; Actual = [string]$analysis.providerAdjustmentCandidateCount; Passed = ($analysis.providerAdjustmentCandidateCount -eq $expectedAdjustmentItems) }
+    [pscustomobject]@{ Checkpoint = 'VerifiedMoveCandidateCount'; Expected = [string]$expectedVerifiedMoveItems; Actual = [string]$analysis.verifiedMoveCandidateCount; Passed = ($analysis.verifiedMoveCandidateCount -eq $expectedVerifiedMoveItems) }
+    [pscustomobject]@{ Checkpoint = 'CandidateCount'; Expected = [string]$expectedFindings; Actual = [string]$candidateCount; Passed = ($candidateCount -eq $expectedFindings) }
+    [pscustomobject]@{ Checkpoint = 'KeepOpenCount'; Expected = '0'; Actual = [string]$analysis.keepOpenCount; Passed = ($analysis.keepOpenCount -eq 0) }
+    [pscustomobject]@{ Checkpoint = 'SourceFailureCount'; Expected = '0'; Actual = [string]$analysis.sourceFailureCount; Passed = ($analysis.sourceFailureCount -eq 0) }
+    [pscustomobject]@{ Checkpoint = 'PlanHash'; Expected = '64 lowercase hexadecimal characters'; Actual = [string]$analysis.planHash; Passed = ($analysis.planHash -match '^[0-9a-f]{64}$') }
+    [pscustomobject]@{ Checkpoint = 'CandlesWritten'; Expected = 'False'; Actual = [string]$analysis.candlesWritten; Passed = (-not [bool]$analysis.candlesWritten) }
+    [pscustomobject]@{ Checkpoint = 'ResolutionsWritten'; Expected = 'False'; Actual = [string]$analysis.resolutionsWritten; Passed = (-not [bool]$analysis.resolutionsWritten) }
+    [pscustomobject]@{ Checkpoint = 'AnalysisItemCount'; Expected = [string]$expectedFindings; Actual = [string]$items.Count; Passed = ($items.Count -eq $expectedFindings) }
+    [pscustomobject]@{ Checkpoint = 'InvestigatedItemCount'; Expected = '10'; Actual = [string]$formerlyOpenItems.Count; Passed = ($formerlyOpenItems.Count -eq 10) }
+    [pscustomobject]@{ Checkpoint = 'UnresolvedInvestigatedItemCount'; Expected = '0'; Actual = [string]$unresolvedFormerlyOpenItems.Count; Passed = ($unresolvedFormerlyOpenItems.Count -eq 0) }
+    [pscustomobject]@{ Checkpoint = 'InvestigatedFeatureExclusionCount'; Expected = '5'; Actual = [string]$formerlyOpenFeatureExclusions.Count; Passed = ($formerlyOpenFeatureExclusions.Count -eq 5) }
+    [pscustomobject]@{ Checkpoint = 'InvestigatedVerifiedMoveCount'; Expected = '5'; Actual = [string]$formerlyOpenVerifiedMoves.Count; Passed = ($formerlyOpenVerifiedMoves.Count -eq 5) }
+    [pscustomobject]@{ Checkpoint = 'HistoricalIdentityMatchCount'; Expected = '5'; Actual = [string]$historicalIdentityMatches.Count; Passed = ($historicalIdentityMatches.Count -eq 5) }
+)
+$failedCheckpoints = @($checkpointResults | Where-Object { -not $_.Passed })
 
-New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+# Preserve the expensive read-only response before any reviewed checkpoint can fail.
 $analysis | ConvertTo-Json -Depth 14 |
     Set-Content -LiteralPath $correctedAnalysisPath -Encoding utf8
+
+$checkpointReport = [pscustomobject]@{
+    status = if ($failedCheckpoints.Count -eq 0) { 'PASSED' } else { 'REVIEW_REQUIRED' }
+    checkedAt = [DateTimeOffset]::Now
+    jobId = $JobId
+    correctedAnalysisPath = $correctedAnalysisPath
+    checkpointPath = $checkpointPath
+    logPath = $logPath
+    failedCheckpointCount = $failedCheckpoints.Count
+    checkpoints = $checkpointResults
+    investigatedItems = $formerlyOpenItems
+}
+$checkpointReport | ConvertTo-Json -Depth 10 |
+    Set-Content -LiteralPath $checkpointPath -Encoding utf8
+
+$logSections = @(
+    "MarketBrain Batch 3 Step 40 checkpoint report"
+    "Checked at: $([DateTimeOffset]::Now.ToString('o'))"
+    "Job ID: $JobId"
+    "Failed checkpoint count: $($failedCheckpoints.Count)"
+    "Full analysis: $correctedAnalysisPath"
+    "Checkpoint JSON: $checkpointPath"
+    ''
+    'All checkpoints'
+    ($checkpointResults | Format-Table Checkpoint, Expected, Actual, Passed -AutoSize | Out-String)
+    'Ten investigated findings selected by type, symbol, and date'
+    ($formerlyOpenItems | Sort-Object symbol, findingDate |
+        Format-Table symbol, findingType, findingDate, analysisStatus,
+            recommendedResolutionType, officialSymbol, matchBasis -AutoSize | Out-String)
+)
+$logSections | Set-Content -LiteralPath $logPath -Encoding utf8
+
+if ($failedCheckpoints.Count -gt 0) {
+    Write-Host ''
+    Write-Host 'Corrected analysis checkpoint failures'
+    $failedCheckpoints | Format-Table Checkpoint, Expected, Actual -AutoSize
+    Write-Host "Full analysis saved to $correctedAnalysisPath"
+    Write-Host "Checkpoint report saved to $checkpointPath"
+    Write-Host "Shareable text log saved to $logPath"
+    throw "The corrected analysis failed $($failedCheckpoints.Count) reviewed checkpoint(s); no remediation was requested. Share the checkpoint JSON and text log."
+}
 
 [pscustomobject]@{
     Status = 'CORRECTED_PLAN_VERIFIED'

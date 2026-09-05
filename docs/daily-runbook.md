@@ -2456,6 +2456,12 @@ when the reviewed MMFSL identity also confirms the three NSE special sessions in
 range; the feature-exclusion count decreases by the same amount. Share the complete corrected-plan summary,
 the ten-item table, and remediation result. Do not prepare Batch 4 until the final provider audit passes.
 
+If a corrected-plan checkpoint fails before remediation, the script saves the full read-only analysis, a
+machine-readable checkpoint report, and a compact text log under `C:\MarketBrainData\Review`. Share the
+`expansion-batch-3-step40-checkpoints-<job-id>.json` and `expansion-batch-3-step40-<job-id>.log` files. The full
+analysis is retained locally and reused by the next invocation, so a checkpoint correction does not download
+all NSE archives again. A failed pre-remediation checkpoint does not write candles or resolutions.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
