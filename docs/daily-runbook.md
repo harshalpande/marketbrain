@@ -2429,9 +2429,11 @@ Step 38 plan manually.
 Run this only after Step 39 reports the reviewed investigation hash below, ten classified open findings,
 unchanged candle and resolution counts, and a disabled worker. This deployment adds support for the valid NSE
 `dd-MMM-yy` legacy date representation and three narrowly effective-dated historical identities. The command
-then regenerates all 7036 recommendations, proves that the ten formerly open findings became exactly five
-feature exclusions and five verified historical moves, and applies the complete plan only when every guard
-passes. The original Upstox candles are never rewritten.
+then regenerates all 7036 recommendations and proves that the ten formerly open findings became exactly five
+feature exclusions, three verified historical moves, and two provider adjustments. The two CGCL historical
+identity matches are adjustments because their official NSE returns differ from the stored transitions beyond
+tolerance. The command applies the complete plan only when every guard passes. The original Upstox candles are
+never rewritten.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -2450,11 +2452,14 @@ Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
 ```
 
 The accepted result is `STEP 40 COMPLETE`, 7036 completed items, zero pending or failed items, zero unresolved
-findings, 18 provider adjustments, 70 verified moves, a disabled worker, and
+findings, 20 provider adjustments, 68 verified moves, a disabled worker, and
 `FinalProviderSpotCheckRequired=True`. Between 1466 and 1469 secondary candles are valid: the upper end occurs
 when the reviewed MMFSL identity also confirms the three NSE special sessions inside its evidence-bounded
 range; the feature-exclusion count decreases by the same amount. Share the complete corrected-plan summary,
 the ten-item table, and remediation result. Do not prepare Batch 4 until the final provider audit passes.
+The evidence-reviewed corrected plan hash is
+`6c26708b6aeadd4988fafb1aefcf21289a22dd5a3205c0851bf9b7b10ce3e82c`; the application script rejects any
+different regenerated or locally saved plan.
 
 If a corrected-plan checkpoint fails before remediation, the script saves the full read-only analysis, a
 machine-readable checkpoint report, and a compact text log under `C:\MarketBrainData\Review`. Share the

@@ -30,13 +30,14 @@ $expectedRejectedRows = 6
 $expectedFindings = 7036
 $minimumSecondaryItems = 1466
 $maximumSecondaryItems = 1469
-$expectedAdjustmentItems = 18
-$expectedVerifiedMoveItems = 70
+$expectedAdjustmentItems = 20
+$expectedVerifiedMoveItems = 68
 $reviewer = $ReviewedBy.Trim()
 $manifestHash = $ReviewedManifestHash.Trim().ToLowerInvariant()
 $incompletePlanHash = $ReviewedPlanHash.Trim().ToLowerInvariant()
 $investigationHash = $ReviewedInvestigationHash.Trim().ToLowerInvariant()
 $reviewedInvestigationHash = 'ca4e015b127f9593689f8895081f2bdd9c59d252f871cbbffedd6bf94dfb0ca2'
+$reviewedCorrectedPlanHash = '6c26708b6aeadd4988fafb1aefcf21289a22dd5a3205c0851bf9b7b10ce3e82c'
 $investigationPath = Join-Path $OutputDirectory `
     "expansion-batch-$batchNumber-open-findings-investigation-$JobId.json"
 $correctedAnalysisPath = Join-Path $OutputDirectory `
@@ -187,7 +188,10 @@ $formerlyOpenFeatureExclusions = @($formerlyOpenItems | Where-Object {
 $formerlyOpenVerifiedMoves = @($formerlyOpenItems | Where-Object {
     $_.recommendedResolutionType -eq 'VERIFIED_EXCHANGE_MOVE'
 })
-$historicalIdentityMatches = @($formerlyOpenVerifiedMoves | Where-Object {
+$formerlyOpenProviderAdjustments = @($formerlyOpenItems | Where-Object {
+    $_.recommendedResolutionType -eq 'PROVIDER_ADJUSTMENT'
+})
+$historicalIdentityMatches = @($formerlyOpenItems | Where-Object {
     $_.officialSymbol -in @('MMFSL', 'NIITTECH', 'DAAWAT') -and
     $_.matchBasis -in @('HISTORICAL_ISIN', 'HISTORICAL_SYMBOL')
 })
@@ -213,14 +217,15 @@ $checkpointResults = @(
     [pscustomobject]@{ Checkpoint = 'CandidateCount'; Expected = [string]$expectedFindings; Actual = [string]$candidateCount; Passed = ($candidateCount -eq $expectedFindings) }
     [pscustomobject]@{ Checkpoint = 'KeepOpenCount'; Expected = '0'; Actual = [string]$analysis.keepOpenCount; Passed = ($analysis.keepOpenCount -eq 0) }
     [pscustomobject]@{ Checkpoint = 'SourceFailureCount'; Expected = '0'; Actual = [string]$analysis.sourceFailureCount; Passed = ($analysis.sourceFailureCount -eq 0) }
-    [pscustomobject]@{ Checkpoint = 'PlanHash'; Expected = '64 lowercase hexadecimal characters'; Actual = [string]$analysis.planHash; Passed = ($analysis.planHash -match '^[0-9a-f]{64}$') }
+    [pscustomobject]@{ Checkpoint = 'PlanHash'; Expected = $reviewedCorrectedPlanHash; Actual = [string]$analysis.planHash; Passed = ($analysis.planHash -eq $reviewedCorrectedPlanHash) }
     [pscustomobject]@{ Checkpoint = 'CandlesWritten'; Expected = 'False'; Actual = [string]$analysis.candlesWritten; Passed = (-not [bool]$analysis.candlesWritten) }
     [pscustomobject]@{ Checkpoint = 'ResolutionsWritten'; Expected = 'False'; Actual = [string]$analysis.resolutionsWritten; Passed = (-not [bool]$analysis.resolutionsWritten) }
     [pscustomobject]@{ Checkpoint = 'AnalysisItemCount'; Expected = [string]$expectedFindings; Actual = [string]$items.Count; Passed = ($items.Count -eq $expectedFindings) }
     [pscustomobject]@{ Checkpoint = 'InvestigatedItemCount'; Expected = '10'; Actual = [string]$formerlyOpenItems.Count; Passed = ($formerlyOpenItems.Count -eq 10) }
     [pscustomobject]@{ Checkpoint = 'UnresolvedInvestigatedItemCount'; Expected = '0'; Actual = [string]$unresolvedFormerlyOpenItems.Count; Passed = ($unresolvedFormerlyOpenItems.Count -eq 0) }
     [pscustomobject]@{ Checkpoint = 'InvestigatedFeatureExclusionCount'; Expected = '5'; Actual = [string]$formerlyOpenFeatureExclusions.Count; Passed = ($formerlyOpenFeatureExclusions.Count -eq 5) }
-    [pscustomobject]@{ Checkpoint = 'InvestigatedVerifiedMoveCount'; Expected = '5'; Actual = [string]$formerlyOpenVerifiedMoves.Count; Passed = ($formerlyOpenVerifiedMoves.Count -eq 5) }
+    [pscustomobject]@{ Checkpoint = 'InvestigatedVerifiedMoveCount'; Expected = '3'; Actual = [string]$formerlyOpenVerifiedMoves.Count; Passed = ($formerlyOpenVerifiedMoves.Count -eq 3) }
+    [pscustomobject]@{ Checkpoint = 'InvestigatedProviderAdjustmentCount'; Expected = '2'; Actual = [string]$formerlyOpenProviderAdjustments.Count; Passed = ($formerlyOpenProviderAdjustments.Count -eq 2) }
     [pscustomobject]@{ Checkpoint = 'HistoricalIdentityMatchCount'; Expected = '5'; Actual = [string]$historicalIdentityMatches.Count; Passed = ($historicalIdentityMatches.Count -eq 5) }
 )
 $failedCheckpoints = @($checkpointResults | Where-Object { -not $_.Passed })
