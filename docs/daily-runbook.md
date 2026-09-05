@@ -2316,6 +2316,41 @@ official Bhavcopy and bonus-allotment URLs. Share the full recovery summary, bot
 disabled-worker status. Do not run the Batch 3 quality audit or prepare Batch 4 until this checkpoint is
 reviewed.
 
+### 37. Run the initial read-only Batch 3 quality audit
+
+Run this only after Step 36 has been reviewed and the live checkpoint still reports `COMPLETED`, 2320 completed
+chunks, zero failed chunks, 550050 accepted rows, six rejected rows, and a disabled worker. The six rejected
+provider rows are an expected, immutable Batch 3 checkpoint from completed CGCL, DEEPAKNTR, and IDEA chunks;
+this step preserves them and audits the 550050 accepted candles.
+
+Commit and push this step from the development laptop. On the spare laptop, pull the commit and run the audit
+with the worker kept disabled. Rebuild the backend only if the pulled commit contains backend changes; this
+step itself adds only a PowerShell audit script and runbook guidance.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\AuditReviewedBatch3.ps1' `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b'
+```
+
+The script binds the audit to the saved Batch 3 creation and LALPATHLAB recovery reports and rechecks every
+live completion counter before and after the audit. It first audits the database, then performs one read-only
+Upstox comparison for each of the 200 instruments. Both full JSON responses are saved under
+`C:\MarketBrainData\Review`.
+
+`FAILED` is not an accepted review result: do not retry, alter data, or begin analysis; share the complete
+output. `REVIEW_REQUIRED` is the expected governed outcome when structural checks and all 200 provider checks
+pass but unresolved calendar, coverage, or price-move findings remain. A direct `PASS` is also valid if there
+are no unresolved findings. In either non-failed case, share the complete summary, finding inventory,
+instrument table, provider-check table, and eligibility reasons. Do not prepare Batch 4 yet. The next reviewed
+stage will analyze all Batch 3 findings in one read-only plan; after review, a separate application stage can
+apply that entire immutable plan in one operation.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
