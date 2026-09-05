@@ -270,7 +270,13 @@ if ([guid]$latestBefore.jobId -ne $JobId -or
 
 $client = [System.Net.Http.HttpClient]::new()
 $client.Timeout = [TimeSpan]::FromMinutes(5)
-$client.DefaultRequestHeaders.UserAgent.ParseAdd('MarketBrain/1.0 reviewed-data-investigation')
+$client.DefaultRequestHeaders.UserAgent.ParseAdd(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MarketBrain/0.1 evidence-verifier'
+)
+$client.DefaultRequestHeaders.Referrer = [uri]'https://www.nseindia.com/all-reports'
+$client.DefaultRequestHeaders.Accept.Add(
+    [System.Net.Http.Headers.MediaTypeWithQualityHeaderValue]::new('application/octet-stream')
+)
 try {
     Write-Host 'Downloading seven immutable NSE daily archives for all ten open Batch 3 findings...'
     $archiveDates = @($archiveExpectations.Date + [datetime]'2016-03-08' + [datetime]'2020-07-13' | Sort-Object -Unique)
