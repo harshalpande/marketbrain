@@ -160,11 +160,17 @@ $candidateCount = $analysis.secondaryBackfillCandidateCount +
     $analysis.verifiedMoveCandidateCount
 $formerlyOpenItems = @($items | Where-Object {
     $findingDate = Get-IsoDate $_.findingDate
-    ($_.symbol -eq 'CGCL' -and $findingDate -in @('2011-11-28', '2012-08-07')) -or
-    ($_.symbol -eq 'COFORGE' -and $findingDate -in @('2020-03-23', '2020-03-25')) -or
-    ($_.symbol -eq 'LTFOODS' -and $findingDate -eq '2013-08-20') -or
-    ($_.symbol -eq 'DELHIVERY' -and $findingDate -in @('2016-03-08', '2020-07-13')) -or
-    ($_.symbol -in @('HOMEFIRST', 'KFINTECH', 'LATENTVIEW') -and $findingDate -eq '2020-07-13')
+    ($_.findingType -eq 'LARGE_MOVE' -and $_.symbol -eq 'CGCL' -and
+        $findingDate -in @('2011-11-28', '2012-08-07')) -or
+    ($_.findingType -eq 'LARGE_MOVE' -and $_.symbol -eq 'COFORGE' -and
+        $findingDate -in @('2020-03-23', '2020-03-25')) -or
+    ($_.findingType -eq 'LARGE_MOVE' -and $_.symbol -eq 'LTFOODS' -and
+        $findingDate -eq '2013-08-20') -or
+    ($_.findingType -eq 'LARGE_MOVE' -and $_.symbol -eq 'DELHIVERY' -and
+        $findingDate -eq '2016-03-08') -or
+    ($_.findingType -eq 'PEER_CONFIRMED_SESSION' -and
+        $_.symbol -in @('DELHIVERY', 'HOMEFIRST', 'KFINTECH', 'LATENTVIEW') -and
+        $findingDate -eq '2020-07-13')
 })
 $unresolvedFormerlyOpenItems = @($formerlyOpenItems | Where-Object {
     $null -eq $_.recommendedResolutionType
