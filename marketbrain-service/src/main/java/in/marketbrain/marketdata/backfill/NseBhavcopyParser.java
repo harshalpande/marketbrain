@@ -129,7 +129,7 @@ class NseBhavcopyParser {
     }
 
     private String value(List<String> values, Map<String, Integer> columns, String column) {
-        Integer index = columns.get(normalizeHeader(column));
+        Integer index = columns.get(column);
         return index == null || index >= values.size() ? "" : values.get(index).trim();
     }
 

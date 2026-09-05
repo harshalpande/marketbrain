@@ -2363,13 +2363,16 @@ downloads each distinct required NSE Bhavcopy archive once within the request, c
 outcome per finding, calculates an immutable SHA-256 plan hash, and saves the complete plan locally. Because
 the number of distinct trading dates can be large, let the command finish; its timeout is two hours.
 
-Commit and push this step from the development laptop. On the spare laptop, pull it and keep the worker
-disabled. No Docker rebuild is needed for this script-only change.
+Commit and push this step from the development laptop. On the spare laptop, pull it, keep the worker disabled,
+and rebuild only the backend. The bounded-memory correction is backend code and must be present in the runtime
+image before the analysis is retried.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 git status --short
 git pull --ff-only
+docker compose --env-file .env build --no-cache marketbrain-service
+docker compose --env-file .env up -d --force-recreate marketbrain-service
 Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
 
 & '.\ops\windows\AnalyzeReviewedBatch3.ps1' `
@@ -2386,6 +2389,13 @@ If the result is `REVIEW_REQUIRED`, no data has changed. Share the output and do
 After a complete plan is reviewed, Step 39 will apply all 7036 actions in one checkpointed operation; the final
 provider-backed quality audit follows immediately. Batch 4 can be created as soon as that final audit makes
 Batch 3 eligible. Do not create Batch 4 directly from this analysis result.
+
+If the first Step 38 attempt made before the bounded-memory correction returned HTTP 500 with
+`OutOfMemoryError: Java heap space`, no plan or data change was written. Commit and deploy the correction,
+rebuild the backend, verify the worker is still disabled, and rerun the same Step 38 command. The correction
+processes one NSE trading-date archive at a time instead of retaining every parsed archive for the duration of
+the request; it also avoids repeated regular-expression allocation for already-normalized column names. Do
+not work around this failure by increasing the JVM heap or by splitting the reviewed finding set manually.
 
 ## Spare runtime laptop: normal update and redeploy
 

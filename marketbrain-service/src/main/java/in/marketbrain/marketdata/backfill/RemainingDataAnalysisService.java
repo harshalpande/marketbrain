@@ -12,11 +12,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import java.util.UUID;
 
 @Service
@@ -59,29 +58,35 @@ public class RemainingDataAnalysisService {
         quality.largeMoves().forEach(move -> largeMoves.put(
                 new SymbolDate(move.symbol().toUpperCase(Locale.ROOT), move.tradingDate()), move));
 
-        TreeSet<LocalDate> sourceDates = new TreeSet<>();
-        unresolved.stream()
-                .filter(this::requiresOfficialArchive)
-                .map(BackfillQualityReport.QualityFinding::findingDate)
-                .forEach(sourceDates::add);
-        Map<LocalDate, NseBhavcopyArchive> archives = new LinkedHashMap<>();
-        sourceDates.forEach(date -> archives.put(date, nseClient.fetch(date)));
-
+        Map<LocalDate, List<BackfillQualityReport.QualityFinding>> sourceFindingsByDate = new TreeMap<>();
         List<RemainingDataAnalysisReport.Item> items = new ArrayList<>();
         for (BackfillQualityReport.QualityFinding finding : unresolved) {
-            String symbolKey = finding.symbol() == null ? null : finding.symbol().toUpperCase(Locale.ROOT);
-            String isin = symbolKey == null ? null : currentIsins.get(symbolKey);
-            List<LargeMoveEvidenceService.HistoricalIdentity> aliases = symbolKey == null
-                    ? List.of() : historicalIdentities.getOrDefault(symbolKey, List.of());
-            items.add(switch (finding.findingType()) {
-                case OFFICIAL_SPECIAL_SESSION, PEER_CONFIRMED_SESSION -> analyzeMissingSession(
-                        finding, isin, aliases, archives.get(finding.findingDate()));
-                case LARGE_MOVE -> analyzeLargeMove(
-                        finding, isin, aliases, archives.get(finding.findingDate()), largeMoves.get(
-                                new SymbolDate(symbolKey, finding.findingDate())));
-                case LEADING_COVERAGE_GAP, TRAILING_COVERAGE_GAP, SUSPICIOUS_GAP ->
-                        analyzeCoverageGap(finding);
-            });
+            if (requiresOfficialArchive(finding)) {
+                sourceFindingsByDate.computeIfAbsent(finding.findingDate(), ignored -> new ArrayList<>())
+                        .add(finding);
+            } else {
+                items.add(analyzeCoverageGap(finding));
+            }
+        }
+
+        for (Map.Entry<LocalDate, List<BackfillQualityReport.QualityFinding>> entry
+                : sourceFindingsByDate.entrySet()) {
+            NseBhavcopyArchive archive = nseClient.fetch(entry.getKey());
+            for (BackfillQualityReport.QualityFinding finding : entry.getValue()) {
+                String symbolKey = finding.symbol() == null ? null : finding.symbol().toUpperCase(Locale.ROOT);
+                String isin = symbolKey == null ? null : currentIsins.get(symbolKey);
+                List<LargeMoveEvidenceService.HistoricalIdentity> aliases = symbolKey == null
+                        ? List.of() : historicalIdentities.getOrDefault(symbolKey, List.of());
+                items.add(switch (finding.findingType()) {
+                    case OFFICIAL_SPECIAL_SESSION, PEER_CONFIRMED_SESSION -> analyzeMissingSession(
+                            finding, isin, aliases, archive);
+                    case LARGE_MOVE -> analyzeLargeMove(
+                            finding, isin, aliases, archive, largeMoves.get(
+                                    new SymbolDate(symbolKey, finding.findingDate())));
+                    case LEADING_COVERAGE_GAP, TRAILING_COVERAGE_GAP, SUSPICIOUS_GAP ->
+                            throw new IllegalStateException("Coverage finding was assigned to an NSE archive");
+                });
+            }
         }
 
         List<RemainingDataAnalysisReport.Item> sortedItems = items.stream()
@@ -102,7 +107,8 @@ public class RemainingDataAnalysisService {
                 jobId, sortedItems.size(), countType(sortedItems, QualityFindingType.OFFICIAL_SPECIAL_SESSION),
                 countType(sortedItems, QualityFindingType.PEER_CONFIRMED_SESSION),
                 countCoverageGaps(sortedItems), countType(sortedItems, QualityFindingType.LARGE_MOVE),
-                archives.size(), countResolution(sortedItems, QualityResolutionType.SECONDARY_SOURCE_BACKFILLED),
+                sourceFindingsByDate.size(),
+                countResolution(sortedItems, QualityResolutionType.SECONDARY_SOURCE_BACKFILLED),
                 countResolution(sortedItems, QualityResolutionType.FEATURE_WINDOW_EXCLUDED),
                 countResolution(sortedItems, QualityResolutionType.PROVIDER_ADJUSTMENT),
                 countResolution(sortedItems, QualityResolutionType.VERIFIED_EXCHANGE_MOVE),

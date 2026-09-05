@@ -1,12 +1,18 @@
 package in.marketbrain.marketdata.backfill;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class RemainingDataAnalysisServiceTest {
 
@@ -119,6 +125,40 @@ class RemainingDataAnalysisServiceTest {
         assertThat(result.recommendedResolutionType()).isEqualTo(QualityResolutionType.PROVIDER_ADJUSTMENT);
         assertThat(result.exclusionFrom()).isEqualTo(date);
         assertThat(result.exclusionTo()).isEqualTo(date);
+    }
+
+    @Test
+    void fetchesEachDistinctArchiveOnceWhileAnalyzingEveryFinding() {
+        UUID jobId = UUID.randomUUID();
+        LocalDate firstDate = LocalDate.of(2020, 1, 2);
+        LocalDate secondDate = LocalDate.of(2020, 1, 3);
+        List<BackfillQualityReport.QualityFinding> findings = List.of(
+                finding(QualityFindingType.OFFICIAL_SPECIAL_SESSION, "ONE", firstDate, null),
+                finding(QualityFindingType.PEER_CONFIRMED_SESSION, "TWO", firstDate, null),
+                finding(QualityFindingType.PEER_CONFIRMED_SESSION, "THREE", secondDate, null),
+                finding(QualityFindingType.SUSPICIOUS_GAP, "FOUR", secondDate, firstDate));
+        BackfillQualityReport quality = mock(BackfillQualityReport.class);
+        BackfillQualityService qualityService = mock(BackfillQualityService.class);
+        NseBhavcopyClient nseClient = mock(NseBhavcopyClient.class);
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(quality.truncatedFindingCount()).thenReturn(0);
+        when(quality.qualityFindings()).thenReturn(findings);
+        when(quality.largeMoves()).thenReturn(List.of());
+        when(quality.unresolvedFindingCount()).thenReturn(findings.size());
+        when(qualityService.audit(jobId, false)).thenReturn(quality);
+        when(nseClient.fetch(firstDate)).thenReturn(archive(firstDate));
+        when(nseClient.fetch(secondDate)).thenReturn(archive(secondDate));
+        RemainingDataAnalysisService batchService = new RemainingDataAnalysisService(
+                qualityService, nseClient, evidenceService, jdbcTemplate);
+
+        RemainingDataAnalysisReport result = batchService.analyze(jobId);
+
+        assertThat(result.unresolvedFindingCount()).isEqualTo(findings.size());
+        assertThat(result.sourceRequestCount()).isEqualTo(2);
+        assertThat(result.items()).hasSize(findings.size());
+        assertThat(result.analysisComplete()).isTrue();
+        verify(nseClient, times(1)).fetch(firstDate);
+        verify(nseClient, times(1)).fetch(secondDate);
     }
 
     private BackfillQualityReport.QualityFinding finding(
