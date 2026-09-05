@@ -174,6 +174,61 @@ class UpstoxCandleBatchNormalizerTest {
     }
 
     @Test
+    void normalizesOnlyTheReviewedLalPathLabBonusAdjustedPairAndKeepsTheOfficialAlignedRow() {
+        UpstoxHistoricalRequest request = lalPathLabDailyRequest(LocalDate.of(2015, 12, 31));
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "405.00", "409.80", "392.50", "402.20", "2823182");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823182");
+
+        for (List<UpstoxCandle> providerOrder : List.of(
+                List.of(midnight, marketOpen), List.of(marketOpen, midnight))) {
+            UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, providerOrder);
+
+            assertThat(result.hasConflicts()).isFalse();
+            assertThat(result.collapsedDuplicates()).isEqualTo(1);
+            assertThat(result.normalizedTradingDates()).containsExactly(LocalDate.of(2015, 12, 31));
+            assertThat(result.candles()).singleElement().satisfies(normalized -> {
+                assertThat(normalized.providerOpenedAt()).isEqualTo(Instant.parse("2015-12-30T18:30:00Z"));
+                assertThat(normalized.candle().open()).isEqualByComparingTo("405.00");
+                assertThat(normalized.candle().high()).isEqualByComparingTo("409.80");
+                assertThat(normalized.candle().low()).isEqualByComparingTo("392.50");
+                assertThat(normalized.candle().close()).isEqualByComparingTo("402.20");
+                assertThat(normalized.candle().volume()).isEqualByComparingTo("2823182");
+            });
+            assertThat(result.normalizationDetails()).singleElement().asString()
+                    .contains("reason=REVIEWED_BONUS_ADJUSTED_OHLC_VARIANCE")
+                    .contains("retainedTimestamp=2015-12-30T18:30:00Z")
+                    .contains("retainedOhlcv=[405.00,409.80,392.50,402.20,2823182]")
+                    .contains("cm31DEC2015bhav.csv.zip")
+                    .contains("LALPATHLAB_22122025091806_IntimationAllotment.pdf")
+                    .contains("officialRawOhlcv=[810,819.7,785,804.45,1411591]")
+                    .contains("reviewedBonus=1:1");
+        }
+    }
+
+    @Test
+    void blocksTheReviewedLalPathLabValuesForAnotherInstrument() {
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "405.00", "409.80", "392.50", "402.20", "2823182");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823182");
+
+        assertThat(normalizer.normalize(dailyRequest(), List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksAnUnreviewedVariationOfTheLalPathLabPair() {
+        UpstoxHistoricalRequest request = lalPathLabDailyRequest(LocalDate.of(2015, 12, 31));
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "405.00", "409.75", "392.50", "402.20", "2823182");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "405.00", "409.60", "393.60", "402.20", "2823182");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
     void blocksTimestampTransitionWhenAbsoluteVolumeDifferenceExceedsOneHundred() {
         UpstoxHistoricalRequest request = dailyRequest();
         UpstoxCandle midnight = candle(
@@ -262,6 +317,11 @@ class UpstoxCandleBatchNormalizerTest {
     private UpstoxHistoricalRequest bemlDailyRequest(LocalDate tradingDate) {
         return new UpstoxHistoricalRequest(
                 "NSE_EQ|INE258A01024", "days", 1, tradingDate, tradingDate);
+    }
+
+    private UpstoxHistoricalRequest lalPathLabDailyRequest(LocalDate tradingDate) {
+        return new UpstoxHistoricalRequest(
+                "NSE_EQ|INE600L01024", "days", 1, tradingDate, tradingDate);
     }
 
     private UpstoxCandle candle(

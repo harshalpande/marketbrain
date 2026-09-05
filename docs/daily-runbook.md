@@ -2198,6 +2198,103 @@ Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/market-data/backfills/latest' |
 Share the complete Batch 3 run output and the final disabled-worker status. Do not start the Batch 3 quality
 audit or prepare Batch 4 until this checkpoint has been reviewed.
 
+### 36. Recover the reviewed LALPATHLAB Batch 3 chunk
+
+The Step 35 run completed 2319 of 2320 chunks and stopped at the governed quality gate. The only failed
+instrument is `LALPATHLAB` (`NSE_EQ|INE600L01024`), whose 23 December 2015 through 22 December 2016 chunk
+failed after three attempts with `INVALID_DATA`. The other 199 instruments remain complete. Six rejected
+provider rows belong to completed CGCL, DEEPAKNTR, and IDEA chunks; preserve them for the Batch 3 quality audit.
+
+The reviewed Upstox response for 31 December 2015 contains two rows with the same open, close, and volume but
+different high and low values. The official NSE Bhavcopy reports raw OHLCV
+`[810,819.7,785,804.45,1411591]`. NSE's later 1:1 bonus allotment explains Upstox's adjusted price divisor of
+two and volume multiplier of two. The midnight row `[405,409.8,392.5,402.2,2823182]` aligns with that evidence;
+the 09:15 row `[405,409.6,393.6,402.2,2823182]` does not. The correction is therefore restricted to the exact
+instrument, date, timestamps, and values. It retains the midnight provider row and records both official URLs
+in a `PROVIDER_DUPLICATE_NORMALIZED` information finding. It does not relax the general duplicate rules.
+
+Commit and push the reviewed correction from the development laptop. On the spare laptop, pull it, enable the
+worker locally, and rebuild the backend so the corrected normalizer is deployed:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+notepad .env
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\RecoverReviewedLalPathLabChunk.ps1' `
+    -JobId '66826ff9-1aa0-4f13-980b-8e6ed9693301' `
+    -ReviewedManifestHash 'd48347ab883557877a46a39487d3bab8f9f03833883a8873a933bd008f661b4b'
+```
+
+The recovery script requires the saved Batch 3 creation and failed-run reports, checks all reviewed counters,
+requires exactly one failed `LALPATHLAB` instrument, and calls the controlled endpoint that can reset only
+failed `INVALID_DATA` chunks. If the terminal or local HTTP response is interrupted after that request, rerun
+the exact script; it will monitor the already-running retry rather than resetting another chunk.
+
+The accepted result is `Status=COMPLETED`, `CompletedChunks=2320`, `FailedChunks=0`,
+`AcceptedRows=550050`, `RejectedRows=6`, `LalPathLabCompletedChunks=11`,
+`LalPathLabFailedChunks=0`, and `FailedInstrumentCount=0`. The six rejected rows are intentionally retained for
+the quality audit.
+
+After completion, restore the local worker setting to false and recreate only the backend:
+
+```properties
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_BACKFILL_MAXIMUM_EXPANSION_BATCH_SIZE=200
+```
+
+```powershell
+notepad .env
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+$jobId = '66826ff9-1aa0-4f13-980b-8e6ed9693301'
+
+Invoke-RestMethod "http://127.0.0.1:8080/api/v1/market-data/backfills/status?jobId=$jobId" |
+    Select-Object status, completedChunks, failedChunks, acceptedRows, rejectedRows, workerEnabled |
+    Format-List
+
+$sql = @"
+SELECT chunk.source_symbol, chunk.from_date, chunk.to_date, chunk.status,
+       chunk.attempts, chunk.accepted_rows, chunk.rejected_rows, chunk.last_error_code
+FROM historical_backfill_chunk chunk
+WHERE chunk.job_id = '$jobId'::uuid
+  AND chunk.source_symbol = 'LALPATHLAB'
+  AND chunk.from_date = DATE '2015-12-23';
+
+SELECT issue.issue_code, issue.severity, issue.affected_rows, issue.details,
+       issue.detected_at, issue.resolved_at
+FROM market_data_quality_issue issue
+JOIN historical_backfill_chunk chunk ON chunk.id = issue.chunk_id
+WHERE chunk.job_id = '$jobId'::uuid
+  AND chunk.source_symbol = 'LALPATHLAB'
+  AND issue.issue_code = 'PROVIDER_DUPLICATE_NORMALIZED';
+"@
+
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' `
+    -h 127.0.0.1 `
+    -p 5432 `
+    -U marketbrain_app `
+    -d marketbrain `
+    -c $sql
+```
+
+The chunk must show `COMPLETED`, one attempt for this reviewed retry, 246 accepted rows, zero rejected rows, and
+no error code. The audit record must show `PROVIDER_DUPLICATE_NORMALIZED`, `INFO`, one affected row, and the
+official Bhavcopy and bonus-allotment URLs. Share the full recovery summary, both SQL results, and the final
+disabled-worker status. Do not run the Batch 3 quality audit or prepare Batch 4 until this checkpoint is
+reviewed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

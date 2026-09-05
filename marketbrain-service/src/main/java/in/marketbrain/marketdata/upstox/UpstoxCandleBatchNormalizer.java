@@ -32,6 +32,19 @@ public class UpstoxCandleBatchNormalizer {
             "https://archives.nseindia.com/content/historical/EQUITIES/2015/DEC/cm31DEC2015bhav.csv.zip";
     private static final String REVIEWED_BEML_SPLIT_URL =
             "https://nsearchives.nseindia.com/corporate/BEML_29092025163552_RECORDDATESIGNED29092025.pdf";
+    private static final String REVIEWED_LALPATHLAB_INSTRUMENT_KEY = "NSE_EQ|INE600L01024";
+    private static final LocalDate REVIEWED_LALPATHLAB_TRADING_DATE = LocalDate.of(2015, 12, 31);
+    private static final BigDecimal REVIEWED_LALPATHLAB_OPEN = new BigDecimal("405.00");
+    private static final BigDecimal REVIEWED_LALPATHLAB_MIDNIGHT_HIGH = new BigDecimal("409.80");
+    private static final BigDecimal REVIEWED_LALPATHLAB_MIDNIGHT_LOW = new BigDecimal("392.50");
+    private static final BigDecimal REVIEWED_LALPATHLAB_MARKET_OPEN_HIGH = new BigDecimal("409.60");
+    private static final BigDecimal REVIEWED_LALPATHLAB_MARKET_OPEN_LOW = new BigDecimal("393.60");
+    private static final BigDecimal REVIEWED_LALPATHLAB_CLOSE = new BigDecimal("402.20");
+    private static final BigDecimal REVIEWED_LALPATHLAB_VOLUME = new BigDecimal("2823182");
+    private static final String REVIEWED_LALPATHLAB_BHAVCOPY_URL =
+            "https://archives.nseindia.com/content/historical/EQUITIES/2015/DEC/cm31DEC2015bhav.csv.zip";
+    private static final String REVIEWED_LALPATHLAB_BONUS_URL =
+            "https://nsearchives.nseindia.com/corporate/LALPATHLAB_22122025091806_IntimationAllotment.pdf";
 
     public Result normalize(UpstoxHistoricalRequest request, List<UpstoxCandle> validCandles) {
         if (!"days:1".equals(request.intervalCode())) {
@@ -124,7 +137,8 @@ public class UpstoxCandleBatchNormalizer {
                     && withinOnePaisa(minimumProviderClose, maximumProviderClose, next.close());
             if (sameNumber(current.volume(), next.volume())) {
                 return ohlcWithinOnePaisa
-                        || isReviewedBemlSplitAdjustmentRounding(request, tradingDate, candidate);
+                        || isReviewedBemlSplitAdjustmentRounding(request, tradingDate, candidate)
+                        || isReviewedLalPathLabBonusAdjustedVariance(request, tradingDate, candidate);
             }
             return exactOhlc(current, next)
                     && isMidnightMarketOpenTransition(normalizedCandle.providerOpenedAt(), candidate.providerOpenedAt())
@@ -141,6 +155,8 @@ public class UpstoxCandleBatchNormalizer {
             UpstoxCandle next = candidate.candle();
             boolean reviewedBemlRounding = isReviewedBemlSplitAdjustmentRounding(
                     request, tradingDate, candidate);
+            boolean reviewedLalPathLabVariance = isReviewedLalPathLabBonusAdjustedVariance(
+                    request, tradingDate, candidate);
             minimumProviderOpen = minimumProviderOpen.min(next.open());
             maximumProviderOpen = maximumProviderOpen.max(next.open());
             minimumProviderHigh = minimumProviderHigh.min(next.high());
@@ -149,7 +165,9 @@ public class UpstoxCandleBatchNormalizer {
             maximumProviderLow = maximumProviderLow.max(next.low());
             minimumProviderClose = minimumProviderClose.min(next.close());
             maximumProviderClose = maximumProviderClose.max(next.close());
-            NormalizedCandle preferred = normalizedCandle.providerOpenedAt().isAfter(candidate.providerOpenedAt())
+            NormalizedCandle preferred = reviewedLalPathLabVariance
+                    ? reviewedLalPathLabMidnight(normalizedCandle, candidate)
+                    : normalizedCandle.providerOpenedAt().isAfter(candidate.providerOpenedAt())
                     ? normalizedCandle : candidate;
             normalizedCandle = new NormalizedCandle(
                     new UpstoxCandle(
@@ -161,6 +179,8 @@ public class UpstoxCandleBatchNormalizer {
             NormalizedCandle discarded = preferred == previous ? candidate : previous;
             String reason = reviewedBemlRounding
                     ? "REVIEWED_SPLIT_ADJUSTMENT_CLOSE_ROUNDING"
+                    : reviewedLalPathLabVariance
+                    ? "REVIEWED_BONUS_ADJUSTED_OHLC_VARIANCE"
                     : sameNumber(previous.candle().volume(), candidate.candle().volume())
                     ? "SAME_VOLUME_OHLC_ROUNDING"
                     : "MIDNIGHT_MARKET_OPEN_VOLUME_VARIANCE";
@@ -175,7 +195,56 @@ public class UpstoxCandleBatchNormalizer {
                     + ", corporateActionUrl=" + REVIEWED_BEML_SPLIT_URL
                     + ", officialRawOhlcv=[1281.15,1290.95,1266.1,1281.1,196008]"
                     + ", reviewedAdjustment=1:2"
+                    : reviewedLalPathLabVariance
+                    ? ", officialBhavcopyUrl=" + REVIEWED_LALPATHLAB_BHAVCOPY_URL
+                    + ", corporateActionUrl=" + REVIEWED_LALPATHLAB_BONUS_URL
+                    + ", officialRawOhlcv=[810,819.7,785,804.45,1411591]"
+                    + ", officialAdjustedOhlcv=[405,409.85,392.5,402.225,2823182]"
+                    + ", reviewedBonus=1:1, priceDivisor=2, volumeMultiplier=2"
                     : "");
+        }
+
+        private boolean isReviewedLalPathLabBonusAdjustedVariance(
+                UpstoxHistoricalRequest request,
+                LocalDate tradingDate,
+                NormalizedCandle candidate
+        ) {
+            if (!REVIEWED_LALPATHLAB_INSTRUMENT_KEY.equals(request.instrumentKey())
+                    || !REVIEWED_LALPATHLAB_TRADING_DATE.equals(tradingDate)
+                    || !isMidnightMarketOpenTransition(normalizedCandle.providerOpenedAt(), candidate.providerOpenedAt())) {
+                return false;
+            }
+            return (isReviewedLalPathLabMidnight(normalizedCandle)
+                    && isReviewedLalPathLabMarketOpen(candidate))
+                    || (isReviewedLalPathLabMidnight(candidate)
+                    && isReviewedLalPathLabMarketOpen(normalizedCandle));
+        }
+
+        private boolean isReviewedLalPathLabMidnight(NormalizedCandle candidate) {
+            UpstoxCandle candle = candidate.candle();
+            return LocalTime.MIDNIGHT.equals(candidate.providerOpenedAt().atZone(INDIA).toLocalTime())
+                    && sameNumber(candle.open(), REVIEWED_LALPATHLAB_OPEN)
+                    && sameNumber(candle.high(), REVIEWED_LALPATHLAB_MIDNIGHT_HIGH)
+                    && sameNumber(candle.low(), REVIEWED_LALPATHLAB_MIDNIGHT_LOW)
+                    && sameNumber(candle.close(), REVIEWED_LALPATHLAB_CLOSE)
+                    && sameNumber(candle.volume(), REVIEWED_LALPATHLAB_VOLUME);
+        }
+
+        private boolean isReviewedLalPathLabMarketOpen(NormalizedCandle candidate) {
+            UpstoxCandle candle = candidate.candle();
+            return MARKET_OPEN.equals(candidate.providerOpenedAt().atZone(INDIA).toLocalTime())
+                    && sameNumber(candle.open(), REVIEWED_LALPATHLAB_OPEN)
+                    && sameNumber(candle.high(), REVIEWED_LALPATHLAB_MARKET_OPEN_HIGH)
+                    && sameNumber(candle.low(), REVIEWED_LALPATHLAB_MARKET_OPEN_LOW)
+                    && sameNumber(candle.close(), REVIEWED_LALPATHLAB_CLOSE)
+                    && sameNumber(candle.volume(), REVIEWED_LALPATHLAB_VOLUME);
+        }
+
+        private NormalizedCandle reviewedLalPathLabMidnight(
+                NormalizedCandle first,
+                NormalizedCandle second
+        ) {
+            return isReviewedLalPathLabMidnight(first) ? first : second;
         }
 
         private boolean isReviewedBemlSplitAdjustmentRounding(
