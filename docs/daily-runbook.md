@@ -2684,6 +2684,31 @@ The final result must report `status=COMPLETED`, `completedItems=6685`, `failedI
 resumes the durable plan rather than repeating completed items. Share the complete output before the final
 read-only provider quality audit.
 
+### 48. Run the final provider-backed quality gate for Batch 4
+
+Run this only after Step 47 completes all 6685 actions with corrected plan hash
+`bdf4965b15c3e35f4bdd7ee3bb1493c5bd62f517a881e632b0656c0efd9835ec`:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\VerifyReviewedBatch4Quality.ps1' `
+    -JobId '30d59236-017c-406c-bc31-ef4bb1d4ee47' `
+    -ReviewedManifestHash '9c11c15a4cf82a840cdbbd3e52cbc872b7916c405172ce5571ecab549568614c' `
+    -ExpectedPlanHash 'bdf4965b15c3e35f4bdd7ee3bb1493c5bd62f517a881e632b0656c0efd9835ec'
+```
+
+This final gate is read-only. It verifies the complete investigation-to-remediation artifact chain, the durable
+6685-item plan, all 190 live Upstox comparisons, the unchanged 520018 raw candles and 29 rejected rows, the
+1278 separate NSE candles, and unchanged job/remediation checkpoints. The accepted result is
+`FINAL BATCH 4 AUDIT PASSED`, `Status=ELIGIBLE`, `QualityStatus=PASS`, 190 provider checks with no mismatch or
+failure, `ResolvedFindingCount=6685`, `CurrentResolutionCount=6685`, `UnresolvedFindingCount=0`, and both
+model-training and backtesting eligibility set to `True`. Share the complete summary; the JSON reports,
+checkpoint report, and transcript are saved under `C:\MarketBrainData\Review`.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
