@@ -2604,6 +2604,36 @@ start analysis. Preserve all 29 rejected provider rows. After a successful audit
 and grouped finding inventory; the next stage will analyze every Batch 4 finding in one operation, followed
 by a separate all-at-once governed remediation.
 
+### 46. Analyze all 6685 Batch 4 findings in one immutable plan
+
+Run this only after Step 45 reports `REVIEW_REQUIRED` with 190 matched provider checks, zero structural
+failures, zero current resolutions, and an unchanged disabled-worker checkpoint. The reviewed inventory is
+1408 official-session omissions, 5106 peer-confirmed omissions, eight leading coverage gaps, 42 suspicious
+gaps, and 121 large moves.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\AnalyzeReviewedBatch4.ps1' `
+    -JobId '30d59236-017c-406c-bc31-ef4bb1d4ee47' `
+    -ReviewedManifestHash '9c11c15a4cf82a840cdbbd3e52cbc872b7916c405172ce5571ecab549568614c'
+```
+
+The operation can take time because each distinct required trading date is checked against an immutable NSE
+archive. It uses the backend's bounded-memory analysis path and allows up to two hours. The script produces
+exactly one proposed outcome per finding, computes a 64-character immutable plan hash, saves the full plan and
+transcript under `C:\MarketBrainData\Review`, and verifies that candles, resolutions, job counters, the 29
+rejected rows, and the disabled worker remain unchanged.
+
+The ideal result is `Status=COMPLETED`, `CandidateCount=6685`, `KeepOpenCount=0`, and
+`SourceFailureCount=0`. `REVIEW_REQUIRED` is safe but means at least one finding still needs a focused
+read-only investigation before remediation. In either case, share the complete summary, recommendation
+summary, plan hash, and any keep-open groups. Do not invoke remediation yet. Once the complete immutable plan
+is reviewed, the next step will apply all 6685 governed actions in one operation.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
