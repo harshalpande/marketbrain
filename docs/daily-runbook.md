@@ -2574,6 +2574,36 @@ After completion, set `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false` again and recr
 the complete recovery summary and the disabled-worker status. Preserve the 29 rejected rows for the final
 Batch 4 analysis; do not delete or manually edit them.
 
+### 45. Run the final read-only Batch 4 quality audit
+
+Run this only after Step 44 completes all 2190 chunks and the backend has been recreated with
+`MARKETBRAIN_BACKFILL_WORKER_ENABLED=false`. It binds the audit to the saved creation, SUZLON evidence, and
+SUZLON recovery artifacts; validates all 190 instruments and exact job counters; runs database-only and
+provider-backed quality reports; and verifies that no resolution or job checkpoint changed.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\AuditReviewedBatch4.ps1' `
+    -JobId '30d59236-017c-406c-bc31-ef4bb1d4ee47' `
+    -ReviewedManifestHash '9c11c15a4cf82a840cdbbd3e52cbc872b7916c405172ce5571ecab549568614c'
+```
+
+The accepted governed outcome is `Status=REVIEW_REQUIRED` or `Status=PASS`, 190 provider spot checks, zero
+provider mismatches and failures, zero duplicate or invalid stored rows, zero truncated findings, zero current
+resolutions, unchanged job counters, and a disabled worker. `REVIEW_REQUIRED` means the structural and
+provider verification passed and the complete finding inventory can proceed to one immutable analysis plan.
+It is not an audit failure.
+
+The script saves the database report, provider report, checkpoint report, and complete transcript under
+`C:\MarketBrainData\Review`. If it reports `FAILED`, share the transcript and checkpoint report and do not
+start analysis. Preserve all 29 rejected provider rows. After a successful audit, share the complete summary
+and grouped finding inventory; the next stage will analyze every Batch 4 finding in one operation, followed
+by a separate all-at-once governed remediation.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
