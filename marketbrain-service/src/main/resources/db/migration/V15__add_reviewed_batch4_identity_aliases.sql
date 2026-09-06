@@ -1,0 +1,42 @@
+INSERT INTO instrument_identity_alias
+    (exchange, current_symbol, alias_symbol, alias_isin, effective_from, effective_to,
+     evidence_source, identity_evidence_url, lineage_evidence_url, notes)
+VALUES
+    ('NSE', 'NAVA', 'NBVENTURES', 'INE725A01022', DATE '2014-05-21', DATE '2014-05-21',
+     'NSE official BhavCopy and name-symbol change circular',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2014/MAY/cm21MAY2014bhav.csv.zip',
+     'https://archives.nseindia.com/content/circulars/CML53058.pdf',
+     'Batch 4 verified NBVENTURES/INE725A01022 on the open NAVA large-move date. The alias is limited to that reviewed date.'),
+    ('NSE', 'NAVA', 'NBVENTURES', 'INE725A01022', DATE '2020-06-18', DATE '2020-06-18',
+     'NSE official BhavCopy and name-symbol change circular',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2020/JUN/cm18JUN2020bhav.csv.zip',
+     'https://archives.nseindia.com/content/circulars/CML53058.pdf',
+     'Batch 4 verified NBVENTURES/INE725A01022 on the second open NAVA large-move date. The alias is limited to that reviewed date.'),
+    ('NSE', 'SHRIRAMFIN', 'SRTRANSFIN', 'INE721A01013', DATE '2020-03-23', DATE '2020-03-23',
+     'NSE official BhavCopy and name-symbol change circular',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2020/MAR/cm23MAR2020bhav.csv.zip',
+     'https://archives.nseindia.com/corporate/SRTRANSFIN_15122022090742_CML54812.pdf',
+     'Batch 4 verified SRTRANSFIN/INE721A01013 on the open SHRIRAMFIN large-move date. The alias is limited to that reviewed date.'),
+    ('NSE', 'UNITDSPR', 'MCDOWELL-N', 'INE854D01016', DATE '2012-11-12', DATE '2012-11-12',
+     'NSE official BhavCopy and symbol-change circular',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2012/NOV/cm12NOV2012bhav.csv.zip',
+     'https://nsearchives.nseindia.com/content/circulars/CML62353.pdf',
+     'Batch 4 verified MCDOWELL-N/INE854D01016 on the open UNITDSPR large-move date. The alias is limited to that reviewed date.'),
+    ('NSE', 'UNOMINDA', 'MINDAIND', 'INE405E01015', DATE '2013-11-28', DATE '2013-11-28',
+     'NSE official BhavCopy and issuer exchange-filed name-symbol notice',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2013/NOV/cm28NOV2013bhav.csv.zip',
+     'https://www.unominda.com/uploads/Investor/2022/name-change-intimation-to-the-shareholders.pdf',
+     'Batch 4 verified MINDAIND/INE405E01015 on the first open UNOMINDA large-move date. The alias is limited to that reviewed date.'),
+    ('NSE', 'UNOMINDA', 'MINDAIND', 'INE405E01015', DATE '2014-06-30', DATE '2014-06-30',
+     'NSE official BhavCopy and issuer exchange-filed name-symbol notice',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2014/JUN/cm30JUN2014bhav.csv.zip',
+     'https://www.unominda.com/uploads/Investor/2022/name-change-intimation-to-the-shareholders.pdf',
+     'Batch 4 verified MINDAIND/INE405E01015 on the second open UNOMINDA large-move date. The alias is limited to that reviewed date.'),
+    ('NSE', 'UNOMINDA', 'MINDAIND', 'INE405E01015', DATE '2014-09-15', DATE '2014-09-15',
+     'NSE official BhavCopy and issuer exchange-filed name-symbol notice',
+     'https://archives.nseindia.com/content/historical/EQUITIES/2014/SEP/cm15SEP2014bhav.csv.zip',
+     'https://www.unominda.com/uploads/Investor/2022/name-change-intimation-to-the-shareholders.pdf',
+     'Batch 4 verified MINDAIND/INE405E01015 on the third open UNOMINDA large-move date. The alias is limited to that reviewed date.');
+
+COMMENT ON TABLE instrument_identity_alias IS
+    'Effective-dated, evidence-backed exchange identities used only to match historical official records; entries do not rewrite instrument or candle data. Batch 3 and Batch 4 aliases are deliberately bounded by reviewed daily evidence.';

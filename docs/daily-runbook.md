@@ -2634,6 +2634,56 @@ read-only investigation before remediation. In either case, share the complete s
 summary, plan hash, and any keep-open groups. Do not invoke remediation yet. Once the complete immutable plan
 is reviewed, the next step will apply all 6685 governed actions in one operation.
 
+### 47. Resolve the seven historical identities and apply all 6685 Batch 4 actions
+
+The reviewed Step 46 plan `7ed43e44f0cc92404411c36f0d50364e3975d7715fb9685db0d425b9bd50cc6a`
+contained 6678 governed candidates and seven open large moves. Official NSE daily archives identify all seven
+as historical symbols: `NBVENTURES` for `NAVA`, `SRTRANSFIN` for `SHRIRAMFIN`, `MCDOWELL-N` for
+`UNITDSPR`, and `MINDAIND` for `UNOMINDA`. Migration V15 adds those four identity mappings as seven
+exact-date alias records, one per unresolved move; it does not rewrite an instrument or candle or affect
+unrelated dates.
+
+After committing and pushing the reviewed files from the development laptop, run this on the spare machine:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod `
+            'http://127.0.0.1:8080/actuator/health' `
+            -TimeoutSec 15
+    } catch {
+        $health = $null
+    }
+} until ($null -ne $health -and $health.status -eq 'UP')
+
+& '.\ops\windows\ApplyReviewedBatch4Corrections.ps1' `
+    -ReviewedBy 'Harshal Pande' `
+    -JobId '30d59236-017c-406c-bc31-ef4bb1d4ee47' `
+    -ReviewedManifestHash '9c11c15a4cf82a840cdbbd3e52cbc872b7916c405172ce5571ecab549568614c' `
+    -ReviewedPlanHash '7ed43e44f0cc92404411c36f0d50364e3975d7715fb9685db0d425b9bd50cc6a'
+```
+
+This is one governed remediation operation. Before requesting any writes, the script re-downloads and verifies
+the exact seven official archive rows, proves the live job is still the reviewed disabled-worker checkpoint,
+and regenerates the complete plan using the deployed aliases. It proceeds only when all 6685 findings have an
+action, `KeepOpenCount=0`, `SourceFailureCount=0`, the 1278 secondary candles and 5287 feature exclusions are
+unchanged, and all seven historical matches are present. The plan hash, investigation, checkpoint report,
+remediation response, and full transcript are saved under `C:\MarketBrainData\Review`.
+
+The final result must report `status=COMPLETED`, `completedItems=6685`, `failedItems=0`,
+`secondaryCandlesReady=1278`, `upstoxDailyCandleCount=520018`, `allSourceDailyCandleCount=521296`,
+`currentResolutionCount=6685`, `unresolvedFindingCount=0`, `workerEnabled=False`, and
+`finalProviderSpotCheckRequired=True`. If the response is interrupted, rerun the exact command: it checks and
+resumes the durable plan rather than repeating completed items. Share the complete output before the final
+read-only provider quality audit.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
