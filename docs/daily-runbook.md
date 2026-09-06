@@ -2495,6 +2495,33 @@ manifest hash. If listing evidence is incomplete, run the governed listing-bound
 `-BatchSize 200`, then review the regenerated Batch 4 preview. Do not create or start Batch 4 from an
 unreviewed manifest.
 
+### 42. Investigate the single SUZLON Batch 4 failure
+
+The reviewed Batch 4 run completed 2189 of 2190 chunks. Its only failed chunk is SUZLON for
+2015-09-02 through 2016-09-01 with `INVALID_DATA`. The 29 rejected rows belong to two completed chunks
+(eight MAZDOCK rows and 21 MINDACORP rows); preserve them for the later Batch 4 quality analysis. They did
+not cause the terminal partial failure.
+
+Keep the worker disabled. Run this read-only evidence capture before retrying the failed chunk:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\InvestigateReviewedSuzlonChunk.ps1' `
+    -JobId '30d59236-017c-406c-bc31-ef4bb1d4ee47' `
+    -ReviewedManifestHash '9c11c15a4cf82a840cdbbd3e52cbc872b7916c405172ce5571ecab549568614c'
+```
+
+The accepted result is `Status=EVIDENCE_CAPTURED`, exactly one duplicate trading date, two provider rows for
+2015-12-31, one official NSE row with ISIN `INE040H01021`, `DatabaseWritesPerformed=False`, and a disabled
+worker. The script reads the Analytics Token from the ignored local `.env` without printing it and saves both
+a JSON artifact and a transcript under `C:\MarketBrainData\Review`. Share the summary and the two evidence
+tables. Do not enable the worker or invoke `retry-invalid-data` until the exact provider pair is reviewed and
+a narrowly guarded normalization is deployed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
