@@ -231,6 +231,62 @@ class UpstoxCandleBatchNormalizerTest {
     }
 
     @Test
+    void normalizesOnlyTheReviewedSuzlonPairAndPreservesTheOfficialMismatchEvidence() {
+        UpstoxHistoricalRequest request = suzlonDailyRequest(LocalDate.of(2015, 12, 31));
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "19.00", "19.30", "18.70", "19.15", "22529886");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "19.00", "19.30", "18.75", "19.15", "22529886");
+
+        for (List<UpstoxCandle> providerOrder : List.of(
+                List.of(midnight, marketOpen), List.of(marketOpen, midnight))) {
+            UpstoxCandleBatchNormalizer.Result result = normalizer.normalize(request, providerOrder);
+
+            assertThat(result.hasConflicts()).isFalse();
+            assertThat(result.collapsedDuplicates()).isEqualTo(1);
+            assertThat(result.normalizedTradingDates()).containsExactly(LocalDate.of(2015, 12, 31));
+            assertThat(result.candles()).singleElement().satisfies(normalized -> {
+                assertThat(normalized.providerOpenedAt()).isEqualTo(Instant.parse("2015-12-31T03:45:00Z"));
+                assertThat(normalized.candle().open()).isEqualByComparingTo("19.00");
+                assertThat(normalized.candle().high()).isEqualByComparingTo("19.30");
+                assertThat(normalized.candle().low()).isEqualByComparingTo("18.70");
+                assertThat(normalized.candle().close()).isEqualByComparingTo("19.15");
+                assertThat(normalized.candle().volume()).isEqualByComparingTo("22529886");
+            });
+            assertThat(result.normalizationDetails()).singleElement().asString()
+                    .contains("reason=REVIEWED_OFFICIAL_MISMATCH_LOW_VARIANCE")
+                    .contains("retainedTimestamp=2015-12-31T03:45:00Z")
+                    .contains("retainedOhlcv=[19.00,19.30,18.75,19.15,22529886]")
+                    .contains("discardedOhlcv=[19.00,19.30,18.70,19.15,22529886]")
+                    .contains("cm31DEC2015bhav.csv.zip")
+                    .contains("officialRawOhlcv=[20.7,21,20.4,20.85,20687256]")
+                    .contains("normalizedProviderOhlcv=[19.00,19.30,18.70,19.15,22529886]")
+                    .contains("officialCloseDifference=1.70");
+        }
+    }
+
+    @Test
+    void blocksTheReviewedSuzlonValuesForAnUnreviewedInstrument() {
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "19.00", "19.30", "18.70", "19.15", "22529886");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "19.00", "19.30", "18.75", "19.15", "22529886");
+
+        assertThat(normalizer.normalize(dailyRequest(), List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
+    void blocksAnUnreviewedVariationOfTheSuzlonPair() {
+        UpstoxHistoricalRequest request = suzlonDailyRequest(LocalDate.of(2015, 12, 31));
+        UpstoxCandle midnight = candle(
+                "2015-12-30T18:30:00Z", "19.00", "19.30", "18.65", "19.15", "22529886");
+        UpstoxCandle marketOpen = candle(
+                "2015-12-31T03:45:00Z", "19.00", "19.30", "18.75", "19.15", "22529886");
+
+        assertThat(normalizer.normalize(request, List.of(midnight, marketOpen)).hasConflicts()).isTrue();
+    }
+
+    @Test
     void blocksTimestampTransitionWhenAbsoluteVolumeDifferenceExceedsOneHundred() {
         UpstoxHistoricalRequest request = dailyRequest();
         UpstoxCandle midnight = candle(
@@ -324,6 +380,11 @@ class UpstoxCandleBatchNormalizerTest {
     private UpstoxHistoricalRequest lalPathLabDailyRequest(LocalDate tradingDate) {
         return new UpstoxHistoricalRequest(
                 "NSE_EQ|INE600L01024", "days", 1, tradingDate, tradingDate);
+    }
+
+    private UpstoxHistoricalRequest suzlonDailyRequest(LocalDate tradingDate) {
+        return new UpstoxHistoricalRequest(
+                "NSE_EQ|INE040H01021", "days", 1, tradingDate, tradingDate);
     }
 
     private UpstoxCandle candle(

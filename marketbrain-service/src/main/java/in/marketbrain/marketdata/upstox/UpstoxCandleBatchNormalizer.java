@@ -46,6 +46,16 @@ public class UpstoxCandleBatchNormalizer {
             "https://archives.nseindia.com/content/historical/EQUITIES/2015/DEC/cm31DEC2015bhav.csv.zip";
     private static final String REVIEWED_LALPATHLAB_BONUS_URL =
             "https://nsearchives.nseindia.com/corporate/LALPATHLAB_22122025091806_IntimationAllotment.pdf";
+    private static final String REVIEWED_SUZLON_INSTRUMENT_KEY = "NSE_EQ|INE040H01021";
+    private static final LocalDate REVIEWED_SUZLON_TRADING_DATE = LocalDate.of(2015, 12, 31);
+    private static final BigDecimal REVIEWED_SUZLON_OPEN = new BigDecimal("19.00");
+    private static final BigDecimal REVIEWED_SUZLON_HIGH = new BigDecimal("19.30");
+    private static final BigDecimal REVIEWED_SUZLON_MIDNIGHT_LOW = new BigDecimal("18.70");
+    private static final BigDecimal REVIEWED_SUZLON_MARKET_OPEN_LOW = new BigDecimal("18.75");
+    private static final BigDecimal REVIEWED_SUZLON_CLOSE = new BigDecimal("19.15");
+    private static final BigDecimal REVIEWED_SUZLON_VOLUME = new BigDecimal("22529886");
+    private static final String REVIEWED_SUZLON_BHAVCOPY_URL =
+            "https://archives.nseindia.com/content/historical/EQUITIES/2015/DEC/cm31DEC2015bhav.csv.zip";
 
     public Result normalize(UpstoxHistoricalRequest request, List<UpstoxCandle> validCandles) {
         if (!"days:1".equals(request.intervalCode())) {
@@ -139,6 +149,9 @@ public class UpstoxCandleBatchNormalizer {
             if (isReviewedLalPathLabBonusAdjustedVariance(request, tradingDate, candidate)) {
                 return true;
             }
+            if (isReviewedSuzlonOfficialMismatchLowVariance(request, tradingDate, candidate)) {
+                return true;
+            }
             if (sameNumber(current.volume(), next.volume())) {
                 return ohlcWithinOnePaisa
                         || isReviewedBemlSplitAdjustmentRounding(request, tradingDate, candidate);
@@ -159,6 +172,8 @@ public class UpstoxCandleBatchNormalizer {
             boolean reviewedBemlRounding = isReviewedBemlSplitAdjustmentRounding(
                     request, tradingDate, candidate);
             boolean reviewedLalPathLabVariance = isReviewedLalPathLabBonusAdjustedVariance(
+                    request, tradingDate, candidate);
+            boolean reviewedSuzlonVariance = isReviewedSuzlonOfficialMismatchLowVariance(
                     request, tradingDate, candidate);
             minimumProviderOpen = minimumProviderOpen.min(next.open());
             maximumProviderOpen = maximumProviderOpen.max(next.open());
@@ -184,6 +199,8 @@ public class UpstoxCandleBatchNormalizer {
                     ? "REVIEWED_SPLIT_ADJUSTMENT_CLOSE_ROUNDING"
                     : reviewedLalPathLabVariance
                     ? "REVIEWED_BONUS_ADJUSTED_OHLC_VARIANCE"
+                    : reviewedSuzlonVariance
+                    ? "REVIEWED_OFFICIAL_MISMATCH_LOW_VARIANCE"
                     : sameNumber(previous.candle().volume(), candidate.candle().volume())
                     ? "SAME_VOLUME_OHLC_ROUNDING"
                     : "MIDNIGHT_MARKET_OPEN_VOLUME_VARIANCE";
@@ -205,7 +222,51 @@ public class UpstoxCandleBatchNormalizer {
                     + ", officialAdjustedOhlcv=[405,409.85,392.5,402.225,2823182]"
                     + ", reviewedBonus=1:1, priceDivisor=2, volumeMultiplier=2"
                     + ", providerVolumeDifference=20"
+                    : reviewedSuzlonVariance
+                    ? ", officialBhavcopyUrl=" + REVIEWED_SUZLON_BHAVCOPY_URL
+                    + ", officialRawOhlcv=[20.7,21,20.4,20.85,20687256]"
+                    + ", normalizedProviderOhlcv=[19.00,19.30,18.70,19.15,22529886]"
+                    + ", officialCloseDifference=1.70"
+                    + ", reviewedDecision=retain-provider-market-open-and-widest-range"
                     : "");
+        }
+
+        private boolean isReviewedSuzlonOfficialMismatchLowVariance(
+                UpstoxHistoricalRequest request,
+                LocalDate tradingDate,
+                NormalizedCandle candidate
+        ) {
+            if (!REVIEWED_SUZLON_INSTRUMENT_KEY.equals(request.instrumentKey())
+                    || !REVIEWED_SUZLON_TRADING_DATE.equals(tradingDate)
+                    || !isMidnightMarketOpenTransition(normalizedCandle.providerOpenedAt(), candidate.providerOpenedAt())) {
+                return false;
+            }
+            return (isReviewedSuzlonMidnight(normalizedCandle)
+                    && isReviewedSuzlonMarketOpen(candidate))
+                    || (isReviewedSuzlonMidnight(candidate)
+                    && isReviewedSuzlonMarketOpen(normalizedCandle));
+        }
+
+        private boolean isReviewedSuzlonMidnight(NormalizedCandle candidate) {
+            return isReviewedSuzlon(candidate, LocalTime.MIDNIGHT, REVIEWED_SUZLON_MIDNIGHT_LOW);
+        }
+
+        private boolean isReviewedSuzlonMarketOpen(NormalizedCandle candidate) {
+            return isReviewedSuzlon(candidate, MARKET_OPEN, REVIEWED_SUZLON_MARKET_OPEN_LOW);
+        }
+
+        private boolean isReviewedSuzlon(
+                NormalizedCandle candidate,
+                LocalTime expectedTime,
+                BigDecimal expectedLow
+        ) {
+            UpstoxCandle candle = candidate.candle();
+            return expectedTime.equals(candidate.providerOpenedAt().atZone(INDIA).toLocalTime())
+                    && sameNumber(candle.open(), REVIEWED_SUZLON_OPEN)
+                    && sameNumber(candle.high(), REVIEWED_SUZLON_HIGH)
+                    && sameNumber(candle.low(), expectedLow)
+                    && sameNumber(candle.close(), REVIEWED_SUZLON_CLOSE)
+                    && sameNumber(candle.volume(), REVIEWED_SUZLON_VOLUME);
         }
 
         private boolean isReviewedLalPathLabBonusAdjustedVariance(

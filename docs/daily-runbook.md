@@ -2522,6 +2522,58 @@ a JSON artifact and a transcript under `C:\MarketBrainData\Review`. Share the su
 tables. Do not enable the worker or invoke `retry-invalid-data` until the exact provider pair is reviewed and
 a narrowly guarded normalization is deployed.
 
+### 43. Deploy and verify the reviewed SUZLON normalization
+
+The reviewed evidence contains exactly two Upstox rows for 2015-12-31. Both have open 19.00, high 19.30,
+close 19.15, and volume 22529886; their lows are 18.70 at midnight and 18.75 at market open. The official NSE
+row is open 20.70, high 21.00, low 20.40, close 20.85, and volume 20687256. This is therefore a provider
+revision conflict with an official-price mismatch, not a connectivity failure or an exchange corporate-action
+adjustment.
+
+The correction is restricted to the exact instrument key, trading date, timestamps, and ten reviewed OHLCV
+values. It retains the market-open provider row, preserves the wider provider range, and records the official
+mismatch as `REVIEWED_OFFICIAL_MISMATCH_LOW_VARIANCE`; it does not replace an Upstox candle with NSE data.
+
+Commit and push the reviewed change from the development laptop. On the spare laptop, pull it and rebuild the
+backend while the worker remains disabled:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env build --no-cache marketbrain-service
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\VerifyReviewedSuzlonRuntime.ps1'
+```
+
+The accepted result is `Status=VERIFIED`, `RuntimeCorrectionPresent=True`, all three reviewed markers true,
+and `WorkerEnabled=False`. A stale runtime is not safe to retry.
+
+### 44. Recover exactly one reviewed SUZLON chunk
+
+Only after Step 43 passes, set `MARKETBRAIN_BACKFILL_WORKER_ENABLED=true` in the spare laptop's ignored
+`.env`, recreate only the backend, and run the governed recovery:
+
+```powershell
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\RecoverReviewedSuzlonChunk.ps1' `
+    -JobId '30d59236-017c-406c-bc31-ef4bb1d4ee47' `
+    -ReviewedManifestHash '9c11c15a4cf82a840cdbbd3e52cbc872b7916c405172ce5571ecab549568614c'
+```
+
+The accepted result is `Status=COMPLETED`, 2190 completed chunks, zero failed chunks, 520018 accepted rows,
+29 rejected rows, 15 completed SUZLON chunks, and zero failed instruments. The script binds the retry to the
+saved creation, failed-run, and evidence artifacts and invokes the controlled endpoint only when every exact
+checkpoint matches. It saves the recovery report under `C:\MarketBrainData\Review`.
+
+After completion, set `MARKETBRAIN_BACKFILL_WORKER_ENABLED=false` again and recreate only the backend. Share
+the complete recovery summary and the disabled-worker status. Preserve the 29 rejected rows for the final
+Batch 4 analysis; do not delete or manually edit them.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
