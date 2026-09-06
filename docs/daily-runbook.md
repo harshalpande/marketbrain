@@ -2709,6 +2709,32 @@ failure, `ResolvedFindingCount=6685`, `CurrentResolutionCount=6685`, `Unresolved
 model-training and backtesting eligibility set to `True`. Share the complete summary; the JSON reports,
 checkpoint report, and transcript are saved under `C:\MarketBrainData\Review`.
 
+### 49. Back up the reviewed NIFTY 500 dataset on Windows
+
+Run this only after Step 48 reports `FINAL BATCH 4 AUDIT PASSED` and `Status=ELIGIBLE`. The script refuses to
+continue unless the saved final audit and live completed Batch 4 checkpoint match exactly and the worker is
+disabled. It requests the PostgreSQL password locally without printing or storing it.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+
+& '.\ops\windows\BackupReviewedNifty500Dataset.ps1'
+```
+
+No Docker rebuild is required. By default the backup is written under `C:\MarketBrainData\Backups` as four
+timestamped files: a compressed PostgreSQL custom-format dump, a ZIP containing the complete Review directory,
+a JSON manifest containing sizes and SHA-256 hashes, and a transcript. The script requires at least 2048 MB of
+free space, validates the dump with `pg_restore --list`, opens and counts the ZIP entries, and verifies that the
+live Batch 4 checkpoint did not change during the backup.
+
+The accepted result is `Status=VERIFIED`, `DatabaseWritesPerformed=False`, and
+`MARKETBRAIN BACKUP COMPLETE`. Keep the four files together and share the complete summary. This proves the
+archives are structurally readable; a future restore drill into a separate database is still required before
+claiming that disaster recovery has been tested end to end.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
