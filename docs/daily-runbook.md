@@ -2780,6 +2780,46 @@ target date, instruments can be either `FETCH_REQUIRED` or `UP_TO_DATE`. The com
 `C:\MarketBrainData\Review`. Share the complete output before creating or starting the first incremental run.
 Do not enable either scheduler or worker at this checkpoint.
 
+### 51. Create and run the reviewed first daily enrichment
+
+Run this only after Step 50 returns the reviewed manifest
+`ff32112e159ab65e6f866888fcae02e8b20c2b4d3706d6d66cdf3868dd8e7a1e` with all 500 instruments marked
+`FETCH_REQUIRED` and no blockers. Keep the automatic scheduler disabled. Change only the worker flag in the
+spare laptop's ignored `.env` and recreate the backend:
+
+```dotenv
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+MARKETBRAIN_DAILY_ENRICHMENT_SCHEDULER_ENABLED=false
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($null -ne $health -and $health.status -eq 'UP')
+
+& '.\ops\windows\RunReviewedDailyEnrichment.ps1' `
+    -TargetDate '2026-09-04' `
+    -ReviewedManifestHash 'ff32112e159ab65e6f866888fcae02e8b20c2b4d3706d6d66cdf3868dd8e7a1e'
+```
+
+The script is restart-safe: it reuses an existing run with the same target and manifest and continues monitoring
+its persisted checkpoints. The accepted result is `Status=COMPLETED`, `Instruments=500`, `TotalChunks=500`,
+`CompletedChunks=500`, `FailedChunks=0`, `WorkerEnabled=True`, and `SchedulerEnabled=False`. Accepted and
+rejected row counts are evidence, not hard-coded assumptions. The transcript and complete JSON result are saved
+under `C:\MarketBrainData\Review`. Share the complete output before disabling the worker and running the first
+incremental quality audit.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

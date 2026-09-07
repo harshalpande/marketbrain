@@ -52,11 +52,22 @@ public class DailyEnrichmentService {
     }
 
     public DailyEnrichmentPreview preview(LocalDate targetDate) {
-        return buildPlan(requirePermittedTarget(targetDate)).preview();
+        return withRuntimeConfiguration(buildPlan(requirePermittedTarget(targetDate)).preview());
     }
 
     public DailyEnrichmentRunSummary create(LocalDate targetDate, String expectedManifestHash) {
-        DailyEnrichmentPlanner.Plan plan = buildPlan(requirePermittedTarget(targetDate));
+        LocalDate permittedTarget = requirePermittedTarget(targetDate);
+        requireManifestHashFormat(expectedManifestHash);
+        UUID snapshotId = latestSnapshotId();
+        List<UUID> existing = existingRun(snapshotId, permittedTarget);
+        if (!existing.isEmpty()) {
+            DailyEnrichmentRunSummary current = summary(existing.getFirst(),
+                    "Existing daily enrichment run for this snapshot and target date.");
+            requireManifestHash(expectedManifestHash, current.manifestHash());
+            return current;
+        }
+
+        DailyEnrichmentPlanner.Plan plan = buildPlan(snapshotId, permittedTarget);
         DailyEnrichmentPreview preview = plan.preview();
         requireManifestHash(expectedManifestHash, preview.manifestHash());
         if (preview.blockedInstruments() > 0) {
@@ -64,18 +75,6 @@ public class DailyEnrichmentService {
         }
         if (plan.fetchItems().isEmpty()) {
             throw new IllegalStateException("All instruments are already current for the requested target date");
-        }
-
-        List<UUID> existing = jdbcTemplate.query("""
-                SELECT id FROM historical_backfill_job
-                WHERE universe_snapshot_id = ? AND requested_to = ? AND job_type = 'DAILY'
-                """, (rs, row) -> rs.getObject(1, UUID.class),
-                plan.snapshotId(), Date.valueOf(preview.targetDate()));
-        if (!existing.isEmpty()) {
-            DailyEnrichmentRunSummary current = summary(existing.getFirst(),
-                    "Existing daily enrichment run for this snapshot and target date.");
-            requireManifestHash(expectedManifestHash, current.manifestHash());
-            return current;
         }
 
         ensureNoActiveCollectionJob();
@@ -141,7 +140,10 @@ public class DailyEnrichmentService {
     }
 
     private DailyEnrichmentPlanner.Plan buildPlan(LocalDate targetDate) {
-        UUID snapshotId = latestSnapshotId();
+        return buildPlan(latestSnapshotId(), targetDate);
+    }
+
+    private DailyEnrichmentPlanner.Plan buildPlan(UUID snapshotId, LocalDate targetDate) {
         List<DailyEnrichmentPlanner.Candidate> candidates = jdbcTemplate.query("""
                 SELECT member.instrument_id, member.provider_instrument_key, member.source_symbol,
                        MAX((candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date)
@@ -162,6 +164,23 @@ public class DailyEnrichmentService {
             throw new IllegalStateException("Latest NIFTY 500 snapshot contains no matched instruments");
         }
         return planner.plan(snapshotId, targetDate, properties.maximumCatchupDays(), candidates);
+    }
+
+    private DailyEnrichmentPreview withRuntimeConfiguration(DailyEnrichmentPreview preview) {
+        return new DailyEnrichmentPreview(
+                preview.universeSnapshotId(), preview.targetDate(), preview.instrumentCount(),
+                preview.upToDateInstruments(), preview.fetchInstruments(), preview.blockedInstruments(),
+                preview.earliestFromDate(), preview.totalRequestedCalendarDays(),
+                preview.maximumCatchupDays(), preview.manifestHash(), preview.databaseWritesPerformed(),
+                backfillProperties.workerEnabled(), properties.schedulerEnabled(), preview.instruments(),
+                preview.detail());
+    }
+
+    private List<UUID> existingRun(UUID snapshotId, LocalDate targetDate) {
+        return jdbcTemplate.query("""
+                SELECT id FROM historical_backfill_job
+                WHERE universe_snapshot_id = ? AND requested_to = ? AND job_type = 'DAILY'
+                """, (rs, row) -> rs.getObject(1, UUID.class), snapshotId, Date.valueOf(targetDate));
     }
 
     private LocalDate requirePermittedTarget(LocalDate targetDate) {
@@ -198,11 +217,15 @@ public class DailyEnrichmentService {
     }
 
     private void requireManifestHash(String supplied, String expected) {
-        if (supplied == null || !supplied.matches("[0-9a-f]{64}")) {
-            throw new IllegalArgumentException("A lowercase 64-character reviewed manifest hash is required");
-        }
+        requireManifestHashFormat(supplied);
         if (!supplied.equals(expected)) {
             throw new IllegalStateException("Live daily enrichment plan differs from the reviewed manifest hash");
+        }
+    }
+
+    private void requireManifestHashFormat(String supplied) {
+        if (supplied == null || !supplied.matches("[0-9a-f]{64}")) {
+            throw new IllegalArgumentException("A lowercase 64-character reviewed manifest hash is required");
         }
     }
 

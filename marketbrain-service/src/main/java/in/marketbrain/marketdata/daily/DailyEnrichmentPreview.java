@@ -16,6 +16,8 @@ public record DailyEnrichmentPreview(
         int maximumCatchupDays,
         String manifestHash,
         boolean databaseWritesPerformed,
+        boolean workerEnabled,
+        boolean schedulerEnabled,
         List<Instrument> instruments,
         String detail
 ) {

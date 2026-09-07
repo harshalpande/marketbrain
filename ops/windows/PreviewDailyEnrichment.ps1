@@ -17,7 +17,6 @@ $health = Invoke-RestMethod "$BaseUrl/actuator/health"
 if ($health.status -ne 'UP') {
     throw "MarketBrain health is $($health.status); daily enrichment preview was not requested."
 }
-$latestBackfill = Invoke-RestMethod "$BaseUrl/api/v1/market-data/backfills/latest"
 
 $uri = "$BaseUrl/api/v1/market-data/daily-enrichment/preview"
 if ($PSBoundParameters.ContainsKey('TargetDate')) {
@@ -57,7 +56,8 @@ $preview | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $artifactPath -Enc
     MaximumCatchupDays         = $preview.maximumCatchupDays
     ManifestHash               = $preview.manifestHash
     DatabaseWritesPerformed    = $preview.databaseWritesPerformed
-    WorkerEnabled              = $latestBackfill.workerEnabled
+    WorkerEnabled              = $preview.workerEnabled
+    SchedulerEnabled           = $preview.schedulerEnabled
     FullPreviewPath            = $artifactPath
 } | Format-List
 
@@ -74,8 +74,11 @@ if ($preview.blockedInstruments -gt 0) {
         Format-Table symbol, lastStoredDate, requestedFrom, requestedTo, requestedCalendarDays, status -AutoSize
     throw 'DAILY ENRICHMENT PREVIEW BLOCKED: share this complete output; do not create or start a run.'
 }
-if ($latestBackfill.workerEnabled -ne $false) {
+if ($preview.workerEnabled -ne $false) {
     throw 'DAILY ENRICHMENT PREVIEW BLOCKED: disable the collection worker before reviewed planning.'
+}
+if ($preview.schedulerEnabled -ne $false) {
+    throw 'DAILY ENRICHMENT PREVIEW BLOCKED: disable the automatic scheduler before reviewed planning.'
 }
 
 Write-Host ''
