@@ -1,5 +1,6 @@
 package in.marketbrain;
 
+import in.marketbrain.configuration.DailyEnrichmentProperties;
 import in.marketbrain.configuration.MarketBrainProperties;
 import in.marketbrain.configuration.HistoricalBackfillProperties;
 import org.springframework.boot.SpringApplication;
@@ -8,7 +9,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableConfigurationProperties({MarketBrainProperties.class, HistoricalBackfillProperties.class})
+@EnableConfigurationProperties({
+        MarketBrainProperties.class,
+        HistoricalBackfillProperties.class,
+        DailyEnrichmentProperties.class
+})
 @EnableScheduling
 public class MarketBrainApplication {
 

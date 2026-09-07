@@ -2735,6 +2735,51 @@ The accepted result is `Status=VERIFIED`, `DatabaseWritesPerformed=False`, and
 archives are structurally readable; a future restore drill into a separate database is still required before
 claiming that disaster recovery has been tested end to end.
 
+### 50. Preview the first incremental daily-enrichment run
+
+Run this on the spare Windows laptop only after Step 49 reports `MARKETBRAIN BACKUP COMPLETE`. This first
+checkpoint is deliberately read-only. Migration V16 adds the governed `DAILY` job type, but the scheduler and
+persisted collection worker must both remain disabled while the first catch-up range is reviewed.
+
+In the spare laptop's ignored `.env`, add or confirm these values without changing any token or password:
+
+```dotenv
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_DAILY_ENRICHMENT_SCHEDULER_ENABLED=false
+MARKETBRAIN_DAILY_ENRICHMENT_CRON="0 0 18 * * MON-FRI"
+MARKETBRAIN_DAILY_ENRICHMENT_ZONE=Asia/Kolkata
+MARKETBRAIN_DAILY_ENRICHMENT_MAXIMUM_CATCHUP_DAYS=366
+```
+
+Then deploy and request the preview. When `-TargetDate` is omitted before 18:00 India time, the backend safely
+uses the previous weekday; after 18:00 it uses the current weekday. Weekend defaults roll back to Friday. An
+explicit future date is rejected.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewDailyEnrichment.ps1' -TargetDate '2026-09-04'
+```
+
+The accepted preview reports `Status=REVIEW_REQUIRED`, `BlockedInstruments=0`,
+`DatabaseWritesPerformed=False`, `WorkerEnabled=False`, and a 64-character `ManifestHash`. Depending on the
+target date, instruments can be either `FETCH_REQUIRED` or `UP_TO_DATE`. The complete JSON is saved under
+`C:\MarketBrainData\Review`. Share the complete output before creating or starting the first incremental run.
+Do not enable either scheduler or worker at this checkpoint.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

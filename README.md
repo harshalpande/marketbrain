@@ -12,7 +12,7 @@ Phase 1 establishes the data-first foundation. It is deliberately paper-only:
 - no broker order placement is implemented;
 - Telegram remains disabled until a private bot token and local pairing code are configured.
 
-The current increment has completed the ten-stock pilot and the first controlled 50-stock expansion batch. It provides resumable yearly Upstox candle chunks, persistent progress, bounded retries, a read-only post-load audit, optional provider spot comparison, corporate-action evidence, official NSE Bhavcopy comparison for large-move review, and an append-only quality-resolution ledger. Transient connectivity/provider outages pause safely with persisted 1, 5, and 15 minute backoff and automatic continuation. Evidence reports never write resolutions, raw candles are never rewritten by review decisions, and feature exclusions remain explicit. Stale data remains non-actionable, Telegram remains private, and the system still cannot create a real broker order.
+The reviewed NIFTY 500 historical foundation is complete, provider-audited, and backed up. The current increment adds the first daily-enrichment foundation: a read-only per-instrument freshness preview, deterministic reviewed manifest, bounded catch-up protection, resumable incremental jobs, and a disabled-by-default post-market scheduler. It reuses the proven persisted Upstox worker, never rewrites review decisions, and keeps activation behind explicit operator review. Transient connectivity/provider outages pause safely with persisted 1, 5, and 15 minute backoff and automatic continuation. Stale data remains non-actionable, Telegram remains private, and the system still cannot create a real broker order.
 
 ## Repository layout
 
