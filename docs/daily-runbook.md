@@ -2746,13 +2746,14 @@ In the spare laptop's ignored `.env`, add or confirm these values without changi
 ```dotenv
 MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
 MARKETBRAIN_DAILY_ENRICHMENT_SCHEDULER_ENABLED=false
-MARKETBRAIN_DAILY_ENRICHMENT_CRON="0 0 18 * * MON-FRI"
+MARKETBRAIN_DAILY_ENRICHMENT_CRON="0 0/15 16-17 * * MON-FRI"
+MARKETBRAIN_DAILY_ENRICHMENT_FINAL_ATTEMPT_CRON="0 0 18 * * MON-FRI"
 MARKETBRAIN_DAILY_ENRICHMENT_ZONE=Asia/Kolkata
 MARKETBRAIN_DAILY_ENRICHMENT_MAXIMUM_CATCHUP_DAYS=366
 ```
 
-Then deploy and request the preview. When `-TargetDate` is omitted before 18:00 India time, the backend safely
-uses the previous weekday; after 18:00 it uses the current weekday. Weekend defaults roll back to Friday. An
+Then deploy and request the preview. When `-TargetDate` is omitted before 16:00 India time, the backend safely
+uses the previous weekday; after 16:00 it uses the current weekday. Weekend defaults roll back to Friday. An
 explicit future date is rejected.
 
 ```powershell
@@ -2858,6 +2859,60 @@ accepted result is `Status=ELIGIBLE`, `ProviderCheckCount=500`, `ProviderNonMatc
 `UnresolvedFindingCount=0`, `WorkerEnabled=False`, `SchedulerEnabled=False`,
 `DatabaseWritesPerformed=False`, and `STEP 52 COMPLETE`. Reports, checkpoints, and the transcript are saved
 under `C:\MarketBrainData\Review`. Share the complete output before enabling automated collection.
+
+### 53. Arm the automatic post-market collector
+
+Run this only after Step 52 reports `Status=ELIGIBLE`, 500 provider matches, no unresolved findings, and no
+database writes. Run it before the 18:00 India-time provider cutoff on the intended activation day. In the spare
+laptop's ignored `.env`, enable both the persisted worker and scheduler. Telegram must also remain enabled,
+configured, privately paired, and in action-free NOTE mode; keep all existing secrets only in this ignored file:
+
+```dotenv
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=true
+MARKETBRAIN_DAILY_ENRICHMENT_SCHEDULER_ENABLED=true
+MARKETBRAIN_DAILY_ENRICHMENT_CRON="0 0/15 16-17 * * MON-FRI"
+MARKETBRAIN_DAILY_ENRICHMENT_FINAL_ATTEMPT_CRON="0 0 18 * * MON-FRI"
+MARKETBRAIN_DAILY_ENRICHMENT_ZONE=Asia/Kolkata
+MARKETBRAIN_DAILY_ENRICHMENT_MAXIMUM_CATCHUP_DAYS=366
+MARKETBRAIN_DAILY_ENRICHMENT_PROVIDER_WINDOW_START=16:00
+MARKETBRAIN_DAILY_ENRICHMENT_PROVIDER_WINDOW_CUTOFF=18:00
+MARKETBRAIN_DAILY_ENRICHMENT_READINESS_SYMBOLS=HDFCBANK,INFY,RELIANCE,SBIN,TCS
+MARKETBRAIN_DAILY_ENRICHMENT_COMPLETION_MONITOR_DELAY_MILLIS=30000
+MARKETBRAIN_TELEGRAM_ENABLED=true
+```
+
+Then recreate only the backend and verify readiness for the first automatic run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($null -ne $health -and $health.status -eq 'UP')
+
+& '.\ops\windows\VerifyDailyEnrichmentSchedulerReadiness.ps1' `
+    -NextTargetDate '2026-09-07'
+```
+
+The accepted readiness result is `Status=READY_FOR_AUTOMATIC_WINDOW`, `InstrumentCount=500`,
+`FetchInstruments=500`, `BlockedInstruments=0`, `EarliestFromDate=2026-09-05`, `WorkerEnabled=True`,
+`SchedulerEnabled=True`, `TelegramEnabled=True`, `TelegramPaired=True`, `DatabaseWritesPerformed=False`, and
+`STEP 53 COMPLETE`. The readiness script does not create a run. Beginning at 16:00 India time, the backend silently
+checks five liquid instruments for the finalized target date every 15 minutes through 17:45. It creates the
+hash-locked 500-stock run as soon as all five checks pass and sends the Telegram completion as soon as that run
+passes its terminal quality checks. It makes one final readiness attempt at 18:00. Only if that final attempt still
+cannot start, or a run has reached a failed terminal state, does it send one Telegram warning. No intermediate
+readiness message is sent. The next weekday window catches up from each instrument's latest stored date. Keep the
+spare laptop awake, powered, and online during the collection window.
 
 ## Spare runtime laptop: normal update and redeploy
 

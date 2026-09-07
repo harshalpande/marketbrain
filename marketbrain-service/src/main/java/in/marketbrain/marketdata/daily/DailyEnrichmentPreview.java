@@ -18,6 +18,11 @@ public record DailyEnrichmentPreview(
         boolean databaseWritesPerformed,
         boolean workerEnabled,
         boolean schedulerEnabled,
+        String schedulerCron,
+        String finalAttemptCron,
+        String providerWindowStart,
+        String providerWindowCutoff,
+        int readinessProbeCount,
         List<Instrument> instruments,
         String detail
 ) {

@@ -58,6 +58,11 @@ $preview | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $artifactPath -Enc
     DatabaseWritesPerformed    = $preview.databaseWritesPerformed
     WorkerEnabled              = $preview.workerEnabled
     SchedulerEnabled           = $preview.schedulerEnabled
+    SchedulerCron              = $preview.schedulerCron
+    FinalAttemptCron           = $preview.finalAttemptCron
+    ProviderWindowStart        = $preview.providerWindowStart
+    ProviderWindowCutoff       = $preview.providerWindowCutoff
+    ReadinessProbeCount        = $preview.readinessProbeCount
     FullPreviewPath            = $artifactPath
 } | Format-List
 

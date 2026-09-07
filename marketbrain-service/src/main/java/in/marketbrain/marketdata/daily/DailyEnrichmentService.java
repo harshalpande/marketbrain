@@ -14,12 +14,11 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class DailyEnrichmentService {
-
-    private static final LocalTime DEFAULT_MARKET_SETTLEMENT_TIME = LocalTime.of(18, 0);
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
@@ -43,7 +42,7 @@ public class DailyEnrichmentService {
 
     public LocalDate defaultTargetDate() {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of(properties.zone()));
-        LocalDate target = now.toLocalTime().isBefore(DEFAULT_MARKET_SETTLEMENT_TIME)
+        LocalDate target = now.toLocalTime().isBefore(LocalTime.parse(properties.providerWindowStart()))
                 ? now.toLocalDate().minusDays(1) : now.toLocalDate();
         while (target.getDayOfWeek().getValue() > 5) {
             target = target.minusDays(1);
@@ -139,6 +138,14 @@ public class DailyEnrichmentService {
         return summary(runs.getFirst(), "Latest persisted daily enrichment run.");
     }
 
+    public Optional<DailyEnrichmentRunSummary> findForTarget(LocalDate targetDate) {
+        LocalDate permittedTarget = requirePermittedTarget(targetDate);
+        List<UUID> existing = existingRun(latestSnapshotId(), permittedTarget);
+        return existing.isEmpty()
+                ? Optional.empty()
+                : Optional.of(summary(existing.getFirst(), "Daily enrichment run for target date."));
+    }
+
     private DailyEnrichmentPlanner.Plan buildPlan(LocalDate targetDate) {
         return buildPlan(latestSnapshotId(), targetDate);
     }
@@ -172,8 +179,9 @@ public class DailyEnrichmentService {
                 preview.upToDateInstruments(), preview.fetchInstruments(), preview.blockedInstruments(),
                 preview.earliestFromDate(), preview.totalRequestedCalendarDays(),
                 preview.maximumCatchupDays(), preview.manifestHash(), preview.databaseWritesPerformed(),
-                backfillProperties.workerEnabled(), properties.schedulerEnabled(), preview.instruments(),
-                preview.detail());
+                backfillProperties.workerEnabled(), properties.schedulerEnabled(), properties.cron(),
+                properties.finalAttemptCron(), properties.providerWindowStart(), properties.providerWindowCutoff(),
+                properties.readinessSymbols().size(), preview.instruments(), preview.detail());
     }
 
     private List<UUID> existingRun(UUID snapshotId, LocalDate targetDate) {
