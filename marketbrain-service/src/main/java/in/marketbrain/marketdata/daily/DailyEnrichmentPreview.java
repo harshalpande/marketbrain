@@ -23,6 +23,7 @@ public record DailyEnrichmentPreview(
         String providerWindowStart,
         String providerWindowCutoff,
         int readinessProbeCount,
+        String targetDateFetchMode,
         List<Instrument> instruments,
         String detail
 ) {

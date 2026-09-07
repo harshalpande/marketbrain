@@ -181,7 +181,8 @@ public class DailyEnrichmentService {
                 preview.maximumCatchupDays(), preview.manifestHash(), preview.databaseWritesPerformed(),
                 backfillProperties.workerEnabled(), properties.schedulerEnabled(), properties.cron(),
                 properties.finalAttemptCron(), properties.providerWindowStart(), properties.providerWindowCutoff(),
-                properties.readinessSymbols().size(), preview.instruments(), preview.detail());
+                properties.readinessSymbols().size(), "UPSTOX_INTRADAY_DAILY",
+                preview.instruments(), preview.detail());
     }
 
     private List<UUID> existingRun(UUID snapshotId, LocalDate targetDate) {

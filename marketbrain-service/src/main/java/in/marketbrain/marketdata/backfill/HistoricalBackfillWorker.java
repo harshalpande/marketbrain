@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class HistoricalBackfillWorker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HistoricalBackfillWorker.class);
+    private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
 
     private final HistoricalBackfillProperties properties;
     private final JdbcTemplate jdbcTemplate;
@@ -61,8 +63,13 @@ public class HistoricalBackfillWorker {
         }
 
         try {
-            UpstoxImportResult result = marketDataService.importHistoricalCandles(new UpstoxHistoricalRequest(
-                    chunk.providerInstrumentKey(), "days", 1, chunk.fromDate(), chunk.toDate()));
+            UpstoxHistoricalRequest request = new UpstoxHistoricalRequest(
+                    chunk.providerInstrumentKey(), "days", 1, chunk.fromDate(), chunk.toDate());
+            boolean currentDailyTarget = requiresIntradayTarget(
+                    chunk.jobType(), chunk.toDate(), LocalDate.now(INDIA));
+            UpstoxImportResult result = currentDailyTarget
+                    ? marketDataService.importCurrentDailyCandles(request)
+                    : marketDataService.importHistoricalCandles(request);
             if ("SUCCESS".equals(result.status())) {
                 ConnectivityRecovery recovery = complete(
                         chunk, result.accepted(), result.rejected(), result.normalizedDuplicates(),
@@ -85,7 +92,7 @@ public class HistoricalBackfillWorker {
     private BackfillChunk claimNextChunk() {
         return transactionTemplate.execute(status -> {
             List<BackfillChunk> candidates = jdbcTemplate.query("""
-                    SELECT chunk.id, chunk.job_id, chunk.provider_instrument_key,
+                    SELECT chunk.id, chunk.job_id, chunk.provider_instrument_key, job.job_type,
                            chunk.from_date, chunk.to_date, chunk.attempts,
                            job.connectivity_failure_count,
                            job.connectivity_notice_sent_at IS NOT NULL AS connectivity_notice_sent
@@ -99,7 +106,7 @@ public class HistoricalBackfillWorker {
                     LIMIT 1
                     """, (rs, row) -> new BackfillChunk(
                     rs.getLong("id"), rs.getObject("job_id", UUID.class),
-                    rs.getString("provider_instrument_key"),
+                    rs.getString("provider_instrument_key"), rs.getString("job_type"),
                     rs.getDate("from_date").toLocalDate(), rs.getDate("to_date").toLocalDate(),
                     rs.getInt("attempts"), rs.getInt("connectivity_failure_count"),
                     rs.getBoolean("connectivity_notice_sent")));
@@ -114,6 +121,7 @@ public class HistoricalBackfillWorker {
                     WHERE id = ?
                     """, candidate.id());
             return new BackfillChunk(candidate.id(), candidate.jobId(), candidate.providerInstrumentKey(),
+                    candidate.jobType(),
                     candidate.fromDate(), candidate.toDate(), candidate.attempts() + 1,
                     candidate.connectivityFailureCount(), candidate.connectivityNoticeSent());
         });
@@ -313,10 +321,15 @@ public class HistoricalBackfillWorker {
         return value.length() <= 64 ? value : value.substring(0, 64);
     }
 
+    static boolean requiresIntradayTarget(String jobType, LocalDate targetDate, LocalDate indiaToday) {
+        return "DAILY".equals(jobType) && targetDate.equals(indiaToday);
+    }
+
     private record BackfillChunk(
             long id,
             UUID jobId,
             String providerInstrumentKey,
+            String jobType,
             LocalDate fromDate,
             LocalDate toDate,
             int attempts,

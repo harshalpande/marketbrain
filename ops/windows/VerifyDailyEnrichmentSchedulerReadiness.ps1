@@ -16,7 +16,10 @@ Set-StrictMode -Version Latest
 $reviewedRunId = [guid]'8a0c3e77-827d-4dc5-a9a1-30ca7523bafe'
 $reviewedManifestHash = 'ff32112e159ab65e6f866888fcae02e8b20c2b4d3706d6d66cdf3868dd8e7a1e'
 $expectedInstrumentCount = 500
+$expectedEarliestFromDate = [datetime]'2026-09-05'
 $dateText = $NextTargetDate.ToString('yyyy-MM-dd')
+$expectedCalendarDays = (($NextTargetDate.Date - $expectedEarliestFromDate.Date).Days + 1) *
+    $expectedInstrumentCount
 $indiaNow = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId(
     [DateTimeOffset]::UtcNow,
     'India Standard Time'
@@ -101,13 +104,14 @@ try {
         [string]$preview.providerWindowStart -ne '16:00' -or
         [string]$preview.providerWindowCutoff -ne '18:00' -or
         $preview.readinessProbeCount -ne 5 -or
+        $preview.targetDateFetchMode -ne 'UPSTOX_INTRADAY_DAILY' -or
         $preview.instrumentCount -ne $expectedInstrumentCount -or
         $preview.fetchInstruments -ne $expectedInstrumentCount -or
         $preview.upToDateInstruments -ne 0 -or
         $preview.blockedInstruments -ne 0 -or
-        [string]$preview.earliestFromDate -ne '2026-09-05' -or
+        [string]$preview.earliestFromDate -ne $expectedEarliestFromDate.ToString('yyyy-MM-dd') -or
         [string]$preview.targetDate -ne $dateText -or
-        $preview.totalRequestedCalendarDays -ne 1500 -or
+        $preview.totalRequestedCalendarDays -ne $expectedCalendarDays -or
         [string]$preview.manifestHash -notmatch '^[0-9a-f]{64}$') {
         throw 'The next automatic daily-enrichment preview differs from the reviewed activation checkpoint.'
     }
@@ -131,6 +135,7 @@ try {
         providerWindowStart           = $preview.providerWindowStart
         providerWindowCutoff          = $preview.providerWindowCutoff
         readinessProbeCount           = $preview.readinessProbeCount
+        targetDateFetchMode           = $preview.targetDateFetchMode
         telegramEnabled               = $telegram.enabled
         telegramPaired                = $telegram.paired
         telegramTransport             = $telegram.transport

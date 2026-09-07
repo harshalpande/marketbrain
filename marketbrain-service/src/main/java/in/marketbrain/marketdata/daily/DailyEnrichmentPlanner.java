@@ -70,7 +70,7 @@ public class DailyEnrichmentPlanner {
         DailyEnrichmentPreview preview = new DailyEnrichmentPreview(
                 snapshotId, targetDate, ordered.size(), upToDate, fetchItems.size(), blocked,
                 earliestFrom, totalDays, maximumCatchupDays, manifestHash, false, false, false,
-                null, null, null, null, 0, previewItems,
+                null, null, null, null, 0, null, previewItems,
                 blocked == 0
                         ? "Read-only incremental plan; no database rows were written."
                         : "Blocked instruments require review before a daily run can be created.");

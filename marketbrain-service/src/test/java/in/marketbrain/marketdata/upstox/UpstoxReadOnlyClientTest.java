@@ -42,6 +42,25 @@ class UpstoxReadOnlyClientTest {
     }
 
     @Test
+    void sendsBearerTokenToTheCurrentDayIntradayDailyEndpoint() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        var client = client(builder, true, "analytics-token-value");
+        server.expect(once(), requestTo(
+                        "https://api.upstox.com/v3/historical-candle/intraday/"
+                                + "NSE_EQ%7CINE009A01021/days/1"))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer analytics-token-value"))
+                .andRespond(withSuccess("{\"status\":\"success\",\"data\":{\"candles\":[]}}",
+                        MediaType.APPLICATION_JSON));
+
+        var result = client.fetchIntradayCandles(
+                new UpstoxIntradayRequest("NSE_EQ|INE009A01021", "days", 1));
+
+        assertThat(result.status()).isEqualTo("SUCCESS");
+        server.verify();
+    }
+
+    @Test
     void disabledConfigurationPerformsNoRequest() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();

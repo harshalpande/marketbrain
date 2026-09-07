@@ -16,9 +16,25 @@ import java.util.UUID;
 public class DailyEnrichmentController {
 
     private final DailyEnrichmentService service;
+    private final DailyEnrichmentProviderReadinessService readinessService;
 
-    public DailyEnrichmentController(DailyEnrichmentService service) {
+    public DailyEnrichmentController(
+            DailyEnrichmentService service,
+            DailyEnrichmentProviderReadinessService readinessService
+    ) {
         this.service = service;
+        this.readinessService = readinessService;
+    }
+
+    @GetMapping("/provider-readiness")
+    public DailyEnrichmentProviderReadiness providerReadiness(@RequestParam LocalDate targetDate) {
+        try {
+            return readinessService.check(targetDate);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+        }
     }
 
     @GetMapping("/preview")

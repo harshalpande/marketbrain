@@ -2899,20 +2899,39 @@ do {
     }
 } until ($null -ne $health -and $health.status -eq 'UP')
 
+$todayInIndia = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId(
+    [DateTimeOffset]::UtcNow,
+    'India Standard Time'
+).Date
+
 & '.\ops\windows\VerifyDailyEnrichmentSchedulerReadiness.ps1' `
-    -NextTargetDate '2026-09-07'
+    -NextTargetDate $todayInIndia
 ```
 
 The accepted readiness result is `Status=READY_FOR_AUTOMATIC_WINDOW`, `InstrumentCount=500`,
-`FetchInstruments=500`, `BlockedInstruments=0`, `EarliestFromDate=2026-09-05`, `WorkerEnabled=True`,
+`FetchInstruments=500`, `BlockedInstruments=0`, `EarliestFromDate=2026-09-05`,
+`TargetDateFetchMode=UPSTOX_INTRADAY_DAILY`, `WorkerEnabled=True`,
 `SchedulerEnabled=True`, `TelegramEnabled=True`, `TelegramPaired=True`, `DatabaseWritesPerformed=False`, and
 `STEP 53 COMPLETE`. The readiness script does not create a run. Beginning at 16:00 India time, the backend silently
-checks five liquid instruments for the finalized target date every 15 minutes through 17:45. It creates the
+checks five liquid instruments through Upstox's current-day intraday daily endpoint every 15 minutes through
+17:45. It creates the
 hash-locked 500-stock run as soon as all five checks pass and sends the Telegram completion as soon as that run
-passes its terminal quality checks. It makes one final readiness attempt at 18:00. Only if that final attempt still
+passes its terminal quality checks. The worker combines historical catch-up dates with the intraday target-date
+candle before applying the existing validation and normalization rules. It makes one final readiness attempt at
+18:00. Only if that final attempt still
 cannot start, or a run has reached a failed terminal state, does it send one Telegram warning. No intermediate
 readiness message is sent. The next weekday window catches up from each instrument's latest stored date. Keep the
 spare laptop awake, powered, and online during the collection window.
+
+After deploying an intraday-provider change, this optional check proves that all five current-date probes use
+the live read-only provider path without creating a job or writing a candle:
+
+```powershell
+& '.\ops\windows\VerifyDailyEnrichmentIntradayProvider.ps1'
+```
+
+The accepted result is `Status=READY`, `AvailableChecks=5`, `MissingChecks=0`, `FailedChecks=0`,
+`DatabaseWritesPerformed=False`, and `INTRADAY PROVIDER VERIFIED`.
 
 ## Spare runtime laptop: normal update and redeploy
 

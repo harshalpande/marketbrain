@@ -111,6 +111,30 @@ public class UpstoxReadOnlyClient {
         }
     }
 
+    public UpstoxFetchResult<List<UpstoxCandle>> fetchIntradayCandles(UpstoxIntradayRequest request) {
+        if (!upstox.isConfigured()) {
+            return UpstoxFetchResult.notConfigured();
+        }
+        try {
+            String body = restClient.get()
+                    .uri(builder -> builder.pathSegment(
+                                    "v3", "historical-candle", "intraday", request.instrumentKey(),
+                                    request.unit(), Integer.toString(request.interval()))
+                            .build())
+                    .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(String.class);
+            return UpstoxFetchResult.success(parser.parseCandles(body));
+        } catch (RestClientResponseException exception) {
+            return providerFailure(exception);
+        } catch (RestClientException exception) {
+            return connectionFailure(exception);
+        } catch (java.io.IOException exception) {
+            return formatFailure(exception);
+        }
+    }
+
     public UpstoxFetchResult<List<UpstoxCorporateAction>> fetchCorporateActions(String isin) {
         if (!upstox.isConfigured()) {
             return UpstoxFetchResult.notConfigured();

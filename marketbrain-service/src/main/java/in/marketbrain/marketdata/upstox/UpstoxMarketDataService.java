@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 
@@ -144,19 +145,54 @@ public class UpstoxMarketDataService {
             markSourceFailureUnlessDisabled(fetch);
             return UpstoxImportResult.providerFailure(fetch);
         }
+        return persistCandles(request, fetch.data(), "Historical");
+    }
+
+    @Transactional
+    public UpstoxImportResult importCurrentDailyCandles(UpstoxHistoricalRequest request) {
+        if (!"days:1".equals(request.intervalCode())) {
+            throw new IllegalArgumentException("Current-day enrichment requires the days:1 interval");
+        }
+        List<UpstoxCandle> providerCandles = new ArrayList<>();
+        LocalDate historicalTo = request.toDate().minusDays(1);
+        if (!historicalTo.isBefore(request.fromDate())) {
+            UpstoxFetchResult<List<UpstoxCandle>> historical = client.fetchHistoricalCandles(
+                    new UpstoxHistoricalRequest(request.instrumentKey(), request.unit(), request.interval(),
+                            request.fromDate(), historicalTo));
+            if (!historical.succeeded()) {
+                markSourceFailureUnlessDisabled(historical);
+                return UpstoxImportResult.providerFailure(historical);
+            }
+            providerCandles.addAll(historical.data());
+        }
+        UpstoxFetchResult<List<UpstoxCandle>> intraday = client.fetchIntradayCandles(
+                new UpstoxIntradayRequest(request.instrumentKey(), request.unit(), request.interval()));
+        if (!intraday.succeeded()) {
+            markSourceFailureUnlessDisabled(intraday);
+            return UpstoxImportResult.providerFailure(intraday);
+        }
+        providerCandles.addAll(intraday.data());
+        return persistCandles(request, providerCandles, "Historical catch-up and current-day intraday");
+    }
+
+    private UpstoxImportResult persistCandles(
+            UpstoxHistoricalRequest request,
+            List<UpstoxCandle> providerCandles,
+            String evidenceDescription
+    ) {
         Long instrumentId = findInstrumentId(request.instrumentKey());
         if (instrumentId == null) {
-            return new UpstoxImportResult("INSTRUMENT_NOT_IMPORTED", fetch.data().size(), 0,
-                    fetch.data().size(), 0, List.of(), List.of(),
+            return new UpstoxImportResult("INSTRUMENT_NOT_IMPORTED", providerCandles.size(), 0,
+                    providerCandles.size(), 0, List.of(), List.of(),
                     "Import the NSE instrument master before candle ingestion.");
         }
 
-        List<UpstoxCandle> validCandles = fetch.data().stream().filter(qualityService::validCandle).toList();
+        List<UpstoxCandle> validCandles = providerCandles.stream().filter(qualityService::validCandle).toList();
         UpstoxCandleBatchNormalizer.Result normalized = candleBatchNormalizer.normalize(request, validCandles);
         if (normalized.hasConflicts()) {
             markSourceFailure();
             return new UpstoxImportResult(
-                    "INVALID_DATA", fetch.data().size(), 0, fetch.data().size(), 0, List.of(), List.of(),
+                    "INVALID_DATA", providerCandles.size(), 0, providerCandles.size(), 0, List.of(), List.of(),
                     "Upstox returned different daily OHLCV values for the same trading date(s): "
                             + normalized.conflictingTradingDates() + ". Nothing from this response was persisted.");
         }
@@ -194,11 +230,11 @@ public class UpstoxMarketDataService {
             }
         }
         markSourceSuccess();
-        int invalidRows = fetch.data().size() - validCandles.size();
-        return new UpstoxImportResult("SUCCESS", fetch.data().size(), normalized.candles().size(), invalidRows,
+        int invalidRows = providerCandles.size() - validCandles.size();
+        return new UpstoxImportResult("SUCCESS", providerCandles.size(), normalized.candles().size(), invalidRows,
                 normalized.collapsedDuplicates(), normalized.normalizedTradingDates(),
                 normalized.normalizationDetails(),
-                "Historical candles passed OHLC, timestamp, and volume validation; "
+                evidenceDescription + " candles passed OHLC, timestamp, and volume validation; "
                         + normalized.collapsedDuplicates() + " near-identical same-date row(s) were normalized.");
     }
 

@@ -17,6 +17,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
@@ -36,7 +38,7 @@ class DailyEnrichmentProviderReadinessServiceTest {
             ResultSet second = row("BBB", "NSE_EQ|BBB");
             return List.of(mapper.mapRow(first, 0), mapper.mapRow(second, 1));
         });
-        when(client.fetchHistoricalCandles(any())).thenReturn(
+        when(client.fetchIntradayCandles(any())).thenReturn(
                 UpstoxFetchResult.success(List.of(candle("2026-09-07T03:45:00Z"))),
                 UpstoxFetchResult.success(List.of()));
 
@@ -49,6 +51,7 @@ class DailyEnrichmentProviderReadinessServiceTest {
         assertThat(readiness.missingChecks()).isEqualTo(1);
         assertThat(readiness.failedChecks()).isZero();
         assertThat(readiness.databaseWritesPerformed()).isFalse();
+        verify(client, never()).fetchHistoricalCandles(any());
     }
 
     private ResultSet row(String symbol, String key) throws Exception {

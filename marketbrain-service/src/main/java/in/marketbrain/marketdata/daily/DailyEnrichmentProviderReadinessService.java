@@ -3,7 +3,7 @@ package in.marketbrain.marketdata.daily;
 import in.marketbrain.configuration.DailyEnrichmentProperties;
 import in.marketbrain.marketdata.upstox.UpstoxCandle;
 import in.marketbrain.marketdata.upstox.UpstoxFetchResult;
-import in.marketbrain.marketdata.upstox.UpstoxHistoricalRequest;
+import in.marketbrain.marketdata.upstox.UpstoxIntradayRequest;
 import in.marketbrain.marketdata.upstox.UpstoxReadOnlyClient;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -65,9 +65,8 @@ public class DailyEnrichmentProviderReadinessService {
                 failed++;
                 continue;
             }
-            UpstoxFetchResult<List<UpstoxCandle>> result = upstoxClient.fetchHistoricalCandles(
-                    new UpstoxHistoricalRequest(instrument.providerInstrumentKey(), "days", 1,
-                            targetDate, targetDate));
+            UpstoxFetchResult<List<UpstoxCandle>> result = upstoxClient.fetchIntradayCandles(
+                    new UpstoxIntradayRequest(instrument.providerInstrumentKey(), "days", 1));
             if (!result.succeeded()) {
                 checks.add(new DailyEnrichmentProviderReadiness.Check(symbol, result.status()));
                 failed++;

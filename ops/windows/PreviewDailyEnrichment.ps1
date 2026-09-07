@@ -63,6 +63,7 @@ $preview | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $artifactPath -Enc
     ProviderWindowStart        = $preview.providerWindowStart
     ProviderWindowCutoff       = $preview.providerWindowCutoff
     ReadinessProbeCount        = $preview.readinessProbeCount
+    TargetDateFetchMode        = $preview.targetDateFetchMode
     FullPreviewPath            = $artifactPath
 } | Format-List
 
