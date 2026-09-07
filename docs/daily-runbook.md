@@ -2820,6 +2820,45 @@ rejected row counts are evidence, not hard-coded assumptions. The transcript and
 under `C:\MarketBrainData\Review`. Share the complete output before disabling the worker and running the first
 incremental quality audit.
 
+### 52. Disable the worker and verify the first incremental run
+
+Run this only after Step 51 completes run `8a0c3e77-827d-4dc5-a9a1-30ca7523bafe` with 500 completed chunks,
+1500 accepted rows, no rejected rows, and no failures. In the spare laptop's ignored `.env`, disable the worker
+and keep the scheduler disabled, then recreate only the backend:
+
+```dotenv
+MARKETBRAIN_BACKFILL_WORKER_ENABLED=false
+MARKETBRAIN_DAILY_ENRICHMENT_SCHEDULER_ENABLED=false
+```
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($null -ne $health -and $health.status -eq 'UP')
+
+& '.\ops\windows\VerifyReviewedDailyEnrichmentQuality.ps1' `
+    -RunId '8a0c3e77-827d-4dc5-a9a1-30ca7523bafe' `
+    -ReviewedManifestHash 'ff32112e159ab65e6f866888fcae02e8b20c2b4d3706d6d66cdf3868dd8e7a1e'
+```
+
+This is a read-only audit. It verifies the saved and live run checkpoints, all 1500 scoped candles, cross-stock
+session coverage, duplicates, invalid values, unresolved findings, and 500 fresh Upstox comparisons. The
+accepted result is `Status=ELIGIBLE`, `ProviderCheckCount=500`, `ProviderNonMatchCount=0`,
+`UnresolvedFindingCount=0`, `WorkerEnabled=False`, `SchedulerEnabled=False`,
+`DatabaseWritesPerformed=False`, and `STEP 52 COMPLETE`. Reports, checkpoints, and the transcript are saved
+under `C:\MarketBrainData\Review`. Share the complete output before enabling automated collection.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
