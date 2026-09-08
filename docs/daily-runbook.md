@@ -3065,6 +3065,36 @@ the reviewed hash, `PersistedItemCount=500`, `CompleteVectorCount=485`, both vec
 `ManifestMatches=True`, and `DatabaseWritesPerformed=False`. Model training, signal generation, and order creation
 remain disabled after this step.
 
+## Step 58: preview the automatic daily-to-feature handoff
+
+This step proves the automatic handoff contract without enabling it. In one read-only request it:
+
+- selects the daily enrichment job for the target date and current NIFTY 500 snapshot;
+- requires every chunk to be complete with no failed or rejected rows;
+- runs the existing database quality audit and requires no blocking instruments, missing provider data, review
+  instruments, duplicates, invalid rows, unresolved findings, or truncated findings;
+- independently requires one complete Upstox target-date candle for every current instrument;
+- recomputes the complete point-in-time feature universe and requires no stale or no-data classification;
+- reports whether the exact feature manifest is `READY_TO_PERSIST`, `ALREADY_PERSISTED`, or `REVIEW_REQUIRED`.
+
+After deploying the committed code on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+& '.\ops\windows\PreviewDailyFeatureAutomation.ps1' `
+    -TargetDate '2026-09-08' `
+    -ExpectedFeatureManifestHash '6ad27dded487d8991672438044c4f5c610fabc03cf04bab81ff3fdee95ae47ba'
+```
+
+For the reviewed September 8 checkpoint, the accepted result is `Status=READY`, daily status and quality status
+`COMPLETED`/`PASS`, 500 completed chunks, 1,000 accepted rows, no failed or rejected rows, 500 target-date candles,
+485 eligible vectors, 15 insufficient-history classifications, no stale or no-data instruments,
+`PersistenceAction=ALREADY_PERSISTED`, existing feature run
+`a5638530-28e9-4fce-a44c-d5399469c03b`, `PointInTimeSafe=True`, and
+`DatabaseWritesPerformed=False`. Share the complete output before any scheduler-triggered feature write is designed
+or enabled.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
