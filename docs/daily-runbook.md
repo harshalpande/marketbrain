@@ -2933,6 +2933,51 @@ the live read-only provider path without creating a job or writing a candle:
 The accepted result is `Status=READY`, `AvailableChecks=5`, `MissingChecks=0`, `FailedChecks=0`,
 `DatabaseWritesPerformed=False`, and `INTRADAY PROVIDER VERIFIED`.
 
+## Step 54: verify the point-in-time feature foundation
+
+This stage is deliberately read-only. It does not persist features or generate a signal. For one current NIFTY 500
+instrument and one explicit as-of date, it:
+
+- selects only complete `days:1` candles at or before the as-of date;
+- prefers the reviewed `NSE_BHAVCOPY` remediation candle when both sources contain the date;
+- removes all dates covered by `market_data_feature_exclusion`;
+- requires at least 252 eligible observations before returning a complete vector;
+- computes daily return, SMA 20/50/200, EMA 12/26, Wilder RSI 14, Wilder ATR 14, 20-return
+  annualized volatility, current-volume/previous-20-volume ratio, and 252-session close-range position;
+- labels the reproducible calculation contract as `TECHNICAL_V1` and returns `pointInTimeSafe=true` and
+  `databaseWritesPerformed=false`.
+
+After pulling and rebuilding on the spare laptop, verify a long-history instrument:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewPointInTimeFeatures.ps1' `
+    -Symbol 'RELIANCE' `
+    -AsOf '2026-09-08'
+```
+
+Replace the displayed sample date with today's India date. Expected checkpoints are `Status=ELIGIBLE`,
+`PointInTimeSafe=True`, `DatabaseWritesPerformed=False`, a non-null feature vector, and an effective date no later
+than the requested date. The full JSON and transcript are written under `C:\MarketBrainData\Review`.
+
+`INSUFFICIENT_HISTORY` is a safe result for a recently listed company; it is not eligible for the complete feature
+vector. Do not lower the 252-observation gate merely to make such an instrument pass. This preview may run while the
+daily enrichment scheduler is armed because the endpoint has a read-only transaction and performs no provider call.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
