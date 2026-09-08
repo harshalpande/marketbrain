@@ -3095,6 +3095,62 @@ For the reviewed September 8 checkpoint, the accepted result is `Status=READY`, 
 `DatabaseWritesPerformed=False`. Share the complete output before any scheduler-triggered feature write is designed
 or enabled.
 
+## Step 59: activate and verify automatic daily feature persistence
+
+This step enables the separately gated post-collection feature scheduler. It does not change the 16:00-18:00
+provider schedule. After a daily enrichment job reaches `COMPLETED`, the feature scheduler records durable work for
+that trading date and repeats every Step 58 gate against the live database. A passing date is persisted idempotently
+as one immutable `TECHNICAL_V1` snapshot and immediately audited by independently rebuilding its manifest. A
+completed snapshot is reused instead of duplicated.
+
+The scheduler refuses to persist features when daily quality, target-date coverage, point-in-time safety, or the
+feature manifest does not pass. A review failure becomes `REVIEW_REQUIRED`; a transient processing error is retried
+after five minutes, up to three attempts, and then becomes `FAILED`. The terminal result sends exactly one private
+Telegram message: completion immediately after verified success, or an action-free warning after review/failure.
+Neither outcome creates a signal, order, broker request, or Ollama/model-training job.
+
+On the spare laptop, edit its ignored `.env` file and set these exact reviewed activation values:
+
+```text
+MARKETBRAIN_DAILY_FEATURE_SNAPSHOT_ENABLED=true
+MARKETBRAIN_DAILY_FEATURE_SNAPSHOT_ACTIVATION_DATE=2026-09-08
+```
+
+Leave the optional defaults at a 30-second monitor delay and three maximum attempts. The activation date is an
+intentional boundary: it prevents the earlier September 4 validation run from being processed automatically. Then
+pull the committed code, rebuild only the backend, and wait for health:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\MonitorDailyFeatureAutomation.ps1' `
+    -TargetDate '2026-09-08' `
+    -ExpectedFeatureManifestHash '6ad27dded487d8991672438044c4f5c610fabc03cf04bab81ff3fdee95ae47ba'
+```
+
+For the reviewed September 8 checkpoint, the accepted result is `Status=COMPLETED`, `Attempts=1`, daily run
+`059437aa-2dec-4b56-a6de-f63dc300b25f`, feature snapshot run
+`a5638530-28e9-4fce-a44c-d5399469c03b`, the exact expected feature manifest, `EligibleCount=485`,
+`WithheldCount=15`, no last error, and `NotificationStatus=SENT`. The existing snapshot is reused, so only the
+durable automation checkpoint and Telegram delivery checkpoint are new database state.
+
+For every subsequent completed daily run on or after the activation date, no manual Step 55-58 command is needed.
+The same quality gates, immutable persistence, independent verification, and one Telegram conclusion run
+automatically. Keep model training and signal generation disabled until their own reviewed milestone.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

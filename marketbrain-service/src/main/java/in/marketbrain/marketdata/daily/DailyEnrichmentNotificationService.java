@@ -34,6 +34,14 @@ public class DailyEnrichmentNotificationService {
         return sendOnce(targetDate, runId, "WARNING", message);
     }
 
+    public boolean sendFeatureCompletion(LocalDate targetDate, UUID runId, String message) {
+        return sendOnce(targetDate, runId, "FEATURE_COMPLETION", message);
+    }
+
+    public boolean sendFeatureWarning(LocalDate targetDate, UUID runId, String message) {
+        return sendOnce(targetDate, runId, "FEATURE_WARNING", message);
+    }
+
     private boolean sendOnce(LocalDate targetDate, UUID runId, String kind, String message) {
         jdbcTemplate.update("""
                 INSERT INTO daily_enrichment_notification
