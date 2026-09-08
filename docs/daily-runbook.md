@@ -2993,9 +2993,10 @@ Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
     -AsOf '2026-09-08'
 ```
 
-Replace the sample date when reviewing another session. The endpoint streams canonical candle rows in symbol/date
-order so only one instrument's working history is retained at a time. It does not call Upstox or NSE and does not
-write database state. The 500 ordered results are classified as:
+Replace the sample date when reviewing another session. The endpoint loads the governed exclusion ranges once, then
+streams canonical candle rows in instrument/date order so only one instrument's working history is retained at a
+time. It does not call Upstox or NSE and does not write database state. The database statement is bounded to ten
+minutes and backend progress is logged after every 50 instruments. The 500 ordered results are classified as:
 
 - `ELIGIBLE`: at least 252 governed observations and `effectiveAsOf=requestedAsOf`;
 - `STALE`: a complete feature vector exists, but its effective date is older than the requested date;
@@ -3009,6 +3010,19 @@ checked for date safety, feature-vector completeness, and write-free execution. 
 snapshot, requested date, classifications, candle lineage, counts, and every feature value. Share the complete
 summary and `C:\MarketBrainData\Review\feature-universe-preview-YYYY-MM-DD.json` before feature persistence is
 designed or authorized.
+
+If a pre-optimization Step 55 request is still running for more than 30 minutes, press `Ctrl+C` in that PowerShell
+window before deploying the optimized version. Cancellation is safe because the endpoint is transactionally
+read-only. After redeployment, follow only feature-analysis progress with:
+
+```powershell
+docker compose --env-file .env logs -f marketbrain-service |
+    Select-String -Pattern 'Feature universe preview'
+```
+
+Telegram long-poll failures are independent of feature analysis. An immediate Telegram transport failure now uses
+bounded exponential retries at 5, 10, 20, 40, 80, 160, and at most 300 seconds. A successful poll resets the delay.
+The bot token and token-bearing exception details remain absent from logs.
 
 ## Spare runtime laptop: normal update and redeploy
 
