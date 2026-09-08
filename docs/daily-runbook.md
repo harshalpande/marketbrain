@@ -3024,6 +3024,47 @@ Telegram long-poll failures are independent of feature analysis. An immediate Te
 bounded exponential retries at 5, 10, 20, 40, 80, 160, and at most 300 seconds. A successful poll resets the delay.
 The bot token and token-bearing exception details remain absent from logs.
 
+## Step 56: persist the explicitly reviewed TECHNICAL_V1 snapshot
+
+Only run this step after the complete Step 55 output has been reviewed and its exact manifest explicitly approved.
+The service recomputes the live database-only analysis before writing and refuses the request if the universe,
+classification, candle lineage, counts, or any feature value changed. The approved 2026-09-08 manifest contains 485
+complete vectors and 15 `INSUFFICIENT_HISTORY` classifications. The 15 withheld rows contain no partial feature
+vector. All 500 rows and their run metadata are immutable after completion.
+
+After committing, pulling, and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+& '.\ops\windows\ApplyReviewedFeatureSnapshot.ps1' `
+    -AsOf '2026-09-08' `
+    -ExpectedManifestHash '6ad27dded487d8991672438044c4f5c610fabc03cf04bab81ff3fdee95ae47ba' `
+    -ReviewedBy 'Harshal Pande'
+```
+
+The accepted result is `Status=COMPLETED`, `InstrumentCount=500`, `PersistedFeatureCount=485`,
+`WithheldCount=15`, `InsufficientHistoryCount=15`, `PersistedItemCount=500`, `SignalsCreated=0`, and
+`OrdersCreated=0`. `DatabaseWritesPerformed=True` is expected for the first execution. An exact replay is safe and
+returns `False` because the completed snapshot already exists. A changed manifest or another reviewer for the same
+scope is rejected. Share the complete output before running Step 57.
+
+## Step 57: audit the persisted feature snapshot
+
+Use the `RunId` returned by Step 56:
+
+```powershell
+& '.\ops\windows\VerifyReviewedFeatureSnapshot.ps1' `
+    -RunId '<STEP-56-RUN-ID>' `
+    -ExpectedManifestHash '6ad27dded487d8991672438044c4f5c610fabc03cf04bab81ff3fdee95ae47ba'
+```
+
+This audit is read-only. It reconstructs the complete ordered source payload from the immutable database rows and
+recomputes the SHA-256 manifest independently. The accepted result is `Status=ELIGIBLE`, both manifest hashes equal
+the reviewed hash, `PersistedItemCount=500`, `CompleteVectorCount=485`, both vector-violation counts zero,
+`ManifestMatches=True`, and `DatabaseWritesPerformed=False`. Model training, signal generation, and order creation
+remain disabled after this step.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
