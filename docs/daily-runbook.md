@@ -2978,6 +2978,38 @@ than the requested date. The full JSON and transcript are written under `C:\Mark
 vector. Do not lower the 252-observation gate merely to make such an instrument pass. This preview may run while the
 daily enrichment scheduler is armed because the endpoint has a read-only transaction and performs no provider call.
 
+Starting with Step 55, a vector that has 252 observations but whose `effectiveAsOf` precedes `requestedAsOf` is
+reported as `STALE`, not `ELIGIBLE`. The calculated numbers remain visible for investigation, but downstream signal,
+backtest-current-date, and model inputs must not treat that vector as current.
+
+## Step 55: analyze all 500 point-in-time feature vectors in one request
+
+After deploying this increment to the spare laptop, run the complete database-only universe analysis:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+& '.\ops\windows\AnalyzePointInTimeFeatureUniverse.ps1' `
+    -AsOf '2026-09-08'
+```
+
+Replace the sample date when reviewing another session. The endpoint streams canonical candle rows in symbol/date
+order so only one instrument's working history is retained at a time. It does not call Upstox or NSE and does not
+write database state. The 500 ordered results are classified as:
+
+- `ELIGIBLE`: at least 252 governed observations and `effectiveAsOf=requestedAsOf`;
+- `STALE`: a complete feature vector exists, but its effective date is older than the requested date;
+- `INSUFFICIENT_HISTORY`: fewer than 252 governed observations, so no partial vector is returned;
+- `NO_ELIGIBLE_DATA`: no governed candle is available by the requested date.
+
+The accepted script result is `Status=REVIEW_REQUIRED`, `FeatureSetVersion=TECHNICAL_V1`,
+`InstrumentCount=500`, a 64-character `ManifestHash`, `PointInTimeSafe=True`, and
+`DatabaseWritesPerformed=False`. The four classification counts must total 500, and every item is independently
+checked for date safety, feature-vector completeness, and write-free execution. The SHA-256 manifest covers the
+snapshot, requested date, classifications, candle lineage, counts, and every feature value. Share the complete
+summary and `C:\MarketBrainData\Review\feature-universe-preview-YYYY-MM-DD.json` before feature persistence is
+designed or authorized.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

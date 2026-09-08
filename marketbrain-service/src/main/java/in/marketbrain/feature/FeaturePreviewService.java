@@ -11,8 +11,8 @@ import java.util.List;
 @Service
 public class FeaturePreviewService {
 
-    private static final int MINIMUM_OBSERVATIONS = 252;
-    private static final String FEATURE_SET_VERSION = "TECHNICAL_V1";
+    static final int MINIMUM_OBSERVATIONS = 252;
+    static final String FEATURE_SET_VERSION = "TECHNICAL_V1";
 
     private final JdbcTemplate jdbcTemplate;
     private final TechnicalFeatureCalculator calculator;
@@ -27,23 +27,38 @@ public class FeaturePreviewService {
         String symbol = normalizeSymbol(requestedSymbol);
         InstrumentMember member = findCurrentMember(symbol);
         List<FeatureCandle> canonical = loadCanonicalCandles(member.instrumentId(), asOf);
+        return previewFromCanonical(symbol, asOf, canonical);
+    }
+
+    static String classification(int eligibleCount, LocalDate effectiveAsOf, LocalDate requestedAsOf) {
+        if (eligibleCount == 0 || effectiveAsOf == null) {
+            return "NO_ELIGIBLE_DATA";
+        }
+        if (eligibleCount < MINIMUM_OBSERVATIONS) {
+            return "INSUFFICIENT_HISTORY";
+        }
+        return effectiveAsOf.equals(requestedAsOf) ? "ELIGIBLE" : "STALE";
+    }
+
+    FeaturePreview previewFromCanonical(String symbol, LocalDate asOf, List<FeatureCandle> canonical) {
         List<FeatureCandle> eligible = canonical.stream().filter(candle -> !candle.excluded()).toList();
         int excluded = canonical.size() - eligible.size();
-
         if (eligible.isEmpty()) {
             return response("NO_ELIGIBLE_DATA", symbol, asOf, canonical.size(), excluded, null, null,
                     "No governed daily candle is available on or before the requested as-of date.");
         }
-
         FeatureCandle latest = eligible.getLast();
         if (eligible.size() < MINIMUM_OBSERVATIONS) {
             return response("INSUFFICIENT_HISTORY", symbol, asOf, canonical.size(), excluded, latest, null,
                     "At least 252 eligible daily observations are required; found " + eligible.size() + ".");
         }
-
-        return response("ELIGIBLE", symbol, asOf, canonical.size(), excluded, latest,
-                calculator.calculate(eligible),
-                "All indicators were computed from governed daily data available at the requested as-of date.");
+        String status = classification(eligible.size(), latest.tradingDate(), asOf);
+        String detail = "ELIGIBLE".equals(status)
+                ? "All indicators were computed from governed daily data available at the requested as-of date."
+                : "The feature vector is computable but stale: the latest eligible candle is "
+                        + latest.tradingDate() + ", before the requested as-of date " + asOf + ".";
+        return response(status, symbol, asOf, canonical.size(), excluded, latest,
+                calculator.calculate(eligible), detail);
     }
 
     private FeaturePreview response(
