@@ -2,6 +2,8 @@
 
 MarketBrain is a personal, self-hosted Indian-market research and paper-trading platform.
 
+![MarketBrain target architecture](docs/marketbrain-architecture.png)
+
 ## Current phase
 
 Phase 1 establishes the data-first foundation. It is deliberately paper-only:
@@ -47,6 +49,8 @@ reported explicitly and keeps the preview ineligible for model training until da
 The backend reads database credentials only from environment variables. Never commit credentials, Telegram bot tokens, Analytics Tokens, Paytm tokens, or broker passwords.
 
 For Upstox and Paytm Money feasibility details and the Nifty 500 import format, see [data-provider-feasibility.md](docs/data-provider-feasibility.md).
+
+For the approved target design covering Marketaux, permission-gated RSS feeds, official events, retention, confidence fusion, Ollama explanation, risk controls, and Telegram outcomes, see [news-intelligence-design.md](docs/news-intelligence-design.md). The editable diagram source is [marketbrain-architecture.svg](docs/marketbrain-architecture.svg).
 
 For daily build, deployment, verification, and troubleshooting commands, use [daily-runbook.md](docs/daily-runbook.md).
 
