@@ -35,6 +35,11 @@ hash-locked read-only preview. It verifies interval integrity, exactly 500 activ
 current and historical ISIN matching, and a deterministic manifest. Public current-constituent files are never
 invented into historical membership; persistence and model training remain separately disabled.
 
+While that authorized dataset is pending, the news-intelligence track starts with a read-only source-permission
+register. Every API, RSS feed, and official disclosure source records its evidence state and remains disabled until
+explicit usage rights have been reviewed. Pending correspondence cannot grant storage or local-AI rights, and the
+permission preview cannot fetch news, write data, call Ollama, create a feature, or create a signal or order.
+
 ## Repository layout
 
 | Path | Purpose |

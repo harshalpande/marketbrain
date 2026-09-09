@@ -3265,6 +3265,47 @@ ambiguous members, no duplicates or overlapping periods, `HistoricalMembershipSt
 database writes or downstream actions. Share the complete summary and JSON artifact before membership persistence
 or a historical-candle expansion is prepared.
 
+## Step 62: preview the governed news-source permission register
+
+Historical membership persistence remains blocked until an authorized source is received, but that external wait
+does not block the independent news-intelligence foundation. This database-free preview records four publisher
+requests as awaiting written responses and places NSE, BSE, SEBI, and RBI disclosure sources into explicit terms
+review. It deliberately grants no storage, retention, local-AI, or derived-data right.
+
+The backend canonicalizes source identifiers and permitted fields, rejects duplicate sources, requires HTTPS source
+evidence, prevents usage rights from being recorded for non-approved sources, and creates a deterministic SHA-256
+manifest. Even a structurally complete future approval remains disabled until a separate integration-activation
+review.
+
+After committing, pulling, and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewNewsSourcePermissions.ps1' `
+    -RequestedOn '2026-09-09' `
+    -PreparedBy 'Harshal Pande'
+```
+
+The accepted result is `Status=REVIEW_REQUIRED`, `PermissionContractVersion=NEWS_SOURCE_PERMISSION_V1`, eight
+sources, four awaiting responses, four requiring published-terms review, zero approved, rejected, eligible, or
+enabled sources, `RegisterPersistenceReady=True`, `ContentIngestionAllowed=False`, a lowercase SHA-256 manifest,
+and zero provider requests, stored articles, database writes, Ollama calls, news features, signals, or orders.
+Share the complete summary and JSON artifact before permission-register persistence is prepared.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
