@@ -79,3 +79,13 @@ marketbrain:
     long-poll-timeout-seconds: ${MARKETBRAIN_TELEGRAM_LONG_POLL_TIMEOUT_SECONDS:20}
     poll-delay-millis: ${MARKETBRAIN_TELEGRAM_POLL_DELAY_MILLIS:1000}
     test-alerts-enabled: ${MARKETBRAIN_TELEGRAM_TEST_ALERTS_ENABLED:false}
+  whatsapp:
+    enabled: ${MARKETBRAIN_WHATSAPP_ENABLED:false}
+    sandbox-mode: ${MARKETBRAIN_WHATSAPP_SANDBOX_MODE:true}
+    graph-version: ${MARKETBRAIN_WHATSAPP_GRAPH_VERSION:}
+    phone-number-id: ${MARKETBRAIN_WHATSAPP_PHONE_NUMBER_ID:}
+    waba-id: ${MARKETBRAIN_WHATSAPP_WABA_ID:}
+    access-token: ${MARKETBRAIN_WHATSAPP_ACCESS_TOKEN:}
+    app-secret: ${MARKETBRAIN_WHATSAPP_APP_SECRET:}
+    verify-token: ${MARKETBRAIN_WHATSAPP_VERIFY_TOKEN:}
+    allowed-wa-id: ${MARKETBRAIN_WHATSAPP_ALLOWED_WA_ID:}

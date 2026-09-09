@@ -26,6 +26,17 @@ The system must suppress duplicate and non-actionable alerts. Telegram actions a
 
 The current Telegram foundation supports secure pairing and fixed test alerts only. An APPROVE test callback is audited but blocked; it cannot create a paper fill until live quote retrieval and risk revalidation are implemented.
 
+## WhatsApp sandbox policy
+
+The Meta-provided `+1` test number may be used only as an optional development mirror to one explicitly
+allow-listed personal recipient. Telegram remains the authoritative daily notification channel until a real owned
+sender number, production token, approved templates, and stable public ingress have passed a separate review.
+
+The WhatsApp webhook is disabled by default. When enabled, it accepts only Meta-signed requests for the configured
+WhatsApp Business Account, phone-number ID, and recipient identity. Raw webhook payloads, phone numbers, Meta IDs,
+message text, and button payloads are not stored; only keyed hashes and a minimal immutable idempotency record are kept.
+No WhatsApp callback can currently create a signal, paper order, broker order, or trading action.
+
 ## Signal validity
 
 Every actionable signal carries a reference price, acceptable price zone, maximum slippage, validity window, and source timestamp. A fresh quote and risk reassessment are required immediately before a paper order is created. A BUY outside its zone must not be chased. A protective sell can remain valid during adverse movement under explicit exit-risk rules.
