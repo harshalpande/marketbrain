@@ -3151,6 +3151,61 @@ For every subsequent completed daily run on or after the activation date, no man
 The same quality gates, immutable persistence, independent verification, and one Telegram conclusion run
 automatically. Keep model training and signal generation disabled until their own reviewed milestone.
 
+## Step 60: preview the governed swing-training label contract
+
+This database-only step validates how point-in-time `TECHNICAL_V1` inputs will be paired with future outcomes. It
+uses one explicit as-of cohort and a fixed label-through boundary so the same request remains reproducible as newer
+daily data arrives. The input calculation can see only governed candles on or before the as-of date. Labels can see
+only governed candles after that boundary and calculate the approved 5, 20, and 60 market-session outcomes:
+
+- gross and assumed-cost-adjusted forward return;
+- maximum favourable and adverse excursion from the as-of close;
+- maximum close-to-close drawdown during the holding path;
+- an equal-weight current-snapshot return proxy and the instrument's excess return over that proxy.
+
+The default 50 basis-point round-trip cost is an explicit conservative modelling assumption, not a claim about an
+actual broker bill. It is stored in the preview and manifest and can be changed only by making a visibly different
+request. A market-session date must contain canonical candles for at least 80 percent of the current snapshot; an
+instrument missing its exact horizon-date candle is `RIGHT_CENSORED`, not silently shifted to a later date.
+
+MarketBrain currently has an official current NIFTY 500 snapshot but no date-effective historical constituent
+history. Therefore this cohort deliberately reports `HistoricalMembershipStatus=CURRENT_SNAPSHOT_ONLY`,
+`SurvivorshipBiasPresent=True`, and `TrainingEligible=False`. The equal-weight result is a transparent benchmark
+proxy, not the official historical NIFTY 500 index return. Step 60 validates the label mathematics and lineage; it
+does not authorize model training.
+
+After committing, pulling, and rebuilding on the spare laptop, run the reviewed historical window:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewSwingTrainingDataset.ps1' `
+    -AsOf '2026-06-05' `
+    -LabelThrough '2026-09-08' `
+    -AssumedRoundTripCostBps 50
+```
+
+The accepted result is `Status=REVIEW_REQUIRED`, `DatasetContractVersion=SWING_TRAINING_V1`,
+`FeatureSetVersion=TECHNICAL_V1`, exactly 500 classifications, horizons `5,20,60`, three populated benchmark
+outcomes, a lowercase SHA-256 manifest, point-in-time safety and future-label separation both true, and all model,
+Ollama, signal, order, and database-write counts zero. At least one instrument must be fully labelled. The eligible
+feature count must equal fully labelled plus right-censored counts. Training eligibility must remain false. Share the
+complete summary and JSON artifact before date-effective historical membership acquisition or persistence is
+designed.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

@@ -3,7 +3,7 @@ package in.marketbrain.feature;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-record FeatureCandle(
+public record FeatureCandle(
         LocalDate tradingDate,
         String source,
         BigDecimal open,

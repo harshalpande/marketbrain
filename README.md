@@ -23,6 +23,11 @@ Once activated, a durable post-collection scheduler repeats the reviewed daily h
 exact immutable snapshot, verifies it independently, and sends one private Telegram conclusion. Incomplete or
 unverifiable data remains non-actionable. Feature persistence cannot create signals, orders, or broker actions.
 
+The first strategy-data increment is a read-only swing-training cohort preview. It keeps `TECHNICAL_V1` inputs at
+an explicit as-of date separate from 5, 20, and 60-session future outcomes, costs, excursions, drawdown, and an
+equal-weight benchmark proxy. Current constituents are not treated as historical membership: survivor bias is
+reported explicitly and keeps the preview ineligible for model training until date-effective membership is added.
+
 ## Repository layout
 
 | Path | Purpose |

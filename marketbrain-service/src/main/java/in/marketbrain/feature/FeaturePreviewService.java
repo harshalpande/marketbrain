@@ -12,7 +12,7 @@ import java.util.List;
 public class FeaturePreviewService {
 
     static final int MINIMUM_OBSERVATIONS = 252;
-    static final String FEATURE_SET_VERSION = "TECHNICAL_V1";
+    public static final String FEATURE_SET_VERSION = "TECHNICAL_V1";
 
     private final JdbcTemplate jdbcTemplate;
     private final TechnicalFeatureCalculator calculator;
