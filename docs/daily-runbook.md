@@ -3206,6 +3206,65 @@ feature count must equal fully labelled plus right-censored counts. Training eli
 complete summary and JSON artifact before date-effective historical membership acquisition or persistence is
 designed.
 
+## Step 61: preview an authorized date-effective NIFTY 500 membership source
+
+Step 60 proved the label contract but deliberately exposed survivorship bias. The public NIFTY 500 constituent
+CSV is only a current snapshot and must not be backdated. NSE Indices offers historical constituent data through
+its data-subscription service, and its public reconstitution notices can be retained as supporting evidence. Obtain
+an authorized source before running this step; do not derive membership from market-cap rankings, price data, or
+an unofficial website.
+
+- Official data-subscription information: <https://www.niftyindices.com/offerings/data-subscription>
+- Official reconstitution calendar: <https://www.niftyindices.com/resources/index-rebalancing-schedule>
+
+The reviewed CSV contract is:
+
+```text
+symbol,isin,companyName,effectiveFrom,effectiveTo
+INFY,INE009A01021,Infosys Limited,2026-04-01,
+```
+
+Dates use `YYYY-MM-DD`; `effectiveTo` is inclusive and blank only while a membership remains open. Preserve the
+authorized source separately and do not hand-edit dates to make validation pass. The preview computes the file's
+SHA-256 locally, sends the exact bytes to the loopback backend, and verifies:
+
+- exactly 500 unique symbols and ISINs are active on the requested as-of date;
+- one ISIN has no overlapping effective periods;
+- every active ISIN resolves to one current instrument or an evidence-backed historical identity alias;
+- the response and manifest are deterministic and all persistence, training, Ollama, signal and order counts are zero.
+
+After the authorized file is placed on the spare laptop, use its actual evidence URL and source name:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewHistoricalNifty500Membership.ps1' `
+    -CsvPath 'C:\MarketBrainData\Review\nifty500-historical-membership-authorized.csv' `
+    -AsOf '2026-06-05' `
+    -SourceName 'NSE Indices authorized historical constituent data' `
+    -SourceUrl 'https://replace-with-the-actual-source-evidence-url'
+```
+
+Do not run the placeholder URL. The accepted result is `Status=REVIEW_REQUIRED`,
+`MembershipContractVersion=NIFTY500_HISTORICAL_MEMBERSHIP_V1`, 500 active and matched members, no unmatched or
+ambiguous members, no duplicates or overlapping periods, `HistoricalMembershipStatus=DATE_EFFECTIVE_SOURCE_PREVIEW`,
+`EffectiveDateSafe=True`, `PersistenceReady=True`, `TrainingEligible=False`, a lowercase SHA-256 manifest, and zero
+database writes or downstream actions. Share the complete summary and JSON artifact before membership persistence
+or a historical-candle expansion is prepared.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

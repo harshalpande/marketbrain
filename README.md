@@ -30,6 +30,11 @@ an explicit as-of date separate from 5, 20, and 60-session future outcomes, cost
 equal-weight benchmark proxy. Current constituents are not treated as historical membership: survivor bias is
 reported explicitly and keeps the preview ineligible for model training until date-effective membership is added.
 
+The next governed boundary accepts an authorized, date-effective NIFTY 500 membership CSV only through a
+hash-locked read-only preview. It verifies interval integrity, exactly 500 active members on the requested date,
+current and historical ISIN matching, and a deterministic manifest. Public current-constituent files are never
+invented into historical membership; persistence and model training remain separately disabled.
+
 ## Repository layout
 
 | Path | Purpose |

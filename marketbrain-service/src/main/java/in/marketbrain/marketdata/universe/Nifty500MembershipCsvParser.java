@@ -1,5 +1,7 @@
 package in.marketbrain.marketdata.universe;
 
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -16,6 +18,7 @@ import java.util.Set;
  * a later persistence step. It deliberately does not download, scrape, or write
  * to the database.
  */
+@Component
 public class Nifty500MembershipCsvParser {
 
     private static final List<String> EXPECTED_HEADER =
@@ -27,7 +30,7 @@ public class Nifty500MembershipCsvParser {
             if (header == null) {
                 throw new IllegalArgumentException("Nifty 500 CSV is empty");
             }
-            validateHeader(parseCsvLine(header), 1);
+            validateHeader(parseCsvLine(header.replace("\uFEFF", "")), 1);
 
             List<Nifty500MembershipRecord> records = new ArrayList<>();
             Set<String> uniqueMembershipStarts = new HashSet<>();
@@ -42,11 +45,19 @@ public class Nifty500MembershipCsvParser {
                 if (fields.size() != EXPECTED_HEADER.size()) {
                     throw new IllegalArgumentException("Expected 5 columns at line " + lineNumber);
                 }
+                String symbol = fields.get(0).trim().toUpperCase(Locale.ROOT);
+                String isin = fields.get(1).trim().toUpperCase(Locale.ROOT);
+                if (!symbol.matches("[A-Z0-9&._-]{1,64}")) {
+                    throw new IllegalArgumentException("Invalid NSE symbol at line " + lineNumber);
+                }
+                if (!isin.matches("[A-Z]{2}[A-Z0-9]{10}")) {
+                    throw new IllegalArgumentException("Invalid ISIN at line " + lineNumber);
+                }
                 Nifty500MembershipRecord record = new Nifty500MembershipRecord(
-                        fields.get(0).trim(), fields.get(1).trim(), fields.get(2).trim(),
+                        symbol, isin, fields.get(2).trim(),
                         parseDate(fields.get(3), "effectiveFrom", lineNumber),
                         optionalDate(fields.get(4), "effectiveTo", lineNumber));
-                String uniqueKey = record.symbol().toUpperCase(Locale.ROOT) + "|" + record.effectiveFrom();
+                String uniqueKey = record.symbol() + "|" + record.effectiveFrom();
                 if (!uniqueMembershipStarts.add(uniqueKey)) {
                     throw new IllegalArgumentException("Duplicate symbol and effectiveFrom at line " + lineNumber);
                 }

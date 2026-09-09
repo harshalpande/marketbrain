@@ -32,6 +32,12 @@ Paytm Money API access and tokens must remain in the spare laptop's untracked `.
 
 The official current constituent file is obtained from the NIFTY Indices NIFTY 500 page. MarketBrain records the retrieval date, source URL, SHA-256 digest, complete source membership, and whether each row matched the current Upstox instrument master. This is an observed current snapshot only; it is never presented as historical membership.
 
+Date-effective historical constituent history is a separate governed input. NSE Indices publishes a data-subscription
+route for historical constituent data; MarketBrain does not backdate the public current CSV or infer constituents
+from market capitalization. An authorized CSV must first pass the hash-locked Step 61 read-only preview, including
+effective-period overlap checks, an exact 500-member as-of set, and ISIN-based instrument matching. Persistence,
+historical candle expansion, and model training remain separately reviewed operations.
+
 The pilot backfill uses ten configured symbols from the latest current snapshot. A 15-year pilot becomes 150 independently checkpointed yearly chunks. The worker is disabled by default and requires an explicit job start. Data and authentication failures are retried at most three times. Connectivity, rate-limit, and temporary provider failures instead enter a persisted `WAITING_FOR_CONNECTIVITY` state with 1, 5, and 15 minute backoff, do not consume data attempts, and automatically continue when a retry succeeds. No credential-bearing provider error text is stored.
 
 After completion, a read-only quality audit reports per-symbol coverage, logical duplicates, invalid OHLC/volume rows, calendar gaps over seven days, and close-to-close moves over 20 percent. Gaps and large moves are review candidates rather than automatic errors because listings, suspensions, splits, and bonuses can produce them. An optional one-request-per-instrument Upstox spot comparison verifies the latest stored close in the completed job range without mutating stored candles.

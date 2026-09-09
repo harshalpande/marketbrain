@@ -16,11 +16,13 @@ class Nifty500MembershipCsvParserTest {
     void parsesDateEffectiveMembershipAndQuotedCompanyName() throws Exception {
         var records = parser.parse(new StringReader("""
                 symbol,isin,companyName,effectiveFrom,effectiveTo
-                INFY,INE009A01021,Infosys Limited,2026-01-01,
+                infy,ine009a01021,Infosys Limited,2026-01-01,
                 ACME,INE000A01001,"Acme, Industries Limited",2026-02-01,2026-07-31
                 """));
 
         assertThat(records).hasSize(2);
+        assertThat(records.getFirst().symbol()).isEqualTo("INFY");
+        assertThat(records.getFirst().isin()).isEqualTo("INE009A01021");
         assertThat(records.get(1)).isEqualTo(new Nifty500MembershipRecord(
                 "ACME", "INE000A01001", "Acme, Industries Limited",
                 LocalDate.of(2026, 2, 1), LocalDate.of(2026, 7, 31)));
@@ -45,5 +47,15 @@ class Nifty500MembershipCsvParserTest {
                 """)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("effectiveTo");
+    }
+
+    @Test
+    void rejectsAnInvalidIsin() {
+        assertThatThrownBy(() -> parser.parse(new StringReader("""
+                symbol,isin,companyName,effectiveFrom,effectiveTo
+                INFY,NOT_AN_ISIN,Infosys Limited,2026-01-01,
+                """)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("ISIN");
     }
 }
