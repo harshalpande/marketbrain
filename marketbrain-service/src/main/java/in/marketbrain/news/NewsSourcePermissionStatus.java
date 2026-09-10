@@ -4,5 +4,8 @@ public enum NewsSourcePermissionStatus {
     AWAITING_RESPONSE,
     TERMS_REVIEW_REQUIRED,
     APPROVED,
-    REJECTED
+    REJECTED,
+    API_LICENSE_ACCEPTED,
+    PUBLIC_TERMS_ALLOWED,
+    PAID_ONLY
 }

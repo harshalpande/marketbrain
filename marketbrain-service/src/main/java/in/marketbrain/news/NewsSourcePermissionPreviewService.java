@@ -114,9 +114,11 @@ public class NewsSourcePermissionPreviewService {
         List<String> permittedFields = normalizeFields(source.permittedFields(), sourceKey);
         validateDatesAndRules(source, sourceKey, permittedFields);
 
-        boolean complete = source.permissionStatus() == NewsSourcePermissionStatus.APPROVED
-                || source.permissionStatus() == NewsSourcePermissionStatus.REJECTED;
-        boolean eligible = source.permissionStatus() == NewsSourcePermissionStatus.APPROVED
+        boolean approvedForUse = approvedForUse(source.permissionStatus());
+        boolean complete = approvedForUse
+                || source.permissionStatus() == NewsSourcePermissionStatus.REJECTED
+                || source.permissionStatus() == NewsSourcePermissionStatus.PAID_ONLY;
+        boolean eligible = approvedForUse
                 && source.decidedOn() != null
                 && source.retentionDays() != null
                 && !permittedFields.isEmpty();
@@ -124,9 +126,16 @@ public class NewsSourcePermissionPreviewService {
             case AWAITING_RESPONSE -> "A written response is pending; ingestion is prohibited.";
             case TERMS_REVIEW_REQUIRED -> "Published terms require review; ingestion is prohibited.";
             case APPROVED -> eligible
-                    ? "The recorded decision is complete but integration still requires a separate activation review."
-                    : "The approval record is incomplete; ingestion is prohibited.";
+                    ? "The written approval is complete but integration still requires a separate activation review."
+                    : "The written approval record is incomplete; ingestion is prohibited.";
+            case API_LICENSE_ACCEPTED -> eligible
+                    ? "The API licence is accepted but integration still requires a separate activation review."
+                    : "The API licence record is incomplete; ingestion is prohibited.";
+            case PUBLIC_TERMS_ALLOWED -> eligible
+                    ? "The public terms allow the recorded use but integration still requires a separate activation review."
+                    : "The public-terms record is incomplete; ingestion is prohibited.";
             case REJECTED -> "Permission was rejected; ingestion is prohibited.";
+            case PAID_ONLY -> "The source requires a paid licence; ingestion is prohibited until subscribed.";
         };
 
         return new NewsSourcePermissionItemPreview(
@@ -174,10 +183,10 @@ public class NewsSourcePermissionPreviewService {
                 && source.requestedOn() != null) {
             throw new IllegalArgumentException(sourceKey + ": requestedOn must be empty until a request is sent.");
         }
-        if (source.permissionStatus() == NewsSourcePermissionStatus.APPROVED) {
+        if (approvedForUse(source.permissionStatus())) {
             if (source.decidedOn() == null || source.retentionDays() == null || permittedFields.isEmpty()) {
                 throw new IllegalArgumentException(sourceKey
-                        + ": an approved permission needs decidedOn, retentionDays, and permittedFields.");
+                        + ": an approved or accepted permission needs decidedOn, retentionDays, and permittedFields.");
             }
         } else if (source.headlineStorageAllowed()
                 || source.snippetStorageAllowed()
@@ -222,6 +231,12 @@ public class NewsSourcePermissionPreviewService {
 
     private int count(List<NewsSourcePermissionItemPreview> sources, NewsSourcePermissionStatus status) {
         return (int) sources.stream().filter(source -> source.permissionStatus() == status).count();
+    }
+
+    private boolean approvedForUse(NewsSourcePermissionStatus status) {
+        return status == NewsSourcePermissionStatus.APPROVED
+                || status == NewsSourcePermissionStatus.API_LICENSE_ACCEPTED
+                || status == NewsSourcePermissionStatus.PUBLIC_TERMS_ALLOWED;
     }
 
     private String normalizeKey(String value) {

@@ -1,6 +1,6 @@
 # News and event intelligence design
 
-Status: approved target design; implementation remains a separate reviewed milestone.
+Status: approved target design; permission register and disabled connector foundation are implemented.
 
 ## Purpose
 
@@ -92,3 +92,18 @@ An audited cleanup job removes expired content without silently deleting feature
 8. Enable deduplicated Telegram notes, then separately review actionable paper-trading candidates.
 
 The news module must not alter the already governed daily candle collection and technical snapshot pipelines until its own quality and point-in-time audits pass.
+
+## Implemented foundation
+
+The first implementation milestone creates:
+
+- a database-backed source-permission register seeded with Marketaux, Economic Times RSS, Mint RSS, Business Standard RSS, NSE disclosures, BSE disclosures, SEBI public updates and RBI press releases;
+- checkpoint, article-metadata, story-cluster, entity-match and derived-event tables;
+- disabled-by-default Marketaux and RSS connector contracts, plus official-event connector registration with source-specific extractors still gated for review;
+- guarded article persistence that stores only fields permitted by the source register;
+- offline Marketaux and RSS parsers for deterministic fixture tests;
+- `/api/v1/news/ingestion/status`, which reports source readiness without contacting providers;
+- `/api/v1/news/ingestion/run-once`, which manually runs only sources that pass every global and source-level gate;
+- `ops/windows/VerifyNewsIngestionFoundation.ps1`, which proves all eight sources are implemented, persisted, and blocked by governance.
+
+The defaults keep `marketbrain.news.enabled=false` and `marketbrain.news.live-fetch-enabled=false`. Deployment of this foundation must not call providers, store articles, call Ollama, create news features, create signals, create orders, or perform broker actions.

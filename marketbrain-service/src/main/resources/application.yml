@@ -74,6 +74,14 @@ marketbrain:
     activation-date: ${MARKETBRAIN_DAILY_FEATURE_SNAPSHOT_ACTIVATION_DATE:9999-12-31}
     monitor-delay-millis: ${MARKETBRAIN_DAILY_FEATURE_SNAPSHOT_MONITOR_DELAY_MILLIS:30000}
     maximum-attempts: ${MARKETBRAIN_DAILY_FEATURE_SNAPSHOT_MAXIMUM_ATTEMPTS:3}
+  news:
+    enabled: ${MARKETBRAIN_NEWS_ENABLED:false}
+    live-fetch-enabled: ${MARKETBRAIN_NEWS_LIVE_FETCH_ENABLED:false}
+    maximum-articles-per-day: ${MARKETBRAIN_NEWS_MAXIMUM_ARTICLES_PER_DAY:100}
+    request-timeout-seconds: ${MARKETBRAIN_NEWS_REQUEST_TIMEOUT_SECONDS:20}
+    marketaux:
+      base-url: ${MARKETBRAIN_MARKETAUX_BASE_URL:https://api.marketaux.com/v1/news/all}
+      api-token: ${MARKETBRAIN_MARKETAUX_API_TOKEN:}
   telegram:
     enabled: ${MARKETBRAIN_TELEGRAM_ENABLED:false}
     bot-token: ${MARKETBRAIN_TELEGRAM_BOT_TOKEN:}

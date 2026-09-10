@@ -65,6 +65,26 @@ class NewsSourcePermissionPreviewServiceTest {
     }
 
     @Test
+    void treatsAcceptedApiLicenceAsEligibleButStillDisabledUntilActivation() {
+        NewsSourcePermissionDraft marketaux = new NewsSourcePermissionDraft(
+                "MARKETAUX_API", "Marketaux API", NewsSourceType.NEWS_API,
+                NewsSourcePermissionStatus.API_LICENSE_ACCEPTED,
+                "https://www.marketaux.com/tos", "PUBLIC_API_TERMS_ACCEPTED",
+                LocalDate.of(2026, 9, 9), LocalDate.of(2026, 9, 10), 365,
+                true, true, false, true, true, true,
+                List.of("HEADLINE", "SNIPPET", "URL", "PUBLISHED_AT", "ENTITIES"));
+
+        NewsSourcePermissionPreview preview = service.preview(new NewsSourcePermissionPreviewRequest(
+                LocalDate.of(2026, 9, 10), "Reviewer", List.of(marketaux)));
+
+        assertThat(preview.permissionCompleteCount()).isOne();
+        assertThat(preview.integrationEligibleCount()).isOne();
+        assertThat(preview.integrationEnabledCount()).isZero();
+        assertThat(preview.contentIngestionAllowed()).isFalse();
+        assertThat(preview.sources().getFirst().detail()).contains("API licence is accepted");
+    }
+
+    @Test
     void refusesUsageRightsWhileResponseIsPending() {
         NewsSourcePermissionDraft unsafe = new NewsSourcePermissionDraft(
                 "PENDING_SOURCE", "Pending", NewsSourceType.RSS,
