@@ -43,6 +43,11 @@ register. Every API, RSS feed, and official disclosure source records its eviden
 explicit usage rights have been reviewed. Pending correspondence cannot grant storage or local-AI rights, and the
 permission preview cannot fetch news, write data, call Ollama, create a feature, or create a signal or order.
 
+If licensed historical NIFTY 500 membership remains unavailable, MarketBrain can use a separate read-only fallback
+preview over currently active NSE instruments that already have governed daily candles. This fallback is useful for
+prototype training-dataset work, but it is not historical NIFTY 500 membership and it retains an explicit
+current-universe survivorship-risk warning until delisted historical equities are added.
+
 ## Repository layout
 
 | Path | Purpose |

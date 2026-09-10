@@ -3411,6 +3411,42 @@ enabled sources, `RegisterPersistenceReady=True`, `ContentIngestionAllowed=False
 and zero provider requests, stored articles, database writes, Ollama calls, news features, signals, or orders.
 Share the complete summary and JSON artifact before permission-register persistence is prepared.
 
+## Step 63: preview the fallback tradable-equity training universe
+
+If licensed historical NIFTY 500 membership is still unavailable, do not wait indefinitely and do not invent index
+membership. This step previews a separate `AVAILABLE_NSE_EQUITY_DATA` universe made from currently active NSE
+instruments with persisted governed daily candles. It is useful for prototype training-dataset work, but it is not
+the historical NIFTY 500 benchmark universe and it keeps a survivorship-risk warning visible.
+
+After committing, pulling, and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewTradableEquityTrainingUniverse.ps1' `
+    -AsOf '2026-09-08'
+```
+
+The accepted result is `UniverseContractVersion=TRADEABLE_EQUITY_TRAINING_UNIVERSE_V1`,
+`UniverseCode=AVAILABLE_NSE_EQUITY_DATA`, at least one active NSE instrument, reconciled classification counts,
+`CurrentTradableUniverse=True`, `Nifty500HistoricalMembershipRequired=False`, `SurvivorshipRiskPresent=True`,
+`BenchmarkTrainingEligible=False`, `PointInTimeSafe=True`, a lowercase SHA-256 manifest, and zero database writes,
+Ollama calls, signals, orders, or broker actions. Share the complete summary and JSON artifact before prototype
+training-dataset persistence is prepared.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
