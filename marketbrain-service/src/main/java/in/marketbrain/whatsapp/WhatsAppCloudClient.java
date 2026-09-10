@@ -2,6 +2,7 @@ package in.marketbrain.whatsapp;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import in.marketbrain.configuration.WhatsAppProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ class WhatsAppCloudClient {
     private final RestClient restClient;
     private final WhatsAppProperties properties;
 
+    @Autowired
     WhatsAppCloudClient(RestClient.Builder builder, WhatsAppProperties properties) {
         this(builder.baseUrl("https://graph.facebook.com").build(), properties);
     }
