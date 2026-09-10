@@ -24,6 +24,17 @@ GET  /api/v1/whatsapp/webhook
 POST /api/v1/whatsapp/webhook
 ```
 
+Two content-only public information routes support Meta's app transparency requirements:
+
+```text
+GET  /api/v1/whatsapp/privacy
+GET  /api/v1/whatsapp/data-deletion
+```
+
+They perform no database access, accept no request content, load no third-party scripts, and expose no credentials or
+runtime configuration. The Cloudflare tunnel must route only these two paths and the webhook path; the service root
+and every unrelated API path remain private.
+
 The `GET` route performs Meta's one-time verify-token challenge. The `POST` route verifies
 `X-Hub-Signature-256` against the Meta App Secret before parsing the exact raw request bytes. It then requires the
 configured WABA ID, phone-number ID, and personal recipient `wa_id`. Enter `wa_id` as country-code plus number,
