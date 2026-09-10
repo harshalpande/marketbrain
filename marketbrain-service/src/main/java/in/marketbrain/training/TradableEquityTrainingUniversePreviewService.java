@@ -35,63 +35,55 @@ public class TradableEquityTrainingUniversePreviewService {
                 FROM instrument
                 WHERE exchange = 'NSE'
                   AND active = TRUE
-            ), ranked AS (
+            ), source_priority AS (
+                SELECT id AS source_id,
+                       code AS source_code,
+                       CASE code
+                           WHEN 'NSE_BHAVCOPY' THEN 1
+                           WHEN 'UPSTOX' THEN 2
+                           ELSE 3
+                       END AS priority
+                FROM market_data_source
+                WHERE code IN ('NSE_BHAVCOPY', 'UPSTOX')
+            ), canonical AS (
+                SELECT DISTINCT ON (candle.instrument_id, candle.opened_at)
+                       candle.instrument_id,
+                       (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date,
+                       source_priority.source_code,
+                       exclusion.instrument_id IS NOT NULL AS excluded
+                FROM market_candle candle
+                JOIN active_instrument
+                  ON active_instrument.instrument_id = candle.instrument_id
+                JOIN source_priority
+                  ON source_priority.source_id = candle.source_id
+                LEFT JOIN market_data_feature_exclusion exclusion
+                  ON exclusion.instrument_id = candle.instrument_id
+                 AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                     BETWEEN exclusion.exclusion_from AND exclusion.exclusion_to
+                WHERE candle.interval_code = 'days:1'
+                  AND candle.is_complete = TRUE
+                  AND candle.opened_at <= (CAST(? AS date)::timestamp AT TIME ZONE 'Asia/Kolkata')
+                ORDER BY candle.instrument_id, candle.opened_at, source_priority.priority,
+                         candle.received_at DESC, candle.id DESC
+            ), classified AS (
                 SELECT active_instrument.instrument_id,
                        active_instrument.symbol,
                        active_instrument.isin,
                        active_instrument.display_name,
-                       (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date,
-                       source.code AS source_code,
-                       EXISTS (
-                           SELECT 1
-                           FROM market_data_feature_exclusion exclusion
-                           WHERE exclusion.instrument_id = active_instrument.instrument_id
-                             AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                                 BETWEEN exclusion.exclusion_from AND exclusion.exclusion_to
-                       ) AS excluded,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY active_instrument.instrument_id,
-                                        (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                           ORDER BY CASE source.code
-                               WHEN 'NSE_BHAVCOPY' THEN 1
-                               WHEN 'UPSTOX' THEN 2
-                               ELSE 3
-                           END,
-                           candle.received_at DESC,
-                           candle.id DESC
-                       ) AS source_rank
-                FROM active_instrument
-                LEFT JOIN market_candle candle
-                  ON candle.instrument_id = active_instrument.instrument_id
-                 AND candle.interval_code = 'days:1'
-                 AND candle.is_complete = TRUE
-                 AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date <= ?
-                 AND candle.source_id IN (
-                     SELECT id
-                     FROM market_data_source
-                     WHERE code IN ('NSE_BHAVCOPY', 'UPSTOX')
-                 )
-                LEFT JOIN market_data_source source ON source.id = candle.source_id
-            ), canonical AS (
-                SELECT instrument_id, symbol, isin, display_name, trading_date, source_code, excluded
-                FROM ranked
-                WHERE source_rank = 1
-            ), classified AS (
-                SELECT instrument_id,
-                       symbol,
-                       isin,
-                       display_name,
-                       MIN(trading_date) AS first_candle_date,
-                       MAX(trading_date) AS latest_candle_date,
-                       COUNT(trading_date)::integer AS canonical_observation_count,
-                       COALESCE(SUM(CASE WHEN trading_date IS NOT NULL AND excluded = FALSE
+                       MIN(canonical.trading_date) AS first_candle_date,
+                       MAX(canonical.trading_date) AS latest_candle_date,
+                       COUNT(canonical.trading_date)::integer AS canonical_observation_count,
+                       COALESCE(SUM(CASE WHEN canonical.excluded = FALSE
                            THEN 1 ELSE 0 END), 0)::integer AS eligible_observation_count,
-                       COALESCE(SUM(CASE WHEN trading_date IS NOT NULL AND excluded = TRUE
+                       COALESCE(SUM(CASE WHEN canonical.excluded = TRUE
                            THEN 1 ELSE 0 END), 0)::integer AS excluded_observation_count,
-                       (ARRAY_AGG(source_code ORDER BY trading_date DESC)
-                           FILTER (WHERE trading_date IS NOT NULL))[1] AS latest_source
-                FROM canonical
-                GROUP BY instrument_id, symbol, isin, display_name
+                       (ARRAY_AGG(canonical.source_code ORDER BY canonical.trading_date DESC)
+                           FILTER (WHERE canonical.trading_date IS NOT NULL))[1] AS latest_source
+                FROM active_instrument
+                LEFT JOIN canonical
+                  ON canonical.instrument_id = active_instrument.instrument_id
+                GROUP BY active_instrument.instrument_id, active_instrument.symbol,
+                         active_instrument.isin, active_instrument.display_name
             )
             SELECT instrument_id,
                    symbol,
