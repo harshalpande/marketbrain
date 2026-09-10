@@ -42,47 +42,45 @@ public class SwingTrainingDatasetPreviewService {
                 FROM universe_snapshot_member member
                 WHERE member.snapshot_id = ?
                   AND member.match_status = 'MATCHED'
-            ), ranked AS (
-                SELECT member.source_symbol,
-                       member.instrument_id,
+            ), source_priority AS (
+                SELECT id AS source_id,
+                       code AS source_code,
+                       CASE code
+                           WHEN 'NSE_BHAVCOPY' THEN 1
+                           WHEN 'UPSTOX' THEN 2
+                           ELSE 3
+                       END AS priority
+                FROM market_data_source
+                WHERE code IN ('NSE_BHAVCOPY', 'UPSTOX')
+            ), canonical AS (
+                SELECT DISTINCT ON (candle.instrument_id, candle.opened_at)
+                       member.source_symbol,
+                       candle.instrument_id,
                        (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date AS trading_date,
-                       source.code AS source_code,
+                       source_priority.source_code,
                        candle.open_price,
                        candle.high_price,
                        candle.low_price,
                        candle.close_price,
                        candle.volume,
-                       EXISTS (
-                           SELECT 1
-                           FROM market_data_feature_exclusion exclusion
-                           WHERE exclusion.instrument_id = candle.instrument_id
-                             AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                                 BETWEEN exclusion.exclusion_from AND exclusion.exclusion_to
-                       ) AS excluded,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY candle.instrument_id,
-                                        (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
-                           ORDER BY CASE source.code
-                               WHEN 'NSE_BHAVCOPY' THEN 1
-                               WHEN 'UPSTOX' THEN 2
-                               ELSE 3
-                           END,
-                           candle.received_at DESC,
-                           candle.id DESC
-                       ) AS source_rank
+                       exclusion.instrument_id IS NOT NULL AS excluded
                 FROM members member
                 JOIN market_candle candle ON candle.instrument_id = member.instrument_id
-                JOIN market_data_source source ON source.id = candle.source_id
+                JOIN source_priority ON source_priority.source_id = candle.source_id
+                LEFT JOIN market_data_feature_exclusion exclusion
+                  ON exclusion.instrument_id = candle.instrument_id
+                 AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date
+                     BETWEEN exclusion.exclusion_from AND exclusion.exclusion_to
                 WHERE candle.interval_code = 'days:1'
                   AND candle.is_complete = TRUE
-                  AND source.code IN ('UPSTOX', 'NSE_BHAVCOPY')
-                  AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date > ?
-                  AND (candle.opened_at AT TIME ZONE 'Asia/Kolkata')::date <= ?
+                  AND candle.opened_at > (CAST(? AS date)::timestamp AT TIME ZONE 'Asia/Kolkata')
+                  AND candle.opened_at <= (CAST(? AS date)::timestamp AT TIME ZONE 'Asia/Kolkata')
+                ORDER BY candle.instrument_id, candle.opened_at, source_priority.priority,
+                         candle.received_at DESC, candle.id DESC
             )
             SELECT source_symbol, instrument_id, trading_date, source_code, open_price, high_price,
                    low_price, close_price, volume, excluded
-            FROM ranked
-            WHERE source_rank = 1
+            FROM canonical
             ORDER BY trading_date, instrument_id
             """;
 
@@ -113,7 +111,13 @@ public class SwingTrainingDatasetPreviewService {
         long startedAt = System.nanoTime();
         FeatureUniversePreview features = featurePreviewService.preview(asOf);
         validateFeaturePreview(features, asOf);
+        LOGGER.info("Swing training preview loading future candles: asOf={}, labelThrough={}, instruments={}",
+                asOf, labelThrough, features.instrumentCount());
         FutureCandleSet future = loadFutureCandles(features, asOf, labelThrough);
+        LOGGER.info("Swing training preview future candles loaded: asOf={}, labelThrough={}, candles={}, sessions={}",
+                asOf, labelThrough,
+                future.candlesBySymbol().values().stream().mapToInt(List::size).sum(),
+                future.marketSessions().size());
         Map<Integer, LocalDate> outcomeDates = outcomeDates(future.marketSessions());
         Set<LocalDate> marketSessions = new HashSet<>(future.marketSessions());
 
