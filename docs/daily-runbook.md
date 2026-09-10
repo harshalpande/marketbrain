@@ -222,6 +222,52 @@ docker compose --env-file .env up -d marketbrain-service
 Invoke-RestMethod http://127.0.0.1:8080/api/v1/telegram/status
 ```
 
+### 8A. Perform the controlled WhatsApp sandbox button test
+
+Run this only with Meta's test sender, the single allow-listed personal recipient, a current temporary test token,
+and the Cloudflare tunnel showing `Healthy`. Do not expose `/api/v1/whatsapp/test-alert` through Cloudflare. If the
+WhatsApp conversation window is not current, first send Meta's `hello_world` template from the developer portal and
+reply to it from the allow-listed phone.
+
+Temporarily change this one `.env` value:
+
+```properties
+MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=true
+```
+
+Pull and rebuild the backend, then run the guided test:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\TestWhatsAppSandboxInteractiveAlert.ps1'
+```
+
+The phone receives one visibly labelled `TEST BUY` / `PAPER MODE` alert with `APPROVE`, `REJECT`, and `DETAILS`.
+Press one button within five minutes. The accepted result is `Status=COMPLETED`, exactly one processed action,
+`ActionExecutionEnabled=False`, and `ExecutionMode=PAPER`. `APPROVE` must report
+`BLOCKED_PENDING_FRESH_QUOTE`; `REJECT` reports `REJECTED`; and `DETAILS` reports `DETAILS_SHOWN`. No choice can create
+a signal, PAPER fill, broker order, or live trading action.
+
+After recording the test result, restore the gate and recreate the backend:
+
+```properties
+MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=false
+```
+
+```powershell
+docker compose --env-file .env up -d marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/whatsapp/status'
+```
+
 ### 9. Configure and verify Upstox read-only market data
 
 Prerequisite: generate an Upstox Analytics Token in the authenticated Upstox developer portal. The token is read-only and expires after its provider-defined lifetime. Never paste it into PowerShell history, Git, logs, source code, or chat.

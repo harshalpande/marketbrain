@@ -3,7 +3,10 @@ package in.marketbrain.whatsapp;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import in.marketbrain.configuration.WhatsAppProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,33 +15,45 @@ import java.util.List;
 @Service
 class WhatsAppWebhookService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(WhatsAppWebhookService.class);
+    private static final String ACTION_PREFIX = "mb:";
+
     private final ObjectMapper objectMapper;
     private final WhatsAppProperties properties;
     private final WhatsAppWebhookEventStore store;
+    private final WhatsAppActionProcessor actionProcessor;
+    private final WhatsAppCloudClient client;
 
     WhatsAppWebhookService(
             ObjectMapper objectMapper,
             WhatsAppProperties properties,
-            WhatsAppWebhookEventStore store
+            WhatsAppWebhookEventStore store,
+            WhatsAppActionProcessor actionProcessor,
+            WhatsAppCloudClient client
     ) {
         this.objectMapper = objectMapper;
         this.properties = properties;
         this.store = store;
+        this.actionProcessor = actionProcessor;
+        this.client = client;
     }
 
+    @Transactional
     WhatsAppWebhookResult receive(byte[] payload) throws IOException {
         JsonNode root = objectMapper.readTree(payload);
         String payloadHash = WhatsAppSecurity.sha256(payload);
-        List<WhatsAppWebhookEvent> events = parse(root, payloadHash);
+        List<ParsedEvent> events = parse(root, payloadHash);
 
         int accepted = 0;
         int ignored = 0;
         int duplicates = 0;
-        for (WhatsAppWebhookEvent event : events) {
+        for (ParsedEvent parsed : events) {
+            WhatsAppWebhookEvent event = parsed.event();
             if (!store.save(event)) {
                 duplicates++;
             } else if ("ACCEPTED".equals(event.disposition())) {
                 accepted++;
+                handleAction(parsed);
             } else {
                 ignored++;
             }
@@ -46,8 +61,8 @@ class WhatsAppWebhookService {
         return new WhatsAppWebhookResult(accepted, ignored, duplicates);
     }
 
-    private List<WhatsAppWebhookEvent> parse(JsonNode root, String payloadHash) {
-        List<WhatsAppWebhookEvent> events = new ArrayList<>();
+    private List<ParsedEvent> parse(JsonNode root, String payloadHash) {
+        List<ParsedEvent> events = new ArrayList<>();
         if (!"whatsapp_business_account".equals(root.path("object").asText())) {
             return events;
         }
@@ -65,15 +80,16 @@ class WhatsAppWebhookService {
                             message, wabaId, phoneNumberId, trustedAccount, payloadHash));
                 }
                 for (JsonNode status : value.path("statuses")) {
-                    events.add(statusEvent(
-                            status, wabaId, phoneNumberId, trustedAccount, payloadHash));
+                    events.add(new ParsedEvent(
+                            statusEvent(status, wabaId, phoneNumberId, trustedAccount, payloadHash),
+                            "", "", ""));
                 }
             }
         }
         return events;
     }
 
-    private WhatsAppWebhookEvent messageEvent(
+    private ParsedEvent messageEvent(
             JsonNode message,
             String wabaId,
             String phoneNumberId,
@@ -88,7 +104,7 @@ class WhatsAppWebhookService {
         String eventKey = messageId.isBlank()
                 ? "message:" + payloadHash
                 : "message:" + messageId;
-        return event(
+        WhatsAppWebhookEvent event = event(
                 eventKey,
                 kind,
                 trustedAccount && allowedParticipant ? "ACCEPTED" : "IGNORED",
@@ -98,6 +114,7 @@ class WhatsAppWebhookService {
                 messageId,
                 actionPayload,
                 payloadHash);
+        return new ParsedEvent(event, actionPayload, participantWaId, messageId);
     }
 
     private WhatsAppWebhookEvent statusEvent(
@@ -123,6 +140,28 @@ class WhatsAppWebhookService {
                 messageId,
                 "",
                 payloadHash);
+    }
+
+    private void handleAction(ParsedEvent parsed) {
+        if (!"BUTTON_REPLY".equals(parsed.event().eventKind())
+                || !parsed.actionPayload().startsWith(ACTION_PREFIX)) {
+            return;
+        }
+
+        WhatsAppActionResult result = actionProcessor.process(
+                parsed.participantWaId(),
+                parsed.providerMessageId(),
+                parsed.actionPayload().substring(ACTION_PREFIX.length()));
+        LOGGER.info(
+                "WhatsApp sandbox button handled: action={}, result={}, actionExecutionEnabled=false",
+                result.action(), result.result());
+        if (result.notifyRecipient()) {
+            try {
+                client.sendActionAcknowledgement(result.acknowledgement());
+            } catch (WhatsAppCloudClient.WhatsAppTransportException exception) {
+                LOGGER.warn("WhatsApp action acknowledgement failed; the audited decision remains recorded.");
+            }
+        }
     }
 
     private WhatsAppWebhookEvent event(
@@ -165,5 +204,13 @@ class WhatsAppWebhookService {
 
     private String nullableKeyedHash(String value) {
         return value == null || value.isBlank() ? null : keyedHash(value);
+    }
+
+    private record ParsedEvent(
+            WhatsAppWebhookEvent event,
+            String actionPayload,
+            String participantWaId,
+            String providerMessageId
+    ) {
     }
 }

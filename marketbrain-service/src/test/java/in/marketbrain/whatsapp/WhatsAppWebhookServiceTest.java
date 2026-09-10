@@ -19,7 +19,8 @@ class WhatsAppWebhookServiceTest {
         WhatsAppWebhookEventStore store = mock(WhatsAppWebhookEventStore.class);
         when(store.save(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         WhatsAppWebhookService service = new WhatsAppWebhookService(
-                new ObjectMapper(), properties(), store);
+                new ObjectMapper(), properties(), store,
+                mock(WhatsAppActionProcessor.class), mock(WhatsAppCloudClient.class));
         byte[] payload = payload("waba-id", "phone-number-id", "919999999999")
                 .getBytes(StandardCharsets.UTF_8);
 
@@ -42,7 +43,8 @@ class WhatsAppWebhookServiceTest {
         WhatsAppWebhookEventStore store = mock(WhatsAppWebhookEventStore.class);
         when(store.save(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         WhatsAppWebhookService service = new WhatsAppWebhookService(
-                new ObjectMapper(), properties(), store);
+                new ObjectMapper(), properties(), store,
+                mock(WhatsAppActionProcessor.class), mock(WhatsAppCloudClient.class));
 
         WhatsAppWebhookResult result = service.receive(
                 payload("waba-id", "phone-number-id", "918888888888")
@@ -55,8 +57,32 @@ class WhatsAppWebhookServiceTest {
         assertThat(captor.getValue().disposition()).isEqualTo("IGNORED");
     }
 
+    @Test
+    void routesAnIssuedOpaqueButtonTokenToTheNonTradingActionProcessor() throws Exception {
+        WhatsAppWebhookEventStore store = mock(WhatsAppWebhookEventStore.class);
+        WhatsAppActionProcessor actionProcessor = mock(WhatsAppActionProcessor.class);
+        when(store.save(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(actionProcessor.process(
+                "919999999999", "wamid.test-message", "approve-token"))
+                .thenReturn(new WhatsAppActionResult(
+                        "APPROVE", "BLOCKED_PENDING_FRESH_QUOTE", "", false));
+        WhatsAppWebhookService service = new WhatsAppWebhookService(
+                new ObjectMapper(), properties(), store,
+                actionProcessor, mock(WhatsAppCloudClient.class));
+        byte[] body = payload("waba-id", "phone-number-id", "919999999999")
+                .replace("opaque-action-token", "mb:approve-token")
+                .getBytes(StandardCharsets.UTF_8);
+
+        WhatsAppWebhookResult result = service.receive(body);
+
+        assertThat(result).isEqualTo(new WhatsAppWebhookResult(1, 0, 0));
+        verify(actionProcessor).process(
+                "919999999999", "wamid.test-message", "approve-token");
+    }
+
     private WhatsAppProperties properties() {
         return new WhatsAppProperties(
+                true,
                 true,
                 true,
                 "v25.0",

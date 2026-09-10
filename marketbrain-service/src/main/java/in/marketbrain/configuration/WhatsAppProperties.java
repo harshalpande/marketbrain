@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record WhatsAppProperties(
         boolean enabled,
         boolean sandboxMode,
+        boolean testAlertsEnabled,
         String graphVersion,
         String phoneNumberId,
         String wabaId,

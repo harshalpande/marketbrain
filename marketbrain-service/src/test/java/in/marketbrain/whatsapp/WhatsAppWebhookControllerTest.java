@@ -63,6 +63,7 @@ class WhatsAppWebhookControllerTest {
         return new WhatsAppProperties(
                 true,
                 true,
+                true,
                 "v5.0",
                 "phone-number-id",
                 "waba-id",

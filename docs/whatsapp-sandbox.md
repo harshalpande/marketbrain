@@ -51,6 +51,7 @@ Real values belong only in the spare laptop's ignored `.env` file:
 ```dotenv
 MARKETBRAIN_WHATSAPP_ENABLED=false
 MARKETBRAIN_WHATSAPP_SANDBOX_MODE=true
+MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=false
 MARKETBRAIN_WHATSAPP_GRAPH_VERSION=
 MARKETBRAIN_WHATSAPP_PHONE_NUMBER_ID=
 MARKETBRAIN_WHATSAPP_WABA_ID=
@@ -64,8 +65,27 @@ Never paste those values into source code, Git, logs, screenshots, or chat. The 
 is suitable only for short development tests. A reviewed System User token is required before unattended delivery
 is considered.
 
+## Interactive sandbox test
+
+The local-only test endpoint can send one synthetic `TEST-EQ` BUY alert with `APPROVE`, `REJECT`, and `DETAILS`
+quick-reply buttons. Each button carries a random opaque token whose SHA-256 hash is retained in the existing alert
+audit tables. A signed callback must also match the configured WABA, phone-number ID, and allow-listed `wa_id`.
+
+The chosen action is recorded once. `REJECT` records rejection, `DETAILS` returns test-only context, and `APPROVE`
+is always recorded as `BLOCKED_PENDING_FRESH_QUOTE`. All three paths create zero signals, PAPER fills, broker orders,
+or live trading actions. The test endpoint and its sanitized status endpoint remain localhost-only and must never be
+added to the Cloudflare tunnel routes.
+
+Free-form interactive messages require a current WhatsApp conversation window. If Meta rejects the send, first use
+the portal to send its approved `hello_world` template and reply from the allow-listed phone before repeating the
+local test.
+
+After testing, restore `MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=false` and recreate the backend. The webhook can
+remain enabled for controlled sandbox validation.
+
 ## Current activation state
 
-The callback code and database ledger are present but remain inert while
-`MARKETBRAIN_WHATSAPP_ENABLED=false`. Public HTTPS ingress, Meta webhook registration, outbound message delivery,
-template approval, and action execution are separate future gates.
+The callback, content-free webhook ledger, outbound sandbox sender, and one-time button audit are present but remain
+inert while `MARKETBRAIN_WHATSAPP_ENABLED=false`. Interactive tests additionally require
+`MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=true`. Production sender registration, unattended access tokens, template
+approval, and every trading action remain separate future gates.
