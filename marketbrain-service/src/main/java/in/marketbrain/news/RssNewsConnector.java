@@ -1,23 +1,17 @@
 package in.marketbrain.news;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
-class RssNewsConnector implements NewsConnector {
+public class RssNewsConnector implements NewsConnector {
 
     private final RestClient restClient;
     private final RssNewsFeedParser parser;
 
-    @Autowired
-    RssNewsConnector(RestClient.Builder builder, RssNewsFeedParser parser) {
-        this(builder.build(), parser);
-    }
-
-    RssNewsConnector(RestClient restClient, RssNewsFeedParser parser) {
-        this.restClient = restClient;
+    public RssNewsConnector(RestClient.Builder builder, RssNewsFeedParser parser) {
+        this.restClient = builder.build();
         this.parser = parser;
     }
 

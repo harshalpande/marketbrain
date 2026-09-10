@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import in.marketbrain.configuration.NewsProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,10 +16,7 @@ class NewsConnectorSpringWiringTest {
             .withBean(NewsProperties.class, NewsConnectorSpringWiringTest::properties)
             .withBean(RestClient.Builder.class, RestClient::builder)
             .withBean(ObjectMapper.class, ObjectMapper::new)
-            .withBean(MarketauxNewsResponseParser.class)
-            .withBean(RssNewsFeedParser.class)
-            .withBean(MarketauxNewsConnector.class)
-            .withBean(RssNewsConnector.class);
+            .withUserConfiguration(NewsConnectorScanConfiguration.class);
 
     @Test
     void springSelectsProductionConstructorsForNewsConnectors() {
@@ -31,5 +30,15 @@ class NewsConnectorSpringWiringTest {
     private static NewsProperties properties() {
         return new NewsProperties(false, false, 100, 20,
                 new NewsProperties.Marketaux("https://api.marketaux.com/v1/news/all", ""));
+    }
+
+    @Configuration
+    @Import({
+            MarketauxNewsResponseParser.class,
+            RssNewsFeedParser.class,
+            MarketauxNewsConnector.class,
+            RssNewsConnector.class
+    })
+    static class NewsConnectorScanConfiguration {
     }
 }
