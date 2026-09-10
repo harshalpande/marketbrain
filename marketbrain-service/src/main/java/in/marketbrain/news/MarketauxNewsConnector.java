@@ -1,6 +1,7 @@
 package in.marketbrain.news;
 
 import in.marketbrain.configuration.NewsProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -12,6 +13,7 @@ class MarketauxNewsConnector implements NewsConnector {
     private final NewsProperties properties;
     private final MarketauxNewsResponseParser parser;
 
+    @Autowired
     MarketauxNewsConnector(
             RestClient.Builder builder,
             NewsProperties properties,
