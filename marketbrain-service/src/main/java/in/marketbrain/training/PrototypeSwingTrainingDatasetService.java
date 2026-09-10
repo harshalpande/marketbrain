@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +63,9 @@ public class PrototypeSwingTrainingDatasetService {
 
         UUID runId = UUID.randomUUID();
         try {
+            LOGGER.info("Prototype swing-training dataset persistence started: asOf={}, labelThrough={}, "
+                            + "items={}, labels={}, manifest={}",
+                    asOf, labelThrough, preview.instrumentCount(), labelCount(preview), preview.manifestHash());
             persistRun(runId, preview, reviewedBy.trim());
             Map<String, Long> instrumentIds = instrumentIds(preview.universeSnapshotId());
             int itemCount = 0;
@@ -78,6 +80,10 @@ public class PrototypeSwingTrainingDatasetService {
                 for (SwingOutcomeLabel label : item.labels()) {
                     persistLabel(itemId, label);
                     labelCount++;
+                }
+                if (itemCount % 50 == 0 || itemCount == preview.instrumentCount()) {
+                    LOGGER.info("Prototype swing-training dataset persistence progress: {}/{} items, {} labels",
+                            itemCount, preview.instrumentCount(), labelCount);
                 }
             }
             validatePersistedCounts(runId, itemCount, labelCount);
@@ -182,7 +188,7 @@ public class PrototypeSwingTrainingDatasetService {
                          rsi14, atr14, annualized_volatility20_percent, volume_ratio20,
                          range_position252_percent, detail)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, Statement.RETURN_GENERATED_KEYS);
+                    """, new String[]{"id"});
             statement.setObject(1, runId);
             statement.setLong(2, instrumentId);
             statement.setString(3, item.symbol());
