@@ -2,9 +2,9 @@
 
 ## Purpose
 
-MarketBrain may mirror controlled test notifications through Meta's automatically provided `+1` WhatsApp test
-number. This is a development integration, not the dependable production notification path. Telegram remains the
-authoritative daily channel.
+MarketBrain may mirror controlled notifications through Meta's automatically provided `+1` WhatsApp test number.
+The sandbox can mirror the exact system-notification text sent to Telegram, but Meta's conversation-window rules mean
+it is not yet a dependable out-of-window production notification path.
 
 The sandbox can be used to verify:
 
@@ -12,8 +12,10 @@ The sandbox can be used to verify:
 - Meta webhook verification and signed delivery callbacks;
 - interactive button callback parsing;
 - duplicate-delivery protection and audit evidence.
+- independently idempotent mirroring of daily data, daily feature, and connectivity system notes.
 
-It cannot create a signal, paper fill, broker order, or live trading action.
+It cannot create a signal, paper fill, broker order, or live trading action. A non-expiring System User token removes
+routine token renewal but does not remove Meta's 24-hour free-form conversation restriction.
 
 ## Security boundary
 
@@ -87,5 +89,7 @@ remain enabled for controlled sandbox validation.
 
 The callback, content-free webhook ledger, outbound sandbox sender, and one-time button audit are present but remain
 inert while `MARKETBRAIN_WHATSAPP_ENABLED=false`. Interactive tests additionally require
-`MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=true`. Production sender registration, unattended access tokens, template
-approval, and every trading action remain separate future gates.
+`MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=true`. Identical system-note mirroring separately requires
+`MARKETBRAIN_WHATSAPP_NOTIFICATIONS_ENABLED=true`; the dual test endpoint also requires
+`MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED=true`. The validated System User token supports unattended authentication,
+while production sender registration, approved out-of-window templates, and every trading action remain separate gates.

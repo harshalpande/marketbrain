@@ -54,7 +54,7 @@ class WhatsAppCloudClient {
                 "recipient_type", "individual",
                 "to", properties.allowedWaId(),
                 "type", "interactive",
-                "interactive", interactive));
+                "interactive", interactive), OutboundPurpose.TEST_ACTION);
     }
 
     void sendActionAcknowledgement(String text) {
@@ -63,11 +63,22 @@ class WhatsAppCloudClient {
                 "recipient_type", "individual",
                 "to", properties.allowedWaId(),
                 "type", "text",
-                "text", Map.of("preview_url", false, "body", text)));
+                "text", Map.of("preview_url", false, "body", text)),
+                OutboundPurpose.TEST_ACTION);
     }
 
-    private String send(Object body) {
-        validateOutboundBoundary();
+    String sendSystemNote(String text) {
+        return send(Map.of(
+                "messaging_product", "whatsapp",
+                "recipient_type", "individual",
+                "to", properties.allowedWaId(),
+                "type", "text",
+                "text", Map.of("preview_url", false, "body", text)),
+                OutboundPurpose.SYSTEM_NOTIFICATION);
+    }
+
+    private String send(Object body, OutboundPurpose purpose) {
+        validateOutboundBoundary(purpose);
         try {
             JsonNode response = restClient.post()
                     .uri("/{version}/{phoneNumberId}/messages",
@@ -90,10 +101,17 @@ class WhatsAppCloudClient {
         }
     }
 
-    private void validateOutboundBoundary() {
+    private void validateOutboundBoundary(OutboundPurpose purpose) {
         if (!properties.enabled() || !properties.sandboxMode()
-                || !properties.testAlertsEnabled() || !properties.isOutboundConfigured()) {
-            throw new IllegalStateException("WhatsApp outbound sandbox test alerts are not configured.");
+                || !properties.isOutboundConfigured()) {
+            throw new IllegalStateException("WhatsApp outbound sandbox delivery is not configured.");
+        }
+        if (purpose == OutboundPurpose.TEST_ACTION && !properties.testAlertsEnabled()) {
+            throw new IllegalStateException("WhatsApp sandbox test alerts are disabled.");
+        }
+        if (purpose == OutboundPurpose.SYSTEM_NOTIFICATION
+                && !properties.notificationsEnabled()) {
+            throw new IllegalStateException("WhatsApp system notifications are disabled.");
         }
         if (!properties.graphVersion().matches("v[0-9]+\\.[0-9]+")) {
             throw new IllegalStateException("WhatsApp Graph version configuration is invalid.");
@@ -104,6 +122,11 @@ class WhatsAppCloudClient {
         if (!properties.allowedWaId().matches("[0-9]{8,15}")) {
             throw new IllegalStateException("WhatsApp test recipient configuration is invalid.");
         }
+    }
+
+    private enum OutboundPurpose {
+        TEST_ACTION,
+        SYSTEM_NOTIFICATION
     }
 
     static final class WhatsAppTransportException extends RuntimeException {

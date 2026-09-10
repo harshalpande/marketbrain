@@ -85,6 +85,7 @@ class WhatsAppWebhookServiceTest {
                 true,
                 true,
                 true,
+                true,
                 "v25.0",
                 "phone-number-id",
                 "waba-id",

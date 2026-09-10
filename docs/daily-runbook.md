@@ -268,6 +268,65 @@ docker compose --env-file .env up -d marketbrain-service
 Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/whatsapp/status'
 ```
 
+### 8B. Enable and verify identical Telegram plus WhatsApp system notifications
+
+This governed fan-out mirrors the same action-free daily data, daily feature, connectivity-wait, and connectivity-
+recovery message text to both configured channels. Each channel owns an independent durable deduplication checkpoint:
+if one provider fails, the other is still attempted, and a retry cannot resend a channel that already succeeded.
+
+The WhatsApp access token must be a validated System User token stored only in the ignored `.env`. Meta's generated
+test sender is still a sandbox: identical free-form messages require a user-initiated 24-hour conversation window.
+Outside that window WhatsApp fails safely and retries without duplicating Telegram. Reliable out-of-window delivery
+requires a separately reviewed and approved Meta message template.
+
+Set these values temporarily for the controlled dual-channel test:
+
+```properties
+MARKETBRAIN_WHATSAPP_ENABLED=true
+MARKETBRAIN_WHATSAPP_SANDBOX_MODE=true
+MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED=false
+MARKETBRAIN_WHATSAPP_NOTIFICATIONS_ENABLED=true
+MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED=true
+```
+
+Keep the existing Telegram and WhatsApp credentials unchanged. Ensure the WhatsApp conversation window is open by
+replying once to the Meta test sender, then deploy and run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/notifications/status'
+& '.\ops\windows\TestDualSystemNotification.ps1'
+```
+
+Expected: the phone receives the exact same `[DUAL CHANNEL TEST] PAPER MODE` text once in Telegram and once in
+WhatsApp. The script reports `Status=COMPLETED`, both channels as `SENT`, one common message hash, and
+`ActionExecutionEnabled=False`.
+
+After the test, keep dual operational delivery enabled but remove the localhost-only test endpoint:
+
+```properties
+MARKETBRAIN_WHATSAPP_NOTIFICATIONS_ENABLED=true
+MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED=false
+```
+
+```powershell
+docker compose --env-file .env up -d --force-recreate marketbrain-service
+Invoke-RestMethod 'http://127.0.0.1:8080/api/v1/notifications/status'
+```
+
 ### 9. Configure and verify Upstox read-only market data
 
 Prerequisite: generate an Upstox Analytics Token in the authenticated Upstox developer portal. The token is read-only and expires after its provider-defined lifetime. Never paste it into PowerShell history, Git, logs, source code, or chat.

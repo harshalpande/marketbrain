@@ -64,6 +64,7 @@ class WhatsAppWebhookControllerTest {
                 true,
                 true,
                 true,
+                true,
                 "v5.0",
                 "phone-number-id",
                 "waba-id",

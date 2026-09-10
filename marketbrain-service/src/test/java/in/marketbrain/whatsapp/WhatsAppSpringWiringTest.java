@@ -24,7 +24,7 @@ class WhatsAppSpringWiringTest {
 
     private static WhatsAppProperties properties() {
         return new WhatsAppProperties(
-                true, true, true, "v26.0", "123456789", "987654321",
+                true, true, true, true, "v26.0", "123456789", "987654321",
                 "local-test-token", "local-test-app-secret",
                 "0123456789abcdef0123456789abcdef", "919999999999");
     }

@@ -5,7 +5,7 @@ import in.marketbrain.marketdata.upstox.ConflictingCandleDataException;
 import in.marketbrain.marketdata.upstox.UpstoxHistoricalRequest;
 import in.marketbrain.marketdata.upstox.UpstoxImportResult;
 import in.marketbrain.marketdata.upstox.UpstoxMarketDataService;
-import in.marketbrain.notification.SystemNotificationGateway;
+import in.marketbrain.notification.SystemNotificationFanout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,7 +31,7 @@ public class HistoricalBackfillWorker {
     private final TransactionTemplate transactionTemplate;
     private final UpstoxMarketDataService marketDataService;
     private final BackfillConnectivityPolicy connectivityPolicy;
-    private final List<SystemNotificationGateway> notificationGateways;
+    private final SystemNotificationFanout notificationFanout;
 
     public HistoricalBackfillWorker(
             HistoricalBackfillProperties properties,
@@ -39,14 +39,14 @@ public class HistoricalBackfillWorker {
             TransactionTemplate transactionTemplate,
             UpstoxMarketDataService marketDataService,
             BackfillConnectivityPolicy connectivityPolicy,
-            List<SystemNotificationGateway> notificationGateways
+            SystemNotificationFanout notificationFanout
     ) {
         this.properties = properties;
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.marketDataService = marketDataService;
         this.connectivityPolicy = connectivityPolicy;
-        this.notificationGateways = notificationGateways;
+        this.notificationFanout = notificationFanout;
     }
 
     @Scheduled(fixedDelayString = "${marketbrain.backfill.worker-delay-millis:1500}")
@@ -194,7 +194,7 @@ public class HistoricalBackfillWorker {
     private ConnectivityWait waitForConnectivity(BackfillChunk chunk, String errorCode) {
         int failureCount = chunk.connectivityFailureCount() + 1;
         Instant retryAt = Instant.now().plus(connectivityPolicy.retryDelay(failureCount));
-        transactionTemplate.executeWithoutResult(status -> {
+        Instant waitStartedAt = transactionTemplate.execute(status -> {
             jdbcTemplate.update("""
                     UPDATE historical_backfill_chunk
                     SET status = 'RETRY', attempts = GREATEST(attempts - 1, 0),
@@ -212,8 +212,19 @@ public class HistoricalBackfillWorker {
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                     """, failureCount, Timestamp.from(retryAt), safeCode(errorCode), chunk.jobId());
+            Timestamp started = jdbcTemplate.queryForObject("""
+                    SELECT connectivity_wait_started_at
+                    FROM historical_backfill_job
+                    WHERE id = ?
+                    """, Timestamp.class, chunk.jobId());
+            if (started == null) {
+                throw new IllegalStateException("Connectivity wait checkpoint was not created.");
+            }
+            return started.toInstant();
         });
-        return new ConnectivityWait(chunk.jobId(), retryAt, failureCount, chunk.connectivityNoticeSent());
+        return new ConnectivityWait(
+                chunk.jobId(), retryAt, waitStartedAt,
+                failureCount, chunk.connectivityNoticeSent());
     }
 
     private void resumeConnectivityJobsWhenDue() {
@@ -227,7 +238,7 @@ public class HistoricalBackfillWorker {
     }
 
     private void notifyConnectivityWaitIfNeeded(ConnectivityWait wait) {
-        if (wait.noticeAlreadySent() || notificationGateways.isEmpty()) {
+        if (wait.noticeAlreadySent() || !notificationFanout.isConfigured()) {
             return;
         }
         String message = """
@@ -236,7 +247,8 @@ public class HistoricalBackfillWorker {
                 Automatic retry: %s
                 No trading action is required.
                 """.formatted(wait.retryAt()).strip();
-        if (sendSystemNote(message)) {
+        if (sendSystemNote(connectivityKey(
+                wait.jobId(), "WAIT", wait.waitStartedAt()), message)) {
             jdbcTemplate.update("""
                     UPDATE historical_backfill_job
                     SET connectivity_notice_sent_at = CURRENT_TIMESTAMP,
@@ -247,7 +259,8 @@ public class HistoricalBackfillWorker {
     }
 
     private void notifyRecoveryIfNeeded(ConnectivityRecovery recovery) {
-        if (recovery == null || recovery.noticeAlreadySent() || notificationGateways.isEmpty()) {
+        if (recovery == null || !shouldSendConnectivityRecovery(
+                recovery.noticeAlreadySent(), notificationFanout.isConfigured())) {
             return;
         }
         String message = """
@@ -255,17 +268,24 @@ public class HistoricalBackfillWorker {
                 Historical data backfill automatically resumed after connectivity returned.
                 No trading action is required.
                 """.strip();
-        sendSystemNote(message);
+        sendSystemNote(connectivityKey(
+                recovery.jobId(), "RECOVERY", recovery.waitStartedAt()), message);
     }
 
-    private boolean sendSystemNote(String message) {
-        try {
-            notificationGateways.getFirst().sendNote(message);
-            return true;
-        } catch (RuntimeException exception) {
-            LOGGER.warn("Backfill system NOTE could not be delivered; processing remains safe.");
-            return false;
-        }
+    private boolean sendSystemNote(String deduplicationKey, String message) {
+        return notificationFanout.sendNote(deduplicationKey, message).deliveredToAll();
+    }
+
+    static String connectivityKey(UUID jobId, String event, Instant waitStartedAt) {
+        return "BACKFILL:" + jobId + ":CONNECTIVITY_" + event + ":"
+                + waitStartedAt.toEpochMilli();
+    }
+
+    static boolean shouldSendConnectivityRecovery(
+            boolean waitNoticeWasSent,
+            boolean notificationConfigured
+    ) {
+        return waitNoticeWasSent && notificationConfigured;
     }
 
     private void failOrRetry(BackfillChunk chunk, String errorCode) {
@@ -341,6 +361,7 @@ public class HistoricalBackfillWorker {
     private record ConnectivityWait(
             UUID jobId,
             Instant retryAt,
+            Instant waitStartedAt,
             int failureCount,
             boolean noticeAlreadySent
     ) {

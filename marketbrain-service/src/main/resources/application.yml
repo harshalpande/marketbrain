@@ -32,6 +32,8 @@ management:
       show-details: never
 
 marketbrain:
+  notifications:
+    test-enabled: ${MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED:false}
   execution-mode: ${MARKETBRAIN_EXECUTION_MODE:PAPER}
   paper:
     starting-cash: ${MARKETBRAIN_PAPER_STARTING_CASH:100000}
@@ -83,6 +85,7 @@ marketbrain:
     enabled: ${MARKETBRAIN_WHATSAPP_ENABLED:false}
     sandbox-mode: ${MARKETBRAIN_WHATSAPP_SANDBOX_MODE:true}
     test-alerts-enabled: ${MARKETBRAIN_WHATSAPP_TEST_ALERTS_ENABLED:false}
+    notifications-enabled: ${MARKETBRAIN_WHATSAPP_NOTIFICATIONS_ENABLED:false}
     graph-version: ${MARKETBRAIN_WHATSAPP_GRAPH_VERSION:}
     phone-number-id: ${MARKETBRAIN_WHATSAPP_PHONE_NUMBER_ID:}
     waba-id: ${MARKETBRAIN_WHATSAPP_WABA_ID:}

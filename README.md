@@ -13,9 +13,10 @@ Phase 1 establishes the data-first foundation. It is deliberately paper-only:
 - the risk engine must approve every actionable signal;
 - no broker order placement is implemented;
 - Telegram remains disabled until a private bot token and local pairing code are configured.
-- the optional WhatsApp Cloud API channel is a disabled-by-default sandbox mirror; Telegram remains the authoritative daily notification channel.
+- the optional WhatsApp Cloud API channel can mirror the exact same system-notification text through an independently
+  idempotent sandbox delivery checkpoint; Meta's 24-hour free-form conversation rule still applies.
 
-The reviewed NIFTY 500 historical foundation is complete, provider-audited, and backed up. Governed daily enrichment provides a read-only per-instrument freshness preview, deterministic reviewed manifest, bounded catch-up protection, resumable incremental jobs, and a post-market scheduler. Once explicitly activated, it silently probes Upstox's current-day intraday daily endpoint from 16:00 India time and starts only after the target date is available, retrying every 15 minutes through 17:45 with one final attempt at 18:00. The worker combines the intraday target candle with historical catch-up dates under the same validation and normalization rules. It never rewrites review decisions and sends one private, action-free Telegram completion immediately after success or one warning only after the final 18:00 attempt fails. Transient connectivity/provider outages pause safely with persisted 1, 5, and 15 minute backoff and automatic continuation.
+The reviewed NIFTY 500 historical foundation is complete, provider-audited, and backed up. Governed daily enrichment provides a read-only per-instrument freshness preview, deterministic reviewed manifest, bounded catch-up protection, resumable incremental jobs, and a post-market scheduler. Once explicitly activated, it silently probes Upstox's current-day intraday daily endpoint from 16:00 India time and starts only after the target date is available, retrying every 15 minutes through 17:45 with one final attempt at 18:00. The worker combines the intraday target candle with historical catch-up dates under the same validation and normalization rules. It never rewrites review decisions and sends one private, action-free completion through every enabled notification channel immediately after success or one warning only after the final 18:00 attempt fails. Transient connectivity/provider outages pause safely with persisted 1, 5, and 15 minute backoff and automatic continuation.
 
 The next data-first layer computes point-in-time technical features. It selects one canonical daily candle per date
 and prefers reviewed official NSE BhavCopy remediation when both data sources contain that date. It removes governed
@@ -23,7 +24,8 @@ feature-exclusion windows and calculates deterministic features using only obser
 date. The full 500-instrument result is bound to an immutable SHA-256 manifest.
 
 Once activated, a durable post-collection scheduler repeats the reviewed daily handoff gates, persists or reuses the
-exact immutable snapshot, verifies it independently, and sends one private Telegram conclusion. Incomplete or
+exact immutable snapshot, verifies it independently, and sends one identical private conclusion through Telegram and
+the optional WhatsApp mirror. Incomplete or
 unverifiable data remains non-actionable. Feature persistence cannot create signals, orders, or broker actions.
 
 The first strategy-data increment is a read-only swing-training cohort preview. It keeps `TECHNICAL_V1` inputs at

@@ -30,6 +30,7 @@ class WhatsAppStatusController {
         status.put("enabled", whatsAppProperties.enabled());
         status.put("sandboxMode", whatsAppProperties.sandboxMode());
         status.put("testAlertsEnabled", whatsAppProperties.testAlertsEnabled());
+        status.put("notificationsEnabled", whatsAppProperties.notificationsEnabled());
         status.put("webhookConfigured", whatsAppProperties.isWebhookConfigured());
         status.put("outboundConfigured", whatsAppProperties.isOutboundConfigured());
         status.put("callbackPath", "/api/v1/whatsapp/webhook");

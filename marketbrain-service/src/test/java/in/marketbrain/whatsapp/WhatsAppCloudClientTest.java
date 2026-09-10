@@ -60,9 +60,39 @@ class WhatsAppCloudClientTest {
         server.verify();
     }
 
+    @Test
+    void sendsTheExactSystemNotificationTextToTheAllowListedRecipient() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://graph.facebook.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        WhatsAppCloudClient client = new WhatsAppCloudClient(builder.build(), properties());
+
+        server.expect(once(), requestTo(
+                        "https://graph.facebook.com/v26.0/123456789/messages"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("""
+                        {
+                          "messaging_product": "whatsapp",
+                          "recipient_type": "individual",
+                          "to": "919999999999",
+                          "type": "text",
+                          "text": {
+                            "preview_url": false,
+                            "body": "identical-system-message"
+                          }
+                        }
+                        """, true))
+                .andRespond(withSuccess(
+                        "{\"messages\":[{\"id\":\"wamid.system\"}]}",
+                        MediaType.APPLICATION_JSON));
+
+        client.sendSystemNote("identical-system-message");
+
+        server.verify();
+    }
+
     private WhatsAppProperties properties() {
         return new WhatsAppProperties(
-                true, true, true, "v26.0", "123456789", "987654321",
+                true, true, true, true, "v26.0", "123456789", "987654321",
                 "local-test-token", "local-test-app-secret",
                 "0123456789abcdef0123456789abcdef", "919999999999");
     }

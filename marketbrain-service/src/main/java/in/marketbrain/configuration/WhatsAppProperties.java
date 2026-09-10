@@ -7,6 +7,7 @@ public record WhatsAppProperties(
         boolean enabled,
         boolean sandboxMode,
         boolean testAlertsEnabled,
+        boolean notificationsEnabled,
         String graphVersion,
         String phoneNumberId,
         String wabaId,

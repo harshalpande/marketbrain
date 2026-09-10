@@ -1,6 +1,6 @@
 package in.marketbrain.marketdata.daily;
 
-import in.marketbrain.notification.SystemNotificationGateway;
+import in.marketbrain.notification.SystemNotificationFanout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,14 +16,14 @@ public class DailyEnrichmentNotificationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DailyEnrichmentNotificationService.class);
 
     private final JdbcTemplate jdbcTemplate;
-    private final List<SystemNotificationGateway> notificationGateways;
+    private final SystemNotificationFanout notificationFanout;
 
     public DailyEnrichmentNotificationService(
             JdbcTemplate jdbcTemplate,
-            List<SystemNotificationGateway> notificationGateways
+            SystemNotificationFanout notificationFanout
     ) {
         this.jdbcTemplate = jdbcTemplate;
-        this.notificationGateways = notificationGateways;
+        this.notificationFanout = notificationFanout;
     }
 
     public boolean sendCompletion(LocalDate targetDate, UUID runId, String message) {
@@ -67,13 +67,16 @@ public class DailyEnrichmentNotificationService {
             return false;
         }
         long noticeId = claims.getFirst();
-        if (notificationGateways.isEmpty()) {
-            fail(noticeId, "TELEGRAM_NOT_CONFIGURED");
-            LOGGER.warn("Daily enrichment {} notice is pending because Telegram is not configured.", kind);
+        if (!notificationFanout.isConfigured()) {
+            fail(noticeId, "NOTIFICATION_NOT_CONFIGURED");
+            LOGGER.warn("Daily enrichment {} notice is pending because no notification channel is configured.",
+                    kind);
             return false;
         }
-        try {
-            notificationGateways.getFirst().sendNote(message);
+        String deduplicationKey = "DAILY:" + targetDate + ":" + kind;
+        SystemNotificationFanout.DeliveryResult delivery =
+                notificationFanout.sendNote(deduplicationKey, message);
+        if (delivery.deliveredToAll()) {
             jdbcTemplate.update("""
                     UPDATE daily_enrichment_notification
                     SET delivery_status = 'SENT', sent_at = CURRENT_TIMESTAMP,
@@ -81,11 +84,9 @@ public class DailyEnrichmentNotificationService {
                     WHERE id = ?
                     """, noticeId);
             return true;
-        } catch (RuntimeException exception) {
-            fail(noticeId, "TELEGRAM_DELIVERY_FAILED");
-            LOGGER.warn("Daily enrichment {} notice delivery failed safely.", kind);
-            return false;
         }
+        fail(noticeId, deliveryFailureCode(delivery.failedChannels()));
+        return false;
     }
 
     private void fail(long noticeId, String errorCode) {
@@ -94,5 +95,10 @@ public class DailyEnrichmentNotificationService {
                 SET delivery_status = 'FAILED', last_error_code = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """, errorCode, noticeId);
+    }
+
+    private String deliveryFailureCode(List<String> failedChannels) {
+        String value = "DELIVERY_FAILED_" + String.join("_", failedChannels);
+        return value.length() <= 64 ? value : value.substring(0, 64);
     }
 }

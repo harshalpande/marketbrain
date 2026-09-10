@@ -2,5 +2,7 @@ package in.marketbrain.notification;
 
 public interface SystemNotificationGateway {
 
-    void sendNote(String message);
+    String channel();
+
+    void sendNote(String deduplicationKey, String message);
 }
