@@ -48,6 +48,10 @@ preview over currently active NSE instruments that already have governed daily c
 prototype training-dataset work, but it is not historical NIFTY 500 membership and it retains an explicit
 current-universe survivorship-risk warning until delisted historical equities are added.
 
+The first fallback training artifact is an immutable prototype swing dataset. It persists the exact reviewed
+current-snapshot feature/label manifest for prototype learning while keeping official historical benchmark training,
+Ollama training, signals, fills, and broker orders disabled.
+
 ## Repository layout
 
 | Path | Purpose |

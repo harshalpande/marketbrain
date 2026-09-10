@@ -3447,6 +3447,43 @@ The accepted result is `UniverseContractVersion=TRADEABLE_EQUITY_TRAINING_UNIVER
 Ollama calls, signals, orders, or broker actions. Share the complete summary and JSON artifact before prototype
 training-dataset persistence is prepared.
 
+## Step 64: persist the prototype current-snapshot swing-training dataset
+
+This step converts the reviewed swing-training preview into an immutable prototype dataset artifact. It deliberately
+uses the current-snapshot feature/label manifest and therefore remains separate from official historical NIFTY 500
+benchmark training. It is allowed to write only the prototype dataset run, item, and label tables created for this
+purpose. It must not train Ollama, create signals, create paper fills, or place broker orders.
+
+After committing, pulling, and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PersistPrototypeSwingTrainingDataset.ps1' `
+    -AsOf '2026-06-05' `
+    -LabelThrough '2026-09-08' `
+    -ReviewedBy 'Harshal Pande'
+```
+
+The accepted result is `Status=COMPLETED`, `DatasetContractVersion=PROTOTYPE_SWING_TRAINING_DATASET_V1`,
+`SourceUniverseCode=CURRENT_SNAPSHOT_PROTOTYPE`, `PersistenceAction=CREATED` or `ALREADY_PERSISTED`, matching
+preview and persisted manifest hashes, reconciled item and label counts, `SurvivorshipRiskPresent=True`,
+`PrototypeTrainingEligible=True`, `BenchmarkTrainingEligible=False`, `PointInTimeSafe=True`,
+`FutureLabelsSeparated=True`, and zero Ollama calls, signals, orders, paper fills, or broker actions.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
