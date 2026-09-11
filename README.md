@@ -56,6 +56,10 @@ The next review layer audits that immutable prototype dataset without writing da
 return distribution, benchmark excess, drawdown/excursion behavior, and best/worst examples before any Ollama-assisted
 ranking experiment is allowed.
 
+The first Ollama step is a governed ranking preview. It sends a bounded set of audited feature rows to local Ollama,
+keeps future labels outside the prompt for later comparison, and returns a review artifact only. It cannot create
+signals, fills, orders, or broker actions.
+
 ## Repository layout
 
 | Path | Purpose |

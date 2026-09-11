@@ -3525,6 +3525,48 @@ each horizon containing one label per fully labeled instrument, `SurvivorshipRis
 `FutureLabelsSeparated=True`, `AuditReadyForOllamaRanking=True`, and zero database writes, Ollama calls, signals,
 orders, paper fills, or broker actions.
 
+## Step 66: governed Ollama prototype swing-ranking preview
+
+This step makes one bounded Ollama call against the audited prototype dataset. It sends feature rows only; future labels
+remain outside the prompt and are returned separately for human comparison. The result is a review artifact, not a
+signal. This step must not write to the database, create signals, create paper fills, place orders, or contact a
+broker.
+
+After committing, pulling, and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewPrototypeSwingOllamaRanking.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -Model 'llama3.1:8b' `
+    -CandidateLimit 12 `
+    -RankingHorizonSessions 20
+```
+
+If your local Ollama model has a different name, replace `llama3.1:8b` with a model shown by:
+
+```powershell
+ollama list
+```
+
+The accepted result is `Status=REVIEW_REQUIRED`, `OllamaCallCount=1`, `DatabaseWritesPerformed=False`,
+`SignalsCreated=0`, `OrdersCreated=0`, `ActionExecutionEnabled=False`, a non-empty Ollama response, and generated
+review files under `C:\MarketBrainData\Review`.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
