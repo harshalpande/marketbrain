@@ -3645,6 +3645,42 @@ Interpretation:
 - `QUALITY_REVIEW_WEAK` means Ollama followed the schema but ranked poorly against hidden labels. Treat that as
   training/rubric feedback, not as a system failure.
 
+## Step 69: calibrate Ollama score scale
+
+Run this after Step 68. It may call Ollama once per candidate limit, so start with the default `5, 8, 12` batch.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewPrototypeSwingOllamaScoreCalibration.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -Model 'gemma3:4b' `
+    -CandidateLimits 5,8,12 `
+    -RankingHorizonSessions 20
+```
+
+Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`,
+`ActionExecutionEnabled=False`, and `OllamaCallCount` equal to `BatchCount`.
+
+Interpretation:
+
+- `SCORE_CALIBRATION_PASSED` means scores are directionally useful for that batch.
+- `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
+- `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

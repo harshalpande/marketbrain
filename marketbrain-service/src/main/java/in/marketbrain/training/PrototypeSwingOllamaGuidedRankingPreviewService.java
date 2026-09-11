@@ -349,6 +349,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 }
                 Rules: include every supplied candidate exactly once; ranks must be 1..candidateCount;
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
+                Score calibration rubric:
+                - 85..100: exceptional multi-factor setup with strong trend, participation, controlled risk and few conflicts.
+                - 70..84: strong setup with mostly aligned evidence and manageable risk.
+                - 55..69: constructive watchlist candidate, but not yet exceptional.
+                - 40..54: mixed evidence or meaningful risk; usually lower rank.
+                - 20..39: weak or risky setup.
+                - 0..19: avoid/very weak within this candidate batch.
+                Use the full 0..100 range when candidates differ materially. Do not compress all scores near zero.
                 """);
         return builder.toString();
     }

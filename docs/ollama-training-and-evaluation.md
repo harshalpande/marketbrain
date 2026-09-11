@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 68 foundation.
+Status: Step 69 foundation.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -69,6 +69,30 @@ The evaluation layer checks:
 
 The quality review can pass, warn, or report weak ranking quality. It is still not a trading signal. It performs no
 database writes and creates no signal, paper fill, order or broker action.
+
+## Score calibration
+
+Step 69 adds score-scale calibration. Ollama may rank candidates correctly while still using unhelpful scores such as
+15, 10, 5, 2 and 1. MarketBrain therefore gives Ollama an explicit score rubric:
+
+- `85..100`: exceptional multi-factor setup;
+- `70..84`: strong setup;
+- `55..69`: constructive watchlist;
+- `40..54`: mixed or risky;
+- `20..39`: weak;
+- `0..19`: avoid or very weak.
+
+The calibration preview runs bounded candidate batches, compares scores with hidden outcomes, and flags:
+
+- compressed score spread;
+- underused 0-100 scale;
+- actual best candidate receiving a low score;
+- top score not belonging to the actual top half;
+- negative score-rank correlation;
+- high-confidence misses or negative-return names in the top three.
+
+This is still review-only. A weak calibration result means the prompt/rubric needs improvement; it is not a trading
+signal and never bypasses the deterministic risk engine.
 
 ## Daily fresh-data feedback loop
 
