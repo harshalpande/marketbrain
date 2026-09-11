@@ -98,8 +98,8 @@ signal and never bypasses the deterministic risk engine.
 
 ## Chunked calibrated ranking
 
-Step 70 handles the practical limit observed with `gemma3:4b`: a 5-candidate batch can pass, while 8 or 12 candidates
-can break schema/rank/symbol guardrails. MarketBrain therefore processes larger candidate sets in smaller lots.
+Step 70 handles the practical limit first observed with `gemma3:4b` and improved with `qwen3:8b`: larger batches can
+still stress schema/rank/symbol guardrails. MarketBrain therefore processes larger candidate sets in smaller lots.
 
 Default behavior:
 
