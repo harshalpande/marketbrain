@@ -2,6 +2,7 @@ package in.marketbrain.training;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import in.marketbrain.configuration.MarketBrainProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -13,6 +14,7 @@ class PrototypeSwingOllamaClient {
 
     private final RestClient restClient;
 
+    @Autowired
     PrototypeSwingOllamaClient(RestClient.Builder builder, MarketBrainProperties properties) {
         this(builder.baseUrl(properties.ollama().baseUrl()).build());
     }
