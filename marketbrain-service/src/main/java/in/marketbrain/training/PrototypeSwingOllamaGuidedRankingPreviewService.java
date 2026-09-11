@@ -99,7 +99,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         }
 
         String playbook = playbook();
-        String prompt = prompt(audit, examples, candidates, horizon, playbook);
+        String prompt = prompt(audit, examples, candidates, horizon, playbook, repairInstruction(request.repairInstruction()));
         String response = ollamaClient.generateJson(model, prompt);
         Validation validation = validateResponse(response, candidates, horizon);
         boolean schemaValid = validation.failures().isEmpty();
@@ -310,7 +310,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             List<PrototypeSwingOllamaTrainingExample> examples,
             List<PrototypeSwingOllamaCandidate> candidates,
             int horizon,
-            String playbook
+            String playbook,
+            String repairInstruction
     ) {
         StringBuilder builder = new StringBuilder();
         builder.append("You are MarketBrain's local Ollama swing-ranking research assistant.\n\n");
@@ -358,6 +359,25 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(text(candidate.annualizedVolatility20Percent())).append(',')
                     .append(text(candidate.volumeRatio20())).append(',')
                     .append(text(candidate.rangePosition252Percent())).append('\n');
+        }
+        builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence and reasoning:\n");
+        builder.append("[\n");
+        for (int index = 0; index < candidates.size(); index++) {
+            PrototypeSwingOllamaCandidate candidate = candidates.get(index);
+            builder.append("  {\"candidateId\":\"")
+                    .append(candidateId(index))
+                    .append("\",\"symbol\":\"")
+                    .append(candidate.symbol())
+                    .append("\"}");
+            if (index < candidates.size() - 1) {
+                builder.append(',');
+            }
+            builder.append('\n');
+        }
+        builder.append("]\n");
+        if (!repairInstruction.isBlank()) {
+            builder.append("\nRepair instruction from the previous guarded attempt:\n");
+            builder.append(repairInstruction).append("\n");
         }
         builder.append("""
 
@@ -473,6 +493,17 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
     static String candidateId(int zeroBasedIndex) {
         return "CANDIDATE_%03d".formatted(zeroBasedIndex + 1);
+    }
+
+    private String repairInstruction(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() > 2000) {
+            trimmed = trimmed.substring(0, 2000);
+        }
+        return trimmed.replace('\r', ' ').replace('\n', ' ');
     }
 
     private String model(String value) {

@@ -149,10 +149,16 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         List<String> failures = new ArrayList<>();
         PrototypeSwingOllamaScoreCalibrationBatch acceptedBatch = null;
         int acceptedAttemptNumber = 0;
+        String repairInstruction = null;
 
         for (int attemptNumber = 1; attemptNumber <= maxRetriesPerChunk + 1; attemptNumber++) {
             PrototypeSwingOllamaRankingRequest rankingRequest =
-                    new PrototypeSwingOllamaRankingRequest(runId, model, candidates.size(), horizon);
+                    new PrototypeSwingOllamaRankingRequest(
+                            runId,
+                            model,
+                            candidates.size(),
+                            horizon,
+                            repairInstruction);
             PrototypeSwingOllamaGuidedRankingPreview guided =
                     guidedRankingService.previewCandidates(rankingRequest, candidates);
             PrototypeSwingOllamaGuidedRankingEvaluationPreview evaluation =
@@ -163,6 +169,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             attempts.add(attempt(
                     chunkNumber,
                     attemptNumber,
+                    repairInstruction,
                     candidates,
                     evaluation,
                     calibration,
@@ -173,6 +180,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 acceptedAttemptNumber = attemptNumber;
                 break;
             }
+            repairInstruction = repairInstruction(candidates, evaluation, calibration);
         }
 
         String chunkStatus;
@@ -207,6 +215,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
     private PrototypeSwingOllamaChunkedRankingAttempt attempt(
             int chunkNumber,
             int attemptNumber,
+            String repairInstruction,
             List<PrototypeSwingOllamaCandidate> candidates,
             PrototypeSwingOllamaGuidedRankingEvaluationPreview evaluation,
             PrototypeSwingOllamaScoreCalibrationBatch calibration,
@@ -215,6 +224,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         return new PrototypeSwingOllamaChunkedRankingAttempt(
                 chunkNumber,
                 attemptNumber,
+                repairInstruction,
                 candidateIds(candidates),
                 symbols(candidates),
                 evaluation.responseHash(),
@@ -228,6 +238,46 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 calibration.calibrationFailures(),
                 accepted
         );
+    }
+
+    private String repairInstruction(
+            List<PrototypeSwingOllamaCandidate> candidates,
+            PrototypeSwingOllamaGuidedRankingEvaluationPreview evaluation,
+            PrototypeSwingOllamaScoreCalibrationBatch calibration
+    ) {
+        List<String> failures = new ArrayList<>();
+        failures.addAll(evaluation.responseValidationFailures());
+        failures.addAll(evaluation.evaluationFailures());
+        failures.addAll(calibration.calibrationFailures());
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Your previous response failed MarketBrain guardrails. ");
+        builder.append("Return a corrected JSON object only. ");
+        builder.append("The rankedCandidates array must contain exactly ")
+                .append(candidates.size())
+                .append(" objects, no more and no fewer. ");
+        builder.append("Use these exact candidateId/symbol pairs exactly once: ");
+        for (int index = 0; index < candidates.size(); index++) {
+            if (index > 0) {
+                builder.append("; ");
+            }
+            builder.append(PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index))
+                    .append("=")
+                    .append(candidates.get(index).symbol());
+        }
+        builder.append(". Ranks must be the complete sequence 1..")
+                .append(candidates.size())
+                .append(". ");
+        if (!failures.isEmpty()) {
+            builder.append("Previous guardrail failures: ")
+                    .append(String.join(", ", new LinkedHashSet<>(failures)))
+                    .append(". ");
+        }
+        if (failures.contains("RANKED_CANDIDATE_COUNT")) {
+            builder.append("Specifically fix RANKED_CANDIDATE_COUNT by returning one rankedCandidates row for every listed candidateId. ");
+        }
+        builder.append("Do not drop lower-ranked candidates. Do not add symbols outside this list. Do not use markdown.");
+        return builder.toString();
     }
 
     private List<String> candidateIds(List<PrototypeSwingOllamaCandidate> candidates) {

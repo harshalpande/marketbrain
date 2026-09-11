@@ -5,6 +5,7 @@ import java.util.List;
 public record PrototypeSwingOllamaChunkedRankingAttempt(
         int chunkNumber,
         int attemptNumber,
+        String repairInstruction,
         List<String> expectedCandidateIds,
         List<String> candidateSymbols,
         String responseHash,

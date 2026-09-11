@@ -6,6 +6,15 @@ public record PrototypeSwingOllamaRankingRequest(
         UUID datasetRunId,
         String model,
         Integer candidateLimit,
-        Integer rankingHorizonSessions
+        Integer rankingHorizonSessions,
+        String repairInstruction
 ) {
+    public PrototypeSwingOllamaRankingRequest(
+            UUID datasetRunId,
+            String model,
+            Integer candidateLimit,
+            Integer rankingHorizonSessions
+    ) {
+        this(datasetRunId, model, candidateLimit, rankingHorizonSessions, null);
+    }
 }

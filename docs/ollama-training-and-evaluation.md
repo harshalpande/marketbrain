@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 71 candidate-identity hardening.
+Status: Step 72 repair-retry hardening.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -119,6 +119,11 @@ The prompt now gives each candidate a deterministic model-safe ID (`CANDIDATE_00
 that ID with the copied symbol. Validation now distinguishes candidate-ID failures, symbol-copy mismatches, symbol-set
 failures and rank-sequence failures. The PowerShell script writes detailed root-cause records and failed-attempt raw
 Ollama responses so the next correction can be based on concrete evidence rather than guessing.
+
+Step 72 adds repair-retry behavior for schema-blocked attempts. Every chunk prompt now includes an exact
+`rankedCandidates` skeleton listing the required candidate IDs and symbols. If a guarded attempt fails, the next retry
+includes a targeted repair instruction containing the previous guardrail failures and the exact expected row count.
+This is designed to repair failures such as `RANKED_CANDIDATE_COUNT` without lowering the chunk size too early.
 
 ## Daily fresh-data feedback loop
 

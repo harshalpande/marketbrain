@@ -113,6 +113,9 @@ try {
                         $attempt.attemptNumber, $attempt.responseSchemaValid, `
                         $attempt.rankingQualityStatus, $attempt.scoreCalibrationStatus, `
                         $attempt.acceptedForChunkSummary, $attempt.responseHash)
+                    if (-not [string]::IsNullOrWhiteSpace([string]$attempt.repairInstruction)) {
+                        Write-Host ("       Repair instruction used: {0}" -f $attempt.repairInstruction)
+                    }
                     if (@($attempt.responseValidationFailures).Count -gt 0 -or
                         @($attempt.evaluationFailures).Count -gt 0 -or
                         @($attempt.calibrationFailures).Count -gt 0) {
@@ -125,6 +128,7 @@ try {
                             kind                       = 'CHUNK_ATTEMPT_GUARDRAIL'
                             chunkNumber                = $chunk.chunkNumber
                             attemptNumber              = $attempt.attemptNumber
+                            repairInstruction          = $attempt.repairInstruction
                             expectedCandidateIds       = @($attempt.expectedCandidateIds)
                             candidateSymbols           = @($attempt.candidateSymbols)
                             responseHash               = $attempt.responseHash
@@ -279,6 +283,9 @@ try {
                 $attempt.attemptNumber, $attempt.responseSchemaValid, `
                 $attempt.rankingQualityStatus, $attempt.scoreCalibrationStatus, `
                 $attempt.acceptedForChunkSummary, $attempt.responseHash)
+            if (-not [string]::IsNullOrWhiteSpace([string]$attempt.repairInstruction)) {
+                Write-Host ("    Repair instruction used: {0}" -f $attempt.repairInstruction)
+            }
             if (@($attempt.expectedCandidateIds).Count -gt 0) {
                 Write-Host ("    Expected candidate IDs: {0}" -f (@($attempt.expectedCandidateIds) -join ', '))
             }
@@ -308,8 +315,9 @@ try {
     Write-Host 'Root cause / exception records'
     @($preview.rootCauseRecords) |
         Select-Object kind, chunkNumber, attemptNumber, exceptionType,
-            message, expectedCandidateIds, candidateSymbols, responseHash,
-            ollamaResponsePath, responseValidationFailures,
+            message, repairInstruction, expectedCandidateIds,
+            candidateSymbols, responseHash, ollamaResponsePath,
+            responseValidationFailures,
             evaluationFailures, calibrationFailures |
         Format-Table -AutoSize
 
