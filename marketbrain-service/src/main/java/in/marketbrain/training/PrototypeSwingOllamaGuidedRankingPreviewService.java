@@ -58,6 +58,31 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         validateAudit(audit);
 
         List<PrototypeSwingOllamaCandidate> candidates = candidates(audit.datasetRunId(), candidateLimit);
+        return previewCandidates(safeRequest, audit, candidates, candidateLimit, model, horizon);
+    }
+
+    PrototypeSwingOllamaGuidedRankingPreview previewCandidates(
+            PrototypeSwingOllamaRankingRequest request,
+            List<PrototypeSwingOllamaCandidate> candidates
+    ) {
+        PrototypeSwingOllamaRankingRequest safeRequest = request == null
+                ? new PrototypeSwingOllamaRankingRequest(null, null, null, null)
+                : request;
+        String model = model(safeRequest.model());
+        int horizon = horizon(safeRequest.rankingHorizonSessions());
+        PrototypeSwingTrainingDatasetAudit audit = auditService.audit(safeRequest.datasetRunId());
+        validateAudit(audit);
+        return previewCandidates(safeRequest, audit, candidates, candidates.size(), model, horizon);
+    }
+
+    private PrototypeSwingOllamaGuidedRankingPreview previewCandidates(
+            PrototypeSwingOllamaRankingRequest request,
+            PrototypeSwingTrainingDatasetAudit audit,
+            List<PrototypeSwingOllamaCandidate> candidates,
+            int candidateLimit,
+            String model,
+            int horizon
+    ) {
         if (candidates.isEmpty()) {
             throw new IllegalStateException("No labelled prototype candidates are available for guided ranking.");
         }
@@ -140,7 +165,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         }
     }
 
-    private List<PrototypeSwingOllamaCandidate> candidates(UUID runId, int limit) {
+    List<PrototypeSwingOllamaCandidate> candidates(UUID runId, int offset, int limit) {
         return jdbcTemplate.query("""
                 SELECT item.symbol, item.effective_as_of, item.latest_close,
                        item.daily_return_percent, item.sma20, item.sma50, item.sma200,
@@ -166,6 +191,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 WHERE item.run_id = ? AND item.classification = 'LABELED'
                 ORDER BY item.symbol
                 LIMIT ?
+                OFFSET ?
                 """, (resultSet, row) -> new PrototypeSwingOllamaCandidate(
                         resultSet.getString("symbol"),
                         resultSet.getObject("effective_as_of", LocalDate.class),
@@ -189,7 +215,11 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                         resultSet.getBigDecimal("benchmark_excess_60"),
                         resultSet.getBigDecimal("maximum_drawdown_5"),
                         resultSet.getBigDecimal("maximum_drawdown_20"),
-                        resultSet.getBigDecimal("maximum_drawdown_60")), runId, limit);
+                        resultSet.getBigDecimal("maximum_drawdown_60")), runId, limit, offset);
+    }
+
+    private List<PrototypeSwingOllamaCandidate> candidates(UUID runId, int limit) {
+        return candidates(runId, 0, limit);
     }
 
     private List<PrototypeSwingOllamaTrainingExample> trainingExamples(

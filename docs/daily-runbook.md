@@ -3681,6 +3681,41 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
+## Step 70: chunked calibrated Ollama ranking
+
+Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4 and retrying a
+failed chunk once.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRanking.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -Model 'gemma3:4b' `
+    -TotalCandidateLimit 12 `
+    -ChunkSize 4 `
+    -FinalistsPerChunk 2 `
+    -MaxRetriesPerChunk 1 `
+    -RankingHorizonSessions 20
+```
+
+The script prints each chunk loop result, every attempt's schema/calibration status, and a final merged finalist
+summary. Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
+`ActionExecutionEnabled=False`.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

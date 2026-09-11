@@ -7,25 +7,24 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
+class PrototypeSwingOllamaChunkedRankingPreviewServiceSourceTest {
 
     @Test
-    void guidedPreviewIsReadOnlyAndHasResponseGuardrails() throws IOException {
+    void chunkedRankingPreviewIsReadOnlyRetryableAndBounded() throws IOException {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Path.of("src/main/java/in/marketbrain/training/"
-                        + "PrototypeSwingOllamaGuidedRankingPreviewService.java"),
+                        + "PrototypeSwingOllamaChunkedRankingPreviewService.java"),
                 StandardCharsets.UTF_8);
         assertThat(source).contains("@Transactional(readOnly = true");
+        assertThat(source).contains("public PrototypeSwingOllamaChunkedRankingPreviewService(");
+        assertThat(source).contains("DEFAULT_CHUNK_SIZE = 4");
+        assertThat(source).contains("DEFAULT_MAX_RETRIES_PER_CHUNK = 1");
+        assertThat(source).contains("maxRetriesPerChunk + 1");
+        assertThat(source).contains("guidedRankingService.candidates(runId, offset, requestedChunkSize)");
         assertThat(source).doesNotContain("jdbcTemplate.update");
         assertThat(source).doesNotContain("INSERT INTO");
         assertThat(source).doesNotContain("market_signal");
         assertThat(source).doesNotContain("paper_order");
-        assertThat(source).contains("generateJson");
-        assertThat(source).contains("validateResponse");
-        assertThat(source).contains("RESPONSE_SCHEMA_VERSION");
-        assertThat(source).contains("POSITIVE_WINNER");
-        assertThat(source).contains("NEGATIVE_LOSER");
-        assertThat(source).contains("previewCandidates(");
-        assertThat(source).contains("OFFSET ?");
+        assertThat(source).doesNotContain("paper_fill");
     }
 }

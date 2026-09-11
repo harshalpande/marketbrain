@@ -42,10 +42,16 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             PrototypeSwingOllamaRankingRequest request
     ) {
         PrototypeSwingOllamaGuidedRankingPreview guided = guidedRankingService.preview(request);
+        return evaluateGuidedPreview(guided);
+    }
+
+    PrototypeSwingOllamaGuidedRankingEvaluationPreview evaluateGuidedPreview(
+            PrototypeSwingOllamaGuidedRankingPreview guided
+    ) {
         if (!guided.responseParseableJson() || !guided.responseSchemaValid()) {
             return blocked(guided);
         }
-        Evaluation evaluation = evaluate(guided);
+        Evaluation evaluation = evaluateRankQuality(guided);
         List<String> failures = evaluationFailures(guided.candidateCount(), evaluation);
 
         return new PrototypeSwingOllamaGuidedRankingEvaluationPreview(
@@ -159,7 +165,7 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
         );
     }
 
-    private Evaluation evaluate(PrototypeSwingOllamaGuidedRankingPreview guided) {
+    private Evaluation evaluateRankQuality(PrototypeSwingOllamaGuidedRankingPreview guided) {
         JsonNode ranked = rankedCandidates(guided.ollamaResponse());
         Map<String, PrototypeSwingOllamaCandidate> candidatesBySymbol = new HashMap<>();
         for (PrototypeSwingOllamaCandidate candidate : guided.candidates()) {

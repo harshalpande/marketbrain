@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 69 foundation.
+Status: Step 70 foundation.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -93,6 +93,24 @@ The calibration preview runs bounded candidate batches, compares scores with hid
 
 This is still review-only. A weak calibration result means the prompt/rubric needs improvement; it is not a trading
 signal and never bypasses the deterministic risk engine.
+
+## Chunked calibrated ranking
+
+Step 70 handles the practical limit observed with `gemma3:4b`: a 5-candidate batch can pass, while 8 or 12 candidates
+can break schema/rank/symbol guardrails. MarketBrain therefore processes larger candidate sets in smaller lots.
+
+Default behavior:
+
+- process a deterministic symbol-ordered candidate set;
+- split into chunks of 4;
+- call Ollama once per chunk;
+- retry a failed chunk once by default;
+- validate schema, ranking quality and score calibration per chunk;
+- select a small number of finalists from each accepted chunk;
+- merge finalist summaries for human review.
+
+Each chunk records whether it passed, passed with warnings or failed after retries. The final merged result is still a
+research artifact only. It creates no signal, paper fill, order or broker action.
 
 ## Daily fresh-data feedback loop
 

@@ -91,7 +91,7 @@ public class PrototypeSwingOllamaScoreCalibrationPreviewService {
         );
     }
 
-    private PrototypeSwingOllamaScoreCalibrationBatch batch(
+    PrototypeSwingOllamaScoreCalibrationBatch batch(
             int candidateLimit,
             PrototypeSwingOllamaGuidedRankingEvaluationPreview evaluation
     ) {
