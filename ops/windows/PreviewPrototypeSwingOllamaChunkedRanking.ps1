@@ -116,7 +116,7 @@ try {
                     if (@($attempt.responseValidationFailures).Count -gt 0 -or
                         @($attempt.evaluationFailures).Count -gt 0 -or
                         @($attempt.calibrationFailures).Count -gt 0) {
-                        $rootCauseRecords.Add([ordered]@{
+                        $rootCauseRecords.Add([pscustomobject][ordered]@{
                             kind                       = 'CHUNK_ATTEMPT_GUARDRAIL'
                             chunkNumber                = $chunk.chunkNumber
                             attemptNumber              = $attempt.attemptNumber
@@ -143,7 +143,7 @@ try {
             if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
                 $responseBody = $_.ErrorDetails.Message
             }
-            $record = [ordered]@{
+            $record = [pscustomobject][ordered]@{
                 kind             = 'CHUNK_EXCEPTION'
                 chunkNumber      = $chunkNumber
                 offset           = $offset
@@ -167,15 +167,42 @@ try {
 
     Write-Progress -Activity 'Step 70 chunked Ollama ranking' -Completed
 
-    $allChunks = @($chunkPreviews | ForEach-Object { @($_.chunks) })
-    $mergedFinalists = @($chunkPreviews | ForEach-Object { @($_.mergedFinalists) } |
-        Sort-Object -Property @{Expression = 'ollamaScore'; Descending = $true}, symbol)
-    $aggregateFailures = @(
-        ($chunkPreviews | ForEach-Object { @($_.aggregateFailures) })
-        ($rootCauseRecords | ForEach-Object {
-            if ($_.kind -eq 'CHUNK_EXCEPTION') { "CHUNK_$($_.chunkNumber)_EXCEPTION" }
-        })
-    ) | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique
+    $allChunkList = New-Object System.Collections.Generic.List[object]
+    $mergedFinalistList = New-Object System.Collections.Generic.List[object]
+    $aggregateFailureList = New-Object System.Collections.Generic.List[string]
+    foreach ($chunkPreview in $chunkPreviews) {
+        foreach ($chunk in @($chunkPreview.chunks)) {
+            if ($null -ne $chunk) {
+                $allChunkList.Add($chunk)
+            }
+        }
+        foreach ($finalist in @($chunkPreview.mergedFinalists)) {
+            if ($null -ne $finalist) {
+                $mergedFinalistList.Add($finalist)
+            }
+        }
+        foreach ($failure in @($chunkPreview.aggregateFailures)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$failure)) {
+                $aggregateFailureList.Add([string]$failure)
+            }
+        }
+    }
+    foreach ($record in $rootCauseRecords) {
+        if ($record.kind -eq 'CHUNK_EXCEPTION') {
+            $aggregateFailureList.Add("CHUNK_$($record.chunkNumber)_EXCEPTION")
+        }
+    }
+
+    $allChunks = @($allChunkList)
+    $mergedFinalists = @(
+        $mergedFinalistList |
+            Sort-Object `
+                @{ Expression = { if ($null -eq $_.ollamaScore) { 999999 } else { -1 * [int]$_.ollamaScore } } },
+                @{ Expression = { [string]$_.symbol } }
+    )
+    $aggregateFailures = @($aggregateFailureList |
+        Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } |
+        Select-Object -Unique)
 
     $passedChunkCount = @($allChunks | Where-Object { $_.chunkStatus -eq 'CHUNK_PASSED' }).Count
     $warningChunkCount = @($allChunks | Where-Object { $_.chunkStatus -eq 'CHUNK_ACCEPTED_WITH_WARNINGS' }).Count
@@ -187,7 +214,12 @@ try {
     }
 
     $firstPreview = @($chunkPreviews | Select-Object -First 1)
-    $preview = [ordered]@{
+    $processedCandidateCount = 0
+    foreach ($chunk in $allChunks) {
+        $processedCandidateCount += [int]$chunk.candidateCount
+    }
+
+    $preview = [pscustomobject][ordered]@{
         status                   = if ($failedChunkCount -eq 0 -and @($aggregateFailures).Count -eq 0) { 'REVIEW_REQUIRED' } else { 'REVIEW_WITH_WARNINGS' }
         datasetRunId             = if ($firstPreview.Count -gt 0) { $firstPreview[0].datasetRunId } else { $DatasetRunId }
         model                    = $Model
@@ -203,7 +235,7 @@ try {
         passedChunkCount         = $passedChunkCount
         warningChunkCount        = $warningChunkCount
         failedChunkCount         = $failedChunkCount
-        processedCandidateCount  = @($allChunks | Measure-Object -Property candidateCount -Sum).Sum
+        processedCandidateCount  = $processedCandidateCount
         finalistCount            = @($mergedFinalists).Count
         ollamaCallCount          = $ollamaCallCount
         chunks                   = @($allChunks)
@@ -222,7 +254,7 @@ try {
     @($rootCauseRecords) | ConvertTo-Json -Depth 20 |
         Set-Content -LiteralPath $rootCausePath -Encoding utf8
 
-    [pscustomobject]$preview | Select-Object status, datasetRunId, model, asOf, labelThrough,
+    $preview | Select-Object status, datasetRunId, model, asOf, labelThrough,
         totalCandidateLimit, chunkSize, finalistsPerChunk, maxRetriesPerChunk,
         rankingHorizonSessions, chunkedRankingVersion, chunkCount,
         passedChunkCount, warningChunkCount, failedChunkCount,
