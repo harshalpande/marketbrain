@@ -165,7 +165,8 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                     evaluationService.evaluateGuidedPreview(guided);
             PrototypeSwingOllamaScoreCalibrationBatch calibration =
                     calibrationService.batch(candidates.size(), evaluation);
-            boolean accepted = chunkAccepted(calibration);
+            boolean lastAttempt = attemptNumber == maxRetriesPerChunk + 1;
+            boolean accepted = chunkAccepted(calibration, lastAttempt);
             attempts.add(attempt(
                     chunkNumber,
                     attemptNumber,
@@ -276,6 +277,29 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         if (failures.contains("RANKED_CANDIDATE_COUNT")) {
             builder.append("Specifically fix RANKED_CANDIDATE_COUNT by returning one rankedCandidates row for every listed candidateId. ");
         }
+        if (failures.contains("TOP_PICK_NOT_IN_ACTUAL_TOP_HALF")
+                || failures.contains("TOP_SCORE_NOT_ACTUAL_TOP_HALF")
+                || failures.contains("NEGATIVE_RANK_CORRELATION")
+                || failures.contains("NEGATIVE_SCORE_RANK_CORRELATION")) {
+            builder.append("Reconsider the full ordering; the previous top/score ordering was directionally weak. ");
+            builder.append("Do not over-rank a candidate just because one metric looks attractive. ");
+        }
+        if (failures.contains("HIGH_CONFIDENCE_MISS")
+                || failures.contains("HIGH_SCORE_BOTTOM_HALF_MISS")
+                || failures.contains("HIGH_CONFIDENCE_TOP_SCORE_MISS")
+                || failures.contains("HIGH_CONFIDENCE_BOTTOM_HALF_MISS")) {
+            builder.append("Recalibrate confidence: HIGH is forbidden for conflicted candidates and should be rare. ");
+            builder.append("Use MEDIUM/LOW when risk flags or caveats are meaningful. ");
+        }
+        if (failures.contains("TOP_SCORE_NEGATIVE_RETURN")
+                || failures.contains("HIGH_SCORE_NEGATIVE_RETURN")
+                || failures.contains("NEGATIVE_RETURN_IN_OLLAMA_TOP_THREE")) {
+            builder.append("Demote negative-return or likely-laggard profiles; they must not receive top-three rank, HIGH confidence, or 85+ score. ");
+        }
+        if (failures.contains("BEST_ACTUAL_SCORE_TOO_LOW")) {
+            builder.append("Use a wider score scale and make the strongest relative setup in this chunk score at least 70 unless every candidate is poor. ");
+        }
+        builder.append("Apply the score_cap_hint rules in the prompt. ");
         builder.append("Do not drop lower-ranked candidates. Do not add symbols outside this list. Do not use markdown.");
         return builder.toString();
     }
@@ -288,9 +312,19 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         return result;
     }
 
-    private boolean chunkAccepted(PrototypeSwingOllamaScoreCalibrationBatch calibration) {
-        return calibration.responseSchemaValid()
-                && !"SCORE_CALIBRATION_BLOCKED".equals(calibration.scoreCalibrationStatus());
+    private boolean chunkAccepted(
+            PrototypeSwingOllamaScoreCalibrationBatch calibration,
+            boolean lastAttempt
+    ) {
+        if (!calibration.responseSchemaValid()
+                || "SCORE_CALIBRATION_BLOCKED".equals(calibration.scoreCalibrationStatus())) {
+            return false;
+        }
+        if ("SCORE_CALIBRATION_WEAK".equals(calibration.scoreCalibrationStatus())
+                || "QUALITY_REVIEW_WEAK".equals(calibration.rankingQualityStatus())) {
+            return lastAttempt;
+        }
+        return true;
     }
 
     private List<PrototypeSwingOllamaChunkedRankingFinalist> finalists(

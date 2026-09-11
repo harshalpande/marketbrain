@@ -20,6 +20,10 @@ class PrototypeSwingOllamaChunkedRankingPreviewServiceSourceTest {
         assertThat(source).contains("DEFAULT_CHUNK_SIZE = 4");
         assertThat(source).contains("DEFAULT_MAX_RETRIES_PER_CHUNK = 1");
         assertThat(source).contains("maxRetriesPerChunk + 1");
+        assertThat(source).contains("boolean lastAttempt = attemptNumber == maxRetriesPerChunk + 1");
+        assertThat(source).contains("SCORE_CALIBRATION_WEAK");
+        assertThat(source).contains("QUALITY_REVIEW_WEAK");
+        assertThat(source).contains("Apply the score_cap_hint rules");
         assertThat(source).contains("startOffset(");
         assertThat(source).contains("guidedRankingService.candidates(runId, offset, requestedChunkSize)");
         assertThat(source).doesNotContain("jdbcTemplate.update");

@@ -25,6 +25,8 @@ class PrototypeSwingOllamaScoreCalibrationPreviewServiceSourceTest {
         assertThat(source).contains("SCORE_SCALE_UNDERUSED");
         assertThat(source).contains("SCORE_SPREAD_TOO_COMPRESSED");
         assertThat(source).contains("NEGATIVE_SCORE_RANK_CORRELATION");
+        assertThat(source).contains("HIGH_SCORE_NEGATIVE_RETURN");
+        assertThat(source).contains("HIGH_CONFIDENCE_BOTTOM_HALF_MISS");
         assertThat(source).contains("At most five candidate limits");
     }
 }

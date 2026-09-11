@@ -205,12 +205,26 @@ public class PrototypeSwingOllamaScoreCalibrationPreviewService {
         if (topScore.targetNetReturnPercent().signum() < 0) {
             failures.add("TOP_SCORE_NEGATIVE_RETURN");
         }
-        if (topScore.ollamaScore() >= 85
-                && topScore.actualRank() > Math.max(1, (int) Math.ceil(candidateCount / 2.0d))) {
-            failures.add("HIGH_SCORE_BOTTOM_HALF_MISS");
+        int topHalfCutoff = Math.max(1, (int) Math.ceil(candidateCount / 2.0d));
+        for (PrototypeSwingOllamaCandidateEvaluation row : evaluation.candidateEvaluations()) {
+            if (row.ollamaScore() >= 85 && row.actualRank() > topHalfCutoff) {
+                failures.add("HIGH_SCORE_BOTTOM_HALF_MISS");
+                break;
+            }
         }
-        if ("HIGH".equals(topScore.ollamaConfidence())
-                && topScore.actualRank() > Math.max(1, (int) Math.ceil(candidateCount / 2.0d))) {
+        for (PrototypeSwingOllamaCandidateEvaluation row : evaluation.candidateEvaluations()) {
+            if (row.ollamaScore() >= 85 && row.targetNetReturnPercent().signum() < 0) {
+                failures.add("HIGH_SCORE_NEGATIVE_RETURN");
+                break;
+            }
+        }
+        for (PrototypeSwingOllamaCandidateEvaluation row : evaluation.candidateEvaluations()) {
+            if ("HIGH".equals(row.ollamaConfidence()) && row.actualRank() > topHalfCutoff) {
+                failures.add("HIGH_CONFIDENCE_BOTTOM_HALF_MISS");
+                break;
+            }
+        }
+        if ("HIGH".equals(topScore.ollamaConfidence()) && topScore.actualRank() > topHalfCutoff) {
             failures.add("HIGH_CONFIDENCE_TOP_SCORE_MISS");
         }
         if (scoreRankCorrelation.compareTo(BigDecimal.ZERO) < 0) {
@@ -233,7 +247,9 @@ public class PrototypeSwingOllamaScoreCalibrationPreviewService {
                 || failures.contains("SCORE_SPREAD_TOO_COMPRESSED")
                 || failures.contains("NEGATIVE_SCORE_RANK_CORRELATION")
                 || failures.contains("TOP_SCORE_NEGATIVE_RETURN")
+                || failures.contains("HIGH_SCORE_NEGATIVE_RETURN")
                 || failures.contains("HIGH_SCORE_BOTTOM_HALF_MISS")
+                || failures.contains("HIGH_CONFIDENCE_BOTTOM_HALF_MISS")
                 || failures.contains("HIGH_CONFIDENCE_TOP_SCORE_MISS")) {
             return "SCORE_CALIBRATION_WEAK";
         }

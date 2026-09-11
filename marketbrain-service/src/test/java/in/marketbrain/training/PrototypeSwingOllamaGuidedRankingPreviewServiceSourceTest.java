@@ -25,6 +25,11 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("RESPONSE_SCHEMA_VERSION");
         assertThat(source).contains("POSITIVE_WINNER");
         assertThat(source).contains("NEGATIVE_LOSER");
+        assertThat(source).contains("FALSE_CONFIDENCE_TRAP");
+        assertThat(source).contains("SMOOTH_OUTPERFORMER");
+        assertThat(source).contains("score_cap_hint");
+        assertThat(source).contains("HARD_CAP_69");
+        assertThat(source).contains("SOFT_CAP_84");
         assertThat(source).contains("previewCandidates(");
         assertThat(source).contains("OFFSET ?");
     }

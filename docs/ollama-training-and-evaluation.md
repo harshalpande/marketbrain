@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 73 outcome-aware Granite rubric hardening.
+Status: Step 74 quality-aware Granite retry and score-cap hardening.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -134,6 +134,23 @@ benchmark excess and smoother drawdown path, not merely attractive current featu
 positive winners, negative losers, benchmark-laggard traps and drawdown traps. High confidence is reserved for
 exceptional multi-factor candidates with minimal conflicts, and score calibration now flags high-score or
 high-confidence misses more explicitly.
+
+Step 74 responds to the first `ibm/granite4.1:8b` total-24/chunk-4 run where all chunks were schema-valid but every
+chunk was accepted with weak quality/calibration warnings. The root cause was not JSON structure; it was ranking and
+score calibration. Granite over-scored some conflicted or bottom-half outcomes and occasionally gave HIGH confidence
+to candidates that later evaluated poorly.
+
+The Step 74 fix works on multiple fronts:
+
+- prompt/rubric: candidate rows now include derived guardrail tags for trend, EMA momentum, RSI zone, volume,
+  volatility, range position and a `score_cap_hint`;
+- examples: the playbook now adds false-confidence traps and smooth-outperformer examples in addition to winners,
+  losers, benchmark laggards and drawdown traps;
+- scoring: `HARD_CAP_69`, `SOFT_CAP_84` and `HIGH_ELIGIBLE` are explicitly explained to Granite;
+- evaluator: any 85+ score on a bottom-half or negative-return outcome is flagged, not only the single top-score row;
+- retry policy: schema-valid but weak quality/calibration chunks are no longer accepted immediately when retries
+  remain. They receive a targeted repair prompt first. The final attempt may still be accepted with warnings so review
+  can continue, but the warning evidence remains visible.
 
 ## Daily fresh-data feedback loop
 

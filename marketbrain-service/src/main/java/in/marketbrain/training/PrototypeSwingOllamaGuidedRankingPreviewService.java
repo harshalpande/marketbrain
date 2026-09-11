@@ -24,9 +24,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V2";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V3";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V2";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V3";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -246,6 +246,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 "label.maximum_drawdown_percent DESC, label.net_return_percent ASC", 2,
                 "Trap example: high pain/drawdown or unstable path must cap confidence and score.",
                 "label.maximum_drawdown_percent >= 10"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "FALSE_CONFIDENCE_TRAP",
+                "item.annualized_volatility20_percent DESC, item.volume_ratio20 ASC", 2,
+                "Trap example: do not assign HIGH confidence when volatility is high, participation is weak, or evidence is conflicted.",
+                "label.net_return_percent <= 5 OR label.benchmark_excess_return_percent <= 0"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "SMOOTH_OUTPERFORMER",
+                "label.benchmark_excess_return_percent DESC, label.maximum_drawdown_percent ASC", 2,
+                "Preferred pattern: positive benchmark excess with manageable drawdown deserves a better rank than a noisy chart.",
+                "label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0 AND label.maximum_drawdown_percent < 6"));
         return List.copyOf(examples);
     }
 
@@ -316,6 +324,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - maximum_drawdown is a pain/risk measure. Penalize candidates where return came with large drawdown; never use HIGH confidence when volatility/drawdown risk is meaningfully unresolved.
                 - Prefer balanced setups: positive/repairing trend, controlled volatility, constructive RSI, confirmed volume, and manageable drawdown risk.
                 - High confidence requires broad confluence: trend alignment, constructive RSI, participation, not-overextended range position, controlled volatility and no major conflict.
+                - Granite calibration rule: if evidence is mixed, cap score at 84 and confidence at MEDIUM. If two or more major conflicts exist, cap score at 69 and confidence at LOW/MEDIUM.
+                - Major conflicts include: weak volume (<0.8), high volatility (>35), price below SMA20/SMA50, EMA12 below EMA26, RSI below 45, range_position252 above 90 with high RSI/volatility, or obvious one-day spike risk.
+                - A 85+ score must read like a clean winner: trend, EMA, RSI, participation, range and volatility must mostly agree. If you need to explain several caveats, the candidate is not 85+.
+                - For each chunk, separate "best chart story" from "best expected outcome". A stock can look interesting and still deserve a lower score if the risk-adjusted/benchmark-excess setup is weaker than peers.
                 - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
@@ -346,6 +358,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Reward likely net return, likely benchmark excess, and smoother path quality.
                 - Penalize likely benchmark lag, high volatility/drawdown pain, weak participation, and overextension.
                 - A top-ranked candidate should normally deserve at least a strong score; weak or conflicted candidates should not receive HIGH confidence.
+                - First rank the candidates qualitatively. Then calibrate scores from that rank order: rank 1 should not be HIGH unless its risk flags are genuinely small.
+                - If a candidate has negative daily return, weak volume, high volatility, bearish EMA, or price below short/medium averages, mention the conflict and cap confidence unless other evidence is overwhelming.
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -367,8 +381,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(text(example.targetMaximumDrawdownPercent())).append(',')
                     .append('"').append(example.teachingPoint()).append('"').append('\n');
         }
-        builder.append("\nUnlabelled ranking candidates. Use only these feature values for ranking; future labels are hidden:\n");
-        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct\n");
+        builder.append("\nUnlabelled ranking candidates. Use only these feature values and derived guardrail tags for ranking; future labels are hidden:\n");
+        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,score_cap_hint\n");
         for (int index = 0; index < candidates.size(); index++) {
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
             builder.append(candidateId(index)).append(',')
@@ -384,7 +398,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(text(candidate.atr14())).append(',')
                     .append(text(candidate.annualizedVolatility20Percent())).append(',')
                     .append(text(candidate.volumeRatio20())).append(',')
-                    .append(text(candidate.rangePosition252Percent())).append('\n');
+                    .append(text(candidate.rangePosition252Percent())).append(',')
+                    .append(trendTag(candidate)).append(',')
+                    .append(emaTag(candidate)).append(',')
+                    .append(rsiTag(candidate)).append(',')
+                    .append(volumeTag(candidate)).append(',')
+                    .append(volatilityTag(candidate)).append(',')
+                    .append(rangeTag(candidate)).append(',')
+                    .append(scoreCapHint(candidate)).append('\n');
         }
         builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence and reasoning:\n");
         builder.append("[\n");
@@ -444,8 +465,134 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - MEDIUM: use for strong but imperfect candidates.
                 - LOW: use for candidates with negative daily return, weak participation, high volatility, overextension, or conflicting signals.
                 Never assign HIGH confidence to a candidate whose reason contains major caveats such as weak RSI, weak volume, high volatility, overbought/overextended, or meaningful drawdown risk.
+                Apply score_cap_hint unless you have exceptional cross-feature evidence:
+                - HARD_CAP_69 means score must normally be 69 or lower and confidence must not be HIGH.
+                - SOFT_CAP_84 means score must normally be 84 or lower and confidence should be MEDIUM at most.
+                - HIGH_ELIGIBLE means the candidate may receive 85+ only if it is also the best relative setup in this chunk.
                 """);
         return builder.toString();
+    }
+
+    private String trendTag(PrototypeSwingOllamaCandidate candidate) {
+        if (greater(candidate.latestClose(), candidate.sma20())
+                && greaterOrEqual(candidate.sma20(), candidate.sma50())
+                && greaterOrEqual(candidate.sma50(), candidate.sma200())) {
+            return "BULLISH_TREND";
+        }
+        if (less(candidate.latestClose(), candidate.sma20()) || less(candidate.sma20(), candidate.sma50())) {
+            return "TREND_CONFLICT";
+        }
+        return "MIXED_TREND";
+    }
+
+    private String emaTag(PrototypeSwingOllamaCandidate candidate) {
+        return greaterOrEqual(candidate.ema12(), candidate.ema26()) ? "EMA_BULLISH" : "EMA_BEARISH";
+    }
+
+    private String rsiTag(PrototypeSwingOllamaCandidate candidate) {
+        if (candidate.rsi14() == null) {
+            return "RSI_UNKNOWN";
+        }
+        if (candidate.rsi14().compareTo(BigDecimal.valueOf(70)) > 0) {
+            return "RSI_OVERHEATED";
+        }
+        if (candidate.rsi14().compareTo(BigDecimal.valueOf(55)) >= 0) {
+            return "RSI_CONSTRUCTIVE";
+        }
+        if (candidate.rsi14().compareTo(BigDecimal.valueOf(45)) < 0) {
+            return "RSI_WEAK";
+        }
+        return "RSI_NEUTRAL";
+    }
+
+    private String volumeTag(PrototypeSwingOllamaCandidate candidate) {
+        if (candidate.volumeRatio20() == null) {
+            return "VOLUME_UNKNOWN";
+        }
+        if (candidate.volumeRatio20().compareTo(BigDecimal.valueOf(1.2)) >= 0) {
+            return "VOLUME_CONFIRMED";
+        }
+        if (candidate.volumeRatio20().compareTo(BigDecimal.valueOf(0.8)) < 0) {
+            return "VOLUME_WEAK";
+        }
+        return "VOLUME_NEUTRAL";
+    }
+
+    private String volatilityTag(PrototypeSwingOllamaCandidate candidate) {
+        if (candidate.annualizedVolatility20Percent() == null) {
+            return "VOLATILITY_UNKNOWN";
+        }
+        if (candidate.annualizedVolatility20Percent().compareTo(BigDecimal.valueOf(35)) > 0) {
+            return "VOLATILITY_HIGH";
+        }
+        if (candidate.annualizedVolatility20Percent().compareTo(BigDecimal.valueOf(20)) < 0) {
+            return "VOLATILITY_CONTROLLED";
+        }
+        return "VOLATILITY_MODERATE";
+    }
+
+    private String rangeTag(PrototypeSwingOllamaCandidate candidate) {
+        if (candidate.rangePosition252Percent() == null) {
+            return "RANGE_UNKNOWN";
+        }
+        if (candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(90)) > 0) {
+            return "RANGE_EXTENDED";
+        }
+        if (candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(60)) >= 0) {
+            return "RANGE_LEADERSHIP";
+        }
+        if (candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(30)) < 0) {
+            return "RANGE_LOW";
+        }
+        return "RANGE_MIDDLE";
+    }
+
+    private String scoreCapHint(PrototypeSwingOllamaCandidate candidate) {
+        int majorConflicts = 0;
+        if (less(candidate.latestClose(), candidate.sma20())) {
+            majorConflicts++;
+        }
+        if (less(candidate.sma20(), candidate.sma50())) {
+            majorConflicts++;
+        }
+        if (less(candidate.ema12(), candidate.ema26())) {
+            majorConflicts++;
+        }
+        if (candidate.rsi14() != null && candidate.rsi14().compareTo(BigDecimal.valueOf(45)) < 0) {
+            majorConflicts++;
+        }
+        if (candidate.volumeRatio20() != null && candidate.volumeRatio20().compareTo(BigDecimal.valueOf(0.8)) < 0) {
+            majorConflicts++;
+        }
+        if (candidate.annualizedVolatility20Percent() != null
+                && candidate.annualizedVolatility20Percent().compareTo(BigDecimal.valueOf(35)) > 0) {
+            majorConflicts++;
+        }
+        if (candidate.rangePosition252Percent() != null
+                && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(90)) > 0
+                && candidate.rsi14() != null
+                && candidate.rsi14().compareTo(BigDecimal.valueOf(65)) > 0) {
+            majorConflicts++;
+        }
+        if (majorConflicts >= 2) {
+            return "HARD_CAP_69";
+        }
+        if (majorConflicts == 1) {
+            return "SOFT_CAP_84";
+        }
+        return "HIGH_ELIGIBLE";
+    }
+
+    private boolean greater(BigDecimal left, BigDecimal right) {
+        return left != null && right != null && left.compareTo(right) > 0;
+    }
+
+    private boolean greaterOrEqual(BigDecimal left, BigDecimal right) {
+        return left != null && right != null && left.compareTo(right) >= 0;
+    }
+
+    private boolean less(BigDecimal left, BigDecimal right) {
+        return left != null && right != null && left.compareTo(right) < 0;
     }
 
     private Validation validateResponse(
