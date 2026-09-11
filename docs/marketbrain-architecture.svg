@@ -330,6 +330,16 @@
     <rect x="2228" y="1143" width="83" height="26" rx="13" fill="#263548" stroke="#71869d"/>
     <text x="2270" y="1161" text-anchor="middle" class="tiny" fill="#a9bdd1">FUTURE</text>
   </g>
+  <path d="M2160 1184v21" class="flow" stroke="#71869d" marker-end="url(#arrowPurple)"/>
+  <g class="card">
+    <rect x="1985" y="1208" width="350" height="130" rx="14" fill="#1a2232" stroke="#71869d" stroke-width="2" stroke-dasharray="8 6"/>
+    <use href="#icon-chart" x="2008" y="1247" width="46" height="46" color="#8ca2b8"/>
+    <text x="2072" y="1255" class="group-title">Live position monitor</text>
+    <text x="2072" y="1284" class="group-subtitle">30-60s quote polling + P&amp;L watch</text>
+    <text x="2072" y="1311" class="group-subtitle">AI holding review; risk remains final</text>
+    <rect x="2228" y="1317" width="83" height="26" rx="13" fill="#263548" stroke="#71869d"/>
+    <text x="2270" y="1335" text-anchor="middle" class="tiny" fill="#a9bdd1">FUTURE</text>
+  </g>
 
   <!-- Cross-panel arrows -->
   <path d="M590 430h34v102h641" class="flow" stroke="#5de2bf" marker-end="url(#arrowGreen)"/>
