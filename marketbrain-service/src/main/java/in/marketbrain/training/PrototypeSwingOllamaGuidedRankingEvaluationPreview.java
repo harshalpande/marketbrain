@@ -1,0 +1,59 @@
+package in.marketbrain.training;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+public record PrototypeSwingOllamaGuidedRankingEvaluationPreview(
+        String status,
+        UUID datasetRunId,
+        String datasetContractVersion,
+        String sourceUniverseCode,
+        LocalDate asOf,
+        LocalDate labelThrough,
+        String datasetManifestHash,
+        String model,
+        int candidateCount,
+        int trainingExampleCount,
+        int rankingHorizonSessions,
+        String instructionPackVersion,
+        String responseSchemaVersion,
+        String rubricVersion,
+        String evaluationVersion,
+        String playbookHash,
+        String promptHash,
+        String responseHash,
+        boolean responseParseableJson,
+        boolean responseSchemaValid,
+        List<String> responseValidationFailures,
+        String rankingQualityStatus,
+        String topPickSymbol,
+        Integer topPickActualRank,
+        BigDecimal topPickNetReturnPercent,
+        String bestActualSymbol,
+        Integer bestActualOllamaRank,
+        BigDecimal bestActualNetReturnPercent,
+        int topThreeOverlapCount,
+        BigDecimal rankCorrelationScore,
+        int highConfidenceMissCount,
+        int negativeReturnTopThreeCount,
+        int weakReasonCount,
+        List<String> evaluationFailures,
+        List<PrototypeSwingOllamaCandidateEvaluation> candidateEvaluations,
+        PrototypeSwingOllamaGuidedRankingPreview guidedPreview,
+        boolean dailyFreshDataFeedbackLoopDesigned,
+        boolean dailyFreshDataUsedForTraining,
+        boolean survivorshipRiskPresent,
+        boolean prototypeTrainingEligible,
+        boolean benchmarkTrainingEligible,
+        boolean pointInTimeSafe,
+        boolean futureLabelsSeparated,
+        boolean databaseWritesPerformed,
+        int ollamaCallCount,
+        int signalsCreated,
+        int ordersCreated,
+        boolean actionExecutionEnabled,
+        String detail
+) {
+}

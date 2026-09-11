@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 67 foundation.
+Status: Step 68 foundation.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -49,6 +49,26 @@ Ollama output is not accepted unless it is valid JSON matching the response sche
 
 If the response fails these checks, MarketBrain stores/reports the response as a guarded review failure. It still
 creates no signal, paper fill, order or broker action.
+
+## Evaluation layer
+
+Step 68 adds a separate review-only evaluation pass. MarketBrain asks Ollama to rank the same bounded candidate set,
+then compares the schema-valid response with the hidden future labels already present in the immutable prototype
+dataset.
+
+The evaluation layer checks:
+
+- Ollama top pick versus the actual best 5/20/60-session outcome for the selected horizon;
+- whether the actual best candidate appeared in Ollama's top three;
+- top-three overlap between Ollama and realised outcomes;
+- rank-correlation score across the candidate batch;
+- high-confidence misses;
+- negative-return names placed in Ollama's top three;
+- vague reasoning that does not mention known feature families such as SMA, EMA, RSI, ATR, volume, volatility,
+  benchmark excess, return, trend, momentum or drawdown.
+
+The quality review can pass, warn, or report weak ranking quality. It is still not a trading signal. It performs no
+database writes and creates no signal, paper fill, order or broker action.
 
 ## Daily fresh-data feedback loop
 

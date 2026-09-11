@@ -3606,6 +3606,45 @@ review files under `C:\MarketBrainData\Review`.
 If `ResponseSchemaValid=False`, the response is intentionally blocked by guardrails and should be reviewed rather than
 used. That is a successful safety outcome, not a trading signal.
 
+## Step 68: evaluate guided Ollama ranking quality
+
+Run this after Step 67 has proven that the guided JSON/schema guardrails can pass. Keep `CandidateLimit=5` until the
+evaluation layer is stable; increase gradually later.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewPrototypeSwingOllamaGuidedRankingEvaluation.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -Model 'gemma3:4b' `
+    -CandidateLimit 5 `
+    -RankingHorizonSessions 20
+```
+
+Accepted safety result: `ResponseSchemaValid=True`, `DatabaseWritesPerformed=False`, `OllamaCallCount=1`,
+`SignalsCreated=0`, `OrdersCreated=0`, `ActionExecutionEnabled=False`, and review files under
+`C:\MarketBrainData\Review`.
+
+Interpretation:
+
+- `RankingQualityStatus=QUALITY_REVIEW_PASSED` means the small candidate batch looked reasonable.
+- `QUALITY_REVIEW_WITH_WARNINGS` means the output is usable for review, but some caution flags appeared.
+- `QUALITY_REVIEW_WEAK` means Ollama followed the schema but ranked poorly against hidden labels. Treat that as
+  training/rubric feedback, not as a system failure.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
