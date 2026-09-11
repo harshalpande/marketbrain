@@ -1,0 +1,29 @@
+package in.marketbrain.training;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
+
+    @Test
+    void guidedPreviewIsReadOnlyAndHasResponseGuardrails() throws IOException {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Path.of("src/main/java/in/marketbrain/training/"
+                        + "PrototypeSwingOllamaGuidedRankingPreviewService.java"),
+                StandardCharsets.UTF_8);
+        assertThat(source).contains("@Transactional(readOnly = true");
+        assertThat(source).doesNotContain("jdbcTemplate.update");
+        assertThat(source).doesNotContain("INSERT INTO");
+        assertThat(source).doesNotContain("market_signal");
+        assertThat(source).doesNotContain("paper_order");
+        assertThat(source).contains("generateJson");
+        assertThat(source).contains("validateResponse");
+        assertThat(source).contains("RESPONSE_SCHEMA_VERSION");
+        assertThat(source).contains("POSITIVE_WINNER");
+        assertThat(source).contains("NEGATIVE_LOSER");
+    }
+}

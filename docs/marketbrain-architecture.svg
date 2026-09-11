@@ -271,9 +271,9 @@
   <g class="card">
     <rect x="1300" y="1159" width="590" height="130" rx="14" fill="#112f55" stroke="#4da1ff" stroke-width="2"/>
     <use href="#icon-brain" x="1322" y="1197" width="48" height="48" color="#78b8ff"/>
-    <text x="1388" y="1205" class="group-title">Ollama evidence explanation</text>
-    <text x="1388" y="1234" class="group-subtitle">Summarises cited facts; never replaces rules or risk</text>
-    <text x="1388" y="1262" class="group-subtitle">Model + prompt version recorded for audit</text>
+    <text x="1388" y="1205" class="group-title">Ollama playbook + rubric review</text>
+    <text x="1388" y="1234" class="group-subtitle">Metric scenarios, examples and strict JSON guardrails</text>
+    <text x="1388" y="1262" class="group-subtitle">Daily data validates rules; never replaces risk</text>
   </g>
 
   <!-- RIGHT: USER AND ACTIONS -->

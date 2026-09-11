@@ -3567,6 +3567,45 @@ The accepted result is `Status=REVIEW_REQUIRED`, `OllamaCallCount=1`, `DatabaseW
 `SignalsCreated=0`, `OrdersCreated=0`, `ActionExecutionEnabled=False`, a non-empty Ollama response, and generated
 review files under `C:\MarketBrainData\Review`.
 
+## Step 67: guided Ollama playbook/rubric ranking preview
+
+This step improves the Step 66 raw Ollama call by adding a MarketBrain playbook, metric-level positive and negative
+scenarios, labelled winners and losers, JSON response mode, response-schema validation and guardrails. It is still a
+review-only operation. It must not write to the database, create signals, create paper fills, place orders or contact
+a broker.
+
+After committing, pulling and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build --force-recreate marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\PreviewPrototypeSwingOllamaGuidedRanking.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -Model 'gemma3:4b' `
+    -CandidateLimit 12 `
+    -RankingHorizonSessions 20
+```
+
+Accepted safety result: `OllamaCallCount=1`, `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`,
+`ActionExecutionEnabled=False`, `DailyFreshDataFeedbackLoopDesigned=True`, `DailyFreshDataUsedForTraining=False`, and
+review files under `C:\MarketBrainData\Review`.
+
+If `ResponseSchemaValid=False`, the response is intentionally blocked by guardrails and should be reviewed rather than
+used. That is a successful safety outcome, not a trading signal.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

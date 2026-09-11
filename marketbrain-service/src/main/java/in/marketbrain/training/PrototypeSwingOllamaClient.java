@@ -24,18 +24,29 @@ class PrototypeSwingOllamaClient {
     }
 
     String generate(String model, String prompt) {
+        return generate(model, prompt, false);
+    }
+
+    String generateJson(String model, String prompt) {
+        return generate(model, prompt, true);
+    }
+
+    private String generate(String model, String prompt, boolean jsonMode) {
         try {
+            var body = new java.util.LinkedHashMap<String, Object>();
+            body.put("model", model);
+            body.put("prompt", prompt);
+            body.put("stream", false);
+            body.put("options", Map.of(
+                    "temperature", 0.05,
+                    "num_ctx", 8192
+            ));
+            if (jsonMode) {
+                body.put("format", "json");
+            }
             JsonNode response = restClient.post()
                     .uri("/api/generate")
-                    .body(Map.of(
-                            "model", model,
-                            "prompt", prompt,
-                            "stream", false,
-                            "options", Map.of(
-                                    "temperature", 0.1,
-                                    "num_ctx", 8192
-                            )
-                    ))
+                    .body(body)
                     .retrieve()
                     .body(JsonNode.class);
             String text = response == null ? "" : response.path("response").asText("");

@@ -60,6 +60,10 @@ The first Ollama step is a governed ranking preview. It sends a bounded set of a
 keeps future labels outside the prompt for later comparison, and returns a review artifact only. It cannot create
 signals, fills, orders, or broker actions.
 
+The next Ollama layer adds a MarketBrain playbook, metric-by-metric positive and negative scenarios, labelled examples,
+a strict JSON response schema, and guardrail validation. Daily post-market data is intended to become a governed
+feedback source once its outcome windows mature; it is not used as automatic unreviewed training data.
+
 ## Repository layout
 
 | Path | Purpose |
@@ -81,7 +85,7 @@ WhatsApp tokens or secrets, Analytics Tokens, Paytm tokens, or broker passwords.
 
 For Upstox and Paytm Money feasibility details and the Nifty 500 import format, see [data-provider-feasibility.md](docs/data-provider-feasibility.md).
 
-For the approved target design covering Marketaux, permission-gated RSS feeds, official events, retention, confidence fusion, Ollama explanation, risk controls, and Telegram outcomes, see [news-intelligence-design.md](docs/news-intelligence-design.md). The editable diagram source is [marketbrain-architecture.svg](docs/marketbrain-architecture.svg).
+For the approved target design covering Marketaux, permission-gated RSS feeds, official events, retention, confidence fusion, Ollama explanation, risk controls, and Telegram outcomes, see [news-intelligence-design.md](docs/news-intelligence-design.md). For Ollama playbook/rubric/evaluation design, see [ollama-training-and-evaluation.md](docs/ollama-training-and-evaluation.md). The editable diagram source is [marketbrain-architecture.svg](docs/marketbrain-architecture.svg).
 
 For daily build, deployment, verification, and troubleshooting commands, use [daily-runbook.md](docs/daily-runbook.md).
 

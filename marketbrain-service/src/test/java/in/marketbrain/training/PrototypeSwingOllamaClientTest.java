@@ -38,4 +38,29 @@ class PrototypeSwingOllamaClientTest {
                 .isEqualTo("ranked research output");
         server.verify();
     }
+
+    @Test
+    void canRequestJsonModeForHardenedResponses() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("http://127.0.0.1:11434");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        PrototypeSwingOllamaClient client = new PrototypeSwingOllamaClient(builder.build());
+
+        server.expect(once(), requestTo("http://127.0.0.1:11434/api/generate"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("""
+                        {
+                          "model": "gemma3:4b",
+                          "prompt": "return json",
+                          "stream": false,
+                          "format": "json"
+                        }
+                        """, false))
+                .andRespond(withSuccess(
+                        "{\"response\":\"{\\\"ok\\\":true}\",\"done\":true}",
+                        MediaType.APPLICATION_JSON));
+
+        assertThat(client.generateJson("gemma3:4b", "return json"))
+                .isEqualTo("{\"ok\":true}");
+        server.verify();
+    }
 }
