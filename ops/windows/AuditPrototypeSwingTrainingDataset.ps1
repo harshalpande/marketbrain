@@ -33,7 +33,7 @@ try {
     Write-Host 'This is read-only: no Ollama request, signal, paper fill, order, or broker action will be created.'
     $uri = "$BaseUrl/api/v1/training/prototype-swing-dataset-audit"
     if (-not [string]::IsNullOrWhiteSpace($DatasetRunId)) {
-        $uri = "$uri?datasetRunId=$DatasetRunId"
+        $uri = "${uri}?datasetRunId=$DatasetRunId"
     }
     $audit = Invoke-RestMethod -Uri $uri -TimeoutSec 300
     $audit | ConvertTo-Json -Depth 12 |
