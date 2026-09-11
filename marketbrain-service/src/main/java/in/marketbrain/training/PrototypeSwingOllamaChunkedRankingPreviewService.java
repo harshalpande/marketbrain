@@ -215,7 +215,10 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         return new PrototypeSwingOllamaChunkedRankingAttempt(
                 chunkNumber,
                 attemptNumber,
+                candidateIds(candidates),
                 symbols(candidates),
+                evaluation.responseHash(),
+                evaluation.guidedPreview().ollamaResponse(),
                 evaluation.responseParseableJson(),
                 evaluation.responseSchemaValid(),
                 evaluation.rankingQualityStatus(),
@@ -225,6 +228,14 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 calibration.calibrationFailures(),
                 accepted
         );
+    }
+
+    private List<String> candidateIds(List<PrototypeSwingOllamaCandidate> candidates) {
+        List<String> result = new ArrayList<>();
+        for (int index = 0; index < candidates.size(); index++) {
+            result.add(PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index));
+        }
+        return result;
     }
 
     private boolean chunkAccepted(PrototypeSwingOllamaScoreCalibrationBatch calibration) {

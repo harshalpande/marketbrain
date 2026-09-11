@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 70 foundation.
+Status: Step 71 candidate-identity hardening.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -41,6 +41,8 @@ Ollama output is not accepted unless it is valid JSON matching the response sche
 - schema version;
 - requested horizon;
 - exactly one ranked entry per candidate;
+- exactly one deterministic `candidateId` per candidate, using `CANDIDATE_001`, `CANDIDATE_002`, etc.;
+- symbol copied exactly from the row matching that `candidateId`;
 - ranks are unique and complete;
 - score is between 0 and 100;
 - confidence is `LOW`, `MEDIUM` or `HIGH`;
@@ -111,6 +113,12 @@ Default behavior:
 
 Each chunk records whether it passed, passed with warnings or failed after retries. The final merged result is still a
 research artifact only. It creates no signal, paper fill, order or broker action.
+
+Step 71 hardens the chunked flow after observing that some 4-candidate chunks still failed symbol/rank guardrails.
+The prompt now gives each candidate a deterministic model-safe ID (`CANDIDATE_001` etc.) and requires Ollama to return
+that ID with the copied symbol. Validation now distinguishes candidate-ID failures, symbol-copy mismatches, symbol-set
+failures and rank-sequence failures. The PowerShell script writes detailed root-cause records and failed-attempt raw
+Ollama responses so the next correction can be based on concrete evidence rather than guessing.
 
 ## Daily fresh-data feedback loop
 

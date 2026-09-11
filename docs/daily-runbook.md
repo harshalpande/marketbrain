@@ -3681,10 +3681,12 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70: chunked calibrated Ollama ranking
+## Step 70/71: chunked calibrated Ollama ranking with candidate-ID diagnostics
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
-failed chunk once, and printing percentage progress after every chunk.
+failed chunk once, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
+`CANDIDATE_001`-style IDs so a failure can be separated into candidate-ID, symbol-copy, rank-sequence or JSON-schema
+root cause.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -3712,11 +3714,12 @@ do {
     -RankingHorizonSessions 20
 ```
 
-The script prints percentage progress, each chunk loop result, every attempt's schema/calibration status, root-cause
-records for guardrail failures or exceptions, and a final merged finalist summary. It writes:
+The script prints percentage progress, each chunk loop result, every attempt's schema/calibration status, expected
+candidate IDs, root-cause records for guardrail failures or exceptions, and a final merged finalist summary. It writes:
 
 - full result JSON under `C:\MarketBrainData\Review`;
 - a dedicated `*-root-causes.json` file;
+- raw failed-attempt Ollama response files named `*-chunkN-attemptN-ollama-response.json`;
 - the transcript log file.
 
 Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and

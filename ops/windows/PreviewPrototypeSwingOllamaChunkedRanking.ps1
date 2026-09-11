@@ -109,18 +109,26 @@ try {
                     $percentAfter, $chunkNumber, $chunkCountTarget, $chunk.chunkStatus, `
                     ($chunk.candidateSymbols -join ','), $chunk.attemptCount, $chunk.acceptedAttemptNumber)
                 foreach ($attempt in $chunk.attempts) {
-                    Write-Host ("       Attempt {0}: schemaValid={1}; ranking={2}; calibration={3}; accepted={4}" -f `
+                    Write-Host ("       Attempt {0}: schemaValid={1}; ranking={2}; calibration={3}; accepted={4}; responseHash={5}" -f `
                         $attempt.attemptNumber, $attempt.responseSchemaValid, `
                         $attempt.rankingQualityStatus, $attempt.scoreCalibrationStatus, `
-                        $attempt.acceptedForChunkSummary)
+                        $attempt.acceptedForChunkSummary, $attempt.responseHash)
                     if (@($attempt.responseValidationFailures).Count -gt 0 -or
                         @($attempt.evaluationFailures).Count -gt 0 -or
                         @($attempt.calibrationFailures).Count -gt 0) {
+                        $attemptResponsePath = Join-Path $OutputDirectory ("$stem-chunk{0}-attempt{1}-ollama-response.json" -f $chunk.chunkNumber, $attempt.attemptNumber)
+                        if (-not [string]::IsNullOrWhiteSpace([string]$attempt.ollamaResponse)) {
+                            [string]$attempt.ollamaResponse |
+                                Set-Content -LiteralPath $attemptResponsePath -Encoding utf8
+                        }
                         $rootCauseRecords.Add([pscustomobject][ordered]@{
                             kind                       = 'CHUNK_ATTEMPT_GUARDRAIL'
                             chunkNumber                = $chunk.chunkNumber
                             attemptNumber              = $attempt.attemptNumber
+                            expectedCandidateIds       = @($attempt.expectedCandidateIds)
                             candidateSymbols           = @($attempt.candidateSymbols)
+                            responseHash               = $attempt.responseHash
+                            ollamaResponsePath         = $attemptResponsePath
                             responseParseableJson      = $attempt.responseParseableJson
                             responseSchemaValid        = $attempt.responseSchemaValid
                             rankingQualityStatus       = $attempt.rankingQualityStatus
@@ -267,10 +275,13 @@ try {
             $chunk.chunkNumber, $chunk.chunkStatus, $chunk.offset, `
             ($chunk.candidateSymbols -join ','), $chunk.attemptCount, $chunk.acceptedAttemptNumber)
         foreach ($attempt in $chunk.attempts) {
-            Write-Host ("  Attempt {0}: schemaValid={1}; ranking={2}; calibration={3}; accepted={4}" -f `
+            Write-Host ("  Attempt {0}: schemaValid={1}; ranking={2}; calibration={3}; accepted={4}; responseHash={5}" -f `
                 $attempt.attemptNumber, $attempt.responseSchemaValid, `
                 $attempt.rankingQualityStatus, $attempt.scoreCalibrationStatus, `
-                $attempt.acceptedForChunkSummary)
+                $attempt.acceptedForChunkSummary, $attempt.responseHash)
+            if (@($attempt.expectedCandidateIds).Count -gt 0) {
+                Write-Host ("    Expected candidate IDs: {0}" -f (@($attempt.expectedCandidateIds) -join ', '))
+            }
             if (@($attempt.responseValidationFailures).Count -gt 0) {
                 Write-Host ("    Response failures: {0}" -f (@($attempt.responseValidationFailures) -join ', '))
             }
@@ -297,8 +308,9 @@ try {
     Write-Host 'Root cause / exception records'
     @($preview.rootCauseRecords) |
         Select-Object kind, chunkNumber, attemptNumber, exceptionType,
-            message, responseValidationFailures, evaluationFailures,
-            calibrationFailures |
+            message, expectedCandidateIds, candidateSymbols, responseHash,
+            ollamaResponsePath, responseValidationFailures,
+            evaluationFailures, calibrationFailures |
         Format-Table -AutoSize
 
     if ($preview.databaseWritesPerformed -or

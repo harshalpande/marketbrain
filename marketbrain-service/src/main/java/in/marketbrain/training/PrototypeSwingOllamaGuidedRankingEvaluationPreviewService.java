@@ -167,8 +167,11 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
 
     private Evaluation evaluateRankQuality(PrototypeSwingOllamaGuidedRankingPreview guided) {
         JsonNode ranked = rankedCandidates(guided.ollamaResponse());
+        Map<String, PrototypeSwingOllamaCandidate> candidatesById = new HashMap<>();
         Map<String, PrototypeSwingOllamaCandidate> candidatesBySymbol = new HashMap<>();
-        for (PrototypeSwingOllamaCandidate candidate : guided.candidates()) {
+        for (int index = 0; index < guided.candidates().size(); index++) {
+            PrototypeSwingOllamaCandidate candidate = guided.candidates().get(index);
+            candidatesById.put(PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index), candidate);
             candidatesBySymbol.put(candidate.symbol(), candidate);
         }
         Map<String, Integer> actualRanks = actualRanks(guided.candidates(), guided.rankingHorizonSessions());
@@ -192,11 +195,16 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
         rankedNodes.sort(Comparator.comparingInt(node -> node.path("rank").asInt(Integer.MAX_VALUE)));
 
         for (JsonNode node : rankedNodes) {
+            String candidateId = node.path("candidateId").asText("");
             String symbol = node.path("symbol").asText("");
-            PrototypeSwingOllamaCandidate candidate = candidatesBySymbol.get(symbol);
+            PrototypeSwingOllamaCandidate candidate = candidatesById.get(candidateId);
+            if (candidate == null) {
+                candidate = candidatesBySymbol.get(symbol);
+            }
             if (candidate == null) {
                 continue;
             }
+            symbol = candidate.symbol();
             int ollamaRank = node.path("rank").asInt();
             int actualRank = actualRanks.get(symbol);
             int rankError = Math.abs(ollamaRank - actualRank);

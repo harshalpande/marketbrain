@@ -12,10 +12,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,7 +25,7 @@ import java.util.UUID;
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
     static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V1";
-    static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V1";
+    static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2";
     static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V1";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
@@ -339,9 +341,11 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append('"').append(example.teachingPoint()).append('"').append('\n');
         }
         builder.append("\nUnlabelled ranking candidates. Use only these feature values for ranking; future labels are hidden:\n");
-        builder.append("symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct\n");
-        for (PrototypeSwingOllamaCandidate candidate : candidates) {
-            builder.append(candidate.symbol()).append(',')
+        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct\n");
+        for (int index = 0; index < candidates.size(); index++) {
+            PrototypeSwingOllamaCandidate candidate = candidates.get(index);
+            builder.append(candidateId(index)).append(',')
+                    .append(candidate.symbol()).append(',')
                     .append(text(candidate.latestClose())).append(',')
                     .append(text(candidate.dailyReturnPercent())).append(',')
                     .append(text(candidate.sma20())).append(',')
@@ -360,11 +364,12 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 Return ONLY valid JSON, no markdown and no prose outside JSON.
                 Required JSON shape:
                 {
-                  "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V1",
+                  "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2",
                   "rankingHorizonSessions": 20,
                   "rankedCandidates": [
                     {
                       "rank": 1,
+                      "candidateId": "CANDIDATE_001",
                       "symbol": "SYMBOL",
                       "score": 0,
                       "confidence": "LOW",
@@ -377,7 +382,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                   "riskNote": "portfolio-level risk note including survivorship risk",
                   "researchOnlyDisclaimer": "Prototype research only; creates no signal/order."
                 }
-                Rules: include every supplied candidate exactly once; ranks must be 1..candidateCount;
+                Rules: include every supplied candidateId exactly once; ranks must be 1..candidateCount;
+                copy the symbol exactly from the row matching that candidateId;
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
                 Score calibration rubric:
                 - 85..100: exceptional multi-factor setup with strong trend, participation, controlled risk and few conflicts.
@@ -413,17 +419,30 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         if (!ranked.isArray() || ranked.size() != candidates.size()) {
             failures.add("RANKED_CANDIDATE_COUNT");
         }
+        Map<String, String> expectedSymbolByCandidateId = new HashMap<>();
+        Set<String> expectedCandidateIds = new HashSet<>();
         Set<String> expectedSymbols = new HashSet<>();
-        for (PrototypeSwingOllamaCandidate candidate : candidates) {
-            expectedSymbols.add(candidate.symbol());
+        for (int index = 0; index < candidates.size(); index++) {
+            String candidateId = candidateId(index);
+            String symbol = candidates.get(index).symbol();
+            expectedCandidateIds.add(candidateId);
+            expectedSymbols.add(symbol);
+            expectedSymbolByCandidateId.put(candidateId, symbol);
         }
+        Set<String> seenCandidateIds = new HashSet<>();
         Set<String> seenSymbols = new HashSet<>();
         Set<Integer> seenRanks = new HashSet<>();
         for (JsonNode node : ranked) {
+            String candidateId = node.path("candidateId").asText("");
             String symbol = node.path("symbol").asText("");
             int rank = node.path("rank").asInt(-1);
             int score = node.path("score").asInt(-1);
             String confidence = node.path("confidence").asText("");
+            if (!expectedCandidateIds.contains(candidateId) || !seenCandidateIds.add(candidateId)) {
+                failures.add("CANDIDATE_ID_SET");
+            } else if (!expectedSymbolByCandidateId.get(candidateId).equals(symbol)) {
+                failures.add("CANDIDATE_SYMBOL_MISMATCH");
+            }
             if (!expectedSymbols.contains(symbol) || !seenSymbols.add(symbol)) {
                 failures.add("SYMBOL_SET");
             }
@@ -450,6 +469,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             failures.add("REQUIRED_NOTES");
         }
         return new Validation(true, failures.stream().distinct().toList());
+    }
+
+    static String candidateId(int zeroBasedIndex) {
+        return "CANDIDATE_%03d".formatted(zeroBasedIndex + 1);
     }
 
     private String model(String value) {
