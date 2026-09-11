@@ -193,14 +193,12 @@ try {
         }
     }
 
-    $allChunks = @($allChunkList)
-    $mergedFinalists = @(
-        $mergedFinalistList |
-            Sort-Object `
-                @{ Expression = { if ($null -eq $_.ollamaScore) { 999999 } else { -1 * [int]$_.ollamaScore } } },
-                @{ Expression = { [string]$_.symbol } }
-    )
-    $aggregateFailures = @($aggregateFailureList |
+    $allChunks = $allChunkList.ToArray()
+    $mergedFinalists = $mergedFinalistList.ToArray() |
+        Sort-Object -Property `
+            @{ Expression = { if ($null -eq $_.ollamaScore) { [int]::MinValue } else { [int]$_.ollamaScore } }; Descending = $true },
+            @{ Expression = { [string]$_.symbol }; Descending = $false }
+    $aggregateFailures = @($aggregateFailureList.ToArray() |
         Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } |
         Select-Object -Unique)
 
@@ -241,7 +239,7 @@ try {
         chunks                   = @($allChunks)
         mergedFinalists          = @($mergedFinalists)
         aggregateFailures        = @($aggregateFailures)
-        rootCauseRecords         = @($rootCauseRecords)
+        rootCauseRecords         = @($rootCauseRecords.ToArray())
         databaseWritesPerformed  = $false
         signalsCreated           = 0
         ordersCreated            = 0
@@ -251,7 +249,7 @@ try {
 
     $preview | ConvertTo-Json -Depth 40 |
         Set-Content -LiteralPath $resultPath -Encoding utf8
-    @($rootCauseRecords) | ConvertTo-Json -Depth 20 |
+    @($rootCauseRecords.ToArray()) | ConvertTo-Json -Depth 20 |
         Set-Content -LiteralPath $rootCausePath -Encoding utf8
 
     $preview | Select-Object status, datasetRunId, model, asOf, labelThrough,
