@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 72 repair-retry hardening.
+Status: Step 73 outcome-aware Granite rubric hardening.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -14,6 +14,7 @@ ranking request includes:
 - a feature dictionary and interpretation playbook;
 - positive labelled examples from the immutable prototype dataset;
 - negative labelled examples from the same dataset;
+- benchmark-laggard and drawdown-trap examples from the same dataset;
 - interaction rules for trend, momentum, participation, volatility, benchmark excess and drawdown;
 - a strict JSON response schema;
 - a mandatory research-only, no-signal/no-order boundary.
@@ -92,6 +93,8 @@ The calibration preview runs bounded candidate batches, compares scores with hid
 - top score not belonging to the actual top half;
 - negative score-rank correlation;
 - high-confidence misses or negative-return names in the top three.
+- top score assigned to a negative-return candidate;
+- high score or high confidence assigned to a bottom-half realised outcome.
 
 This is still review-only. A weak calibration result means the prompt/rubric needs improvement; it is not a trading
 signal and never bypasses the deterministic risk engine.
@@ -125,6 +128,12 @@ Step 72 adds repair-retry behavior for schema-blocked attempts. Every chunk prom
 `rankedCandidates` skeleton listing the required candidate IDs and symbols. If a guarded attempt fails, the next retry
 includes a targeted repair instruction containing the previous guardrail failures and the exact expected row count.
 This is designed to repair failures such as `RANKED_CANDIDATE_COUNT` without lowering the chunk size too early.
+
+Step 73 strengthens Granite's outcome-aware rubric. The prompt now explicitly optimizes for forward net return,
+benchmark excess and smoother drawdown path, not merely attractive current features. Training examples include
+positive winners, negative losers, benchmark-laggard traps and drawdown traps. High confidence is reserved for
+exceptional multi-factor candidates with minimal conflicts, and score calibration now flags high-score or
+high-confidence misses more explicitly.
 
 ## Daily fresh-data feedback loop
 

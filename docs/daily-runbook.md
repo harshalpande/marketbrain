@@ -3681,13 +3681,15 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72: chunked calibrated Ollama ranking with repair retry
+## Step 70/71/72/73: chunked calibrated Ollama ranking with repair retry and outcome-aware rubric
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
 `CANDIDATE_001`-style IDs so a failure can be separated into candidate-ID, symbol-copy, rank-sequence or JSON-schema
 root cause. Step 72 adds an exact candidate skeleton to every prompt and sends a targeted repair instruction on retry
-when a previous attempt fails a guardrail such as `RANKED_CANDIDATE_COUNT`.
+when a previous attempt fails a guardrail such as `RANKED_CANDIDATE_COUNT`. Step 73 strengthens Granite's
+outcome-aware rubric with benchmark-laggard and drawdown-trap examples plus stricter high-score/high-confidence
+calibration checks.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'

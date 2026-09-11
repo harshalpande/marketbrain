@@ -24,9 +24,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V1";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V2";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V1";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V2";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -230,10 +230,22 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             Set<String> excludedSymbols
     ) {
         List<PrototypeSwingOllamaTrainingExample> examples = new ArrayList<>();
-        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "POSITIVE_WINNER", "DESC", 4,
-                "Strong labelled winner: learn the supporting pattern, not the symbol name."));
-        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "NEGATIVE_LOSER", "ASC", 4,
-                "Labelled loser: learn which weak or risky pattern should reduce rank."));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "POSITIVE_WINNER",
+                "label.net_return_percent DESC, label.benchmark_excess_return_percent DESC", 4,
+                "Strong labelled winner: learn confluence that produced high net return and positive benchmark excess.",
+                "label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "NEGATIVE_LOSER",
+                "label.net_return_percent ASC, label.benchmark_excess_return_percent ASC", 4,
+                "Labelled loser: weak future return or benchmark lag should reduce rank even if one feature looks attractive.",
+                "label.net_return_percent < 0 OR label.benchmark_excess_return_percent < 0"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "BENCHMARK_LAGGARD_TRAP",
+                "label.benchmark_excess_return_percent ASC, item.daily_return_percent DESC", 2,
+                "Trap example: do not over-rank candidates that may rise but lag the benchmark or equal-weight proxy.",
+                "label.benchmark_excess_return_percent < 0"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "DRAWDOWN_TRAP",
+                "label.maximum_drawdown_percent DESC, label.net_return_percent ASC", 2,
+                "Trap example: high pain/drawdown or unstable path must cap confidence and score.",
+                "label.maximum_drawdown_percent >= 10"));
         return List.copyOf(examples);
     }
 
@@ -242,9 +254,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             int horizon,
             Set<String> excludedSymbols,
             String scenarioType,
-            String direction,
+            String orderExpression,
             int limit,
-            String teachingPoint
+            String teachingPoint,
+            String additionalCondition
     ) {
         String excludedPlaceholders = String.join(", ", java.util.Collections.nCopies(excludedSymbols.size(), "?"));
         String sql = """
@@ -259,9 +272,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                   AND item.classification = 'LABELED'
                   AND label.horizon_sessions = ?
                   AND item.symbol NOT IN (%s)
-                ORDER BY label.net_return_percent %s, item.symbol
+                  AND (%s)
+                ORDER BY %s, item.symbol
                 LIMIT ?
-                """.formatted(excludedPlaceholders, direction);
+                """.formatted(excludedPlaceholders, additionalCondition, orderExpression);
         List<Object> parameters = new ArrayList<>();
         parameters.add(runId);
         parameters.add(horizon);
@@ -289,17 +303,21 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
     private String playbook() {
         return """
                 MarketBrain swing-ranking playbook:
+                - Objective: rank candidates for forward net return AND benchmark excess while avoiding candidates that create avoidable drawdown pain.
                 - Never treat one metric as decisive. Rank by confluence of trend, momentum, participation, volatility, and risk.
                 - daily_return_pct: positive can indicate momentum, but a one-day spike without trend/volume support is noise. Negative can be pullback or breakdown; interpret with SMA/EMA context.
                 - SMA20/SMA50/SMA200: bullish structure improves when price is above rising short and medium averages and SMA20 >= SMA50 >= SMA200. Price far above SMA20 with high ATR can be overextended.
                 - EMA12/EMA26: EMA12 above EMA26 supports short-term momentum. A tiny crossover during weak SMA structure is a false-positive risk.
                 - RSI14: 55-70 can indicate strength. Above 70 can be exhaustion if range_position252 and ATR are high. Below 45 is usually weak unless other recovery evidence is strong.
                 - ATR14 and volatility20_pct: high values imply wider stops and higher pain. High return with high drawdown is lower quality than smoother return.
-                - volume_ratio20: above 1.2 can confirm participation. Extreme volume without trend confirmation may be a news spike or exhaustion.
+                - volume_ratio20: above 1.2 can confirm participation. Below 0.8 is weak participation unless other evidence is exceptional. Extreme volume without trend confirmation may be a news spike or exhaustion.
                 - range_position252_pct: high values can show leadership or breakout, but near 100 with high RSI/ATR may be late. Low values can be value/recovery only if momentum confirms.
-                - benchmark_excess_return is the test of whether the stock added value beyond the equal-weight proxy.
-                - maximum_drawdown is a pain/risk measure. Penalize candidates where return came with large drawdown.
+                - benchmark_excess_return is the test of whether the stock added value beyond the equal-weight proxy. A candidate can have positive absolute return and still be a poor pick if it lags the proxy.
+                - maximum_drawdown is a pain/risk measure. Penalize candidates where return came with large drawdown; never use HIGH confidence when volatility/drawdown risk is meaningfully unresolved.
                 - Prefer balanced setups: positive/repairing trend, controlled volatility, constructive RSI, confirmed volume, and manageable drawdown risk.
+                - High confidence requires broad confluence: trend alignment, constructive RSI, participation, not-overextended range position, controlled volatility and no major conflict.
+                - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
+                - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
                 - This is prototype research only. Never create or imply a live trading signal.
                 """;
@@ -322,6 +340,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         builder.append("Dataset run: ").append(audit.datasetRunId()).append('\n');
         builder.append("As of: ").append(audit.asOf()).append('\n');
         builder.append("Requested horizon sessions: ").append(horizon).append("\n\n");
+        builder.append("""
+                Ranking objective for this request:
+                - Select the best swing candidates for the requested horizon, not the best-looking chart.
+                - Reward likely net return, likely benchmark excess, and smoother path quality.
+                - Penalize likely benchmark lag, high volatility/drawdown pain, weak participation, and overextension.
+                - A top-ranked candidate should normally deserve at least a strong score; weak or conflicted candidates should not receive HIGH confidence.
+
+                """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
         builder.append("scenario,symbol,daily_return_pct,sma20,sma50,sma200,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,target_net_return_pct,target_benchmark_excess_pct,target_max_drawdown_pct,teaching_point\n");
         for (PrototypeSwingOllamaTrainingExample example : examples) {
@@ -406,13 +432,18 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 copy the symbol exactly from the row matching that candidateId;
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
                 Score calibration rubric:
-                - 85..100: exceptional multi-factor setup with strong trend, participation, controlled risk and few conflicts.
-                - 70..84: strong setup with mostly aligned evidence and manageable risk.
-                - 55..69: constructive watchlist candidate, but not yet exceptional.
-                - 40..54: mixed evidence or meaningful risk; usually lower rank.
-                - 20..39: weak or risky setup.
+                - 85..100: exceptional multi-factor setup with strong trend, participation, likely benchmark excess, controlled volatility/drawdown and almost no conflicts. HIGH confidence is allowed only here.
+                - 70..84: strong setup with mostly aligned evidence, manageable risk and no major benchmark-lag or drawdown-like warning.
+                - 55..69: constructive watchlist candidate, but with unresolved conflicts, weak participation, or merely average risk/reward.
+                - 40..54: mixed evidence, meaningful risk, weak participation, overextension, or likely benchmark lag; usually lower rank.
+                - 20..39: weak, risky, poor participation, high pain/drawdown profile, or expected laggard.
                 - 0..19: avoid/very weak within this candidate batch.
                 Use the full 0..100 range when candidates differ materially. Do not compress all scores near zero.
+                Confidence calibration:
+                - HIGH: only when evidence is broad, conflicts are minimal and the score is at least 85.
+                - MEDIUM: use for strong but imperfect candidates.
+                - LOW: use for candidates with negative daily return, weak participation, high volatility, overextension, or conflicting signals.
+                Never assign HIGH confidence to a candidate whose reason contains major caveats such as weak RSI, weak volume, high volatility, overbought/overextended, or meaningful drawdown risk.
                 """);
         return builder.toString();
     }
