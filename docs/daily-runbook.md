@@ -3552,12 +3552,12 @@ do {
 
 & '.\ops\windows\PreviewPrototypeSwingOllamaRanking.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
-    -Model 'qwen3:8b' `
+    -Model 'ibm/granite4.1:8b' `
     -CandidateLimit 12 `
     -RankingHorizonSessions 20
 ```
 
-If your local Ollama model has a different name, replace `qwen3:8b` with a model shown by:
+If your local Ollama model has a different name, replace `ibm/granite4.1:8b` with a model shown by:
 
 ```powershell
 ollama list
@@ -3594,7 +3594,7 @@ do {
 
 & '.\ops\windows\PreviewPrototypeSwingOllamaGuidedRanking.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
-    -Model 'qwen3:8b' `
+    -Model 'ibm/granite4.1:8b' `
     -CandidateLimit 12 `
     -RankingHorizonSessions 20
 ```
@@ -3629,7 +3629,7 @@ do {
 
 & '.\ops\windows\PreviewPrototypeSwingOllamaGuidedRankingEvaluation.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
-    -Model 'qwen3:8b' `
+    -Model 'ibm/granite4.1:8b' `
     -CandidateLimit 5 `
     -RankingHorizonSessions 20
 ```
@@ -3667,7 +3667,7 @@ do {
 
 & '.\ops\windows\PreviewPrototypeSwingOllamaScoreCalibration.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
-    -Model 'qwen3:8b' `
+    -Model 'ibm/granite4.1:8b' `
     -CandidateLimits 5,8,12 `
     -RankingHorizonSessions 20
 ```
@@ -3707,7 +3707,7 @@ do {
 
 & '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRanking.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
-    -Model 'qwen3:8b' `
+    -Model 'ibm/granite4.1:8b' `
     -TotalCandidateLimit 12 `
     -ChunkSize 4 `
     -FinalistsPerChunk 2 `

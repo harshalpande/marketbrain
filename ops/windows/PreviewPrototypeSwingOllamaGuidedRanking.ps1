@@ -4,7 +4,7 @@ param(
     [string]$DatasetRunId,
 
     [Parameter()]
-    [string]$Model = 'qwen3:8b',
+    [string]$Model = 'ibm/granite4.1:8b',
 
     [Parameter()]
     [ValidateRange(1, 25)]
