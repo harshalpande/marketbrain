@@ -3683,8 +3683,8 @@ Interpretation:
 
 ## Step 70: chunked calibrated Ollama ranking
 
-Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4 and retrying a
-failed chunk once.
+Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
+failed chunk once, and printing percentage progress after every chunk.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -3712,8 +3712,14 @@ do {
     -RankingHorizonSessions 20
 ```
 
-The script prints each chunk loop result, every attempt's schema/calibration status, and a final merged finalist
-summary. Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
+The script prints percentage progress, each chunk loop result, every attempt's schema/calibration status, root-cause
+records for guardrail failures or exceptions, and a final merged finalist summary. It writes:
+
+- full result JSON under `C:\MarketBrainData\Review`;
+- a dedicated `*-root-causes.json` file;
+- the transcript log file.
+
+Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
 `ActionExecutionEnabled=False`.
 
 ## Spare runtime laptop: normal update and redeploy

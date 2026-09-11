@@ -43,9 +43,10 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             PrototypeSwingOllamaChunkedRankingRequest request
     ) {
         PrototypeSwingOllamaChunkedRankingRequest safeRequest = request == null
-                ? new PrototypeSwingOllamaChunkedRankingRequest(null, null, null, null, null, null, null)
+                ? new PrototypeSwingOllamaChunkedRankingRequest(null, null, null, null, null, null, null, null)
                 : request;
         String model = model(safeRequest.model());
+        int startOffset = startOffset(safeRequest.startOffset());
         int totalCandidateLimit = totalCandidateLimit(safeRequest.totalCandidateLimit());
         int chunkSize = chunkSize(safeRequest.chunkSize());
         int finalistsPerChunk = finalistsPerChunk(safeRequest.finalistsPerChunk(), chunkSize);
@@ -60,8 +61,10 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         int processedCandidateCount = 0;
         int ollamaCallCount = 0;
 
-        for (int offset = 0, chunkNumber = 1; offset < totalCandidateLimit; offset += chunkSize, chunkNumber++) {
-            int requestedChunkSize = Math.min(chunkSize, totalCandidateLimit - offset);
+        int stopOffsetExclusive = startOffset + totalCandidateLimit;
+        for (int offset = startOffset; offset < stopOffsetExclusive; offset += chunkSize) {
+            int chunkNumber = (offset / chunkSize) + 1;
+            int requestedChunkSize = Math.min(chunkSize, stopOffsetExclusive - offset);
             List<PrototypeSwingOllamaCandidate> candidates =
                     guidedRankingService.candidates(runId, offset, requestedChunkSize);
             if (candidates.isEmpty()) {
@@ -105,6 +108,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 model,
                 audit.asOf(),
                 audit.labelThrough(),
+                startOffset,
                 totalCandidateLimit,
                 chunkSize,
                 finalistsPerChunk,
@@ -275,6 +279,14 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             throw new IllegalArgumentException("totalCandidateLimit must be between 1 and 100.");
         }
         return limit;
+    }
+
+    private int startOffset(Integer value) {
+        int offset = value == null ? 0 : value;
+        if (offset < 0 || offset > 500) {
+            throw new IllegalArgumentException("startOffset must be between 0 and 500.");
+        }
+        return offset;
     }
 
     private int chunkSize(Integer value) {

@@ -10,6 +10,7 @@ public record PrototypeSwingOllamaChunkedRankingPreview(
         String model,
         LocalDate asOf,
         LocalDate labelThrough,
+        int startOffset,
         int totalCandidateLimit,
         int chunkSize,
         int finalistsPerChunk,

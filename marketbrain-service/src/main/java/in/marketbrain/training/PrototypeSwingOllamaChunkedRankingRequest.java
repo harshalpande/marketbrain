@@ -5,6 +5,7 @@ import java.util.UUID;
 public record PrototypeSwingOllamaChunkedRankingRequest(
         UUID datasetRunId,
         String model,
+        Integer startOffset,
         Integer totalCandidateLimit,
         Integer chunkSize,
         Integer finalistsPerChunk,
