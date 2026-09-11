@@ -208,7 +208,7 @@ public class PrototypeSwingOllamaRankingPreviewService {
             throw new IllegalArgumentException("model is required.");
         }
         String trimmed = value.trim();
-        if (trimmed.length() > 80 || !trimmed.matches("^[A-Za-z0-9._:-]+$")) {
+        if (trimmed.length() > 80 || !trimmed.matches("^[A-Za-z0-9._:/-]+$")) {
             throw new IllegalArgumentException("model contains unsupported characters.");
         }
         return trimmed;
