@@ -3484,6 +3484,47 @@ preview and persisted manifest hashes, reconciled item and label counts, `Surviv
 `PrototypeTrainingEligible=True`, `BenchmarkTrainingEligible=False`, `PointInTimeSafe=True`,
 `FutureLabelsSeparated=True`, and zero Ollama calls, signals, orders, paper fills, or broker actions.
 
+## Step 65: audit the prototype swing-training dataset
+
+This step is read-only. It audits the immutable prototype dataset created in Step 64 and reports label coverage,
+return distribution, positive/negative balance, benchmark excess, drawdown/excursion behavior, and best/worst
+examples. It must not write data, call Ollama, create signals, create paper fills, place orders, or contact a broker.
+
+After committing, pulling, and rebuilding on the spare laptop, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+git status --short
+git pull --ff-only
+docker compose --env-file .env up -d --build marketbrain-service
+
+do {
+    Start-Sleep -Seconds 3
+    try {
+        $health = Invoke-RestMethod 'http://127.0.0.1:8080/actuator/health'
+    }
+    catch {
+        $health = $null
+    }
+} until ($health.status -eq 'UP')
+
+& '.\ops\windows\AuditPrototypeSwingTrainingDataset.ps1'
+```
+
+To audit a specific run, pass the Step 64 dataset run id:
+
+```powershell
+& '.\ops\windows\AuditPrototypeSwingTrainingDataset.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917'
+```
+
+The accepted result is `Status=REVIEW_REQUIRED`, `DatasetContractVersion=PROTOTYPE_SWING_TRAINING_DATASET_V1`,
+`SourceUniverseCode=CURRENT_SNAPSHOT_PROTOTYPE`, reconciled item and label counts, exactly three horizon audits,
+each horizon containing one label per fully labeled instrument, `SurvivorshipRiskPresent=True`,
+`PrototypeTrainingEligible=True`, `BenchmarkTrainingEligible=False`, `PointInTimeSafe=True`,
+`FutureLabelsSeparated=True`, `AuditReadyForOllamaRanking=True`, and zero database writes, Ollama calls, signals,
+orders, paper fills, or broker actions.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

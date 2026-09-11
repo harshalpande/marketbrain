@@ -52,6 +52,10 @@ The first fallback training artifact is an immutable prototype swing dataset. It
 current-snapshot feature/label manifest for prototype learning while keeping official historical benchmark training,
 Ollama training, signals, fills, and broker orders disabled.
 
+The next review layer audits that immutable prototype dataset without writing data. It reports label coverage,
+return distribution, benchmark excess, drawdown/excursion behavior, and best/worst examples before any Ollama-assisted
+ranking experiment is allowed.
+
 ## Repository layout
 
 | Path | Purpose |
