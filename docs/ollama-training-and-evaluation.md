@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 75 Granite feature-prior and recovery-vs-overextension hardening.
+Status: Step 76 deterministic feature scoring and quality-label hardening.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -168,6 +168,25 @@ from as-of technical features, not future labels. Granite is instructed to use t
 still explaining any override. The score-cap system also adds `HARD_CAP_54` for extreme risk/overextension cases.
 
 This still does not convert Ollama output into a trading signal. It remains a governed research/evaluation artifact.
+
+Step 76 responds to the next V4 run. The result still showed no passed chunks: confidence remained safer, but Granite
+continued to top-rank some bottom-tier candidates and under-score the actual strongest candidates. The correction moves
+beyond prompt prose:
+
+- candidate rows now include deterministic component scores: `trend_score`, `momentum_score`, `participation_score`,
+  `risk_penalty`, `recovery_credit`, `overextension_penalty`, `feature_prior_score` and `feature_prior_rank`;
+- `feature_prior_rank` is the Java-computed baseline order for the chunk. Granite may override it only with explicit
+  feature evidence;
+- the response schema now requires each ranked candidate to include a `subScores` object with trend, momentum,
+  participation, risk, recovery, overextension and final score values;
+- guardrails reject missing or invalid sub-scores and reject a large mismatch between `subScores.finalScore` and the
+  candidate's top-level score;
+- evaluation ranking now uses an outcome-quality label rather than raw return only:
+  `netReturn + 0.5 * benchmarkExcess - 0.25 * maximumDrawdown`, with extra penalties for negative return or benchmark
+  lag.
+
+This keeps the governing order intact: Java computes deterministic as-of features and guardrails first; Ollama explains
+and ranks within that structure; hidden labels are used only for offline review-quality evaluation.
 
 ## Daily fresh-data feedback loop
 

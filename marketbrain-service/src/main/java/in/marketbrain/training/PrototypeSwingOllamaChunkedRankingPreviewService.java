@@ -299,6 +299,10 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         if (failures.contains("BEST_ACTUAL_SCORE_TOO_LOW")) {
             builder.append("Use a wider score scale and make the strongest relative setup in this chunk score at least 70 unless every candidate is poor. ");
         }
+        if (failures.stream().anyMatch(failure -> failure.startsWith("SUBSCORE_"))) {
+            builder.append("Every ranked candidate must include subScores with trendScore, momentumScore, participationScore, riskPenalty, recoveryCredit, overextensionPenalty and finalScore. ");
+            builder.append("All subScores must be integers from 0 to 100 and finalScore must be within 10 points of score. ");
+        }
         builder.append("Apply the score_cap_hint rules in the prompt. ");
         builder.append("Do not drop lower-ranked candidates. Do not add symbols outside this list. Do not use markdown.");
         return builder.toString();

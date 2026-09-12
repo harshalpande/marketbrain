@@ -290,7 +290,7 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
     ) {
         List<PrototypeSwingOllamaCandidate> sorted = new ArrayList<>(candidates);
         sorted.sort(Comparator
-                .comparing((PrototypeSwingOllamaCandidate candidate) -> netReturn(candidate, horizon))
+                .comparing((PrototypeSwingOllamaCandidate candidate) -> outcomeQualityScore(candidate, horizon))
                 .reversed()
                 .thenComparing(PrototypeSwingOllamaCandidate::symbol));
         Map<String, Integer> ranks = new HashMap<>();
@@ -298,6 +298,22 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             ranks.put(sorted.get(index).symbol(), index + 1);
         }
         return ranks;
+    }
+
+    private BigDecimal outcomeQualityScore(PrototypeSwingOllamaCandidate candidate, int horizon) {
+        BigDecimal netReturn = netReturn(candidate, horizon);
+        BigDecimal benchmarkExcess = benchmarkExcess(candidate, horizon);
+        BigDecimal drawdown = maximumDrawdown(candidate, horizon);
+        BigDecimal score = netReturn
+                .add(benchmarkExcess.multiply(BigDecimal.valueOf(0.50d)))
+                .subtract(drawdown.multiply(BigDecimal.valueOf(0.25d)));
+        if (netReturn.signum() < 0) {
+            score = score.subtract(BigDecimal.valueOf(10));
+        }
+        if (benchmarkExcess.signum() < 0) {
+            score = score.subtract(BigDecimal.valueOf(5));
+        }
+        return score;
     }
 
     private Set<String> topSymbols(Map<String, Integer> ranks, int limit) {

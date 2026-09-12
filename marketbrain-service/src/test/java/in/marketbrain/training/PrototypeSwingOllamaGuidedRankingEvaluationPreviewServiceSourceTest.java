@@ -27,5 +27,8 @@ class PrototypeSwingOllamaGuidedRankingEvaluationPreviewServiceSourceTest {
         assertThat(source).contains("0,");
         assertThat(source).contains("HIGH_CONFIDENCE_MISS");
         assertThat(source).contains("NEGATIVE_RANK_CORRELATION");
+        assertThat(source).contains("outcomeQualityScore");
+        assertThat(source).contains("benchmarkExcess(candidate, horizon)");
+        assertThat(source).contains("maximumDrawdown(candidate, horizon)");
     }
 }

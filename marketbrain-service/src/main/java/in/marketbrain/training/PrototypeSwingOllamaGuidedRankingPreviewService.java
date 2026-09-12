@@ -24,9 +24,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V4";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V5";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V4";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V5";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -339,6 +339,9 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Recovery setups: low range position, controlled/moderate volatility and non-broken participation can be valid even when recent daily return or RSI is weak. Do not automatically rank them last.
                 - Overextended momentum traps: high daily return, hot RSI, near-100 range position and high volatility are not automatically good. They often deserve MEDIUM/LOW confidence and capped scores.
                 - Feature prior score is not a hidden label and is not a trading signal. Treat it as a guardrail prior: strong evidence may override it, but explain why.
+                - Feature prior rank is the deterministic MarketBrain baseline rank for this chunk. Use it as the starting order, not as an optional note.
+                - If you place a candidate more than one position away from feature_prior_rank, explain the exact feature reason in its reason field.
+                - Do not rank a low-prior candidate first unless every higher-prior candidate has severe risk tags or the low-prior candidate is a recovery setup with controlled volatility.
                 - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
@@ -372,6 +375,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - First rank the candidates qualitatively. Then calibrate scores from that rank order: rank 1 should not be HIGH unless its risk flags are genuinely small.
                 - If a candidate has negative daily return, weak volume, high volatility, bearish EMA, or price below short/medium averages, mention the conflict and cap confidence unless other evidence is overwhelming.
                 - Use feature_prior_score and feature_prior_bucket as a starting prior. Do not top-rank a LOW prior unless its recovery_tag is RECOVERY_CANDIDATE and peers have stronger overextension/risk traps.
+                - Use feature_prior_rank as the baseline order. Moving away from it requires explicit evidence in the reason field.
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -394,7 +398,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append('"').append(example.teachingPoint()).append('"').append('\n');
         }
         builder.append("\nUnlabelled ranking candidates. Use only these feature values and derived guardrail tags for ranking; future labels are hidden:\n");
-        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,feature_prior_score,feature_prior_bucket,score_cap_hint\n");
+        Map<String, Integer> priorRanks = featurePriorRanks(candidates);
+        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,trend_score,momentum_score,participation_score,risk_penalty,recovery_credit,overextension_penalty,feature_prior_score,feature_prior_rank,feature_prior_bucket,score_cap_hint\n");
         for (int index = 0; index < candidates.size(); index++) {
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
             int featurePriorScore = featurePriorScore(candidate);
@@ -420,7 +425,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(rangeTag(candidate)).append(',')
                     .append(recoveryTag(candidate)).append(',')
                     .append(overextensionTag(candidate)).append(',')
+                    .append(trendScore(candidate)).append(',')
+                    .append(momentumScore(candidate)).append(',')
+                    .append(participationScore(candidate)).append(',')
+                    .append(riskPenalty(candidate)).append(',')
+                    .append(recoveryCredit(candidate)).append(',')
+                    .append(overextensionPenalty(candidate)).append(',')
                     .append(featurePriorScore).append(',')
+                    .append(priorRanks.get(candidate.symbol())).append(',')
                     .append(featurePriorBucket(featurePriorScore)).append(',')
                     .append(scoreCapHint(candidate)).append('\n');
         }
@@ -459,6 +471,15 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                       "confidence": "LOW",
                       "positiveEvidence": ["specific feature-based reason"],
                       "riskFlags": ["specific risk or empty array"],
+                      "subScores": {
+                        "trendScore": 0,
+                        "momentumScore": 0,
+                        "participationScore": 0,
+                        "riskPenalty": 0,
+                        "recoveryCredit": 0,
+                        "overextensionPenalty": 0,
+                        "finalScore": 0
+                      },
                       "reason": "one concise feature-based explanation",
                       "notTradingSignal": true
                     }
@@ -491,6 +512,11 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Start from feature_prior_score/bucket, then adjust based on relative evidence.
                 - Recovery candidates can outrank overextended traps even with lower RSI/range if volatility is controlled and participation is acceptable.
                 - EXTREME_OVEREXTENSION candidates require explicit demotion unless every peer is worse.
+                Sub-score rules:
+                - subScores values must be integers from 0..100 except riskPenalty and overextensionPenalty, which are also 0..100 penalties.
+                - finalScore must be consistent with score. A difference above 10 points is not allowed.
+                - Mention recoveryCredit in reason if you top-rank a recovery candidate.
+                - Mention overextensionPenalty in reason if you rank an extended candidate in the top two.
                 """);
         return builder.toString();
     }
@@ -638,45 +664,120 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
     }
 
     private int featurePriorScore(PrototypeSwingOllamaCandidate candidate) {
-        int score = 50;
-        score += switch (trendTag(candidate)) {
-            case "BULLISH_TREND" -> 12;
-            case "MIXED_TREND" -> 3;
-            default -> -10;
-        };
-        score += "EMA_BULLISH".equals(emaTag(candidate)) ? 8 : -6;
-        score += switch (rsiTag(candidate)) {
-            case "RSI_CONSTRUCTIVE" -> 10;
-            case "RSI_NEUTRAL" -> 2;
-            case "RSI_OVERHEATED" -> -6;
-            case "RSI_WEAK" -> -8;
-            default -> 0;
-        };
-        score += switch (volumeTag(candidate)) {
-            case "VOLUME_CONFIRMED" -> 8;
-            case "VOLUME_NEUTRAL" -> 2;
-            case "VOLUME_WEAK" -> -8;
-            default -> 0;
-        };
-        score += switch (volatilityTag(candidate)) {
-            case "VOLATILITY_CONTROLLED" -> 8;
-            case "VOLATILITY_MODERATE" -> 2;
-            case "VOLATILITY_HIGH" -> -12;
-            default -> 0;
-        };
-        score += switch (rangeTag(candidate)) {
-            case "RANGE_LEADERSHIP" -> 6;
-            case "RANGE_MIDDLE" -> 2;
-            case "RANGE_LOW" -> "RECOVERY_CANDIDATE".equals(recoveryTag(candidate)) ? 8 : -2;
-            case "RANGE_EXTENDED" -> "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate)) ? -14 : -4;
-            default -> 0;
-        };
-        if (candidate.dailyReturnPercent() != null
-                && candidate.dailyReturnPercent().compareTo(BigDecimal.valueOf(3)) > 0
-                && "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+        int score = 40
+                + trendScore(candidate)
+                + momentumScore(candidate)
+                + participationScore(candidate)
+                + recoveryCredit(candidate)
+                - riskPenalty(candidate)
+                - overextensionPenalty(candidate);
+        return clamp(score);
+    }
+
+    private Map<String, Integer> featurePriorRanks(List<PrototypeSwingOllamaCandidate> candidates) {
+        List<PrototypeSwingOllamaCandidate> sorted = new ArrayList<>(candidates);
+        sorted.sort(java.util.Comparator
+                .comparingInt((PrototypeSwingOllamaCandidate candidate) -> featurePriorScore(candidate))
+                .reversed()
+                .thenComparing(PrototypeSwingOllamaCandidate::symbol));
+        Map<String, Integer> ranks = new HashMap<>();
+        for (int index = 0; index < sorted.size(); index++) {
+            ranks.put(sorted.get(index).symbol(), index + 1);
+        }
+        return ranks;
+    }
+
+    private int trendScore(PrototypeSwingOllamaCandidate candidate) {
+        int score = 0;
+        if ("BULLISH_TREND".equals(trendTag(candidate))) {
+            score += 16;
+        } else if ("MIXED_TREND".equals(trendTag(candidate))) {
+            score += 6;
+        } else {
             score -= 8;
         }
-        return Math.max(0, Math.min(100, score));
+        score += distanceScore(candidate.latestClose(), candidate.sma20(), 6, -6);
+        score += distanceScore(candidate.latestClose(), candidate.sma50(), 5, -5);
+        return score;
+    }
+
+    private int momentumScore(PrototypeSwingOllamaCandidate candidate) {
+        int score = "EMA_BULLISH".equals(emaTag(candidate)) ? 8 : -8;
+        score += switch (rsiTag(candidate)) {
+            case "RSI_CONSTRUCTIVE" -> 12;
+            case "RSI_NEUTRAL" -> 5;
+            case "RSI_WEAK" -> "RECOVERY_CANDIDATE".equals(recoveryTag(candidate)) ? 2 : -8;
+            case "RSI_OVERHEATED" -> -10;
+            default -> 0;
+        };
+        if (candidate.dailyReturnPercent() != null) {
+            if (candidate.dailyReturnPercent().compareTo(BigDecimal.valueOf(0)) < 0
+                    && "RECOVERY_CANDIDATE".equals(recoveryTag(candidate))) {
+                score += 4;
+            } else if (candidate.dailyReturnPercent().compareTo(BigDecimal.valueOf(3)) > 0) {
+                score -= "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate)) ? 12 : 2;
+            }
+        }
+        return score;
+    }
+
+    private int participationScore(PrototypeSwingOllamaCandidate candidate) {
+        return switch (volumeTag(candidate)) {
+            case "VOLUME_CONFIRMED" -> 12;
+            case "VOLUME_NEUTRAL" -> 5;
+            case "VOLUME_WEAK" -> "RECOVERY_CANDIDATE".equals(recoveryTag(candidate)) ? -2 : -10;
+            default -> 0;
+        };
+    }
+
+    private int riskPenalty(PrototypeSwingOllamaCandidate candidate) {
+        int penalty = switch (volatilityTag(candidate)) {
+            case "VOLATILITY_HIGH" -> 18;
+            case "VOLATILITY_MODERATE" -> 5;
+            default -> 0;
+        };
+        if (candidate.annualizedVolatility20Percent() != null
+                && candidate.annualizedVolatility20Percent().compareTo(BigDecimal.valueOf(45)) > 0) {
+            penalty += 8;
+        }
+        if (candidate.atr14() != null && candidate.latestClose() != null
+                && candidate.latestClose().compareTo(BigDecimal.ZERO) > 0
+                && candidate.atr14().multiply(BigDecimal.valueOf(100))
+                .divide(candidate.latestClose(), 6, java.math.RoundingMode.HALF_UP)
+                .compareTo(BigDecimal.valueOf(4)) > 0) {
+            penalty += 6;
+        }
+        return penalty;
+    }
+
+    private int recoveryCredit(PrototypeSwingOllamaCandidate candidate) {
+        if (!"RECOVERY_CANDIDATE".equals(recoveryTag(candidate))) {
+            return 0;
+        }
+        int credit = 16;
+        if ("VOLUME_NEUTRAL".equals(volumeTag(candidate)) || "VOLUME_CONFIRMED".equals(volumeTag(candidate))) {
+            credit += 6;
+        }
+        if ("VOLATILITY_CONTROLLED".equals(volatilityTag(candidate)) || "VOLATILITY_MODERATE".equals(volatilityTag(candidate))) {
+            credit += 6;
+        }
+        return credit;
+    }
+
+    private int overextensionPenalty(PrototypeSwingOllamaCandidate candidate) {
+        int penalty = 0;
+        if ("EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+            penalty += 24;
+        } else if ("EXTENDED".equals(overextensionTag(candidate))) {
+            penalty += 8;
+        }
+        if (candidate.rangePosition252Percent() != null
+                && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(98)) > 0
+                && candidate.volumeRatio20() != null
+                && candidate.volumeRatio20().compareTo(BigDecimal.valueOf(0.8)) < 0) {
+            penalty += 12;
+        }
+        return penalty;
     }
 
     private String featurePriorBucket(int score) {
@@ -706,6 +807,29 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return (highVolatility && weakVolume)
                 || (highVolatility && hotExtended)
                 || (dailySpike && highVolatility && hotExtended);
+    }
+
+    private int distanceScore(BigDecimal price, BigDecimal average, int positive, int negative) {
+        if (price == null || average == null || average.compareTo(BigDecimal.ZERO) == 0) {
+            return 0;
+        }
+        BigDecimal distancePercent = price.subtract(average)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(average, 6, java.math.RoundingMode.HALF_UP);
+        if (distancePercent.compareTo(BigDecimal.valueOf(10)) > 0) {
+            return Math.max(0, positive - 4);
+        }
+        if (distancePercent.compareTo(BigDecimal.ZERO) >= 0) {
+            return positive;
+        }
+        if (distancePercent.compareTo(BigDecimal.valueOf(-5)) >= 0) {
+            return negative / 2;
+        }
+        return negative;
+    }
+
+    private int clamp(int value) {
+        return Math.max(0, Math.min(100, value));
     }
 
     private boolean greater(BigDecimal left, BigDecimal right) {
@@ -786,12 +910,39 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     || node.path("reason").asText("").isBlank()) {
                 failures.add("REASONING_FIELDS");
             }
+            JsonNode subScores = node.path("subScores");
+            if (!subScores.isObject()) {
+                failures.add("SUBSCORES_OBJECT");
+            } else {
+                validateSubScore(subScores, "trendScore", failures);
+                validateSubScore(subScores, "momentumScore", failures);
+                validateSubScore(subScores, "participationScore", failures);
+                validateSubScore(subScores, "riskPenalty", failures);
+                validateSubScore(subScores, "recoveryCredit", failures);
+                validateSubScore(subScores, "overextensionPenalty", failures);
+                int finalScore = validateSubScore(subScores, "finalScore", failures);
+                if (finalScore >= 0 && Math.abs(finalScore - score) > 10) {
+                    failures.add("SUBSCORE_FINAL_SCORE_MISMATCH");
+                }
+            }
         }
         if (root.path("riskNote").asText("").isBlank()
                 || root.path("researchOnlyDisclaimer").asText("").isBlank()) {
             failures.add("REQUIRED_NOTES");
         }
         return new Validation(true, failures.stream().distinct().toList());
+    }
+
+    private int validateSubScore(JsonNode subScores, String field, List<String> failures) {
+        if (!subScores.has(field) || !subScores.path(field).canConvertToInt()) {
+            failures.add("SUBSCORE_" + field.toUpperCase(Locale.ROOT));
+            return -1;
+        }
+        int value = subScores.path(field).asInt(-1);
+        if (value < 0 || value > 100) {
+            failures.add("SUBSCORE_RANGE");
+        }
+        return value;
     }
 
     static String candidateId(int zeroBasedIndex) {
