@@ -1,6 +1,9 @@
 [CmdletBinding()]
 param(
     [Parameter()]
+    [string]$JobId,
+
+    [Parameter()]
     [string]$DatasetRunId,
 
     [Parameter()]
@@ -31,8 +34,8 @@ param(
     [int]$PollSeconds = 5,
 
     [Parameter()]
-    [ValidateRange(60, 14400)]
-    [int]$TimeoutSeconds = 7200,
+    [ValidateRange(60, 43200)]
+    [int]$TimeoutSeconds = 21600,
 
     [Parameter()]
     [string]$BaseUrl = 'http://127.0.0.1:8080',
@@ -66,38 +69,46 @@ try {
         throw "MarketBrain health is $($health.status), not UP."
     }
 
-    Write-Host 'Step 70 async: starting Java-owned chunked calibrated Ollama ranking job...'
+    Write-Host 'Step 70 async: starting or monitoring Java-owned chunked calibrated Ollama ranking job...'
     Write-Host 'Java runs the job in the background; local Ollama model concurrency remains fixed at 1.'
     Write-Host "Chunk size: $ChunkSize; total candidate limit: $TotalCandidateLimit; max retries per chunk: $MaxRetriesPerChunk"
     Write-Host 'No database write, signal, paper fill, order, broker action, or live trading action will be created.'
 
-    $body = [ordered]@{
-        model                  = $Model
-        totalCandidateLimit    = $TotalCandidateLimit
-        chunkSize              = $ChunkSize
-        finalistsPerChunk      = $FinalistsPerChunk
-        maxRetriesPerChunk     = $MaxRetriesPerChunk
-        rankingHorizonSessions = $RankingHorizonSessions
-    }
-    if (-not [string]::IsNullOrWhiteSpace($DatasetRunId)) {
-        $body['datasetRunId'] = $DatasetRunId
-    }
-
-    $job = Invoke-RestMethod `
-        -Method Post `
-        -Uri "$BaseUrl/api/v1/training/prototype-swing-ollama-chunked-ranking-jobs" `
-        -ContentType 'application/json' `
-        -Body ($body | ConvertTo-Json -Depth 8) `
-        -TimeoutSec 60
-
-    $jobId = [string]$job.jobId
+    $jobId = $JobId
     if ([string]::IsNullOrWhiteSpace($jobId)) {
-        throw 'The backend did not return a jobId.'
+        $body = [ordered]@{
+            model                  = $Model
+            totalCandidateLimit    = $TotalCandidateLimit
+            chunkSize              = $ChunkSize
+            finalistsPerChunk      = $FinalistsPerChunk
+            maxRetriesPerChunk     = $MaxRetriesPerChunk
+            rankingHorizonSessions = $RankingHorizonSessions
+        }
+        if (-not [string]::IsNullOrWhiteSpace($DatasetRunId)) {
+            $body['datasetRunId'] = $DatasetRunId
+        }
+
+        $job = Invoke-RestMethod `
+            -Method Post `
+            -Uri "$BaseUrl/api/v1/training/prototype-swing-ollama-chunked-ranking-jobs" `
+            -ContentType 'application/json' `
+            -Body ($body | ConvertTo-Json -Depth 8) `
+            -TimeoutSec 60
+
+        $jobId = [string]$job.jobId
+        if ([string]::IsNullOrWhiteSpace($jobId)) {
+            throw 'The backend did not return a jobId.'
+        }
+        Write-Host "Started Ollama ranking job: $jobId"
     }
-    Write-Host "Started Ollama ranking job: $jobId"
+    else {
+        Write-Host "Attaching to existing Ollama ranking job: $jobId"
+    }
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     $lastPrinted = ''
+    $timedOut = $false
+    $status = $null
     do {
         Start-Sleep -Seconds $PollSeconds
         $status = Invoke-RestMethod `
@@ -123,11 +134,17 @@ try {
             break
         }
         if ((Get-Date) -ge $deadline) {
-            throw "Timed out waiting for Ollama ranking job $jobId after $TimeoutSeconds seconds."
+            $timedOut = $true
+            Write-Warning "Timed out waiting for Ollama ranking job $jobId after $TimeoutSeconds seconds. The backend job may still be running."
+            break
         }
     } while ($true)
 
     Write-Progress -Activity 'Step 70 async Ollama ranking job' -Completed
+
+    if ($null -eq $status) {
+        throw 'No job status was retrieved from the backend.'
+    }
 
     $status | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $resultPath -Encoding utf8
 
@@ -211,8 +228,30 @@ try {
     $attemptTelemetryRecords | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $attemptTelemetryPath -Encoding utf8
     $rootCauseRecords | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $rootCausePath -Encoding utf8
 
+    if ($timedOut) {
+        Write-Host ''
+        Write-Warning 'Monitor timed out, but the backend job was not cancelled by this script.'
+        Write-Host "Last status: $($status.status); completed=$($status.completedChunkCount)/$($status.targetChunkCount); activeChunk=$($status.activeChunkNumber)"
+        Write-Host "Result/status snapshot: $resultPath"
+        Write-Host "Attempt telemetry, if a completed result was available: $attemptTelemetryPath"
+        Write-Host "Root causes, if a completed result was available: $rootCausePath"
+        Write-Host "Log: $logPath"
+        Write-Host ''
+        Write-Host 'To continue monitoring this same backend job without starting over, run:'
+        Write-Host ("& '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRankingAsync.ps1' -JobId '{0}' -TimeoutSeconds 21600" -f $jobId)
+        return
+    }
+
     if ($status.status -eq 'FAILED') {
         throw "Ollama ranking job failed safely: $($status.errorMessage)"
+    }
+
+    if ($null -eq $status.result) {
+        Write-Host "Result/status snapshot: $resultPath"
+        Write-Host "Attempt telemetry: $attemptTelemetryPath"
+        Write-Host "Root causes: $rootCausePath"
+        Write-Host "Log: $logPath"
+        throw "Ollama ranking job ended with status $($status.status) but did not include a result payload."
     }
 
     $status.result |

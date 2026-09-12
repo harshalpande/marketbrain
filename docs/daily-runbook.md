@@ -3716,7 +3716,8 @@ do {
     -ChunkSize 4 `
     -FinalistsPerChunk 2 `
     -MaxRetriesPerChunk 1 `
-    -RankingHorizonSessions 20
+    -RankingHorizonSessions 20 `
+    -TimeoutSeconds 21600
 ```
 
 The script starts the Java-owned async job, polls its job-status endpoint, prints real percentage progress with
@@ -3733,6 +3734,15 @@ The root-cause JSON includes candidate IDs, candidate symbols, prompt/response h
 counts, elapsed Ollama milliseconds, Ollama duration metadata when available, prompt-eval count, eval count and all
 schema/evaluation/calibration failures. A `SIGNED_CONTRIBUTION_*` failure should be treated as a DTO-contract issue
 first, not as a reason to blindly increase retries.
+
+If the PowerShell monitor times out before Granite finishes, it does not cancel the backend job. Reattach to the same
+in-memory backend job while the service is still running:
+
+```powershell
+& '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRankingAsync.ps1' `
+    -JobId '<job-id-from-console>' `
+    -TimeoutSeconds 21600
+```
 
 Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
 `ActionExecutionEnabled=False`.
