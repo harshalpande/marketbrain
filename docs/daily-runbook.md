@@ -3735,6 +3735,11 @@ counts, elapsed Ollama milliseconds, Ollama duration metadata when available, pr
 schema/evaluation/calibration failures. A `SIGNED_CONTRIBUTION_*` failure should be treated as a DTO-contract issue
 first, not as a reason to blindly increase retries.
 
+Step 78 result fields also show the responsibility split: `chunkJavaBaselineRank`, `chunkOllamaRank`,
+`chunkFinalReviewRank`, `javaBaselineScore`, `ollamaScore`, `finalReviewScore`, `arbitrationDecision`,
+`javaBaselineReason` and `arbitrationReason`. Treat `chunkFinalReviewRank` as the governed research rank for review;
+it is still not a trading signal.
+
 If the PowerShell monitor times out before Granite finishes, it does not cancel the backend job. Reattach to the same
 in-memory backend job while the service is still running:
 

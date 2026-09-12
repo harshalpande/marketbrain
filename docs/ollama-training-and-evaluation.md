@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 77 algorithm-bound Granite DTO contract and Java-owned async ranking job.
+Status: Step 78 Java-governed arbitration with Granite as bounded reviewer.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -212,6 +212,36 @@ The Step 77 correction hardens communication with Granite instead of relying on 
 
 Repair retry remains only a fallback for malformed or incomplete responses. The intended primary control is now the
 algorithm-bound DTO contract plus deterministic Java guardrails.
+
+Step 78 formalizes the Java-vs-model responsibility split.
+
+Java is the deterministic owner for data access, feature calculation, baseline scoring, final arbitration, execution
+eligibility, idempotency and all safety guardrails. Granite is a bounded reviewer/challenger. It may rank and explain,
+but its output is not accepted as the final governed research order by itself.
+
+The evaluation result now exposes this separation for every candidate:
+
+- Java baseline rank;
+- Java baseline score;
+- Java baseline bucket;
+- Java baseline reason;
+- Granite/Ollama rank and score;
+- deviation between Granite and Java baseline;
+- final Java-governed review rank;
+- final Java-governed review score;
+- arbitration decision and arbitration reason.
+
+The arbitration policy deliberately keeps Java as the ranking spine:
+
+- if Granite stays within one rank of Java baseline, Java blends a small portion of the model score into the final
+  review score;
+- if Granite moves more than one rank away without strong feature-specific reasoning, Java holds the baseline;
+- if Java score-cap risk applies, Java holds the baseline even when Granite tries to promote the candidate;
+- if Granite provides a feature-specific challenge, Java records it but only moderately adjusts the deterministic
+  score.
+
+This is the intended long-term pattern for all future model/tool interaction: the model can request, review, explain
+and challenge, but Java validates, arbitrates and executes through bounded contracts.
 
 ## Daily fresh-data feedback loop
 

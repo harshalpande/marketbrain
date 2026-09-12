@@ -172,9 +172,10 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             candidatesBySymbol.put(candidate.symbol(), candidate);
         }
         Map<String, Integer> actualRanks = actualRanks(guided.candidates(), guided.rankingHorizonSessions());
+        Map<String, Integer> javaBaselineRanks = guidedRankingService.featurePriorRanks(guided.candidates());
         Set<String> actualTopThree = topSymbols(actualRanks, 3);
 
-        List<PrototypeSwingOllamaCandidateEvaluation> evaluations = new ArrayList<>();
+        List<CandidateArbitrationDraft> drafts = new ArrayList<>();
         String topPickSymbol = null;
         Integer topPickActualRank = null;
         BigDecimal topPickNetReturn = null;
@@ -207,11 +208,25 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             int rankError = Math.abs(ollamaRank - actualRank);
             int score = node.path("score").asInt();
             String confidence = node.path("confidence").asText("");
+            int javaBaselineRank = javaBaselineRanks.get(symbol);
+            int javaBaselineScore = guidedRankingService.featurePriorScore(candidate);
+            String javaBaselineBucket = guidedRankingService.featurePriorBucket(javaBaselineScore);
+            int baselineDeviation = Math.abs(ollamaRank - javaBaselineRank);
             BigDecimal netReturn = netReturn(candidate, guided.rankingHorizonSessions());
             BigDecimal benchmarkExcess = benchmarkExcess(candidate, guided.rankingHorizonSessions());
             BigDecimal drawdown = maximumDrawdown(candidate, guided.rankingHorizonSessions());
             String reason = node.path("reason").asText("");
             boolean featureReason = reasonMentionsKnownFeature(reason, node.path("positiveEvidence"), node.path("riskFlags"));
+            Arbitration arbitration = arbitrate(
+                    candidate,
+                    ollamaRank,
+                    score,
+                    javaBaselineRank,
+                    javaBaselineScore,
+                    baselineDeviation,
+                    featureReason,
+                    reason
+            );
             boolean highConfidenceMiss = "HIGH".equals(confidence)
                     && actualRank > Math.max(2, (int) Math.ceil(guided.candidateCount() / 2.0d));
             boolean negativeReturnTopThree = ollamaRank <= 3 && netReturn.signum() < 0;
@@ -239,13 +254,21 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             }
             double diff = ollamaRank - actualRank;
             sumRankDiffSquared += diff * diff;
-            evaluations.add(new PrototypeSwingOllamaCandidateEvaluation(
+            drafts.add(new CandidateArbitrationDraft(
                     symbol,
                     ollamaRank,
+                    javaBaselineRank,
                     actualRank,
                     rankError,
                     score,
+                    javaBaselineScore,
+                    arbitration.finalReviewScore(),
                     confidence,
+                    javaBaselineBucket,
+                    baselineDeviation,
+                    arbitration.decision(),
+                    guidedRankingService.featurePriorReason(candidate),
+                    arbitration.reason(),
                     netReturn,
                     benchmarkExcess,
                     drawdown,
@@ -256,6 +279,8 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
                     reason
             ));
         }
+
+        List<PrototypeSwingOllamaCandidateEvaluation> evaluations = finalEvaluations(drafts);
 
         return new Evaluation(
                 topPickSymbol,
@@ -271,6 +296,93 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
                 weakReasonCount,
                 List.copyOf(evaluations)
         );
+    }
+
+    private List<PrototypeSwingOllamaCandidateEvaluation> finalEvaluations(List<CandidateArbitrationDraft> drafts) {
+        List<CandidateArbitrationDraft> ranked = new ArrayList<>(drafts);
+        ranked.sort(Comparator
+                .comparingInt(CandidateArbitrationDraft::finalReviewScore)
+                .reversed()
+                .thenComparingInt(CandidateArbitrationDraft::javaBaselineRank)
+                .thenComparing(CandidateArbitrationDraft::symbol));
+        Map<String, Integer> finalRanks = new HashMap<>();
+        for (int index = 0; index < ranked.size(); index++) {
+            finalRanks.put(ranked.get(index).symbol(), index + 1);
+        }
+        List<PrototypeSwingOllamaCandidateEvaluation> result = new ArrayList<>();
+        for (CandidateArbitrationDraft draft : drafts) {
+            result.add(new PrototypeSwingOllamaCandidateEvaluation(
+                    draft.symbol(),
+                    draft.ollamaRank(),
+                    draft.javaBaselineRank(),
+                    finalRanks.get(draft.symbol()),
+                    draft.actualRank(),
+                    draft.rankError(),
+                    draft.ollamaScore(),
+                    draft.javaBaselineScore(),
+                    draft.finalReviewScore(),
+                    draft.ollamaConfidence(),
+                    draft.javaBaselineBucket(),
+                    draft.rankDeviationFromJavaBaseline(),
+                    draft.arbitrationDecision(),
+                    draft.javaBaselineReason(),
+                    draft.arbitrationReason(),
+                    draft.targetNetReturnPercent(),
+                    draft.targetBenchmarkExcessReturnPercent(),
+                    draft.targetMaximumDrawdownPercent(),
+                    draft.qualityBucket(),
+                    draft.highConfidenceMiss(),
+                    draft.topThreeNegativeReturn(),
+                    draft.reasonMentionsKnownFeature(),
+                    draft.reason()
+            ));
+        }
+        return List.copyOf(result);
+    }
+
+    private Arbitration arbitrate(
+            PrototypeSwingOllamaCandidate candidate,
+            int ollamaRank,
+            int ollamaScore,
+            int javaBaselineRank,
+            int javaBaselineScore,
+            int baselineDeviation,
+            boolean featureReason,
+            String reason
+    ) {
+        if (baselineDeviation <= 1) {
+            int blendedScore = bounded((int) Math.round((javaBaselineScore * 0.75d) + (ollamaScore * 0.25d)));
+            return new Arbitration(
+                    "MODEL_ALIGNED_WITH_JAVA_BASELINE",
+                    blendedScore,
+                    "Granite rank stayed within one position of Java baseline; Java blended model review with deterministic score."
+            );
+        }
+        if (!featureReason || reason == null || reason.length() < 40) {
+            return new Arbitration(
+                    "JAVA_BASELINE_HELD_MODEL_DEVIATION_WEAK",
+                    javaBaselineScore,
+                    "Granite moved more than one rank from Java baseline without a strong feature-specific challenge."
+            );
+        }
+        if ("HARD_CAP_54".equals(guidedRankingService.scoreCapHint(candidate))
+                && ollamaScore > javaBaselineScore) {
+            return new Arbitration(
+                    "JAVA_BASELINE_HELD_SCORE_CAP",
+                    javaBaselineScore,
+                    "Granite challenged the baseline, but Java hard score-cap risk remains authoritative."
+            );
+        }
+        int moderatedScore = bounded((int) Math.round((javaBaselineScore * 0.85d) + (ollamaScore * 0.15d)));
+        return new Arbitration(
+                "MODEL_CHALLENGE_RECORDED_JAVA_MODERATED",
+                moderatedScore,
+                "Granite supplied a feature-specific challenge, but Java retained the baseline as the primary ranking spine."
+        );
+    }
+
+    private int bounded(int value) {
+        return Math.max(0, Math.min(100, value));
     }
 
     private JsonNode rankedCandidates(String response) {
@@ -443,6 +555,39 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             int negativeReturnTopThreeCount,
             int weakReasonCount,
             List<PrototypeSwingOllamaCandidateEvaluation> candidateEvaluations
+    ) {
+    }
+
+    private record Arbitration(
+            String decision,
+            int finalReviewScore,
+            String reason
+    ) {
+    }
+
+    private record CandidateArbitrationDraft(
+            String symbol,
+            int ollamaRank,
+            int javaBaselineRank,
+            int actualRank,
+            int rankError,
+            int ollamaScore,
+            int javaBaselineScore,
+            int finalReviewScore,
+            String ollamaConfidence,
+            String javaBaselineBucket,
+            int rankDeviationFromJavaBaseline,
+            String arbitrationDecision,
+            String javaBaselineReason,
+            String arbitrationReason,
+            BigDecimal targetNetReturnPercent,
+            BigDecimal targetBenchmarkExcessReturnPercent,
+            BigDecimal targetMaximumDrawdownPercent,
+            String qualityBucket,
+            boolean highConfidenceMiss,
+            boolean topThreeNegativeReturn,
+            boolean reasonMentionsKnownFeature,
+            String reason
     ) {
     }
 }

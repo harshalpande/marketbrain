@@ -23,9 +23,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V6";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V7";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V6";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V7";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -350,6 +350,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
                 - Communication contract: follow the exact JSON DTO supplied in the prompt. Do not rename fields. Do not add wrapper text.
+                - Responsibility boundary: Java owns calculations, deterministic baseline ranking, final arbitration, execution and guardrails. Granite is a bounded reviewer that may challenge Java's baseline only with feature-specific evidence.
                 - This is prototype research only. Never create or imply a live trading signal.
                 """;
     }
@@ -382,6 +383,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Use feature_prior_score and feature_prior_bucket as a starting prior. Do not top-rank a LOW prior unless its recovery_tag is RECOVERY_CANDIDATE and peers have stronger overextension/risk traps.
                 - Use feature_prior_rank as the baseline order. Moving away from it requires explicit evidence in the reason field.
                 - Use the supplied MarketBrain algorithm exactly. Java has already calculated the raw signed contributions and feature prior. Your job is to review/rank inside this contract, not invent another scoring method.
+                - You are not the executor. You are a reviewer/challenger. Java will arbitrate your rank against the deterministic baseline after your response.
 
                 """);
         builder.append("""
@@ -577,7 +579,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return builder.toString();
     }
 
-    private String trendTag(PrototypeSwingOllamaCandidate candidate) {
+    String trendTag(PrototypeSwingOllamaCandidate candidate) {
         if (greater(candidate.latestClose(), candidate.sma20())
                 && greaterOrEqual(candidate.sma20(), candidate.sma50())
                 && greaterOrEqual(candidate.sma50(), candidate.sma200())) {
@@ -589,11 +591,11 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "MIXED_TREND";
     }
 
-    private String emaTag(PrototypeSwingOllamaCandidate candidate) {
+    String emaTag(PrototypeSwingOllamaCandidate candidate) {
         return greaterOrEqual(candidate.ema12(), candidate.ema26()) ? "EMA_BULLISH" : "EMA_BEARISH";
     }
 
-    private String rsiTag(PrototypeSwingOllamaCandidate candidate) {
+    String rsiTag(PrototypeSwingOllamaCandidate candidate) {
         if (candidate.rsi14() == null) {
             return "RSI_UNKNOWN";
         }
@@ -609,7 +611,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "RSI_NEUTRAL";
     }
 
-    private String volumeTag(PrototypeSwingOllamaCandidate candidate) {
+    String volumeTag(PrototypeSwingOllamaCandidate candidate) {
         if (candidate.volumeRatio20() == null) {
             return "VOLUME_UNKNOWN";
         }
@@ -622,7 +624,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "VOLUME_NEUTRAL";
     }
 
-    private String volatilityTag(PrototypeSwingOllamaCandidate candidate) {
+    String volatilityTag(PrototypeSwingOllamaCandidate candidate) {
         if (candidate.annualizedVolatility20Percent() == null) {
             return "VOLATILITY_UNKNOWN";
         }
@@ -635,7 +637,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "VOLATILITY_MODERATE";
     }
 
-    private String rangeTag(PrototypeSwingOllamaCandidate candidate) {
+    String rangeTag(PrototypeSwingOllamaCandidate candidate) {
         if (candidate.rangePosition252Percent() == null) {
             return "RANGE_UNKNOWN";
         }
@@ -651,7 +653,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "RANGE_MIDDLE";
     }
 
-    private String scoreCapHint(PrototypeSwingOllamaCandidate candidate) {
+    String scoreCapHint(PrototypeSwingOllamaCandidate candidate) {
         int majorConflicts = 0;
         if (less(candidate.latestClose(), candidate.sma20())) {
             majorConflicts++;
@@ -696,7 +698,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "HIGH_ELIGIBLE";
     }
 
-    private String recoveryTag(PrototypeSwingOllamaCandidate candidate) {
+    String recoveryTag(PrototypeSwingOllamaCandidate candidate) {
         if (candidate.rangePosition252Percent() != null
                 && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(40)) < 0
                 && candidate.annualizedVolatility20Percent() != null
@@ -708,7 +710,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "NOT_RECOVERY";
     }
 
-    private String overextensionTag(PrototypeSwingOllamaCandidate candidate) {
+    String overextensionTag(PrototypeSwingOllamaCandidate candidate) {
         if (isExtremeRisk(candidate)) {
             return "EXTREME_OVEREXTENSION";
         }
@@ -719,7 +721,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return "NOT_EXTENDED";
     }
 
-    private int featurePriorScore(PrototypeSwingOllamaCandidate candidate) {
+    int featurePriorScore(PrototypeSwingOllamaCandidate candidate) {
         int score = 40
                 + trendScore(candidate)
                 + momentumScore(candidate)
@@ -730,7 +732,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return clamp(score);
     }
 
-    private Map<String, Integer> featurePriorRanks(List<PrototypeSwingOllamaCandidate> candidates) {
+    Map<String, Integer> featurePriorRanks(List<PrototypeSwingOllamaCandidate> candidates) {
         List<PrototypeSwingOllamaCandidate> sorted = new ArrayList<>(candidates);
         sorted.sort(java.util.Comparator
                 .comparingInt((PrototypeSwingOllamaCandidate candidate) -> featurePriorScore(candidate))
@@ -743,7 +745,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return ranks;
     }
 
-    private int trendScore(PrototypeSwingOllamaCandidate candidate) {
+    int trendScore(PrototypeSwingOllamaCandidate candidate) {
         int score = 0;
         if ("BULLISH_TREND".equals(trendTag(candidate))) {
             score += 16;
@@ -757,7 +759,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return score;
     }
 
-    private int momentumScore(PrototypeSwingOllamaCandidate candidate) {
+    int momentumScore(PrototypeSwingOllamaCandidate candidate) {
         int score = "EMA_BULLISH".equals(emaTag(candidate)) ? 8 : -8;
         score += switch (rsiTag(candidate)) {
             case "RSI_CONSTRUCTIVE" -> 12;
@@ -777,7 +779,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return score;
     }
 
-    private int participationScore(PrototypeSwingOllamaCandidate candidate) {
+    int participationScore(PrototypeSwingOllamaCandidate candidate) {
         return switch (volumeTag(candidate)) {
             case "VOLUME_CONFIRMED" -> 12;
             case "VOLUME_NEUTRAL" -> 5;
@@ -786,7 +788,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         };
     }
 
-    private int riskPenalty(PrototypeSwingOllamaCandidate candidate) {
+    int riskPenalty(PrototypeSwingOllamaCandidate candidate) {
         int penalty = switch (volatilityTag(candidate)) {
             case "VOLATILITY_HIGH" -> 18;
             case "VOLATILITY_MODERATE" -> 5;
@@ -806,7 +808,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return penalty;
     }
 
-    private int recoveryCredit(PrototypeSwingOllamaCandidate candidate) {
+    int recoveryCredit(PrototypeSwingOllamaCandidate candidate) {
         if (!"RECOVERY_CANDIDATE".equals(recoveryTag(candidate))) {
             return 0;
         }
@@ -820,7 +822,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return credit;
     }
 
-    private int overextensionPenalty(PrototypeSwingOllamaCandidate candidate) {
+    int overextensionPenalty(PrototypeSwingOllamaCandidate candidate) {
         int penalty = 0;
         if ("EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
             penalty += 24;
@@ -836,7 +838,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return penalty;
     }
 
-    private String featurePriorBucket(int score) {
+    String featurePriorBucket(int score) {
         if (score >= 75) {
             return "HIGH_PRIOR";
         }
@@ -863,6 +865,19 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return (highVolatility && weakVolume)
                 || (highVolatility && hotExtended)
                 || (dailySpike && highVolatility && hotExtended);
+    }
+
+    String featurePriorReason(PrototypeSwingOllamaCandidate candidate) {
+        return "Java baseline: trend=%s(%d), momentum=%s(%d), participation=%s(%d), riskPenalty=%d, recovery=%s(%d), overextension=%s(%d), cap=%s"
+                .formatted(
+                        trendTag(candidate), trendScore(candidate),
+                        rsiTag(candidate) + "/" + emaTag(candidate), momentumScore(candidate),
+                        volumeTag(candidate), participationScore(candidate),
+                        riskPenalty(candidate),
+                        recoveryTag(candidate), recoveryCredit(candidate),
+                        overextensionTag(candidate), overextensionPenalty(candidate),
+                        scoreCapHint(candidate)
+                );
     }
 
     private int distanceScore(BigDecimal price, BigDecimal average, int positive, int negative) {

@@ -271,9 +271,9 @@
   <g class="card">
     <rect x="1300" y="1159" width="590" height="130" rx="14" fill="#112f55" stroke="#4da1ff" stroke-width="2"/>
     <use href="#icon-brain" x="1322" y="1197" width="48" height="48" color="#78b8ff"/>
-    <text x="1388" y="1205" class="group-title">Ollama DTO contract + guarded ranking</text>
-    <text x="1388" y="1234" class="group-subtitle">Java baseline, signed contributions and async job</text>
-    <text x="1388" y="1262" class="group-subtitle">Model concurrency 1; risk remains final</text>
+    <text x="1388" y="1205" class="group-title">Java arbitration + Ollama reviewer</text>
+    <text x="1388" y="1234" class="group-subtitle">Baseline rank, DTO contract and signed challenges</text>
+    <text x="1388" y="1262" class="group-subtitle">Java validates/executes; model reviews only</text>
   </g>
 
   <!-- RIGHT: USER AND ACTIONS -->

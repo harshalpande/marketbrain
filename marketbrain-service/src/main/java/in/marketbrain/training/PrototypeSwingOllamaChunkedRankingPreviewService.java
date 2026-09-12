@@ -379,20 +379,27 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
     ) {
         return calibration.evaluationPreview().candidateEvaluations().stream()
                 .sorted(Comparator
-                        .comparingInt(PrototypeSwingOllamaCandidateEvaluation::ollamaRank)
+                        .comparingInt(PrototypeSwingOllamaCandidateEvaluation::finalReviewRank)
                         .thenComparing(PrototypeSwingOllamaCandidateEvaluation::symbol))
                 .limit(finalistsPerChunk)
                 .map(row -> new PrototypeSwingOllamaChunkedRankingFinalist(
                         chunkNumber,
                         row.symbol(),
                         row.ollamaRank(),
+                        row.javaBaselineRank(),
+                        row.finalReviewRank(),
                         row.actualRank(),
                         row.ollamaScore(),
+                        row.javaBaselineScore(),
+                        row.finalReviewScore(),
                         row.ollamaConfidence(),
+                        row.arbitrationDecision(),
                         row.targetNetReturnPercent(),
                         row.targetBenchmarkExcessReturnPercent(),
                         row.targetMaximumDrawdownPercent(),
                         row.qualityBucket(),
+                        row.javaBaselineReason(),
+                        row.arbitrationReason(),
                         row.reason()
                 ))
                 .toList();

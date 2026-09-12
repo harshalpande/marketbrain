@@ -42,6 +42,8 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("SignedContributionsDto");
         assertThat(source).contains("signedContributions");
         assertThat(source).contains("SIGNED_CONTRIBUTION_FINAL_SCORE_MISMATCH");
+        assertThat(source).contains("Responsibility boundary");
+        assertThat(source).contains("Granite is a bounded reviewer");
         assertThat(source).contains("RECOVERY_CANDIDATE");
         assertThat(source).contains("EXTREME_OVEREXTENSION");
         assertThat(source).contains("HARD_CAP_54");

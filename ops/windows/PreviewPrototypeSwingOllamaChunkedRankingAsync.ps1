@@ -269,8 +269,9 @@ try {
     Write-Host ''
     Write-Host 'Merged finalists summary'
     $status.result.mergedFinalists |
-        Select-Object chunkNumber, symbol, chunkOllamaRank, chunkActualRank, ollamaScore,
-            ollamaConfidence, targetNetReturnPercent, targetBenchmarkExcessReturnPercent,
+        Select-Object chunkNumber, symbol, chunkFinalReviewRank, chunkJavaBaselineRank, chunkOllamaRank,
+            chunkActualRank, finalReviewScore, javaBaselineScore, ollamaScore,
+            ollamaConfidence, arbitrationDecision, targetNetReturnPercent, targetBenchmarkExcessReturnPercent,
             targetMaximumDrawdownPercent, qualityBucket |
         Format-Table -AutoSize
 
