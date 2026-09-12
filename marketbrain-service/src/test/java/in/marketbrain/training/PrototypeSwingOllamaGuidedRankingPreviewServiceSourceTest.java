@@ -15,7 +15,7 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
                 java.nio.file.Path.of("src/main/java/in/marketbrain/training/"
                         + "PrototypeSwingOllamaGuidedRankingPreviewService.java"),
                 StandardCharsets.UTF_8);
-        assertThat(source).contains("@Transactional(readOnly = true");
+        assertThat(source).doesNotContain("@Transactional");
         assertThat(source).doesNotContain("jdbcTemplate.update");
         assertThat(source).doesNotContain("INSERT INTO");
         assertThat(source).doesNotContain("market_signal");

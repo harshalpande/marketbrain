@@ -1,7 +1,6 @@
 package in.marketbrain.training;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,8 +29,6 @@ public class PrototypeSwingOllamaScoreCalibrationPreviewService {
     ) {
         this.evaluationService = evaluationService;
     }
-
-    @Transactional(readOnly = true, timeout = 1800)
     public PrototypeSwingOllamaScoreCalibrationPreview preview(
             PrototypeSwingOllamaScoreCalibrationRequest request
     ) {

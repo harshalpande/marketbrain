@@ -1,7 +1,6 @@
 package in.marketbrain.training;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,16 +37,12 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         this.evaluationService = evaluationService;
         this.calibrationService = calibrationService;
     }
-
-    @Transactional(readOnly = true, timeout = 2400)
     public PrototypeSwingOllamaChunkedRankingPreview preview(
             PrototypeSwingOllamaChunkedRankingRequest request
     ) {
         return preview(request, progress -> {
         });
     }
-
-    @Transactional(readOnly = true, timeout = 2400)
     public PrototypeSwingOllamaChunkedRankingPreview preview(
             PrototypeSwingOllamaChunkedRankingRequest request,
             Consumer<ChunkProgress> progressConsumer

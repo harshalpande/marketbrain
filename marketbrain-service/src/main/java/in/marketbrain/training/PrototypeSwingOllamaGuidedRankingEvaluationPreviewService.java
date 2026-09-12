@@ -3,7 +3,6 @@ package in.marketbrain.training;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -36,8 +35,6 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
         this.guidedRankingService = guidedRankingService;
         this.objectMapper = objectMapper;
     }
-
-    @Transactional(readOnly = true, timeout = 900)
     public PrototypeSwingOllamaGuidedRankingEvaluationPreview preview(
             PrototypeSwingOllamaRankingRequest request
     ) {

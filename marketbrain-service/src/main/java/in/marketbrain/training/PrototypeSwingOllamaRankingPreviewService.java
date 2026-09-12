@@ -2,7 +2,6 @@ package in.marketbrain.training;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -34,8 +33,6 @@ public class PrototypeSwingOllamaRankingPreviewService {
         this.ollamaClient = ollamaClient;
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    @Transactional(readOnly = true, timeout = 600)
     public PrototypeSwingOllamaRankingPreview preview(PrototypeSwingOllamaRankingRequest request) {
         PrototypeSwingOllamaRankingRequest safeRequest = request == null
                 ? new PrototypeSwingOllamaRankingRequest(null, null, null, null)

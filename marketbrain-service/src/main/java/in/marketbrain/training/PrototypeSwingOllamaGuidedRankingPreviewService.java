@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -47,8 +46,6 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
     }
-
-    @Transactional(readOnly = true, timeout = 600)
     public PrototypeSwingOllamaGuidedRankingPreview preview(PrototypeSwingOllamaRankingRequest request) {
         PrototypeSwingOllamaRankingRequest safeRequest = request == null
                 ? new PrototypeSwingOllamaRankingRequest(null, null, null, null)

@@ -15,7 +15,7 @@ class PrototypeSwingOllamaChunkedRankingPreviewServiceSourceTest {
                 java.nio.file.Path.of("src/main/java/in/marketbrain/training/"
                         + "PrototypeSwingOllamaChunkedRankingPreviewService.java"),
                 StandardCharsets.UTF_8);
-        assertThat(source).contains("@Transactional(readOnly = true");
+        assertThat(source).doesNotContain("@Transactional");
         assertThat(source).contains("public PrototypeSwingOllamaChunkedRankingPreviewService(");
         assertThat(source).contains("DEFAULT_CHUNK_SIZE = 4");
         assertThat(source).contains("DEFAULT_MAX_RETRIES_PER_CHUNK = 1");
