@@ -24,9 +24,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V3";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V4";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V3";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V4";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -254,6 +254,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 "label.benchmark_excess_return_percent DESC, label.maximum_drawdown_percent ASC", 2,
                 "Preferred pattern: positive benchmark excess with manageable drawdown deserves a better rank than a noisy chart.",
                 "label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0 AND label.maximum_drawdown_percent < 6"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "RECOVERY_OUTPERFORMER",
+                "label.benchmark_excess_return_percent DESC, item.annualized_volatility20_percent ASC", 2,
+                "Recovery winner: low range position or weak recent momentum can still be attractive when volatility is controlled and participation is not broken.",
+                "item.range_position252_percent < 40 AND label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0"));
+        examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "OVEREXTENDED_MOMENTUM_TRAP",
+                "item.range_position252_percent DESC, item.annualized_volatility20_percent DESC", 2,
+                "Overextended trap: high daily return, hot RSI/range and high volatility should cap score even when the chart looks exciting.",
+                "item.range_position252_percent > 90 AND item.rsi14 > 65 AND item.annualized_volatility20_percent > 35"));
         return List.copyOf(examples);
     }
 
@@ -328,6 +336,9 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Major conflicts include: weak volume (<0.8), high volatility (>35), price below SMA20/SMA50, EMA12 below EMA26, RSI below 45, range_position252 above 90 with high RSI/volatility, or obvious one-day spike risk.
                 - A 85+ score must read like a clean winner: trend, EMA, RSI, participation, range and volatility must mostly agree. If you need to explain several caveats, the candidate is not 85+.
                 - For each chunk, separate "best chart story" from "best expected outcome". A stock can look interesting and still deserve a lower score if the risk-adjusted/benchmark-excess setup is weaker than peers.
+                - Recovery setups: low range position, controlled/moderate volatility and non-broken participation can be valid even when recent daily return or RSI is weak. Do not automatically rank them last.
+                - Overextended momentum traps: high daily return, hot RSI, near-100 range position and high volatility are not automatically good. They often deserve MEDIUM/LOW confidence and capped scores.
+                - Feature prior score is not a hidden label and is not a trading signal. Treat it as a guardrail prior: strong evidence may override it, but explain why.
                 - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
@@ -360,6 +371,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - A top-ranked candidate should normally deserve at least a strong score; weak or conflicted candidates should not receive HIGH confidence.
                 - First rank the candidates qualitatively. Then calibrate scores from that rank order: rank 1 should not be HIGH unless its risk flags are genuinely small.
                 - If a candidate has negative daily return, weak volume, high volatility, bearish EMA, or price below short/medium averages, mention the conflict and cap confidence unless other evidence is overwhelming.
+                - Use feature_prior_score and feature_prior_bucket as a starting prior. Do not top-rank a LOW prior unless its recovery_tag is RECOVERY_CANDIDATE and peers have stronger overextension/risk traps.
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -382,9 +394,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append('"').append(example.teachingPoint()).append('"').append('\n');
         }
         builder.append("\nUnlabelled ranking candidates. Use only these feature values and derived guardrail tags for ranking; future labels are hidden:\n");
-        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,score_cap_hint\n");
+        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,feature_prior_score,feature_prior_bucket,score_cap_hint\n");
         for (int index = 0; index < candidates.size(); index++) {
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
+            int featurePriorScore = featurePriorScore(candidate);
             builder.append(candidateId(index)).append(',')
                     .append(candidate.symbol()).append(',')
                     .append(text(candidate.latestClose())).append(',')
@@ -405,6 +418,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(volumeTag(candidate)).append(',')
                     .append(volatilityTag(candidate)).append(',')
                     .append(rangeTag(candidate)).append(',')
+                    .append(recoveryTag(candidate)).append(',')
+                    .append(overextensionTag(candidate)).append(',')
+                    .append(featurePriorScore).append(',')
+                    .append(featurePriorBucket(featurePriorScore)).append(',')
                     .append(scoreCapHint(candidate)).append('\n');
         }
         builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence and reasoning:\n");
@@ -466,9 +483,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - LOW: use for candidates with negative daily return, weak participation, high volatility, overextension, or conflicting signals.
                 Never assign HIGH confidence to a candidate whose reason contains major caveats such as weak RSI, weak volume, high volatility, overbought/overextended, or meaningful drawdown risk.
                 Apply score_cap_hint unless you have exceptional cross-feature evidence:
+                - HARD_CAP_54 means score must normally be 54 or lower and confidence must be LOW unless the candidate is clearly the least-bad option.
                 - HARD_CAP_69 means score must normally be 69 or lower and confidence must not be HIGH.
                 - SOFT_CAP_84 means score must normally be 84 or lower and confidence should be MEDIUM at most.
                 - HIGH_ELIGIBLE means the candidate may receive 85+ only if it is also the best relative setup in this chunk.
+                Feature prior usage:
+                - Start from feature_prior_score/bucket, then adjust based on relative evidence.
+                - Recovery candidates can outrank overextended traps even with lower RSI/range if volatility is controlled and participation is acceptable.
+                - EXTREME_OVEREXTENSION candidates require explicit demotion unless every peer is worse.
                 """);
         return builder.toString();
     }
@@ -574,6 +596,15 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 && candidate.rsi14().compareTo(BigDecimal.valueOf(65)) > 0) {
             majorConflicts++;
         }
+        if (candidate.rangePosition252Percent() != null
+                && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(95)) > 0
+                && candidate.volumeRatio20() != null
+                && candidate.volumeRatio20().compareTo(BigDecimal.valueOf(0.8)) < 0) {
+            majorConflicts++;
+        }
+        if (isExtremeRisk(candidate)) {
+            return "HARD_CAP_54";
+        }
         if (majorConflicts >= 2) {
             return "HARD_CAP_69";
         }
@@ -581,6 +612,100 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             return "SOFT_CAP_84";
         }
         return "HIGH_ELIGIBLE";
+    }
+
+    private String recoveryTag(PrototypeSwingOllamaCandidate candidate) {
+        if (candidate.rangePosition252Percent() != null
+                && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(40)) < 0
+                && candidate.annualizedVolatility20Percent() != null
+                && candidate.annualizedVolatility20Percent().compareTo(BigDecimal.valueOf(30)) <= 0
+                && candidate.volumeRatio20() != null
+                && candidate.volumeRatio20().compareTo(BigDecimal.valueOf(0.7)) >= 0) {
+            return "RECOVERY_CANDIDATE";
+        }
+        return "NOT_RECOVERY";
+    }
+
+    private String overextensionTag(PrototypeSwingOllamaCandidate candidate) {
+        if (isExtremeRisk(candidate)) {
+            return "EXTREME_OVEREXTENSION";
+        }
+        if (candidate.rangePosition252Percent() != null
+                && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(90)) > 0) {
+            return "EXTENDED";
+        }
+        return "NOT_EXTENDED";
+    }
+
+    private int featurePriorScore(PrototypeSwingOllamaCandidate candidate) {
+        int score = 50;
+        score += switch (trendTag(candidate)) {
+            case "BULLISH_TREND" -> 12;
+            case "MIXED_TREND" -> 3;
+            default -> -10;
+        };
+        score += "EMA_BULLISH".equals(emaTag(candidate)) ? 8 : -6;
+        score += switch (rsiTag(candidate)) {
+            case "RSI_CONSTRUCTIVE" -> 10;
+            case "RSI_NEUTRAL" -> 2;
+            case "RSI_OVERHEATED" -> -6;
+            case "RSI_WEAK" -> -8;
+            default -> 0;
+        };
+        score += switch (volumeTag(candidate)) {
+            case "VOLUME_CONFIRMED" -> 8;
+            case "VOLUME_NEUTRAL" -> 2;
+            case "VOLUME_WEAK" -> -8;
+            default -> 0;
+        };
+        score += switch (volatilityTag(candidate)) {
+            case "VOLATILITY_CONTROLLED" -> 8;
+            case "VOLATILITY_MODERATE" -> 2;
+            case "VOLATILITY_HIGH" -> -12;
+            default -> 0;
+        };
+        score += switch (rangeTag(candidate)) {
+            case "RANGE_LEADERSHIP" -> 6;
+            case "RANGE_MIDDLE" -> 2;
+            case "RANGE_LOW" -> "RECOVERY_CANDIDATE".equals(recoveryTag(candidate)) ? 8 : -2;
+            case "RANGE_EXTENDED" -> "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate)) ? -14 : -4;
+            default -> 0;
+        };
+        if (candidate.dailyReturnPercent() != null
+                && candidate.dailyReturnPercent().compareTo(BigDecimal.valueOf(3)) > 0
+                && "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+            score -= 8;
+        }
+        return Math.max(0, Math.min(100, score));
+    }
+
+    private String featurePriorBucket(int score) {
+        if (score >= 75) {
+            return "HIGH_PRIOR";
+        }
+        if (score >= 60) {
+            return "MEDIUM_PRIOR";
+        }
+        if (score >= 45) {
+            return "LOW_PRIOR";
+        }
+        return "AVOID_PRIOR";
+    }
+
+    private boolean isExtremeRisk(PrototypeSwingOllamaCandidate candidate) {
+        boolean highVolatility = candidate.annualizedVolatility20Percent() != null
+                && candidate.annualizedVolatility20Percent().compareTo(BigDecimal.valueOf(35)) > 0;
+        boolean weakVolume = candidate.volumeRatio20() != null
+                && candidate.volumeRatio20().compareTo(BigDecimal.valueOf(0.8)) < 0;
+        boolean hotExtended = candidate.rangePosition252Percent() != null
+                && candidate.rangePosition252Percent().compareTo(BigDecimal.valueOf(90)) > 0
+                && candidate.rsi14() != null
+                && candidate.rsi14().compareTo(BigDecimal.valueOf(65)) > 0;
+        boolean dailySpike = candidate.dailyReturnPercent() != null
+                && candidate.dailyReturnPercent().compareTo(BigDecimal.valueOf(3)) > 0;
+        return (highVolatility && weakVolume)
+                || (highVolatility && hotExtended)
+                || (dailySpike && highVolatility && hotExtended);
     }
 
     private boolean greater(BigDecimal left, BigDecimal right) {

@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 74 quality-aware Granite retry and score-cap hardening.
+Status: Step 75 Granite feature-prior and recovery-vs-overextension hardening.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -151,6 +151,23 @@ The Step 74 fix works on multiple fronts:
 - retry policy: schema-valid but weak quality/calibration chunks are no longer accepted immediately when retries
   remain. They receive a targeted repair prompt first. The final attempt may still be accepted with warnings so review
   can continue, but the warning evidence remains visible.
+
+Step 75 responds to the next Granite run after Step 74. Confidence calibration improved materially: Granite stopped
+using HIGH confidence on the reviewed weak candidates, and weak chunks were retried as designed. However, ranking
+quality remained weak because Granite still preferred some attractive chart stories over better realised outcomes.
+The evidence showed two important patterns:
+
+- recovery-style candidates with low range position, controlled/moderate volatility and acceptable participation can
+  outperform even when recent momentum looks weak;
+- overextended momentum candidates with hot RSI/range, high volatility and one-day strength can look attractive but
+  still become lower-quality choices.
+
+Step 75 therefore adds a non-hidden deterministic feature prior to the prompt. Candidate rows now include
+`recovery_tag`, `overextension_tag`, `feature_prior_score` and `feature_prior_bucket`. These values are derived only
+from as-of technical features, not future labels. Granite is instructed to use the prior as a starting guardrail, while
+still explaining any override. The score-cap system also adds `HARD_CAP_54` for extreme risk/overextension cases.
+
+This still does not convert Ollama output into a trading signal. It remains a governed research/evaluation artifact.
 
 ## Daily fresh-data feedback loop
 
