@@ -31,7 +31,16 @@ class PrototypeSwingOllamaClient {
         return generate(model, prompt, true);
     }
 
+    Generation generateJsonResult(String model, String prompt) {
+        return generateResult(model, prompt, true);
+    }
+
     private String generate(String model, String prompt, boolean jsonMode) {
+        return generateResult(model, prompt, jsonMode).text();
+    }
+
+    private Generation generateResult(String model, String prompt, boolean jsonMode) {
+        long startedAt = System.nanoTime();
         try {
             var body = new java.util.LinkedHashMap<String, Object>();
             body.put("model", model);
@@ -53,10 +62,26 @@ class PrototypeSwingOllamaClient {
             if (text.isBlank()) {
                 throw new OllamaTransportException();
             }
-            return text.strip();
+            long elapsedMillis = (System.nanoTime() - startedAt) / 1_000_000L;
+            return new Generation(
+                    text.strip(),
+                    elapsedMillis,
+                    response == null ? 0L : response.path("total_duration").asLong(0L),
+                    response == null ? 0 : response.path("prompt_eval_count").asInt(0),
+                    response == null ? 0 : response.path("eval_count").asInt(0)
+            );
         } catch (RestClientException exception) {
             throw new OllamaTransportException();
         }
+    }
+
+    record Generation(
+            String text,
+            long elapsedMillis,
+            long ollamaTotalDurationNanos,
+            int promptEvalCount,
+            int evalCount
+    ) {
     }
 
     static final class OllamaTransportException extends RuntimeException {

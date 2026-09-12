@@ -27,7 +27,7 @@ class PrototypeSwingOllamaGuidedRankingPreviewControllerTest {
                 LocalDate.of(2026, 9, 8), "a".repeat(64), "gemma3:4b",
                 12, 12, 8, 20, "INSTRUCTION_V1", "SCHEMA_V1", "RUBRIC_V1",
                 "b".repeat(64), "c".repeat(64), "d".repeat(64),
-                "prompt", "{}", List.of(), List.of(), true, true, List.of(),
+                "prompt", "{}", 6, 2, 123L, 456L, 7, 8, List.of(), List.of(), true, true, List.of(),
                 true, false, true, true, false, true, true,
                 false, 1, 0, 0, false, "review");
         when(service.preview(request)).thenReturn(expected);

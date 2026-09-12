@@ -24,9 +24,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V5";
-    static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V5";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V6";
+    static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V6";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -100,7 +100,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
         String playbook = playbook();
         String prompt = prompt(audit, examples, candidates, horizon, playbook, repairInstruction(request.repairInstruction()));
-        String response = ollamaClient.generateJson(model, prompt);
+        PrototypeSwingOllamaClient.Generation generation = ollamaClient.generateJsonResult(model, prompt);
+        String response = generation.text();
         Validation validation = validateResponse(response, candidates, horizon);
         boolean schemaValid = validation.failures().isEmpty();
 
@@ -125,6 +126,12 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 sha256(response),
                 prompt,
                 response,
+                prompt.length(),
+                response.length(),
+                generation.elapsedMillis(),
+                generation.ollamaTotalDurationNanos(),
+                generation.promptEvalCount(),
+                generation.evalCount(),
                 examples,
                 candidates,
                 validation.parseableJson(),
@@ -345,6 +352,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
+                - Communication contract: follow the exact JSON DTO supplied in the prompt. Do not rename fields. Do not add wrapper text.
                 - This is prototype research only. Never create or imply a live trading signal.
                 """;
     }
@@ -376,6 +384,54 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - If a candidate has negative daily return, weak volume, high volatility, bearish EMA, or price below short/medium averages, mention the conflict and cap confidence unless other evidence is overwhelming.
                 - Use feature_prior_score and feature_prior_bucket as a starting prior. Do not top-rank a LOW prior unless its recovery_tag is RECOVERY_CANDIDATE and peers have stronger overextension/risk traps.
                 - Use feature_prior_rank as the baseline order. Moving away from it requires explicit evidence in the reason field.
+                - Use the supplied MarketBrain algorithm exactly. Java has already calculated the raw signed contributions and feature prior. Your job is to review/rank inside this contract, not invent another scoring method.
+
+                """);
+        builder.append("""
+                MarketBrain deterministic ranking algorithm contract:
+                1. Treat feature_prior_rank as the baseline rank for this chunk.
+                2. Treat feature_prior_score as Java's bounded 0..100 baseline score.
+                3. The input contribution fields are signed/positive Java factors except penalty columns:
+                   - trend_score can be negative or positive.
+                   - momentum_score can be negative or positive.
+                   - participation_score can be negative or positive.
+                   - risk_penalty is a positive penalty in the input; report it as a negative signed contribution in JSON.
+                   - recovery_credit is a positive contribution in the input.
+                   - overextension_penalty is a positive penalty in the input; report it as a negative signed contribution in JSON.
+                4. finalScore must equal your top-level score within 10 points and stay inside 0..100.
+                5. If rank differs from feature_prior_rank by more than one position, the reason must name the exact feature conflict or recovery/overextension evidence.
+                6. Score cap hints are mandatory guardrails unless the reason explains exceptional cross-feature evidence.
+
+                Exact response DTO to populate:
+                RankingResponseDto {
+                  string schemaVersion = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3";
+                  integer rankingHorizonSessions;
+                  RankedCandidateDto[] rankedCandidates;
+                  string riskNote;
+                  string researchOnlyDisclaimer;
+                }
+                RankedCandidateDto {
+                  integer rank;                 // complete sequence 1..candidateCount
+                  string candidateId;            // exact supplied candidateId
+                  string symbol;                 // exact supplied symbol for candidateId
+                  integer score;                 // 0..100
+                  string confidence;             // LOW | MEDIUM | HIGH
+                  string[] positiveEvidence;     // feature-specific positives only
+                  string[] riskFlags;            // feature-specific risks, or []
+                  SignedContributionsDto signedContributions;
+                  string reason;                 // concise feature-based explanation
+                  boolean notTradingSignal = true;
+                }
+                SignedContributionsDto {
+                  integer trendContribution;        // -100..100
+                  integer momentumContribution;     // -100..100
+                  integer participationContribution;// -100..100
+                  integer riskPenalty;              // -100..100, normally zero or negative
+                  integer recoveryCredit;            // -100..100, normally zero or positive
+                  integer overextensionPenalty;      // -100..100, normally zero or negative
+                  integer algorithmAdjustment;       // -100..100, only for relative/tie-break adjustment
+                  integer finalScore;                // 0..100, within 10 points of score
+                }
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -460,7 +516,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 Return ONLY valid JSON, no markdown and no prose outside JSON.
                 Required JSON shape:
                 {
-                  "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V2",
+                  "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3",
                   "rankingHorizonSessions": 20,
                   "rankedCandidates": [
                     {
@@ -471,13 +527,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                       "confidence": "LOW",
                       "positiveEvidence": ["specific feature-based reason"],
                       "riskFlags": ["specific risk or empty array"],
-                      "subScores": {
-                        "trendScore": 0,
-                        "momentumScore": 0,
-                        "participationScore": 0,
+                      "signedContributions": {
+                        "trendContribution": 0,
+                        "momentumContribution": 0,
+                        "participationContribution": 0,
                         "riskPenalty": 0,
                         "recoveryCredit": 0,
                         "overextensionPenalty": 0,
+                        "algorithmAdjustment": 0,
                         "finalScore": 0
                       },
                       "reason": "one concise feature-based explanation",
@@ -512,8 +569,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Start from feature_prior_score/bucket, then adjust based on relative evidence.
                 - Recovery candidates can outrank overextended traps even with lower RSI/range if volatility is controlled and participation is acceptable.
                 - EXTREME_OVEREXTENSION candidates require explicit demotion unless every peer is worse.
-                Sub-score rules:
-                - subScores values must be integers from 0..100 except riskPenalty and overextensionPenalty, which are also 0..100 penalties.
+                Signed contribution rules:
+                - signedContributions values must be integers.
+                - trendContribution, momentumContribution, participationContribution, riskPenalty, recoveryCredit, overextensionPenalty and algorithmAdjustment must be in -100..100.
+                - Convert input penalties to negative signed contributions in JSON: riskPenalty and overextensionPenalty should normally be zero or negative.
                 - finalScore must be consistent with score. A difference above 10 points is not allowed.
                 - Mention recoveryCredit in reason if you top-rank a recovery candidate.
                 - Mention overextensionPenalty in reason if you rank an extended candidate in the top two.
@@ -910,19 +969,21 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     || node.path("reason").asText("").isBlank()) {
                 failures.add("REASONING_FIELDS");
             }
-            JsonNode subScores = node.path("subScores");
-            if (!subScores.isObject()) {
-                failures.add("SUBSCORES_OBJECT");
+            JsonNode signedContributions = node.path("signedContributions");
+            if (!signedContributions.isObject()) {
+                failures.add("SIGNED_CONTRIBUTIONS_OBJECT");
             } else {
-                validateSubScore(subScores, "trendScore", failures);
-                validateSubScore(subScores, "momentumScore", failures);
-                validateSubScore(subScores, "participationScore", failures);
-                validateSubScore(subScores, "riskPenalty", failures);
-                validateSubScore(subScores, "recoveryCredit", failures);
-                validateSubScore(subScores, "overextensionPenalty", failures);
-                int finalScore = validateSubScore(subScores, "finalScore", failures);
+                validateSignedContribution(signedContributions, "trendContribution", failures);
+                validateSignedContribution(signedContributions, "momentumContribution", failures);
+                validateSignedContribution(signedContributions, "participationContribution", failures);
+                validateSignedContribution(signedContributions, "riskPenalty", failures);
+                validateSignedContribution(signedContributions, "recoveryCredit", failures);
+                validateSignedContribution(signedContributions, "overextensionPenalty", failures);
+                validateSignedContribution(signedContributions, "algorithmAdjustment", failures);
+                int finalScore = validateFinalScore(signedContributions, failures);
                 if (finalScore >= 0 && Math.abs(finalScore - score) > 10) {
-                    failures.add("SUBSCORE_FINAL_SCORE_MISMATCH");
+                    failures.add("SIGNED_CONTRIBUTION_FINAL_SCORE_MISMATCH:" + symbol
+                            + ":score=" + score + ":finalScore=" + finalScore);
                 }
             }
         }
@@ -933,14 +994,26 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return new Validation(true, failures.stream().distinct().toList());
     }
 
-    private int validateSubScore(JsonNode subScores, String field, List<String> failures) {
-        if (!subScores.has(field) || !subScores.path(field).canConvertToInt()) {
-            failures.add("SUBSCORE_" + field.toUpperCase(Locale.ROOT));
+    private int validateSignedContribution(JsonNode signedContributions, String field, List<String> failures) {
+        if (!signedContributions.has(field) || !signedContributions.path(field).canConvertToInt()) {
+            failures.add("SIGNED_CONTRIBUTION_MISSING:" + field);
             return -1;
         }
-        int value = subScores.path(field).asInt(-1);
+        int value = signedContributions.path(field).asInt(-999);
+        if (value < -100 || value > 100) {
+            failures.add("SIGNED_CONTRIBUTION_RANGE:" + field + "=" + value + ":expected=-100..100");
+        }
+        return value;
+    }
+
+    private int validateFinalScore(JsonNode signedContributions, List<String> failures) {
+        if (!signedContributions.has("finalScore") || !signedContributions.path("finalScore").canConvertToInt()) {
+            failures.add("SIGNED_CONTRIBUTION_MISSING:finalScore");
+            return -1;
+        }
+        int value = signedContributions.path("finalScore").asInt(-1);
         if (value < 0 || value > 100) {
-            failures.add("SUBSCORE_RANGE");
+            failures.add("SIGNED_CONTRIBUTION_FINAL_SCORE_RANGE:finalScore=" + value + ":expected=0..100");
         }
         return value;
     }

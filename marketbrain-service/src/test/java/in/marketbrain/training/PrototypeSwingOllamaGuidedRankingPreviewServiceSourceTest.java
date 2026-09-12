@@ -38,8 +38,10 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("risk_penalty");
         assertThat(source).contains("recovery_credit");
         assertThat(source).contains("overextension_penalty");
-        assertThat(source).contains("subScores");
-        assertThat(source).contains("SUBSCORE_FINAL_SCORE_MISMATCH");
+        assertThat(source).contains("RankingResponseDto");
+        assertThat(source).contains("SignedContributionsDto");
+        assertThat(source).contains("signedContributions");
+        assertThat(source).contains("SIGNED_CONTRIBUTION_FINAL_SCORE_MISMATCH");
         assertThat(source).contains("RECOVERY_CANDIDATE");
         assertThat(source).contains("EXTREME_OVEREXTENSION");
         assertThat(source).contains("HARD_CAP_54");

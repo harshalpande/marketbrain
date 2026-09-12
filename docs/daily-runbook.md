@@ -3681,15 +3681,17 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73: chunked calibrated Ollama ranking with repair retry and outcome-aware rubric
+## Step 70/71/72/73/77: chunked calibrated Ollama ranking with DTO guardrails and Java async orchestration
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
-failed chunk once, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
+failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
 `CANDIDATE_001`-style IDs so a failure can be separated into candidate-ID, symbol-copy, rank-sequence or JSON-schema
 root cause. Step 72 adds an exact candidate skeleton to every prompt and sends a targeted repair instruction on retry
 when a previous attempt fails a guardrail such as `RANKED_CANDIDATE_COUNT`. Step 73 strengthens Granite's
 outcome-aware rubric with benchmark-laggard and drawdown-trap examples plus stricter high-score/high-confidence
-calibration checks.
+calibration checks. Step 77 moves the Granite communication contract from loose prompt JSON to an explicit Java DTO:
+`RankingResponseDto`, `RankedCandidateDto` and `SignedContributionsDto`. Java owns the async job and progress state,
+while local Ollama model concurrency remains intentionally fixed at `1`.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -3707,24 +3709,28 @@ do {
     }
 } until ($health.status -eq 'UP')
 
-& '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRanking.ps1' `
+& '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRankingAsync.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
     -Model 'ibm/granite4.1:8b' `
-    -TotalCandidateLimit 12 `
+    -TotalCandidateLimit 24 `
     -ChunkSize 4 `
     -FinalistsPerChunk 2 `
     -MaxRetriesPerChunk 1 `
     -RankingHorizonSessions 20
 ```
 
-The script prints percentage progress, each chunk loop result, every attempt's schema/calibration status, repair
-instruction if used, expected candidate IDs, root-cause records for guardrail failures or exceptions, and a final
-merged finalist summary. It writes:
+The script starts the Java-owned async job, polls its job-status endpoint, prints real percentage progress with
+`Write-Progress`, and saves every guarded failure with timing/token evidence. It writes:
 
 - full result JSON under `C:\MarketBrainData\Review`;
 - a dedicated `*-root-causes.json` file;
 - raw failed-attempt Ollama response files named `*-chunkN-attemptN-ollama-response.json`;
 - the transcript log file.
+
+The root-cause JSON includes candidate IDs, candidate symbols, prompt/response hashes, prompt and response character
+counts, elapsed Ollama milliseconds, Ollama duration metadata when available, prompt-eval count, eval count and all
+schema/evaluation/calibration failures. A `SIGNED_CONTRIBUTION_*` failure should be treated as a DTO-contract issue
+first, not as a reason to blindly increase retries.
 
 Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
 `ActionExecutionEnabled=False`.

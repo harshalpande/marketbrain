@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 76 deterministic feature scoring and quality-label hardening.
+Status: Step 77 algorithm-bound Granite DTO contract and Java-owned async ranking job.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -16,7 +16,8 @@ ranking request includes:
 - negative labelled examples from the same dataset;
 - benchmark-laggard and drawdown-trap examples from the same dataset;
 - interaction rules for trend, momentum, participation, volatility, benchmark excess and drawdown;
-- a strict JSON response schema;
+- an explicit Java DTO-shaped JSON response contract;
+- deterministic Java baseline scores/ranks and signed contribution rules;
 - a mandatory research-only, no-signal/no-order boundary.
 
 True fine-tuning can be reviewed later only after enough governed examples and evaluation results exist.
@@ -48,6 +49,9 @@ Ollama output is not accepted unless it is valid JSON matching the response sche
 - score is between 0 and 100;
 - confidence is `LOW`, `MEDIUM` or `HIGH`;
 - every candidate has positive evidence, risk flags, a reason and `notTradingSignal=true`;
+- every candidate uses the exact `signedContributions` DTO fields;
+- signed contributions are bounded to `-100..100`, while `finalScore` remains `0..100`;
+- field-level validation reports the exact failing field and value where practical;
 - risk and research-only notes are present.
 
 If the response fails these checks, MarketBrain stores/reports the response as a guarded review failure. It still
@@ -187,6 +191,27 @@ beyond prompt prose:
 
 This keeps the governing order intact: Java computes deterministic as-of features and guardrails first; Ollama explains
 and ranks within that structure; hidden labels are used only for offline review-quality evaluation.
+
+Step 77 responds to the next V5 run, where most chunks were blocked by `SUBSCORE_RANGE`. The important finding was
+that Granite was not merely misbehaving: the contract was internally inconsistent. Java supplied signed factor scores
+such as negative trend or momentum contributions, but the response schema required `subScores` in `0..100`.
+
+The Step 77 correction hardens communication with Granite instead of relying on repeated repair attempts:
+
+- the prompt now includes an explicit Java DTO contract (`RankingResponseDto`, `RankedCandidateDto`,
+  `SignedContributionsDto`) rather than a loose "return JSON" instruction;
+- `subScores` is replaced by `signedContributions`;
+- `trendContribution`, `momentumContribution`, `participationContribution`, `riskPenalty`, `recoveryCredit`,
+  `overextensionPenalty` and `algorithmAdjustment` are allowed to be signed integers from `-100..100`;
+- `finalScore` remains bounded to `0..100` and must stay close to the top-level score;
+- input penalties are explicitly converted to negative signed JSON contributions;
+- validation failures are more precise, for example identifying the exact signed-contribution field and invalid value;
+- each model attempt now carries prompt/response sizes, hashes, elapsed Ollama time and Ollama token-count metadata;
+- a Java-owned async job endpoint starts the chunked ranking job and exposes progress while keeping local model
+  concurrency fixed at `1` for the current spare-machine hardware.
+
+Repair retry remains only a fallback for malformed or incomplete responses. The intended primary control is now the
+algorithm-bound DTO contract plus deterministic Java guardrails.
 
 ## Daily fresh-data feedback loop
 

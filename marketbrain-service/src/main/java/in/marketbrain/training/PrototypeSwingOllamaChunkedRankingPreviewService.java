@@ -9,6 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Service
 public class PrototypeSwingOllamaChunkedRankingPreviewService {
@@ -42,6 +43,15 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
     public PrototypeSwingOllamaChunkedRankingPreview preview(
             PrototypeSwingOllamaChunkedRankingRequest request
     ) {
+        return preview(request, progress -> {
+        });
+    }
+
+    @Transactional(readOnly = true, timeout = 2400)
+    public PrototypeSwingOllamaChunkedRankingPreview preview(
+            PrototypeSwingOllamaChunkedRankingRequest request,
+            Consumer<ChunkProgress> progressConsumer
+    ) {
         PrototypeSwingOllamaChunkedRankingRequest safeRequest = request == null
                 ? new PrototypeSwingOllamaChunkedRankingRequest(null, null, null, null, null, null, null, null)
                 : request;
@@ -62,9 +72,19 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         int ollamaCallCount = 0;
 
         int stopOffsetExclusive = startOffset + totalCandidateLimit;
+        int targetChunkCount = (int) Math.ceil(totalCandidateLimit / (double) chunkSize);
         for (int offset = startOffset; offset < stopOffsetExclusive; offset += chunkSize) {
             int chunkNumber = (offset / chunkSize) + 1;
             int requestedChunkSize = Math.min(chunkSize, stopOffsetExclusive - offset);
+            progressConsumer.accept(new ChunkProgress(
+                    "RUNNING",
+                    chunkNumber,
+                    targetChunkCount,
+                    chunks.size(),
+                    0,
+                    0,
+                    "Starting chunk " + chunkNumber + " of " + targetChunkCount
+            ));
             List<PrototypeSwingOllamaCandidate> candidates =
                     guidedRankingService.candidates(runId, offset, requestedChunkSize);
             if (candidates.isEmpty()) {
@@ -85,6 +105,21 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             chunks.add(chunkRun.chunk());
             mergedFinalists.addAll(chunkRun.chunk().finalists());
             aggregateFailures.addAll(chunkRun.failures());
+            int passedSoFar = (int) chunks.stream()
+                    .filter(chunk -> "CHUNK_PASSED".equals(chunk.chunkStatus()))
+                    .count();
+            int failedSoFar = (int) chunks.stream()
+                    .filter(chunk -> "CHUNK_FAILED".equals(chunk.chunkStatus()))
+                    .count();
+            progressConsumer.accept(new ChunkProgress(
+                    "RUNNING",
+                    chunkNumber,
+                    targetChunkCount,
+                    chunks.size(),
+                    passedSoFar,
+                    failedSoFar,
+                    "Completed chunk " + chunkNumber + " with status " + chunkRun.chunk().chunkStatus()
+            ));
         }
 
         mergedFinalists.sort(Comparator
@@ -228,7 +263,14 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 repairInstruction,
                 candidateIds(candidates),
                 symbols(candidates),
+                evaluation.guidedPreview().promptHash(),
+                evaluation.guidedPreview().promptCharacterCount(),
                 evaluation.responseHash(),
+                evaluation.guidedPreview().responseCharacterCount(),
+                evaluation.guidedPreview().ollamaElapsedMillis(),
+                evaluation.guidedPreview().ollamaTotalDurationNanos(),
+                evaluation.guidedPreview().ollamaPromptEvalCount(),
+                evaluation.guidedPreview().ollamaEvalCount(),
                 evaluation.guidedPreview().ollamaResponse(),
                 evaluation.responseParseableJson(),
                 evaluation.responseSchemaValid(),
@@ -299,9 +341,12 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         if (failures.contains("BEST_ACTUAL_SCORE_TOO_LOW")) {
             builder.append("Use a wider score scale and make the strongest relative setup in this chunk score at least 70 unless every candidate is poor. ");
         }
-        if (failures.stream().anyMatch(failure -> failure.startsWith("SUBSCORE_"))) {
-            builder.append("Every ranked candidate must include subScores with trendScore, momentumScore, participationScore, riskPenalty, recoveryCredit, overextensionPenalty and finalScore. ");
-            builder.append("All subScores must be integers from 0 to 100 and finalScore must be within 10 points of score. ");
+        if (failures.stream().anyMatch(failure -> failure.startsWith("SIGNED_CONTRIBUTION"))
+                || failures.contains("SIGNED_CONTRIBUTIONS_OBJECT")) {
+            builder.append("Every ranked candidate must include signedContributions with trendContribution, momentumContribution, participationContribution, riskPenalty, recoveryCredit, overextensionPenalty, algorithmAdjustment and finalScore. ");
+            builder.append("All signed contribution fields except finalScore must be integers from -100 to 100. ");
+            builder.append("riskPenalty and overextensionPenalty should normally be zero or negative because they reduce score. ");
+            builder.append("finalScore must be 0 to 100 and within 10 points of score. ");
         }
         builder.append("Apply the score_cap_hint rules in the prompt. ");
         builder.append("Do not drop lower-ranked candidates. Do not add symbols outside this list. Do not use markdown.");
@@ -424,5 +469,23 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             PrototypeSwingOllamaChunkedRankingChunk chunk,
             List<String> failures
     ) {
+    }
+
+    public record ChunkProgress(
+            String status,
+            int activeChunkNumber,
+            int targetChunkCount,
+            int completedChunkCount,
+            int passedChunkCount,
+            int failedChunkCount,
+            String detail
+    ) {
+        public int progressPercent() {
+            if (targetChunkCount <= 0) {
+                return 0;
+            }
+            return Math.max(0, Math.min(100,
+                    (int) Math.floor((completedChunkCount / (double) targetChunkCount) * 100)));
+        }
     }
 }
