@@ -3723,8 +3723,10 @@ The script starts the Java-owned async job, polls its job-status endpoint, print
 `Write-Progress`, and saves every guarded failure with timing/token evidence. It writes:
 
 - full result JSON under `C:\MarketBrainData\Review`;
+- a dedicated `*-attempt-telemetry.json` file with one record per Granite attempt;
+- standalone prompt files named `*-chunkN-attemptN-prompt.txt`;
+- standalone raw Ollama response files named `*-chunkN-attemptN-ollama-response.json`;
 - a dedicated `*-root-causes.json` file;
-- raw failed-attempt Ollama response files named `*-chunkN-attemptN-ollama-response.json`;
 - the transcript log file.
 
 The root-cause JSON includes candidate IDs, candidate symbols, prompt/response hashes, prompt and response character

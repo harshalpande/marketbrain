@@ -264,6 +264,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 candidateIds(candidates),
                 symbols(candidates),
                 evaluation.guidedPreview().promptHash(),
+                evaluation.guidedPreview().prompt(),
                 evaluation.guidedPreview().promptCharacterCount(),
                 evaluation.responseHash(),
                 evaluation.guidedPreview().responseCharacterCount(),

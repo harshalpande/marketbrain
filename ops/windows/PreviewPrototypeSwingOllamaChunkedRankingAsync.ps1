@@ -132,17 +132,50 @@ try {
     $status | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $resultPath -Encoding utf8
 
     $rootCauseRecords = New-Object System.Collections.Generic.List[object]
+    $attemptTelemetryRecords = New-Object System.Collections.Generic.List[object]
     if ($null -ne $status.result) {
         foreach ($chunk in @($status.result.chunks)) {
             foreach ($attempt in @($chunk.attempts)) {
+                $promptPath = Join-Path $OutputDirectory ("$stem-chunk{0}-attempt{1}-prompt.txt" -f $chunk.chunkNumber, $attempt.attemptNumber)
+                $responsePath = Join-Path $OutputDirectory ("$stem-chunk{0}-attempt{1}-ollama-response.json" -f $chunk.chunkNumber, $attempt.attemptNumber)
+                if (-not [string]::IsNullOrWhiteSpace([string]$attempt.prompt)) {
+                    [string]$attempt.prompt |
+                        Set-Content -LiteralPath $promptPath -Encoding utf8
+                }
+                if (-not [string]::IsNullOrWhiteSpace([string]$attempt.ollamaResponse)) {
+                    [string]$attempt.ollamaResponse |
+                        Set-Content -LiteralPath $responsePath -Encoding utf8
+                }
+                $attemptTelemetryRecords.Add([pscustomobject][ordered]@{
+                    kind                       = 'CHUNK_ATTEMPT_TELEMETRY'
+                    jobId                      = $jobId
+                    chunkNumber                = $chunk.chunkNumber
+                    chunkStatus                = $chunk.chunkStatus
+                    attemptNumber              = $attempt.attemptNumber
+                    acceptedForChunkSummary    = $attempt.acceptedForChunkSummary
+                    expectedCandidateIds       = @($attempt.expectedCandidateIds)
+                    candidateSymbols           = @($attempt.candidateSymbols)
+                    promptPath                 = $promptPath
+                    promptHash                 = $attempt.promptHash
+                    promptCharacterCount       = $attempt.promptCharacterCount
+                    responsePath               = $responsePath
+                    responseHash               = $attempt.responseHash
+                    responseCharacterCount     = $attempt.responseCharacterCount
+                    ollamaElapsedMillis        = $attempt.ollamaElapsedMillis
+                    ollamaTotalDurationNanos   = $attempt.ollamaTotalDurationNanos
+                    ollamaPromptEvalCount      = $attempt.ollamaPromptEvalCount
+                    ollamaEvalCount            = $attempt.ollamaEvalCount
+                    responseParseableJson      = $attempt.responseParseableJson
+                    responseSchemaValid        = $attempt.responseSchemaValid
+                    rankingQualityStatus       = $attempt.rankingQualityStatus
+                    scoreCalibrationStatus     = $attempt.scoreCalibrationStatus
+                    responseValidationFailures = @($attempt.responseValidationFailures)
+                    evaluationFailures         = @($attempt.evaluationFailures)
+                    calibrationFailures        = @($attempt.calibrationFailures)
+                })
                 if (@($attempt.responseValidationFailures).Count -gt 0 -or
                     @($attempt.evaluationFailures).Count -gt 0 -or
                     @($attempt.calibrationFailures).Count -gt 0) {
-                    $responsePath = Join-Path $OutputDirectory ("$stem-chunk{0}-attempt{1}-ollama-response.json" -f $chunk.chunkNumber, $attempt.attemptNumber)
-                    if (-not [string]::IsNullOrWhiteSpace([string]$attempt.ollamaResponse)) {
-                        [string]$attempt.ollamaResponse |
-                            Set-Content -LiteralPath $responsePath -Encoding utf8
-                    }
                     $rootCauseRecords.Add([pscustomobject][ordered]@{
                         kind                       = 'CHUNK_ATTEMPT_GUARDRAIL'
                         jobId                      = $jobId
@@ -151,15 +184,16 @@ try {
                         repairInstruction          = $attempt.repairInstruction
                         expectedCandidateIds       = @($attempt.expectedCandidateIds)
                         candidateSymbols           = @($attempt.candidateSymbols)
+                        promptPath                 = $promptPath
                         promptHash                 = $attempt.promptHash
                         promptCharacterCount       = $attempt.promptCharacterCount
+                        responsePath               = $responsePath
                         responseHash               = $attempt.responseHash
                         responseCharacterCount     = $attempt.responseCharacterCount
                         ollamaElapsedMillis        = $attempt.ollamaElapsedMillis
                         ollamaTotalDurationNanos   = $attempt.ollamaTotalDurationNanos
                         ollamaPromptEvalCount      = $attempt.ollamaPromptEvalCount
                         ollamaEvalCount            = $attempt.ollamaEvalCount
-                        ollamaResponsePath         = $responsePath
                         responseParseableJson      = $attempt.responseParseableJson
                         responseSchemaValid        = $attempt.responseSchemaValid
                         rankingQualityStatus       = $attempt.rankingQualityStatus
@@ -173,6 +207,8 @@ try {
             }
         }
     }
+    $attemptTelemetryPath = Join-Path $OutputDirectory "$stem-attempt-telemetry.json"
+    $attemptTelemetryRecords | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $attemptTelemetryPath -Encoding utf8
     $rootCauseRecords | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $rootCausePath -Encoding utf8
 
     if ($status.status -eq 'FAILED') {
@@ -203,6 +239,7 @@ try {
     Write-Host 'STEP 70 ASYNC COMPLETE: Java-owned chunked Ollama ranking job finished.'
     Write-Host 'This is a model-quality review only. It is not a trading signal.'
     Write-Host "Result: $resultPath"
+    Write-Host "Attempt telemetry: $attemptTelemetryPath"
     Write-Host "Root causes: $rootCausePath"
     Write-Host "Log: $logPath"
 }

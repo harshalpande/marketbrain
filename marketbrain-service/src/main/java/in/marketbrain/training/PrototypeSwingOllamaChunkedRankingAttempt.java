@@ -9,6 +9,7 @@ public record PrototypeSwingOllamaChunkedRankingAttempt(
         List<String> expectedCandidateIds,
         List<String> candidateSymbols,
         String promptHash,
+        String prompt,
         int promptCharacterCount,
         String responseHash,
         int responseCharacterCount,
