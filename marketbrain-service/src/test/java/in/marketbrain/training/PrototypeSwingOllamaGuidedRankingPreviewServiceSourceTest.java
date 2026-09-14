@@ -32,6 +32,15 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("score_cap_hint");
         assertThat(source).contains("feature_prior_score");
         assertThat(source).contains("feature_prior_rank");
+        assertThat(source).contains("quality_anchor_score");
+        assertThat(source).contains("quality_anchor_rank");
+        assertThat(source).contains("quality_anchor_band");
+        assertThat(source).contains("quality_anchor_gap_to_leader");
+        assertThat(source).contains("risk_control_score");
+        assertThat(source).contains("opportunity_score");
+        assertThat(source).contains("major_conflict_count");
+        assertThat(source).contains("positive_signal_count");
+        assertThat(source).contains("relative_quality_flag");
         assertThat(source).contains("trend_score");
         assertThat(source).contains("momentum_score");
         assertThat(source).contains("participation_score");
@@ -45,6 +54,9 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("POSITIVE_EVIDENCE_CODES");
         assertThat(source).contains("RISK_FLAG_CODES");
         assertThat(source).contains("REASON_CODES");
+        assertThat(source).contains("RISK_ADJUSTED_LEADER");
+        assertThat(source).contains("MATERIAL_QUALITY_GAP");
+        assertThat(source).contains("RISK_ADJUSTED_LEADER_SELECTED");
         assertThat(source).contains("positiveEvidenceCodes");
         assertThat(source).contains("riskFlagCodes");
         assertThat(source).contains("reasonCode");

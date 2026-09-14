@@ -23,9 +23,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V8";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V9";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V8";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V9";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -38,7 +38,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "RANGE_BREAKOUT_LEADERSHIP",
             "RECOVERY_SETUP",
             "JAVA_PRIOR_STRONG",
-            "RELATIVE_BEST_IN_CHUNK"
+            "RELATIVE_BEST_IN_CHUNK",
+            "RISK_ADJUSTED_LEADER",
+            "MULTI_FACTOR_ALIGNMENT",
+            "PEER_QUALITY_ADVANTAGE"
     );
     static final Set<String> RISK_FLAG_CODES = Set.of(
             "TREND_CONFLICT",
@@ -52,7 +55,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "RECOVERY_UNCONFIRMED",
             "SCORE_CAP_LIMITED",
             "ONE_DAY_SPIKE_RISK",
-            "JAVA_PRIOR_LOW"
+            "JAVA_PRIOR_LOW",
+            "RELATIVE_LAGGARD",
+            "MATERIAL_QUALITY_GAP",
+            "MULTIPLE_MAJOR_CONFLICTS"
     );
     static final Set<String> REASON_CODES = Set.of(
             "BALANCED_STRENGTH",
@@ -64,7 +70,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "MIXED_EVIDENCE_CAPPED",
             "LEAST_BAD_OPTION",
             "MODEL_CHALLENGE_FEATURED",
-            "LOW_QUALITY_AVOID"
+            "LOW_QUALITY_AVOID",
+            "RISK_ADJUSTED_LEADER_SELECTED",
+            "RELATIVE_LAGGARD_DEMOTED",
+            "JAVA_ANCHOR_HELD"
     );
 
     private final PrototypeSwingTrainingDatasetAuditService auditService;
@@ -381,10 +390,14 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Overextended momentum traps: high daily return, hot RSI, near-100 range position and high volatility are not automatically good. They often deserve MEDIUM/LOW confidence and capped scores.
                 - Feature prior score is not a hidden label and is not a trading signal. Treat it as a guardrail prior: strong evidence may override it, but explain why.
                 - Feature prior rank is the deterministic MarketBrain baseline rank for this chunk. Use it as the starting order, not as an optional note.
+                - Quality anchor score/rank is the deterministic risk-adjusted peer comparison for this exact chunk. Use it as the main rank anchor.
+                - The model's job is to identify justified exceptions to the anchor, not to invent a new ranking algorithm.
                 - If you place a candidate more than one position away from feature_prior_rank, use exact positiveEvidenceCodes/riskFlagCodes and reasonCode to identify the feature reason.
                 - Do not rank a low-prior candidate first unless every higher-prior candidate has severe risk tags or the low-prior candidate is a recovery setup with controlled volatility.
                 - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
+                - Prefer the highest quality_anchor_rank candidate when quality_anchor_gap_to_leader is 0 or small and major_conflict_count is low.
+                - Demote candidates with RELATIVE_LAGGARD, high quality_anchor_gap_to_leader, multiple major conflicts, or weak risk_control_score unless all peers are worse.
                 - Reject contradictory reasoning. If a number is negative, do not call it positive. If volatility is high, do not call risk low.
                 - Communication contract: follow the exact JSON DTO supplied in the prompt. Do not rename fields. Do not add wrapper text.
                 - Responsibility boundary: Java owns calculations, deterministic baseline ranking, final arbitration, execution and guardrails. Granite is a bounded reviewer that may challenge Java's baseline only with feature-specific evidence.
@@ -419,6 +432,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - If a candidate has negative daily return, weak volume, high volatility, bearish EMA, or price below short/medium averages, mention the conflict and cap confidence unless other evidence is overwhelming.
                 - Use feature_prior_score and feature_prior_bucket as a starting prior. Do not top-rank a LOW prior unless its recovery_tag is RECOVERY_CANDIDATE and peers have stronger overextension/risk traps.
                 - Use feature_prior_rank as the baseline order. Moving away from it requires explicit enum-coded evidence in positiveEvidenceCodes/riskFlagCodes and reasonCode.
+                - Use quality_anchor_rank, quality_anchor_band and quality_anchor_gap_to_leader to compare candidates against each other before assigning rank.
+                - A CHUNK_LEADER or CHUNK_CONTENDER with controlled risk should usually outrank a CHUNK_WATCHLIST or CHUNK_AVOID name.
                 - Use the supplied MarketBrain algorithm exactly. Java has already calculated the raw signed contributions and feature prior. Your job is to review/rank inside this contract, not invent another scoring method.
                 - You are not the executor. You are a reviewer/challenger. Java will arbitrate your rank against the deterministic baseline after your response.
 
@@ -472,15 +487,17 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 Allowed positiveEvidenceCodes:
                 TREND_SUPPORT, EMA_MOMENTUM_SUPPORT, RSI_CONSTRUCTIVE, VOLUME_CONFIRMATION,
                 CONTROLLED_VOLATILITY, RANGE_BREAKOUT_LEADERSHIP, RECOVERY_SETUP, JAVA_PRIOR_STRONG,
-                RELATIVE_BEST_IN_CHUNK.
+                RELATIVE_BEST_IN_CHUNK, RISK_ADJUSTED_LEADER, MULTI_FACTOR_ALIGNMENT, PEER_QUALITY_ADVANTAGE.
                 Allowed riskFlagCodes:
                 TREND_CONFLICT, EMA_BEARISH, RSI_WEAK, RSI_OVERHEATED, VOLUME_WEAK, VOLATILITY_HIGH,
                 RANGE_EXTENDED, OVEREXTENSION_RISK, RECOVERY_UNCONFIRMED, SCORE_CAP_LIMITED,
-                ONE_DAY_SPIKE_RISK, JAVA_PRIOR_LOW.
+                ONE_DAY_SPIKE_RISK, JAVA_PRIOR_LOW, RELATIVE_LAGGARD, MATERIAL_QUALITY_GAP,
+                MULTIPLE_MAJOR_CONFLICTS.
                 Allowed reasonCode:
                 BALANCED_STRENGTH, JAVA_BASELINE_ALIGNED, RECOVERY_WITH_CONTROLLED_RISK,
                 DEMOTED_OVEREXTENSION, DEMOTED_WEAK_PARTICIPATION, DEMOTED_TREND_CONFLICT,
-                MIXED_EVIDENCE_CAPPED, LEAST_BAD_OPTION, MODEL_CHALLENGE_FEATURED, LOW_QUALITY_AVOID.
+                MIXED_EVIDENCE_CAPPED, LEAST_BAD_OPTION, MODEL_CHALLENGE_FEATURED, LOW_QUALITY_AVOID,
+                RISK_ADJUSTED_LEADER_SELECTED, RELATIVE_LAGGARD_DEMOTED, JAVA_ANCHOR_HELD.
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -504,10 +521,16 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         }
         builder.append("\nUnlabelled ranking candidates. Use only these feature values and derived guardrail tags for ranking; future labels are hidden:\n");
         Map<String, Integer> priorRanks = featurePriorRanks(candidates);
-        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,trend_score,momentum_score,participation_score,risk_penalty,recovery_credit,overextension_penalty,feature_prior_score,feature_prior_rank,feature_prior_bucket,score_cap_hint\n");
+        Map<String, Integer> qualityAnchorRanks = qualityAnchorRanks(candidates);
+        int leaderQualityAnchorScore = candidates.stream()
+                .mapToInt(this::qualityAnchorScore)
+                .max()
+                .orElse(0);
+        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,trend_score,momentum_score,participation_score,risk_penalty,recovery_credit,overextension_penalty,feature_prior_score,feature_prior_rank,feature_prior_bucket,quality_anchor_score,quality_anchor_rank,quality_anchor_band,quality_anchor_gap_to_leader,risk_control_score,opportunity_score,major_conflict_count,positive_signal_count,relative_quality_flag,score_cap_hint\n");
         for (int index = 0; index < candidates.size(); index++) {
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
             int featurePriorScore = featurePriorScore(candidate);
+            int qualityAnchorScore = qualityAnchorScore(candidate);
             builder.append(candidateId(index)).append(',')
                     .append(candidate.symbol()).append(',')
                     .append(text(candidate.latestClose())).append(',')
@@ -539,6 +562,15 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(featurePriorScore).append(',')
                     .append(priorRanks.get(candidate.symbol())).append(',')
                     .append(featurePriorBucket(featurePriorScore)).append(',')
+                    .append(qualityAnchorScore).append(',')
+                    .append(qualityAnchorRanks.get(candidate.symbol())).append(',')
+                    .append(qualityAnchorBand(qualityAnchorRanks.get(candidate.symbol()), candidates.size(), qualityAnchorScore)).append(',')
+                    .append(Math.max(0, leaderQualityAnchorScore - qualityAnchorScore)).append(',')
+                    .append(riskControlScore(candidate)).append(',')
+                    .append(opportunityScore(candidate)).append(',')
+                    .append(majorConflictCount(candidate)).append(',')
+                    .append(positiveSignalCount(candidate)).append(',')
+                    .append(relativeQualityFlag(qualityAnchorRanks.get(candidate.symbol()), candidates.size(), leaderQualityAnchorScore, qualityAnchorScore, candidate)).append(',')
                     .append(scoreCapHint(candidate)).append('\n');
         }
         builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence, enum evidence codes and signed contributions:\n");
@@ -618,6 +650,12 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - HIGH_ELIGIBLE means the candidate may receive 85+ only if it is also the best relative setup in this chunk.
                 Feature prior usage:
                 - Start from feature_prior_score/bucket, then adjust based on relative evidence.
+                - Treat quality_anchor_rank as the primary chunk-relative ranking anchor. It already balances opportunity, risk control, conflicts and positive signal breadth using only as-of data.
+                - If quality_anchor_band is CHUNK_LEADER and risk_control_score is 60 or higher, rank it first unless a peer has clearly superior multi-factor evidence and fewer conflicts.
+                - If relative_quality_flag is RELATIVE_LAGGARD or CONFLICT_HEAVY, do not rank the candidate above a CHUNK_LEADER/CHUNK_CONTENDER unless all stronger anchors carry stricter score caps.
+                - If quality_anchor_gap_to_leader is 20 or more, cap confidence at LOW unless the candidate is the least-bad option.
+                - Use RISK_ADJUSTED_LEADER, MULTI_FACTOR_ALIGNMENT or PEER_QUALITY_ADVANTAGE in positiveEvidenceCodes when promoting a candidate based on anchor strength.
+                - Use RELATIVE_LAGGARD, MATERIAL_QUALITY_GAP or MULTIPLE_MAJOR_CONFLICTS in riskFlagCodes when demoting a candidate based on anchor weakness.
                 - Recovery candidates can outrank overextended traps even with lower RSI/range if volatility is controlled and participation is acceptable.
                 - EXTREME_OVEREXTENSION candidates require explicit demotion unless every peer is worse.
                 Signed contribution rules:
@@ -797,6 +835,152 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return ranks;
     }
 
+    int qualityAnchorScore(PrototypeSwingOllamaCandidate candidate) {
+        int score = featurePriorScore(candidate)
+                + ((riskControlScore(candidate) - 60) / 4)
+                + ((opportunityScore(candidate) - 50) / 3)
+                + (positiveSignalCount(candidate) * 2)
+                - (majorConflictCount(candidate) * 7);
+        if ("RECOVERY_CANDIDATE".equals(recoveryTag(candidate)) && riskControlScore(candidate) >= 60) {
+            score += 6;
+        }
+        if ("EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+            score -= 10;
+        }
+        return clamp(score);
+    }
+
+    Map<String, Integer> qualityAnchorRanks(List<PrototypeSwingOllamaCandidate> candidates) {
+        List<PrototypeSwingOllamaCandidate> sorted = new ArrayList<>(candidates);
+        sorted.sort(java.util.Comparator
+                .comparingInt((PrototypeSwingOllamaCandidate candidate) -> qualityAnchorScore(candidate))
+                .reversed()
+                .thenComparingInt(this::majorConflictCount)
+                .thenComparing(PrototypeSwingOllamaCandidate::symbol));
+        Map<String, Integer> ranks = new HashMap<>();
+        for (int index = 0; index < sorted.size(); index++) {
+            ranks.put(sorted.get(index).symbol(), index + 1);
+        }
+        return ranks;
+    }
+
+    String qualityAnchorBand(int qualityAnchorRank, int candidateCount, int qualityAnchorScore) {
+        int contenderCutoff = Math.max(2, (int) Math.ceil(candidateCount / 3.0d));
+        int avoidCutoff = Math.max(1, (int) Math.floor(candidateCount * 2.0d / 3.0d));
+        if (qualityAnchorRank == 1 && qualityAnchorScore >= 55) {
+            return "CHUNK_LEADER";
+        }
+        if (qualityAnchorRank <= contenderCutoff && qualityAnchorScore >= 50) {
+            return "CHUNK_CONTENDER";
+        }
+        if (qualityAnchorRank > avoidCutoff || qualityAnchorScore < 40) {
+            return "CHUNK_AVOID";
+        }
+        return "CHUNK_WATCHLIST";
+    }
+
+    String relativeQualityFlag(
+            int qualityAnchorRank,
+            int candidateCount,
+            int leaderQualityAnchorScore,
+            int qualityAnchorScore,
+            PrototypeSwingOllamaCandidate candidate
+    ) {
+        int gapToLeader = Math.max(0, leaderQualityAnchorScore - qualityAnchorScore);
+        if (qualityAnchorRank == 1 && majorConflictCount(candidate) == 0) {
+            return "RISK_ADJUSTED_LEADER";
+        }
+        if (gapToLeader <= 8 && qualityAnchorRank <= Math.max(2, (int) Math.ceil(candidateCount / 3.0d))) {
+            return "PEER_NEAR_LEADER";
+        }
+        if (majorConflictCount(candidate) >= 2) {
+            return "CONFLICT_HEAVY";
+        }
+        if (gapToLeader >= 20 || qualityAnchorRank > Math.max(1, (int) Math.floor(candidateCount * 2.0d / 3.0d))) {
+            return "RELATIVE_LAGGARD";
+        }
+        return "MID_PACK";
+    }
+
+    int riskControlScore(PrototypeSwingOllamaCandidate candidate) {
+        int score = 100
+                - (riskPenalty(candidate) * 2)
+                - overextensionPenalty(candidate)
+                - (majorConflictCount(candidate) * 6);
+        if ("VOLATILITY_CONTROLLED".equals(volatilityTag(candidate))) {
+            score += 6;
+        }
+        if ("VOLUME_CONFIRMED".equals(volumeTag(candidate))) {
+            score += 4;
+        }
+        return clamp(score);
+    }
+
+    int opportunityScore(PrototypeSwingOllamaCandidate candidate) {
+        int score = 45
+                + trendScore(candidate)
+                + momentumScore(candidate)
+                + participationScore(candidate)
+                + recoveryCredit(candidate)
+                - (overextensionPenalty(candidate) / 2);
+        if ("RANGE_LEADERSHIP".equals(rangeTag(candidate))) {
+            score += 6;
+        }
+        return clamp(score);
+    }
+
+    int majorConflictCount(PrototypeSwingOllamaCandidate candidate) {
+        int conflicts = 0;
+        if (less(candidate.latestClose(), candidate.sma20())) {
+            conflicts++;
+        }
+        if (less(candidate.sma20(), candidate.sma50())) {
+            conflicts++;
+        }
+        if (less(candidate.ema12(), candidate.ema26())) {
+            conflicts++;
+        }
+        if ("RSI_WEAK".equals(rsiTag(candidate)) || "RSI_OVERHEATED".equals(rsiTag(candidate))) {
+            conflicts++;
+        }
+        if ("VOLUME_WEAK".equals(volumeTag(candidate))) {
+            conflicts++;
+        }
+        if ("VOLATILITY_HIGH".equals(volatilityTag(candidate))) {
+            conflicts++;
+        }
+        if ("EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+            conflicts++;
+        }
+        return conflicts;
+    }
+
+    int positiveSignalCount(PrototypeSwingOllamaCandidate candidate) {
+        int positives = 0;
+        if ("BULLISH_TREND".equals(trendTag(candidate))) {
+            positives++;
+        }
+        if ("EMA_BULLISH".equals(emaTag(candidate))) {
+            positives++;
+        }
+        if ("RSI_CONSTRUCTIVE".equals(rsiTag(candidate))) {
+            positives++;
+        }
+        if ("VOLUME_CONFIRMED".equals(volumeTag(candidate))) {
+            positives++;
+        }
+        if ("VOLATILITY_CONTROLLED".equals(volatilityTag(candidate))) {
+            positives++;
+        }
+        if ("RANGE_LEADERSHIP".equals(rangeTag(candidate))) {
+            positives++;
+        }
+        if ("RECOVERY_CANDIDATE".equals(recoveryTag(candidate))) {
+            positives++;
+        }
+        return positives;
+    }
+
     int trendScore(PrototypeSwingOllamaCandidate candidate) {
         int score = 0;
         if ("BULLISH_TREND".equals(trendTag(candidate))) {
@@ -920,7 +1104,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
     }
 
     String featurePriorReason(PrototypeSwingOllamaCandidate candidate) {
-        return "Java baseline: trend=%s(%d), momentum=%s(%d), participation=%s(%d), riskPenalty=%d, recovery=%s(%d), overextension=%s(%d), cap=%s"
+        return "Java baseline: trend=%s(%d), momentum=%s(%d), participation=%s(%d), riskPenalty=%d, recovery=%s(%d), overextension=%s(%d), riskControl=%d, opportunity=%d, conflicts=%d, positives=%d, qualityAnchor=%d, cap=%s"
                 .formatted(
                         trendTag(candidate), trendScore(candidate),
                         rsiTag(candidate) + "/" + emaTag(candidate), momentumScore(candidate),
@@ -928,6 +1112,11 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                         riskPenalty(candidate),
                         recoveryTag(candidate), recoveryCredit(candidate),
                         overextensionTag(candidate), overextensionPenalty(candidate),
+                        riskControlScore(candidate),
+                        opportunityScore(candidate),
+                        majorConflictCount(candidate),
+                        positiveSignalCount(candidate),
+                        qualityAnchorScore(candidate),
                         scoreCapHint(candidate)
                 );
     }

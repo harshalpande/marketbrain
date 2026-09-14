@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 79 enum-coded Granite response contract with Java-governed arbitration.
+Status: Step 80 risk-adjusted quality anchors for stronger Granite ranking.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -19,6 +19,7 @@ ranking request includes:
 - an explicit Java DTO-shaped JSON response contract;
 - fixed enum-coded evidence, risk and reason fields for parser-critical output;
 - deterministic Java baseline scores/ranks and signed contribution rules;
+- deterministic chunk-relative quality anchors for peer comparison;
 - a mandatory research-only, no-signal/no-order boundary.
 
 True fine-tuning can be reviewed later only after enough governed examples and evaluation results exist.
@@ -267,6 +268,30 @@ Instead of asking Granite for descriptive `positiveEvidence`, `riskFlags`, `reas
 This does not make Granite more authoritative. It makes Granite easier to validate, bucket, compare across iterations
 and repair when it drifts. Java still owns deterministic calculations, final review ranking, safety boundaries and all
 execution decisions.
+
+Step 80 addresses ranking ability directly through `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V9` and
+`MARKETBRAIN_SWING_RUBRIC_V9`. The earlier fixes made Granite easier to parse and arbitrate, but they did not by
+themselves make Granite better at choosing the strongest stock in a small peer batch. The Step 80 prompt now sends
+additional as-of, deterministic ranking anchors for every candidate:
+
+- `quality_anchor_score` and `quality_anchor_rank`: Java's risk-adjusted peer comparison for the exact chunk;
+- `quality_anchor_band`: `CHUNK_LEADER`, `CHUNK_CONTENDER`, `CHUNK_WATCHLIST` or `CHUNK_AVOID`;
+- `quality_anchor_gap_to_leader`: the score distance from the strongest anchor in the chunk;
+- `risk_control_score`: how clean the candidate is after volatility, overextension and conflict penalties;
+- `opportunity_score`: technical opportunity after trend, momentum, participation and recovery evidence;
+- `major_conflict_count` and `positive_signal_count`;
+- `relative_quality_flag`: `RISK_ADJUSTED_LEADER`, `PEER_NEAR_LEADER`, `MID_PACK`, `CONFLICT_HEAVY` or
+  `RELATIVE_LAGGARD`.
+
+Granite is instructed to use these anchors as the main peer-comparison spine. A `CHUNK_LEADER` with acceptable risk
+control should normally be ranked first. A `RELATIVE_LAGGARD` or `CONFLICT_HEAVY` candidate should not outrank
+leaders/contenders unless the stronger anchors carry stricter caps. The response enums were also expanded so Granite
+can explicitly mark promotions/demotions as `RISK_ADJUSTED_LEADER`, `MULTI_FACTOR_ALIGNMENT`,
+`PEER_QUALITY_ADVANTAGE`, `MATERIAL_QUALITY_GAP`, `MULTIPLE_MAJOR_CONFLICTS`,
+`RISK_ADJUSTED_LEADER_SELECTED` or `RELATIVE_LAGGARD_DEMOTED`.
+
+This still uses only as-of features in the prompt. Hidden future labels remain limited to the offline evaluation layer,
+where they measure whether the improved anchor-driven ranking actually performs better.
 
 ## Daily fresh-data feedback loop
 

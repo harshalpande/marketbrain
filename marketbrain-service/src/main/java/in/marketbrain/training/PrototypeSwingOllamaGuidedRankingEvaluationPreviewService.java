@@ -22,7 +22,9 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
 
     private static final Set<String> FEATURE_KEYWORDS = Set.of(
             "daily", "return", "sma", "ema", "rsi", "atr", "volatility",
-            "volume", "range", "drawdown", "benchmark", "trend", "momentum", "risk"
+            "volume", "range", "drawdown", "benchmark", "trend", "momentum", "risk",
+            "recovery", "overextension", "leader", "relative", "quality", "conflict",
+            "prior", "anchor", "peer"
     );
 
     private final PrototypeSwingOllamaGuidedRankingPreviewService guidedRankingService;

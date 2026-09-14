@@ -3681,7 +3681,7 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73/77/79: chunked calibrated Ollama ranking with DTO and enum guardrails
+## Step 70/71/72/73/77/79/80: chunked calibrated Ollama ranking with DTO, enum and quality-anchor guardrails
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
@@ -3699,6 +3699,12 @@ Step 79 removes free-form prose from parser-critical Granite response fields. Th
 `MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4`; `positiveEvidenceCodes`, `riskFlagCodes`, `reasonCode`,
 `riskNoteCode` and `researchOnlyCode` must use the fixed enum values documented in
 `docs/ollama-training-and-evaluation.md`. Descriptive prose in those fields is a schema/guardrail failure.
+
+Step 80 improves ranking quality, not only communication quality. Candidate rows now include deterministic
+chunk-relative anchors such as `quality_anchor_score`, `quality_anchor_rank`, `quality_anchor_band`,
+`quality_anchor_gap_to_leader`, `risk_control_score`, `opportunity_score`, `major_conflict_count`,
+`positive_signal_count` and `relative_quality_flag`. Granite must use these as the peer-comparison spine before
+assigning ranks. These anchors are computed from as-of features only; hidden future labels remain evaluator-only.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
