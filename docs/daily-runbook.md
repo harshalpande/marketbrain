@@ -3691,7 +3691,9 @@ when a previous attempt fails a guardrail such as `RANKED_CANDIDATE_COUNT`. Step
 outcome-aware rubric with benchmark-laggard and drawdown-trap examples plus stricter high-score/high-confidence
 calibration checks. Step 77 moves the Granite communication contract from loose prompt JSON to an explicit Java DTO:
 `RankingResponseDto`, `RankedCandidateDto` and `SignedContributionsDto`. Java owns the async job and progress state,
-while local Ollama model concurrency remains intentionally fixed at `1`.
+while local Ollama model concurrency remains intentionally fixed at `1`. The Java worker also writes durable
+per-job evidence under the review directory while the job is running, so a service restart does not erase the prompts,
+responses, chunk summaries or latest job-status snapshot that were already produced.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -3717,11 +3719,13 @@ do {
     -FinalistsPerChunk 2 `
     -MaxRetriesPerChunk 1 `
     -RankingHorizonSessions 20 `
+    -StatusPollTimeoutSeconds 180 `
     -TimeoutSeconds 21600
 ```
 
 The script starts the Java-owned async job, polls its job-status endpoint, prints real percentage progress with
-`Write-Progress`, and saves every guarded failure with timing/token evidence. It writes:
+`Write-Progress`, and saves every guarded failure with timing/token evidence. Java additionally writes durable evidence
+to `C:\MarketBrainData\Review\step70-ollama-jobs\<job-id>` through the Docker mount. It writes:
 
 - full result JSON under `C:\MarketBrainData\Review`;
 - a dedicated `*-attempt-telemetry.json` file with one record per Granite attempt;
@@ -3729,6 +3733,16 @@ The script starts the Java-owned async job, polls its job-status endpoint, print
 - standalone raw Ollama response files named `*-chunkN-attemptN-ollama-response.json`;
 - a dedicated `*-root-causes.json` file;
 - the transcript log file.
+
+The Java evidence directory contains:
+
+- `request.json`;
+- `status.json`, updated after submit, start, progress, attempt, chunk, completion and failure transitions;
+- `attempts/chunk-###-attempt-##-attempt.json`;
+- `attempts/chunk-###-attempt-##-prompt.txt`;
+- `attempts/chunk-###-attempt-##-ollama-response.json`;
+- `chunks/chunk-###.json`;
+- `result.json` after completion, or `failure.json` if the job fails safely.
 
 The root-cause JSON includes candidate IDs, candidate symbols, prompt/response hashes, prompt and response character
 counts, elapsed Ollama milliseconds, Ollama duration metadata when available, prompt-eval count, eval count and all
@@ -3741,13 +3755,17 @@ Step 78 result fields also show the responsibility split: `chunkJavaBaselineRank
 it is still not a trading signal.
 
 If the PowerShell monitor times out before Granite finishes, it does not cancel the backend job. Reattach to the same
-in-memory backend job while the service is still running:
+backend job while the service is still running:
 
 ```powershell
 & '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRankingAsync.ps1' `
     -JobId '<job-id-from-console>' `
     -TimeoutSeconds 21600
 ```
+
+If Docker or the service restarts, the Java worker is lost but the job-status endpoint recovers the last persisted
+`status.json` and reports `LOST_AFTER_RESTART`. Review the evidence directory instead of rerunning blindly; then start
+a fresh job only after the captured attempt/chunk files have been analysed.
 
 Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
 `ActionExecutionEnabled=False`.

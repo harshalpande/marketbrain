@@ -22,6 +22,7 @@ public record PrototypeSwingOllamaChunkedRankingJobStatus(
         int signalsCreated,
         int ordersCreated,
         boolean actionExecutionEnabled,
-        String detail
+        String detail,
+        String evidenceDirectory
 ) {
 }

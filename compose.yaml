@@ -9,6 +9,7 @@ services:
       # Listen on the container network so Docker can forward the host port.
       # The published port below remains restricted to Windows localhost.
       MARKETBRAIN_SERVER_ADDRESS: 0.0.0.0
+      MARKETBRAIN_REVIEW_OUTPUT_DIRECTORY: ${MARKETBRAIN_REVIEW_OUTPUT_DIRECTORY:-/marketbrain-review}
       MARKETBRAIN_OLLAMA_BASE_URL: ${MARKETBRAIN_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       MARKETBRAIN_EXECUTION_MODE: PAPER
       MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED: ${MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED:-false}
@@ -65,6 +66,10 @@ services:
       - "127.0.0.1:8080:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - type: bind
+        source: ${MARKETBRAIN_REVIEW_HOST_DIRECTORY:-C:/MarketBrainData/Review}
+        target: /marketbrain-review
 
   marketbrain-ui:
     build:

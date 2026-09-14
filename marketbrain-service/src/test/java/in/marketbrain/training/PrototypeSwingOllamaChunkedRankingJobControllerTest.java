@@ -28,7 +28,7 @@ class PrototypeSwingOllamaChunkedRankingJobControllerTest {
                 new PrototypeSwingOllamaChunkedRankingJobStatus(
                         jobId, "QUEUED", 0, 0, 0, 0, 0, 0,
                         "ibm/granite4.1:8b", Instant.now(), null, null, null, null,
-                        false, 0, 0, false, "queued");
+                        false, 0, 0, false, "queued", "/tmp/evidence");
         when(service.submit(request)).thenReturn(expected);
         when(service.status(jobId)).thenReturn(expected);
 

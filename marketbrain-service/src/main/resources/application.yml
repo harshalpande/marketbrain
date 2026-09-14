@@ -32,6 +32,8 @@ management:
       show-details: never
 
 marketbrain:
+  review:
+    output-directory: ${MARKETBRAIN_REVIEW_OUTPUT_DIRECTORY:/marketbrain-review}
   notifications:
     test-enabled: ${MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED:false}
   execution-mode: ${MARKETBRAIN_EXECUTION_MODE:PAPER}

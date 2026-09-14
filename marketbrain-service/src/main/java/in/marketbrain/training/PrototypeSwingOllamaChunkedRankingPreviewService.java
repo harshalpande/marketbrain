@@ -47,6 +47,14 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             PrototypeSwingOllamaChunkedRankingRequest request,
             Consumer<ChunkProgress> progressConsumer
     ) {
+        return preview(request, progressConsumer, ChunkEvidenceConsumer.noop());
+    }
+
+    public PrototypeSwingOllamaChunkedRankingPreview preview(
+            PrototypeSwingOllamaChunkedRankingRequest request,
+            Consumer<ChunkProgress> progressConsumer,
+            ChunkEvidenceConsumer evidenceConsumer
+    ) {
         PrototypeSwingOllamaChunkedRankingRequest safeRequest = request == null
                 ? new PrototypeSwingOllamaChunkedRankingRequest(null, null, null, null, null, null, null, null)
                 : request;
@@ -94,7 +102,8 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                     offset,
                     candidates,
                     finalistsPerChunk,
-                    maxRetriesPerChunk
+                    maxRetriesPerChunk,
+                    evidenceConsumer
             );
             ollamaCallCount += chunkRun.chunk().attemptCount();
             chunks.add(chunkRun.chunk());
@@ -173,7 +182,8 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             int offset,
             List<PrototypeSwingOllamaCandidate> candidates,
             int finalistsPerChunk,
-            int maxRetriesPerChunk
+            int maxRetriesPerChunk,
+            ChunkEvidenceConsumer evidenceConsumer
     ) {
         List<PrototypeSwingOllamaChunkedRankingAttempt> attempts = new ArrayList<>();
         List<String> failures = new ArrayList<>();
@@ -197,7 +207,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                     calibrationService.batch(candidates.size(), evaluation);
             boolean lastAttempt = attemptNumber == maxRetriesPerChunk + 1;
             boolean accepted = chunkAccepted(calibration, lastAttempt);
-            attempts.add(attempt(
+            PrototypeSwingOllamaChunkedRankingAttempt attempt = attempt(
                     chunkNumber,
                     attemptNumber,
                     repairInstruction,
@@ -205,7 +215,9 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                     evaluation,
                     calibration,
                     accepted
-            ));
+            );
+            attempts.add(attempt);
+            evidenceConsumer.onAttempt(attempt);
             if (accepted) {
                 acceptedBatch = calibration;
                 acceptedAttemptNumber = attemptNumber;
@@ -229,7 +241,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             failures.add("CHUNK_" + chunkNumber + "_ACCEPTED_WITH_WARNINGS");
         }
 
-        return new ChunkRun(new PrototypeSwingOllamaChunkedRankingChunk(
+        PrototypeSwingOllamaChunkedRankingChunk chunk = new PrototypeSwingOllamaChunkedRankingChunk(
                 chunkNumber,
                 offset,
                 candidates.size(),
@@ -240,7 +252,9 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 List.copyOf(attempts),
                 finalists,
                 acceptedBatch
-        ), failures);
+        );
+        evidenceConsumer.onChunk(chunk);
+        return new ChunkRun(chunk, failures);
     }
 
     private PrototypeSwingOllamaChunkedRankingAttempt attempt(
@@ -489,6 +503,24 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             }
             return Math.max(0, Math.min(100,
                     (int) Math.floor((completedChunkCount / (double) targetChunkCount) * 100)));
+        }
+    }
+
+    public interface ChunkEvidenceConsumer {
+        void onAttempt(PrototypeSwingOllamaChunkedRankingAttempt attempt);
+
+        void onChunk(PrototypeSwingOllamaChunkedRankingChunk chunk);
+
+        static ChunkEvidenceConsumer noop() {
+            return new ChunkEvidenceConsumer() {
+                @Override
+                public void onAttempt(PrototypeSwingOllamaChunkedRankingAttempt attempt) {
+                }
+
+                @Override
+                public void onChunk(PrototypeSwingOllamaChunkedRankingChunk chunk) {
+                }
+            };
         }
     }
 }

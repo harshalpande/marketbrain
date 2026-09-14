@@ -179,7 +179,7 @@ try {
             $lastPrinted = $statusLine
         }
 
-        if ($status.status -in @('COMPLETED', 'FAILED')) {
+        if ($status.status -in @('COMPLETED', 'FAILED', 'LOST_AFTER_RESTART')) {
             break
         }
         if ((Get-Date) -ge $deadline) {
@@ -298,6 +298,14 @@ try {
         throw "Ollama ranking job failed safely: $($status.errorMessage)"
     }
 
+    if ($status.status -eq 'LOST_AFTER_RESTART') {
+        Write-Host "Result/status snapshot: $resultPath"
+        Write-Host "Attempt telemetry: $attemptTelemetryPath"
+        Write-Host "Root causes: $rootCausePath"
+        Write-Host "Log: $logPath"
+        throw "Ollama ranking job was lost after service restart. Review persisted evidence under: $($status.evidenceDirectory)"
+    }
+
     if ($null -eq $status.result) {
         Write-Host "Result/status snapshot: $resultPath"
         Write-Host "Attempt telemetry: $attemptTelemetryPath"
@@ -311,6 +319,9 @@ try {
             failedChunkCount, processedCandidateCount, finalistCount, ollamaCallCount,
             databaseWritesPerformed, signalsCreated, ordersCreated, actionExecutionEnabled |
         Format-List
+
+    Write-Host ''
+    Write-Host "Java evidence directory: $($status.evidenceDirectory)"
 
     Write-Host ''
     Write-Host 'Chunk summary'
