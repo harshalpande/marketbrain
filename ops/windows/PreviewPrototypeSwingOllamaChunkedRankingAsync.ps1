@@ -34,6 +34,10 @@ param(
     [int]$PollSeconds = 5,
 
     [Parameter()]
+    [ValidateRange(10, 300)]
+    [int]$StatusPollTimeoutSeconds = 180,
+
+    [Parameter()]
     [ValidateRange(60, 43200)]
     [int]$TimeoutSeconds = 21600,
 
@@ -109,11 +113,48 @@ try {
     $lastPrinted = ''
     $timedOut = $false
     $status = $null
+    $consecutivePollFailures = 0
+    $pollExceptionRecords = New-Object System.Collections.Generic.List[object]
     do {
         Start-Sleep -Seconds $PollSeconds
-        $status = Invoke-RestMethod `
-            -Uri "$BaseUrl/api/v1/training/prototype-swing-ollama-chunked-ranking-jobs/$jobId" `
-            -TimeoutSec 60
+        try {
+            $status = Invoke-RestMethod `
+                -Uri "$BaseUrl/api/v1/training/prototype-swing-ollama-chunked-ranking-jobs/$jobId" `
+                -TimeoutSec $StatusPollTimeoutSeconds
+            $consecutivePollFailures = 0
+        }
+        catch {
+            $consecutivePollFailures++
+            $pollFailureLine = "[poll-warning] status poll failed; consecutiveFailures={0}; timeoutSec={1}; message={2}" -f `
+                $consecutivePollFailures, $StatusPollTimeoutSeconds, $_.Exception.Message
+            Write-Warning $pollFailureLine
+            $pollExceptionRecords.Add([pscustomobject][ordered]@{
+                kind                    = 'STATUS_POLL_EXCEPTION'
+                jobId                   = $jobId
+                observedAt              = (Get-Date).ToString('o')
+                consecutiveFailures     = $consecutivePollFailures
+                statusPollTimeoutSeconds = $StatusPollTimeoutSeconds
+                exceptionType           = $_.Exception.GetType().FullName
+                message                 = $_.Exception.Message
+                lastKnownStatus         = if ($null -eq $status) { $null } else { $status.status }
+                lastKnownProgress       = if ($null -eq $status) { $null } else { $status.progressPercent }
+                lastKnownCompleted      = if ($null -eq $status) { $null } else { $status.completedChunkCount }
+                lastKnownTarget         = if ($null -eq $status) { $null } else { $status.targetChunkCount }
+            })
+
+            $fallbackProgress = if ($null -eq $status) { 0 } else { [int]$status.progressPercent }
+            Write-Progress `
+                -Activity 'Step 70 async Ollama ranking job' `
+                -Status $pollFailureLine `
+                -PercentComplete ([Math]::Min(100, [Math]::Max(0, $fallbackProgress)))
+
+            if ((Get-Date) -ge $deadline) {
+                $timedOut = $true
+                Write-Warning "Timed out waiting for Ollama ranking job $jobId after $TimeoutSeconds seconds. The backend job may still be running."
+                break
+            }
+            continue
+        }
 
         $progress = [int]$status.progressPercent
         $statusLine = "[{0}%] status={1}; completed={2}/{3}; activeChunk={4}; passed={5}; failed={6}; detail={7}" -f `
@@ -150,6 +191,9 @@ try {
 
     $rootCauseRecords = New-Object System.Collections.Generic.List[object]
     $attemptTelemetryRecords = New-Object System.Collections.Generic.List[object]
+    foreach ($pollExceptionRecord in $pollExceptionRecords) {
+        $rootCauseRecords.Add($pollExceptionRecord)
+    }
     if ($null -ne $status.result) {
         foreach ($chunk in @($status.result.chunks)) {
             foreach ($attempt in @($chunk.attempts)) {
