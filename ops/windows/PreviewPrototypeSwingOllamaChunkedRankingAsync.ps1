@@ -124,6 +124,14 @@ try {
             $consecutivePollFailures = 0
         }
         catch {
+            $httpStatusCode = $null
+            if ($null -ne $_.Exception.Response -and $null -ne $_.Exception.Response.StatusCode) {
+                $httpStatusCode = [int]$_.Exception.Response.StatusCode
+            }
+            if ($httpStatusCode -eq 404) {
+                throw "Ollama ranking job $jobId is no longer available in the backend. The service was likely restarted after the job began because Step 70 async job state is currently in-memory. Start a fresh Step 70 async run."
+            }
+
             $consecutivePollFailures++
             $pollFailureLine = "[poll-warning] status poll failed; consecutiveFailures={0}; timeoutSec={1}; message={2}" -f `
                 $consecutivePollFailures, $StatusPollTimeoutSeconds, $_.Exception.Message

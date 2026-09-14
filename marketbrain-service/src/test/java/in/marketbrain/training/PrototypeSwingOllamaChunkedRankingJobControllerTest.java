@@ -1,11 +1,14 @@
 package in.marketbrain.training;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,5 +34,19 @@ class PrototypeSwingOllamaChunkedRankingJobControllerTest {
 
         assertThat(controller.submit(request)).isSameAs(expected);
         assertThat(controller.status(jobId)).isSameAs(expected);
+    }
+
+    @Test
+    void returnsNotFoundForUnknownOrExpiredJobId() {
+        PrototypeSwingOllamaChunkedRankingJobService service =
+                mock(PrototypeSwingOllamaChunkedRankingJobService.class);
+        PrototypeSwingOllamaChunkedRankingJobController controller =
+                new PrototypeSwingOllamaChunkedRankingJobController(service);
+        UUID jobId = UUID.randomUUID();
+        when(service.status(jobId)).thenThrow(new IllegalArgumentException("Unknown Ollama ranking jobId."));
+
+        assertThatThrownBy(() -> controller.status(jobId))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        exception -> assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
     }
 }
