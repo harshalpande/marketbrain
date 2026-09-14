@@ -215,8 +215,11 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
             BigDecimal netReturn = netReturn(candidate, guided.rankingHorizonSessions());
             BigDecimal benchmarkExcess = benchmarkExcess(candidate, guided.rankingHorizonSessions());
             BigDecimal drawdown = maximumDrawdown(candidate, guided.rankingHorizonSessions());
-            String reason = node.path("reason").asText("");
-            boolean featureReason = reasonMentionsKnownFeature(reason, node.path("positiveEvidence"), node.path("riskFlags"));
+            String reason = node.path("reasonCode").asText("");
+            boolean featureReason = reasonMentionsKnownFeature(
+                    reason,
+                    node.path("positiveEvidenceCodes"),
+                    node.path("riskFlagCodes"));
             Arbitration arbitration = arbitrate(
                     candidate,
                     ollamaRank,
@@ -358,7 +361,7 @@ public class PrototypeSwingOllamaGuidedRankingEvaluationPreviewService {
                     "Granite rank stayed within one position of Java baseline; Java blended model review with deterministic score."
             );
         }
-        if (!featureReason || reason == null || reason.length() < 40) {
+        if (!featureReason || reason == null || reason.isBlank()) {
             return new Arbitration(
                     "JAVA_BASELINE_HELD_MODEL_DEVIATION_WEAK",
                     javaBaselineScore,

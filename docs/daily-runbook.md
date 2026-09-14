@@ -3681,7 +3681,7 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73/77: chunked calibrated Ollama ranking with DTO guardrails and Java async orchestration
+## Step 70/71/72/73/77/79: chunked calibrated Ollama ranking with DTO and enum guardrails
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
@@ -3694,6 +3694,11 @@ calibration checks. Step 77 moves the Granite communication contract from loose 
 while local Ollama model concurrency remains intentionally fixed at `1`. The Java worker also writes durable
 per-job evidence under the review directory while the job is running, so a service restart does not erase the prompts,
 responses, chunk summaries or latest job-status snapshot that were already produced.
+
+Step 79 removes free-form prose from parser-critical Granite response fields. The active response schema is
+`MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4`; `positiveEvidenceCodes`, `riskFlagCodes`, `reasonCode`,
+`riskNoteCode` and `researchOnlyCode` must use the fixed enum values documented in
+`docs/ollama-training-and-evaluation.md`. Descriptive prose in those fields is a schema/guardrail failure.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
@@ -3747,7 +3752,8 @@ The Java evidence directory contains:
 The root-cause JSON includes candidate IDs, candidate symbols, prompt/response hashes, prompt and response character
 counts, elapsed Ollama milliseconds, Ollama duration metadata when available, prompt-eval count, eval count and all
 schema/evaluation/calibration failures. A `SIGNED_CONTRIBUTION_*` failure should be treated as a DTO-contract issue
-first, not as a reason to blindly increase retries.
+first, and a `POSITIVE_EVIDENCE_CODE_*`, `RISK_FLAG_CODE_*` or `REASONING_ENUM_FIELDS` failure should be treated as
+an enum-contract issue. Neither is a reason to blindly increase retries.
 
 Step 78 result fields also show the responsibility split: `chunkJavaBaselineRank`, `chunkOllamaRank`,
 `chunkFinalReviewRank`, `javaBaselineScore`, `ollamaScore`, `finalReviewScore`, `arbitrationDecision`,

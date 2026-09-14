@@ -23,12 +23,49 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V7";
-    static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V7";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V8";
+    static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V8";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
+    static final Set<String> POSITIVE_EVIDENCE_CODES = Set.of(
+            "TREND_SUPPORT",
+            "EMA_MOMENTUM_SUPPORT",
+            "RSI_CONSTRUCTIVE",
+            "VOLUME_CONFIRMATION",
+            "CONTROLLED_VOLATILITY",
+            "RANGE_BREAKOUT_LEADERSHIP",
+            "RECOVERY_SETUP",
+            "JAVA_PRIOR_STRONG",
+            "RELATIVE_BEST_IN_CHUNK"
+    );
+    static final Set<String> RISK_FLAG_CODES = Set.of(
+            "TREND_CONFLICT",
+            "EMA_BEARISH",
+            "RSI_WEAK",
+            "RSI_OVERHEATED",
+            "VOLUME_WEAK",
+            "VOLATILITY_HIGH",
+            "RANGE_EXTENDED",
+            "OVEREXTENSION_RISK",
+            "RECOVERY_UNCONFIRMED",
+            "SCORE_CAP_LIMITED",
+            "ONE_DAY_SPIKE_RISK",
+            "JAVA_PRIOR_LOW"
+    );
+    static final Set<String> REASON_CODES = Set.of(
+            "BALANCED_STRENGTH",
+            "JAVA_BASELINE_ALIGNED",
+            "RECOVERY_WITH_CONTROLLED_RISK",
+            "DEMOTED_OVEREXTENSION",
+            "DEMOTED_WEAK_PARTICIPATION",
+            "DEMOTED_TREND_CONFLICT",
+            "MIXED_EVIDENCE_CAPPED",
+            "LEAST_BAD_OPTION",
+            "MODEL_CHALLENGE_FEATURED",
+            "LOW_QUALITY_AVOID"
+    );
 
     private final PrototypeSwingTrainingDatasetAuditService auditService;
     private final PrototypeSwingOllamaClient ollamaClient;
@@ -344,7 +381,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Overextended momentum traps: high daily return, hot RSI, near-100 range position and high volatility are not automatically good. They often deserve MEDIUM/LOW confidence and capped scores.
                 - Feature prior score is not a hidden label and is not a trading signal. Treat it as a guardrail prior: strong evidence may override it, but explain why.
                 - Feature prior rank is the deterministic MarketBrain baseline rank for this chunk. Use it as the starting order, not as an optional note.
-                - If you place a candidate more than one position away from feature_prior_rank, explain the exact feature reason in its reason field.
+                - If you place a candidate more than one position away from feature_prior_rank, use exact positiveEvidenceCodes/riskFlagCodes and reasonCode to identify the feature reason.
                 - Do not rank a low-prior candidate first unless every higher-prior candidate has severe risk tags or the low-prior candidate is a recovery setup with controlled volatility.
                 - Penalize false positives: one-day strength, high score despite weak volume, high score despite negative benchmark-excess-like pattern, high score despite high volatility/drawdown-like pattern.
                 - Top rank should be reserved for the candidate with the strongest total package, not merely the highest daily return or highest price strength.
@@ -381,7 +418,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - First rank the candidates qualitatively. Then calibrate scores from that rank order: rank 1 should not be HIGH unless its risk flags are genuinely small.
                 - If a candidate has negative daily return, weak volume, high volatility, bearish EMA, or price below short/medium averages, mention the conflict and cap confidence unless other evidence is overwhelming.
                 - Use feature_prior_score and feature_prior_bucket as a starting prior. Do not top-rank a LOW prior unless its recovery_tag is RECOVERY_CANDIDATE and peers have stronger overextension/risk traps.
-                - Use feature_prior_rank as the baseline order. Moving away from it requires explicit evidence in the reason field.
+                - Use feature_prior_rank as the baseline order. Moving away from it requires explicit enum-coded evidence in positiveEvidenceCodes/riskFlagCodes and reasonCode.
                 - Use the supplied MarketBrain algorithm exactly. Java has already calculated the raw signed contributions and feature prior. Your job is to review/rank inside this contract, not invent another scoring method.
                 - You are not the executor. You are a reviewer/challenger. Java will arbitrate your rank against the deterministic baseline after your response.
 
@@ -398,16 +435,16 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                    - recovery_credit is a positive contribution in the input.
                    - overextension_penalty is a positive penalty in the input; report it as a negative signed contribution in JSON.
                 4. finalScore must equal your top-level score within 10 points and stay inside 0..100.
-                5. If rank differs from feature_prior_rank by more than one position, the reason must name the exact feature conflict or recovery/overextension evidence.
-                6. Score cap hints are mandatory guardrails unless the reason explains exceptional cross-feature evidence.
+                5. If rank differs from feature_prior_rank by more than one position, encode the exact feature conflict or recovery/overextension evidence through positiveEvidenceCodes, riskFlagCodes and reasonCode.
+                6. Score cap hints are mandatory guardrails unless the enum-coded evidence shows exceptional cross-feature support.
 
                 Exact response DTO to populate:
                 RankingResponseDto {
-                  string schemaVersion = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3";
+                  string schemaVersion = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
                   integer rankingHorizonSessions;
                   RankedCandidateDto[] rankedCandidates;
-                  string riskNote;
-                  string researchOnlyDisclaimer;
+                  string riskNoteCode;           // SURVIVORSHIP_PROTOTYPE_REVIEW_ONLY
+                  string researchOnlyCode;       // NOT_TRADING_SIGNAL
                 }
                 RankedCandidateDto {
                   integer rank;                 // complete sequence 1..candidateCount
@@ -415,10 +452,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                   string symbol;                 // exact supplied symbol for candidateId
                   integer score;                 // 0..100
                   string confidence;             // LOW | MEDIUM | HIGH
-                  string[] positiveEvidence;     // feature-specific positives only
-                  string[] riskFlags;            // feature-specific risks, or []
+                  string[] positiveEvidenceCodes;// enum values only, not prose
+                  string[] riskFlagCodes;        // enum values only, or []
+                  string reasonCode;             // enum value only, not prose
                   SignedContributionsDto signedContributions;
-                  string reason;                 // concise feature-based explanation
                   boolean notTradingSignal = true;
                 }
                 SignedContributionsDto {
@@ -431,6 +468,19 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                   integer algorithmAdjustment;       // -100..100, only for relative/tie-break adjustment
                   integer finalScore;                // 0..100, within 10 points of score
                 }
+
+                Allowed positiveEvidenceCodes:
+                TREND_SUPPORT, EMA_MOMENTUM_SUPPORT, RSI_CONSTRUCTIVE, VOLUME_CONFIRMATION,
+                CONTROLLED_VOLATILITY, RANGE_BREAKOUT_LEADERSHIP, RECOVERY_SETUP, JAVA_PRIOR_STRONG,
+                RELATIVE_BEST_IN_CHUNK.
+                Allowed riskFlagCodes:
+                TREND_CONFLICT, EMA_BEARISH, RSI_WEAK, RSI_OVERHEATED, VOLUME_WEAK, VOLATILITY_HIGH,
+                RANGE_EXTENDED, OVEREXTENSION_RISK, RECOVERY_UNCONFIRMED, SCORE_CAP_LIMITED,
+                ONE_DAY_SPIKE_RISK, JAVA_PRIOR_LOW.
+                Allowed reasonCode:
+                BALANCED_STRENGTH, JAVA_BASELINE_ALIGNED, RECOVERY_WITH_CONTROLLED_RISK,
+                DEMOTED_OVEREXTENSION, DEMOTED_WEAK_PARTICIPATION, DEMOTED_TREND_CONFLICT,
+                MIXED_EVIDENCE_CAPPED, LEAST_BAD_OPTION, MODEL_CHALLENGE_FEATURED, LOW_QUALITY_AVOID.
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -491,7 +541,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(featurePriorBucket(featurePriorScore)).append(',')
                     .append(scoreCapHint(candidate)).append('\n');
         }
-        builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence and reasoning:\n");
+        builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence, enum evidence codes and signed contributions:\n");
         builder.append("[\n");
         for (int index = 0; index < candidates.size(); index++) {
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
@@ -515,7 +565,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 Return ONLY valid JSON, no markdown and no prose outside JSON.
                 Required JSON shape:
                 {
-                  "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V3",
+                  "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4",
                   "rankingHorizonSessions": 20,
                   "rankedCandidates": [
                     {
@@ -524,8 +574,9 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                       "symbol": "SYMBOL",
                       "score": 0,
                       "confidence": "LOW",
-                      "positiveEvidence": ["specific feature-based reason"],
-                      "riskFlags": ["specific risk or empty array"],
+                      "positiveEvidenceCodes": ["JAVA_PRIOR_STRONG"],
+                      "riskFlagCodes": ["SCORE_CAP_LIMITED"],
+                      "reasonCode": "JAVA_BASELINE_ALIGNED",
                       "signedContributions": {
                         "trendContribution": 0,
                         "momentumContribution": 0,
@@ -536,16 +587,17 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                         "algorithmAdjustment": 0,
                         "finalScore": 0
                       },
-                      "reason": "one concise feature-based explanation",
                       "notTradingSignal": true
                     }
                   ],
-                  "riskNote": "portfolio-level risk note including survivorship risk",
-                  "researchOnlyDisclaimer": "Prototype research only; creates no signal/order."
+                  "riskNoteCode": "SURVIVORSHIP_PROTOTYPE_REVIEW_ONLY",
+                  "researchOnlyCode": "NOT_TRADING_SIGNAL"
                 }
                 Rules: include every supplied candidateId exactly once; ranks must be 1..candidateCount;
                 copy the symbol exactly from the row matching that candidateId;
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
+                Use only the listed enum values for positiveEvidenceCodes, riskFlagCodes and reasonCode.
+                Do not write descriptive prose in evidence fields.
                 Score calibration rubric:
                 - 85..100: exceptional multi-factor setup with strong trend, participation, likely benchmark excess, controlled volatility/drawdown and almost no conflicts. HIGH confidence is allowed only here.
                 - 70..84: strong setup with mostly aligned evidence, manageable risk and no major benchmark-lag or drawdown-like warning.
@@ -558,7 +610,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - HIGH: only when evidence is broad, conflicts are minimal and the score is at least 85.
                 - MEDIUM: use for strong but imperfect candidates.
                 - LOW: use for candidates with negative daily return, weak participation, high volatility, overextension, or conflicting signals.
-                Never assign HIGH confidence to a candidate whose reason contains major caveats such as weak RSI, weak volume, high volatility, overbought/overextended, or meaningful drawdown risk.
+                Never assign HIGH confidence to a candidate whose riskFlagCodes include major caveats such as RSI_WEAK, VOLUME_WEAK, VOLATILITY_HIGH, RSI_OVERHEATED, RANGE_EXTENDED or OVEREXTENSION_RISK.
                 Apply score_cap_hint unless you have exceptional cross-feature evidence:
                 - HARD_CAP_54 means score must normally be 54 or lower and confidence must be LOW unless the candidate is clearly the least-bad option.
                 - HARD_CAP_69 means score must normally be 69 or lower and confidence must not be HIGH.
@@ -573,8 +625,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - trendContribution, momentumContribution, participationContribution, riskPenalty, recoveryCredit, overextensionPenalty and algorithmAdjustment must be in -100..100.
                 - Convert input penalties to negative signed contributions in JSON: riskPenalty and overextensionPenalty should normally be zero or negative.
                 - finalScore must be consistent with score. A difference above 10 points is not allowed.
-                - Mention recoveryCredit in reason if you top-rank a recovery candidate.
-                - Mention overextensionPenalty in reason if you rank an extended candidate in the top two.
+                - Include RECOVERY_SETUP and RECOVERY_WITH_CONTROLLED_RISK if you top-rank a recovery candidate.
+                - Include OVEREXTENSION_RISK or DEMOTED_OVEREXTENSION if you rank an extended candidate in the top two.
                 """);
         return builder.toString();
     }
@@ -976,10 +1028,25 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             if (!node.path("notTradingSignal").asBoolean(false)) {
                 failures.add("NOT_TRADING_SIGNAL_FLAG");
             }
-            if (!node.path("positiveEvidence").isArray()
-                    || !node.path("riskFlags").isArray()
-                    || node.path("reason").asText("").isBlank()) {
-                failures.add("REASONING_FIELDS");
+            boolean positiveEvidenceCodesValid = validateEnumArray(
+                    node.path("positiveEvidenceCodes"),
+                    POSITIVE_EVIDENCE_CODES,
+                    "POSITIVE_EVIDENCE_CODE",
+                    true,
+                    failures);
+            boolean riskFlagCodesValid = validateEnumArray(
+                    node.path("riskFlagCodes"),
+                    RISK_FLAG_CODES,
+                    "RISK_FLAG_CODE",
+                    false,
+                    failures);
+            String reasonCode = node.path("reasonCode").asText("");
+            boolean reasonCodeValid = REASON_CODES.contains(reasonCode);
+            if (!reasonCodeValid) {
+                failures.add("REASON_CODE_VALUE:" + reasonCode);
+            }
+            if (!positiveEvidenceCodesValid || !riskFlagCodesValid || !reasonCodeValid) {
+                failures.add("REASONING_ENUM_FIELDS");
             }
             JsonNode signedContributions = node.path("signedContributions");
             if (!signedContributions.isObject()) {
@@ -999,11 +1066,38 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 }
             }
         }
-        if (root.path("riskNote").asText("").isBlank()
-                || root.path("researchOnlyDisclaimer").asText("").isBlank()) {
+        if (!"SURVIVORSHIP_PROTOTYPE_REVIEW_ONLY".equals(root.path("riskNoteCode").asText(""))
+                || !"NOT_TRADING_SIGNAL".equals(root.path("researchOnlyCode").asText(""))) {
             failures.add("REQUIRED_NOTES");
         }
         return new Validation(true, failures.stream().distinct().toList());
+    }
+
+    private boolean validateEnumArray(
+            JsonNode node,
+            Set<String> allowedValues,
+            String failurePrefix,
+            boolean requireAtLeastOne,
+            List<String> failures
+    ) {
+        if (!node.isArray()) {
+            failures.add(failurePrefix + "_ARRAY");
+            return false;
+        }
+        if (requireAtLeastOne && node.size() == 0) {
+            failures.add(failurePrefix + "_EMPTY");
+            return false;
+        }
+        boolean valid = true;
+        Set<String> seen = new HashSet<>();
+        for (JsonNode value : node) {
+            String code = value.asText("");
+            if (!allowedValues.contains(code) || !seen.add(code)) {
+                failures.add(failurePrefix + "_VALUE:" + code);
+                valid = false;
+            }
+        }
+        return valid;
     }
 
     private int validateSignedContribution(JsonNode signedContributions, String field, List<String> failures) {

@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 78 Java-governed arbitration with Granite as bounded reviewer.
+Status: Step 79 enum-coded Granite response contract with Java-governed arbitration.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -17,6 +17,7 @@ ranking request includes:
 - benchmark-laggard and drawdown-trap examples from the same dataset;
 - interaction rules for trend, momentum, participation, volatility, benchmark excess and drawdown;
 - an explicit Java DTO-shaped JSON response contract;
+- fixed enum-coded evidence, risk and reason fields for parser-critical output;
 - deterministic Java baseline scores/ranks and signed contribution rules;
 - a mandatory research-only, no-signal/no-order boundary.
 
@@ -48,11 +49,12 @@ Ollama output is not accepted unless it is valid JSON matching the response sche
 - ranks are unique and complete;
 - score is between 0 and 100;
 - confidence is `LOW`, `MEDIUM` or `HIGH`;
-- every candidate has positive evidence, risk flags, a reason and `notTradingSignal=true`;
+- every candidate has positive evidence codes, risk-flag codes, a reason code and `notTradingSignal=true`;
 - every candidate uses the exact `signedContributions` DTO fields;
 - signed contributions are bounded to `-100..100`, while `finalScore` remains `0..100`;
+- evidence/risk/reason values belong to the documented enum sets and contain no descriptive prose;
 - field-level validation reports the exact failing field and value where practical;
-- risk and research-only notes are present.
+- risk and research-only notes use fixed codes.
 
 If the response fails these checks, MarketBrain stores/reports the response as a guarded review failure. It still
 creates no signal, paper fill, order or broker action.
@@ -71,8 +73,8 @@ The evaluation layer checks:
 - rank-correlation score across the candidate batch;
 - high-confidence misses;
 - negative-return names placed in Ollama's top three;
-- vague reasoning that does not mention known feature families such as SMA, EMA, RSI, ATR, volume, volatility,
-  benchmark excess, return, trend, momentum or drawdown.
+- weak enum evidence coverage that does not point to known feature families such as SMA, EMA, RSI, ATR, volume,
+  volatility, benchmark excess, return, trend, momentum or drawdown.
 
 The quality review can pass, warn, or report weak ranking quality. It is still not a trading signal. It performs no
 database writes and creates no signal, paper fill, order or broker action.
@@ -242,6 +244,29 @@ The arbitration policy deliberately keeps Java as the ranking spine:
 
 This is the intended long-term pattern for all future model/tool interaction: the model can request, review, explain
 and challenge, but Java validates, arbitrates and executes through bounded contracts.
+
+Step 79 tightens the Granite communication contract further by removing free-form prose from parser-critical response
+fields. The response schema is now `MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4`, backed by
+`MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V8` and `MARKETBRAIN_SWING_RUBRIC_V8`.
+
+Instead of asking Granite for descriptive `positiveEvidence`, `riskFlags`, `reason`, `riskNote` and
+`researchOnlyDisclaimer` text, Java now requires fixed codes:
+
+- `positiveEvidenceCodes`, chosen only from the allowed positive-evidence enum set such as `TREND_SUPPORT`,
+  `EMA_MOMENTUM_SUPPORT`, `VOLUME_CONFIRMATION`, `CONTROLLED_VOLATILITY`, `RECOVERY_SETUP`,
+  `JAVA_PRIOR_STRONG` and `RELATIVE_BEST_IN_CHUNK`;
+- `riskFlagCodes`, chosen only from the allowed risk enum set such as `TREND_CONFLICT`, `EMA_BEARISH`, `RSI_WEAK`,
+  `RSI_OVERHEATED`, `VOLUME_WEAK`, `VOLATILITY_HIGH`, `OVEREXTENSION_RISK`, `SCORE_CAP_LIMITED` and
+  `JAVA_PRIOR_LOW`;
+- `reasonCode`, chosen only from the allowed reason enum set such as `JAVA_BASELINE_ALIGNED`,
+  `RECOVERY_WITH_CONTROLLED_RISK`, `DEMOTED_OVEREXTENSION`, `MIXED_EVIDENCE_CAPPED`,
+  `MODEL_CHALLENGE_FEATURED` and `LOW_QUALITY_AVOID`;
+- `riskNoteCode=SURVIVORSHIP_PROTOTYPE_REVIEW_ONLY`;
+- `researchOnlyCode=NOT_TRADING_SIGNAL`.
+
+This does not make Granite more authoritative. It makes Granite easier to validate, bucket, compare across iterations
+and repair when it drifts. Java still owns deterministic calculations, final review ranking, safety boundaries and all
+execution decisions.
 
 ## Daily fresh-data feedback loop
 

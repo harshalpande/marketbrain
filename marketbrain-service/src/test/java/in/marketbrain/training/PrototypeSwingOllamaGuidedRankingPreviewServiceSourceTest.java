@@ -41,6 +41,14 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("RankingResponseDto");
         assertThat(source).contains("SignedContributionsDto");
         assertThat(source).contains("signedContributions");
+        assertThat(source).contains("MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4");
+        assertThat(source).contains("POSITIVE_EVIDENCE_CODES");
+        assertThat(source).contains("RISK_FLAG_CODES");
+        assertThat(source).contains("REASON_CODES");
+        assertThat(source).contains("positiveEvidenceCodes");
+        assertThat(source).contains("riskFlagCodes");
+        assertThat(source).contains("reasonCode");
+        assertThat(source).contains("REASONING_ENUM_FIELDS");
         assertThat(source).contains("SIGNED_CONTRIBUTION_FINAL_SCORE_MISMATCH");
         assertThat(source).contains("Responsibility boundary");
         assertThat(source).contains("Granite is a bounded reviewer");

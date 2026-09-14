@@ -326,6 +326,12 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                     .append(String.join(", ", new LinkedHashSet<>(failures)))
                     .append(". ");
         }
+        if (failures.stream().anyMatch(failure -> failure.startsWith("POSITIVE_EVIDENCE_CODE"))
+                || failures.stream().anyMatch(failure -> failure.startsWith("RISK_FLAG_CODE"))
+                || failures.contains("REASONING_ENUM_FIELDS")) {
+            builder.append("Use only the allowed enum values for positiveEvidenceCodes, riskFlagCodes and reasonCode. ");
+            builder.append("Do not return descriptive prose in evidence fields. ");
+        }
         if (failures.contains("RANKED_CANDIDATE_COUNT")) {
             builder.append("Specifically fix RANKED_CANDIDATE_COUNT by returning one rankedCandidates row for every listed candidateId. ");
         }
