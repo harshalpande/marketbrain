@@ -3681,7 +3681,7 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73/77/79/80: chunked calibrated Ollama ranking with DTO, enum and quality-anchor guardrails
+## Step 70/71/72/73/77/79/80/81: chunked calibrated Ollama ranking with DTO, enum and quality-anchor guardrails
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
@@ -3705,6 +3705,11 @@ chunk-relative anchors such as `quality_anchor_score`, `quality_anchor_rank`, `q
 `quality_anchor_gap_to_leader`, `risk_control_score`, `opportunity_score`, `major_conflict_count`,
 `positive_signal_count` and `relative_quality_flag`. Granite must use these as the peer-comparison spine before
 assigning ranks. These anchors are computed from as-of features only; hidden future labels remain evaluator-only.
+
+Step 81 calibrates enum validation after the Step 80 evidence showed parseable JSON being blocked by overly strict
+enum rules. Weak/avoid candidates may now return `positiveEvidenceCodes=[]` when `riskFlagCodes` is non-empty, and
+the risk enum set accepts Java-supplied diagnostic tags such as `CONFLICT_HEAVY`, `EXTREME_OVEREXTENSION`,
+`VOLUME_NEUTRAL`, `VOLATILITY_MODERATE`, `HARD_CAP_54`, `HARD_CAP_69` and `SOFT_CAP_84`.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'

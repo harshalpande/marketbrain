@@ -23,9 +23,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V9";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V10";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V9";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V10";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -58,7 +58,17 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "JAVA_PRIOR_LOW",
             "RELATIVE_LAGGARD",
             "MATERIAL_QUALITY_GAP",
-            "MULTIPLE_MAJOR_CONFLICTS"
+            "MULTIPLE_MAJOR_CONFLICTS",
+            "VOLUME_NEUTRAL",
+            "RSI_NEUTRAL",
+            "VOLATILITY_MODERATE",
+            "RANGE_LOW",
+            "EXTENDED",
+            "EXTREME_OVEREXTENSION",
+            "CONFLICT_HEAVY",
+            "HARD_CAP_54",
+            "HARD_CAP_69",
+            "SOFT_CAP_84"
     );
     static final Set<String> REASON_CODES = Set.of(
             "BALANCED_STRENGTH",
@@ -467,7 +477,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                   string symbol;                 // exact supplied symbol for candidateId
                   integer score;                 // 0..100
                   string confidence;             // LOW | MEDIUM | HIGH
-                  string[] positiveEvidenceCodes;// enum values only, not prose
+                  string[] positiveEvidenceCodes;// enum values only, can be [] for weak/avoid candidates
                   string[] riskFlagCodes;        // enum values only, or []
                   string reasonCode;             // enum value only, not prose
                   SignedContributionsDto signedContributions;
@@ -492,7 +502,9 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 TREND_CONFLICT, EMA_BEARISH, RSI_WEAK, RSI_OVERHEATED, VOLUME_WEAK, VOLATILITY_HIGH,
                 RANGE_EXTENDED, OVEREXTENSION_RISK, RECOVERY_UNCONFIRMED, SCORE_CAP_LIMITED,
                 ONE_DAY_SPIKE_RISK, JAVA_PRIOR_LOW, RELATIVE_LAGGARD, MATERIAL_QUALITY_GAP,
-                MULTIPLE_MAJOR_CONFLICTS.
+                MULTIPLE_MAJOR_CONFLICTS, VOLUME_NEUTRAL, RSI_NEUTRAL, VOLATILITY_MODERATE,
+                RANGE_LOW, EXTENDED, EXTREME_OVEREXTENSION, CONFLICT_HEAVY, HARD_CAP_54,
+                HARD_CAP_69, SOFT_CAP_84.
                 Allowed reasonCode:
                 BALANCED_STRENGTH, JAVA_BASELINE_ALIGNED, RECOVERY_WITH_CONTROLLED_RISK,
                 DEMOTED_OVEREXTENSION, DEMOTED_WEAK_PARTICIPATION, DEMOTED_TREND_CONFLICT,
@@ -630,6 +642,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
                 Use only the listed enum values for positiveEvidenceCodes, riskFlagCodes and reasonCode.
                 Do not write descriptive prose in evidence fields.
+                A weak or avoid candidate may use an empty positiveEvidenceCodes array only if riskFlagCodes is non-empty.
                 Score calibration rubric:
                 - 85..100: exceptional multi-factor setup with strong trend, participation, likely benchmark excess, controlled volatility/drawdown and almost no conflicts. HIGH confidence is allowed only here.
                 - 70..84: strong setup with mostly aligned evidence, manageable risk and no major benchmark-lag or drawdown-like warning.
@@ -1217,24 +1230,31 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             if (!node.path("notTradingSignal").asBoolean(false)) {
                 failures.add("NOT_TRADING_SIGNAL_FLAG");
             }
+            JsonNode positiveEvidenceCodes = node.path("positiveEvidenceCodes");
+            JsonNode riskFlagCodes = node.path("riskFlagCodes");
             boolean positiveEvidenceCodesValid = validateEnumArray(
-                    node.path("positiveEvidenceCodes"),
+                    positiveEvidenceCodes,
                     POSITIVE_EVIDENCE_CODES,
                     "POSITIVE_EVIDENCE_CODE",
-                    true,
+                    false,
                     failures);
             boolean riskFlagCodesValid = validateEnumArray(
-                    node.path("riskFlagCodes"),
+                    riskFlagCodes,
                     RISK_FLAG_CODES,
                     "RISK_FLAG_CODE",
                     false,
                     failures);
+            boolean evidenceCodesPresent = hasAtLeastOneValue(positiveEvidenceCodes)
+                    || hasAtLeastOneValue(riskFlagCodes);
+            if (!evidenceCodesPresent) {
+                failures.add("EVIDENCE_CODES_EMPTY");
+            }
             String reasonCode = node.path("reasonCode").asText("");
             boolean reasonCodeValid = REASON_CODES.contains(reasonCode);
             if (!reasonCodeValid) {
                 failures.add("REASON_CODE_VALUE:" + reasonCode);
             }
-            if (!positiveEvidenceCodesValid || !riskFlagCodesValid || !reasonCodeValid) {
+            if (!positiveEvidenceCodesValid || !riskFlagCodesValid || !evidenceCodesPresent || !reasonCodeValid) {
                 failures.add("REASONING_ENUM_FIELDS");
             }
             JsonNode signedContributions = node.path("signedContributions");
@@ -1287,6 +1307,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             }
         }
         return valid;
+    }
+
+    private boolean hasAtLeastOneValue(JsonNode node) {
+        return node.isArray() && node.size() > 0;
     }
 
     private int validateSignedContribution(JsonNode signedContributions, String field, List<String> failures) {

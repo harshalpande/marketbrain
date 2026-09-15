@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 80 risk-adjusted quality anchors for stronger Granite ranking.
+Status: Step 81 calibrated enum guardrails for Granite risk-only evidence.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -292,6 +292,21 @@ can explicitly mark promotions/demotions as `RISK_ADJUSTED_LEADER`, `MULTI_FACTO
 
 This still uses only as-of features in the prompt. Hidden future labels remain limited to the offline evaluation layer,
 where they measure whether the improved anchor-driven ranking actually performs better.
+
+Step 81 calibrates the enum guardrails based on the Step 80 run evidence. The model produced parseable JSON and used
+the new quality anchors, but every chunk was still blocked because Java rejected useful diagnostic codes and required
+positive evidence even for weak/avoid candidates.
+
+The schema contract now allows a weak candidate to have `positiveEvidenceCodes=[]` when `riskFlagCodes` is non-empty.
+This is intentionally stricter than accepting an empty explanation: every ranked row still needs at least one evidence
+code, either positive or risk-side. The allowed `riskFlagCodes` set also accepts diagnostic tags that Java already
+sends in the prompt and Granite naturally reused, including `VOLUME_NEUTRAL`, `RSI_NEUTRAL`,
+`VOLATILITY_MODERATE`, `RANGE_LOW`, `EXTENDED`, `EXTREME_OVEREXTENSION`, `CONFLICT_HEAVY`, `HARD_CAP_54`,
+`HARD_CAP_69` and `SOFT_CAP_84`.
+
+The expected improvement for the next run is primarily schema-pass recovery. If the Step 80 responses are representative,
+many attempts that were previously blocked should reach the ranking-quality and score-calibration evaluators, allowing
+MarketBrain to measure the actual ranking impact of the quality anchors.
 
 ## Daily fresh-data feedback loop
 

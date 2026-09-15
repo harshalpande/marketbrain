@@ -57,6 +57,12 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("RISK_ADJUSTED_LEADER");
         assertThat(source).contains("MATERIAL_QUALITY_GAP");
         assertThat(source).contains("RISK_ADJUSTED_LEADER_SELECTED");
+        assertThat(source).contains("CONFLICT_HEAVY");
+        assertThat(source).contains("EXTREME_OVEREXTENSION");
+        assertThat(source).contains("HARD_CAP_69");
+        assertThat(source).contains("SOFT_CAP_84");
+        assertThat(source).contains("EVIDENCE_CODES_EMPTY");
+        assertThat(source).contains("hasAtLeastOneValue");
         assertThat(source).contains("positiveEvidenceCodes");
         assertThat(source).contains("riskFlagCodes");
         assertThat(source).contains("reasonCode");
