@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 81 calibrated enum guardrails for Granite risk-only evidence.
+Status: Step 82 adds top-pick guardrails, score-cap validation and rebound-breakout ranking support for Granite.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -307,6 +307,31 @@ sends in the prompt and Granite naturally reused, including `VOLUME_NEUTRAL`, `R
 The expected improvement for the next run is primarily schema-pass recovery. If the Step 80 responses are representative,
 many attempts that were previously blocked should reach the ranking-quality and score-calibration evaluators, allowing
 MarketBrain to measure the actual ranking impact of the quality anchors.
+
+Step 82 targets the next ranking-quality improvement after the enum pass-rate recovery. It uses
+`MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V11` and `MARKETBRAIN_SWING_RUBRIC_V11`. The latest Granite evidence
+showed three remaining weaknesses:
+
+- some useful Granite reason codes were still being rejected, especially `MULTI_FACTOR_ALIGNMENT` and `DRAWDOWN_TRAP`;
+- low-range, positive-momentum rebound candidates were not always credited enough by the Java baseline before Granite
+  reviewed the chunk;
+- hard-capped or conflict-heavy candidates could still be promoted to rank 1 by the model, forcing Java arbitration to
+  rescue the final review rank.
+
+The prompt now sends three additional deterministic fields per candidate:
+
+- `rebound_breakout_credit`, a bounded as-of credit for controlled low-range positive-momentum setups;
+- `java_pick_role`, marking Java's primary/secondary/supporting anchor or avoid-top-pick guidance;
+- `top_pick_guard`, one of `TOP_PICK_ALLOWED`, `TOP_PICK_CAUTION` or `TOP_PICK_BLOCKED`.
+
+Java also validates score caps directly. `HARD_CAP_54`, `HARD_CAP_69` and `SOFT_CAP_84` now produce explicit
+`SCORE_CAP_VIOLATION` failures if Granite assigns a score above the allowed threshold. A `TOP_PICK_BLOCKED` candidate
+cannot be ranked first unless every candidate in that small chunk is also blocked. The repair prompt now names those
+violations directly so the retry has a precise correction target instead of a generic retry.
+
+Expected next-run improvement is not guaranteed, but the target is a 10-15 percentage-point gain in usable chunk
+outcomes by converting the previous reason-code/schema failure and hard-capped top-pick mistakes into either clean
+passes or accepted-with-warning chunks.
 
 ## Daily fresh-data feedback loop
 

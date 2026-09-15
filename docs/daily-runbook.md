@@ -3681,7 +3681,7 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73/77/79/80/81: chunked calibrated Ollama ranking with DTO, enum and quality-anchor guardrails
+## Step 70/71/72/73/77/79/80/81/82: chunked calibrated Ollama ranking with DTO, enum, quality-anchor and top-pick guardrails
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
@@ -3710,6 +3710,11 @@ Step 81 calibrates enum validation after the Step 80 evidence showed parseable J
 enum rules. Weak/avoid candidates may now return `positiveEvidenceCodes=[]` when `riskFlagCodes` is non-empty, and
 the risk enum set accepts Java-supplied diagnostic tags such as `CONFLICT_HEAVY`, `EXTREME_OVEREXTENSION`,
 `VOLUME_NEUTRAL`, `VOLATILITY_MODERATE`, `HARD_CAP_54`, `HARD_CAP_69` and `SOFT_CAP_84`.
+
+Step 82 adds explicit top-pick governance and rebound-breakout support. Candidate rows now include
+`rebound_breakout_credit`, `java_pick_role` and `top_pick_guard`. Granite may challenge the Java baseline, but it must
+honor `TOP_PICK_BLOCKED`, `TOP_PICK_CAUTION` and the hard score caps. Java validates `SCORE_CAP_VIOLATION` and
+`TOP_PICK_GUARD_VIOLATION` directly and sends targeted repair instructions on retry.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
