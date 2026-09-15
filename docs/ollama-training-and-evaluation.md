@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 82 adds top-pick guardrails, score-cap validation and rebound-breakout ranking support for Granite.
+Status: Step 83 separates Granite input hints from output enums and adds offset-based chunk smoke testing.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -332,6 +332,26 @@ violations directly so the retry has a precise correction target instead of a ge
 Expected next-run improvement is not guaranteed, but the target is a 10-15 percentage-point gain in usable chunk
 outcomes by converting the previous reason-code/schema failure and hard-capped top-pick mistakes into either clean
 passes or accepted-with-warning chunks.
+
+Step 83 responds to the Step 82 regression where Granite copied input guidance labels into output enum fields. The
+contract now uses `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V12` and `MARKETBRAIN_SWING_RUBRIC_V12`.
+
+The candidate prompt no longer sends `java_pick_role` values such as `JAVA_PRIMARY_ANCHOR`, because those looked too
+similar to valid response enums. It now sends:
+
+- `anchor_priority_hint`, a numeric 0..3 Java anchor-strength hint;
+- `top_pick_eligibility`, using plain values `ALLOWED`, `CAUTION` or `BLOCKED`.
+
+The prompt also explicitly states that input columns ending in `_tag`, `_hint`, `_eligibility`, `_bucket` or `_flag`
+are not output enums and must not be copied into `positiveEvidenceCodes`, `riskFlagCodes` or `reasonCode` unless the
+exact value appears in the allowed output enum list.
+
+Java now records safe enum normalization separately as `responseNormalizationWarnings`. This lets review runs proceed
+when Granite uses a near-equivalent alias such as `JAVA_PRIMARY_ANCHOR -> JAVA_PRIOR_STRONG`, while preserving audit
+evidence that the model did not perfectly follow the contract. Unsafe polarity-changing aliases are not normalized.
+
+The PowerShell runner now accepts `-StartOffset`, so the next verification can smoke-test one or two chunks before
+committing to a full six-chunk run.
 
 ## Daily fresh-data feedback loop
 

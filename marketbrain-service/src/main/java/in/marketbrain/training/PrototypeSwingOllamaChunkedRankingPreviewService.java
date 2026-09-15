@@ -287,6 +287,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 evaluation.rankingQualityStatus(),
                 calibration.scoreCalibrationStatus(),
                 evaluation.responseValidationFailures(),
+                evaluation.responseNormalizationWarnings(),
                 evaluation.evaluationFailures(),
                 calibration.calibrationFailures(),
                 accepted
@@ -368,8 +369,8 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             builder.append("Honor score_cap_hint exactly: HARD_CAP_54 requires score <=54, HARD_CAP_69 requires score <=69 and SOFT_CAP_84 requires score <=84. ");
         }
         if (failures.stream().anyMatch(failure -> failure.startsWith("TOP_PICK_GUARD_VIOLATION"))) {
-            builder.append("Do not rank TOP_PICK_BLOCKED as rank 1 unless every candidate in the chunk is TOP_PICK_BLOCKED. ");
-            builder.append("Prefer TOP_PICK_ALLOWED or a properly score-capped TOP_PICK_CAUTION candidate for rank 1. ");
+            builder.append("Do not rank a top_pick_eligibility=BLOCKED candidate as rank 1 unless every candidate in the chunk is BLOCKED. ");
+            builder.append("Prefer top_pick_eligibility=ALLOWED or a properly score-capped CAUTION candidate for rank 1. ");
         }
         builder.append("Apply the score_cap_hint rules in the prompt. ");
         builder.append("Do not drop lower-ranked candidates. Do not add symbols outside this list. Do not use markdown.");

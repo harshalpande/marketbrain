@@ -14,6 +14,10 @@ param(
     [int]$TotalCandidateLimit = 24,
 
     [Parameter()]
+    [ValidateRange(0, 500)]
+    [int]$StartOffset = 0,
+
+    [Parameter()]
     [ValidateRange(1, 5)]
     [int]$ChunkSize = 4,
 
@@ -58,7 +62,7 @@ if ($FinalistsPerChunk -gt $ChunkSize) {
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $suffix = if ([string]::IsNullOrWhiteSpace($DatasetRunId)) { 'latest' } else { $DatasetRunId }
 $safeModel = $Model -replace '[^A-Za-z0-9._-]', '_'
-$stem = "prototype-swing-ollama-chunked-ranking-async-$suffix-$safeModel-h$RankingHorizonSessions-total$TotalCandidateLimit-chunk$ChunkSize"
+$stem = "prototype-swing-ollama-chunked-ranking-async-$suffix-$safeModel-h$RankingHorizonSessions-offset$StartOffset-total$TotalCandidateLimit-chunk$ChunkSize"
 $resultPath = Join-Path $OutputDirectory "$stem.json"
 $rootCausePath = Join-Path $OutputDirectory "$stem-root-causes.json"
 $logPath = Join-Path $OutputDirectory "$stem.log"
@@ -75,13 +79,14 @@ try {
 
     Write-Host 'Step 70 async: starting or monitoring Java-owned chunked calibrated Ollama ranking job...'
     Write-Host 'Java runs the job in the background; local Ollama model concurrency remains fixed at 1.'
-    Write-Host "Chunk size: $ChunkSize; total candidate limit: $TotalCandidateLimit; max retries per chunk: $MaxRetriesPerChunk"
+    Write-Host "Start offset: $StartOffset; chunk size: $ChunkSize; total candidate limit: $TotalCandidateLimit; max retries per chunk: $MaxRetriesPerChunk"
     Write-Host 'No database write, signal, paper fill, order, broker action, or live trading action will be created.'
 
     $jobId = $JobId
     if ([string]::IsNullOrWhiteSpace($jobId)) {
         $body = [ordered]@{
             model                  = $Model
+            startOffset            = $StartOffset
             totalCandidateLimit    = $TotalCandidateLimit
             chunkSize              = $ChunkSize
             finalistsPerChunk      = $FinalistsPerChunk
@@ -239,10 +244,12 @@ try {
                     rankingQualityStatus       = $attempt.rankingQualityStatus
                     scoreCalibrationStatus     = $attempt.scoreCalibrationStatus
                     responseValidationFailures = @($attempt.responseValidationFailures)
+                    responseNormalizationWarnings = @($attempt.responseNormalizationWarnings)
                     evaluationFailures         = @($attempt.evaluationFailures)
                     calibrationFailures        = @($attempt.calibrationFailures)
                 })
                 if (@($attempt.responseValidationFailures).Count -gt 0 -or
+                    @($attempt.responseNormalizationWarnings).Count -gt 0 -or
                     @($attempt.evaluationFailures).Count -gt 0 -or
                     @($attempt.calibrationFailures).Count -gt 0) {
                     $rootCauseRecords.Add([pscustomobject][ordered]@{
@@ -268,6 +275,7 @@ try {
                         rankingQualityStatus       = $attempt.rankingQualityStatus
                         scoreCalibrationStatus     = $attempt.scoreCalibrationStatus
                         responseValidationFailures = @($attempt.responseValidationFailures)
+                        responseNormalizationWarnings = @($attempt.responseNormalizationWarnings)
                         evaluationFailures         = @($attempt.evaluationFailures)
                         calibrationFailures        = @($attempt.calibrationFailures)
                         acceptedForChunkSummary    = $attempt.acceptedForChunkSummary

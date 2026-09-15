@@ -28,7 +28,7 @@ class PrototypeSwingOllamaGuidedRankingEvaluationPreviewControllerTest {
                         LocalDate.of(2026, 9, 8), "a".repeat(64), "gemma3:4b",
                         5, 8, 20, "INSTRUCTION_V1", "SCHEMA_V1", "RUBRIC_V1",
                         "EVALUATION_V1", "b".repeat(64), "c".repeat(64), "d".repeat(64),
-                        true, true, List.of(), "QUALITY_REVIEW_PASSED",
+                        true, true, List.of(), List.of(), "QUALITY_REVIEW_PASSED",
                         "ABC", 1, java.math.BigDecimal.ONE, "ABC", 1, java.math.BigDecimal.ONE,
                         3, java.math.BigDecimal.ONE, 0, 0, 0, List.of(), List.of(),
                         null, true, false, true, true, false, true, true,

@@ -37,7 +37,7 @@ class PrototypeSwingOllamaChunkedRankingJobFileStoreTest {
                         "response-hash", 17, 1234L, 5678L, 90, 12,
                         "{\"rankedCandidates\":[]}", true, false,
                         "SCHEMA_GUARDRAIL_BLOCKED", "SCORE_CALIBRATION_BLOCKED",
-                        List.of("RANKED_CANDIDATE_COUNT"), List.of(), List.of(),
+                        List.of("RANKED_CANDIDATE_COUNT"), List.of("ENUM_NORMALIZED:reasonCode:X->Y"), List.of(), List.of(),
                         false);
 
         store.writeStatus(status);

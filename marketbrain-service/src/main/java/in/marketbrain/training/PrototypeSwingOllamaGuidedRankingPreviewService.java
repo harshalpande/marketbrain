@@ -23,9 +23,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V11";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V12";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V11";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V12";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -86,6 +86,22 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "JAVA_ANCHOR_HELD",
             "MULTI_FACTOR_ALIGNMENT",
             "DRAWDOWN_TRAP"
+    );
+    private static final Map<String, String> POSITIVE_EVIDENCE_ALIASES = Map.of(
+            "JAVA_PRIMARY_ANCHOR", "JAVA_PRIOR_STRONG",
+            "JAVA_SECONDARY_ANCHOR", "JAVA_PRIOR_STRONG",
+            "JAVA_SUPPORTING_CANDIDATE", "MULTI_FACTOR_ALIGNMENT",
+            "EMA_BULLISH", "EMA_MOMENTUM_SUPPORT",
+            "VOLUME_CONFIRMED", "VOLUME_CONFIRMATION",
+            "RANGE_LEADERSHIP", "RANGE_BREAKOUT_LEADERSHIP",
+            "RECOVERY_CANDIDATE", "RECOVERY_SETUP"
+    );
+    private static final Map<String, String> RISK_FLAG_ALIASES = Map.of();
+    private static final Map<String, String> REASON_CODE_ALIASES = Map.of(
+            "JAVA_PRIMARY_ANCHOR", "JAVA_ANCHOR_HELD",
+            "JAVA_SECONDARY_ANCHOR", "JAVA_ANCHOR_HELD",
+            "JAVA_SUPPORTING_CANDIDATE", "JAVA_BASELINE_ALIGNED",
+            "CONFLICT_HEAVY", "LOW_QUALITY_AVOID"
     );
 
     private final PrototypeSwingTrainingDatasetAuditService auditService;
@@ -192,6 +208,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 validation.parseableJson(),
                 schemaValid,
                 validation.failures(),
+                validation.normalizationWarnings(),
                 true,
                 false,
                 audit.survivorshipRiskPresent(),
@@ -446,8 +463,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - Use feature_prior_rank as the baseline order. Moving away from it requires explicit enum-coded evidence in positiveEvidenceCodes/riskFlagCodes and reasonCode.
                 - Use quality_anchor_rank, quality_anchor_band and quality_anchor_gap_to_leader to compare candidates against each other before assigning rank.
                 - A CHUNK_LEADER or CHUNK_CONTENDER with controlled risk should usually outrank a CHUNK_WATCHLIST or CHUNK_AVOID name.
-                - Respect top_pick_guard. TOP_PICK_BLOCKED must not be ranked 1 unless every candidate in the chunk is also blocked.
-                - TOP_PICK_CAUTION may rank 1 only with clear enum evidence and score cap compliance.
+                - Respect top_pick_eligibility. BLOCKED must not be ranked 1 unless every candidate in the chunk is also blocked.
+                - CAUTION may rank 1 only with clear enum evidence and score cap compliance.
                 - Use the supplied MarketBrain algorithm exactly. Java has already calculated the raw signed contributions and feature prior. Your job is to review/rank inside this contract, not invent another scoring method.
                 - You are not the executor. You are a reviewer/challenger. Java will arbitrate your rank against the deterministic baseline after your response.
 
@@ -543,7 +560,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 .mapToInt(this::qualityAnchorScore)
                 .max()
                 .orElse(0);
-        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,trend_score,momentum_score,participation_score,risk_penalty,recovery_credit,overextension_penalty,rebound_breakout_credit,feature_prior_score,feature_prior_rank,feature_prior_bucket,quality_anchor_score,quality_anchor_rank,quality_anchor_band,quality_anchor_gap_to_leader,risk_control_score,opportunity_score,major_conflict_count,positive_signal_count,relative_quality_flag,java_pick_role,top_pick_guard,score_cap_hint\n");
+        builder.append("candidate_id,symbol,close,daily_return_pct,sma20,sma50,sma200,ema12,ema26,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,trend_tag,ema_tag,rsi_tag,volume_tag,volatility_tag,range_tag,recovery_tag,overextension_tag,trend_score,momentum_score,participation_score,risk_penalty,recovery_credit,overextension_penalty,rebound_breakout_credit,feature_prior_score,feature_prior_rank,feature_prior_bucket,quality_anchor_score,quality_anchor_rank,quality_anchor_band,quality_anchor_gap_to_leader,risk_control_score,opportunity_score,major_conflict_count,positive_signal_count,relative_quality_flag,anchor_priority_hint,top_pick_eligibility,score_cap_hint\n");
         for (int index = 0; index < candidates.size(); index++) {
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
             int featurePriorScore = featurePriorScore(candidate);
@@ -589,8 +606,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(majorConflictCount(candidate)).append(',')
                     .append(positiveSignalCount(candidate)).append(',')
                     .append(relativeQualityFlag(qualityAnchorRanks.get(candidate.symbol()), candidates.size(), leaderQualityAnchorScore, qualityAnchorScore, candidate)).append(',')
-                    .append(javaPickRole(qualityAnchorRanks.get(candidate.symbol()), qualityAnchorScore, candidate)).append(',')
-                    .append(topPickGuard(candidate)).append(',')
+                    .append(anchorPriorityHint(qualityAnchorRanks.get(candidate.symbol()), qualityAnchorScore, candidate)).append(',')
+                    .append(topPickEligibility(candidate)).append(',')
                     .append(scoreCapHint(candidate)).append('\n');
         }
         builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence, enum evidence codes and signed contributions:\n");
@@ -650,6 +667,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
                 Use only the listed enum values for positiveEvidenceCodes, riskFlagCodes and reasonCode.
                 Do not write descriptive prose in evidence fields.
+                Candidate input columns with names ending in _tag, _hint, _eligibility, _bucket or _flag are input guidance only.
+                Do not copy input guidance values such as BULLISH_TREND, EMA_BULLISH, RANGE_LEADERSHIP, RECOVERY_CANDIDATE,
+                anchor_priority_hint, top_pick_eligibility, ALLOWED, CAUTION, BLOCKED, HIGH_ELIGIBLE or HARD_CAP_69 into
+                positiveEvidenceCodes, riskFlagCodes or reasonCode unless the same exact value appears in the allowed enum list above.
                 A weak or avoid candidate may use an empty positiveEvidenceCodes array only if riskFlagCodes is non-empty.
                 Score calibration rubric:
                 - 85..100: exceptional multi-factor setup with strong trend, participation, likely benchmark excess, controlled volatility/drawdown and almost no conflicts. HIGH confidence is allowed only here.
@@ -675,8 +696,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 - If quality_anchor_band is CHUNK_LEADER and risk_control_score is 60 or higher, rank it first unless a peer has clearly superior multi-factor evidence and fewer conflicts.
                 - If relative_quality_flag is RELATIVE_LAGGARD or CONFLICT_HEAVY, do not rank the candidate above a CHUNK_LEADER/CHUNK_CONTENDER unless all stronger anchors carry stricter score caps.
                 - If quality_anchor_gap_to_leader is 20 or more, cap confidence at LOW unless the candidate is the least-bad option.
-                - Never rank a TOP_PICK_BLOCKED candidate first unless every candidate in this chunk is TOP_PICK_BLOCKED.
-                - If you rank a TOP_PICK_CAUTION candidate first, the score must obey score_cap_hint and reasonCode must be MODEL_CHALLENGE_FEATURED, JAVA_ANCHOR_HELD, MULTI_FACTOR_ALIGNMENT or LEAST_BAD_OPTION.
+                - Never rank a candidate with top_pick_eligibility=BLOCKED first unless every candidate in this chunk is BLOCKED.
+                - If you rank a candidate with top_pick_eligibility=CAUTION first, the score must obey score_cap_hint and reasonCode must be MODEL_CHALLENGE_FEATURED, JAVA_ANCHOR_HELD, MULTI_FACTOR_ALIGNMENT or LEAST_BAD_OPTION.
                 - Do not give score above the hard cap: HARD_CAP_54 means score <= 54; HARD_CAP_69 means score <= 69; SOFT_CAP_84 means score <= 84.
                 - Use RISK_ADJUSTED_LEADER, MULTI_FACTOR_ALIGNMENT or PEER_QUALITY_ADVANTAGE in positiveEvidenceCodes when promoting a candidate based on anchor strength.
                 - Use RELATIVE_LAGGARD, MATERIAL_QUALITY_GAP or MULTIPLE_MAJOR_CONFLICTS in riskFlagCodes when demoting a candidate based on anchor weakness.
@@ -1031,30 +1052,30 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return credit;
     }
 
-    String javaPickRole(int qualityAnchorRank, int qualityAnchorScore, PrototypeSwingOllamaCandidate candidate) {
-        if ("TOP_PICK_BLOCKED".equals(topPickGuard(candidate))) {
-            return "JAVA_AVOID_TOP_PICK";
+    int anchorPriorityHint(int qualityAnchorRank, int qualityAnchorScore, PrototypeSwingOllamaCandidate candidate) {
+        if ("BLOCKED".equals(topPickEligibility(candidate))) {
+            return 0;
         }
         if (qualityAnchorRank == 1 && qualityAnchorScore >= 50) {
-            return "JAVA_PRIMARY_ANCHOR";
+            return 3;
         }
         if (qualityAnchorRank == 2 && qualityAnchorScore >= 45) {
-            return "JAVA_SECONDARY_ANCHOR";
+            return 2;
         }
-        return "JAVA_SUPPORTING_CANDIDATE";
+        return 1;
     }
 
-    String topPickGuard(PrototypeSwingOllamaCandidate candidate) {
+    String topPickEligibility(PrototypeSwingOllamaCandidate candidate) {
         if ("HARD_CAP_54".equals(scoreCapHint(candidate))
                 || "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))
                 || (majorConflictCount(candidate) >= 3 && !"RECOVERY_CANDIDATE".equals(recoveryTag(candidate)))) {
-            return "TOP_PICK_BLOCKED";
+            return "BLOCKED";
         }
         if ("HARD_CAP_69".equals(scoreCapHint(candidate))
                 || qualityAnchorScore(candidate) < 40) {
-            return "TOP_PICK_CAUTION";
+            return "CAUTION";
         }
-        return "TOP_PICK_ALLOWED";
+        return "ALLOWED";
     }
 
     int trendScore(PrototypeSwingOllamaCandidate candidate) {
@@ -1180,7 +1201,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
     }
 
     String featurePriorReason(PrototypeSwingOllamaCandidate candidate) {
-        return "Java baseline: trend=%s(%d), momentum=%s(%d), participation=%s(%d), riskPenalty=%d, recovery=%s(%d), overextension=%s(%d), rebound=%d, riskControl=%d, opportunity=%d, conflicts=%d, positives=%d, qualityAnchor=%d, topPickGuard=%s, cap=%s"
+        return "Java baseline: trend=%s(%d), momentum=%s(%d), participation=%s(%d), riskPenalty=%d, recovery=%s(%d), overextension=%s(%d), rebound=%d, riskControl=%d, opportunity=%d, conflicts=%d, positives=%d, qualityAnchor=%d, topPickEligibility=%s, cap=%s"
                 .formatted(
                         trendTag(candidate), trendScore(candidate),
                         rsiTag(candidate) + "/" + emaTag(candidate), momentumScore(candidate),
@@ -1194,7 +1215,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                         majorConflictCount(candidate),
                         positiveSignalCount(candidate),
                         qualityAnchorScore(candidate),
-                        topPickGuard(candidate),
+                        topPickEligibility(candidate),
                         scoreCapHint(candidate)
                 );
     }
@@ -1244,8 +1265,9 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         try {
             root = objectMapper.readTree(response);
         } catch (Exception exception) {
-            return new Validation(false, List.of("RESPONSE_NOT_PARSEABLE_JSON"));
+            return new Validation(false, List.of("RESPONSE_NOT_PARSEABLE_JSON"), List.of());
         }
+        List<String> normalizationWarnings = new ArrayList<>();
         if (!RESPONSE_SCHEMA_VERSION.equals(root.path("schemaVersion").asText())) {
             failures.add("SCHEMA_VERSION");
         }
@@ -1261,7 +1283,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         Set<String> expectedCandidateIds = new HashSet<>();
         Set<String> expectedSymbols = new HashSet<>();
         boolean allTopPickBlocked = candidates.stream()
-                .allMatch(candidate -> "TOP_PICK_BLOCKED".equals(topPickGuard(candidate)));
+                .allMatch(candidate -> "BLOCKED".equals(topPickEligibility(candidate)));
         for (int index = 0; index < candidates.size(); index++) {
             String candidateId = candidateId(index);
             PrototypeSwingOllamaCandidate candidate = candidates.get(index);
@@ -1299,7 +1321,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 validateScoreCap(expectedCandidate, score, failures);
                 if (rank == 1
                         && !allTopPickBlocked
-                        && "TOP_PICK_BLOCKED".equals(topPickGuard(expectedCandidate))) {
+                        && "BLOCKED".equals(topPickEligibility(expectedCandidate))) {
                     failures.add("TOP_PICK_GUARD_VIOLATION:" + symbol);
                 }
             }
@@ -1314,23 +1336,32 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             boolean positiveEvidenceCodesValid = validateEnumArray(
                     positiveEvidenceCodes,
                     POSITIVE_EVIDENCE_CODES,
+                    POSITIVE_EVIDENCE_ALIASES,
+                    "positiveEvidenceCodes",
                     "POSITIVE_EVIDENCE_CODE",
                     false,
-                    failures);
+                    failures,
+                    normalizationWarnings);
             boolean riskFlagCodesValid = validateEnumArray(
                     riskFlagCodes,
                     RISK_FLAG_CODES,
+                    RISK_FLAG_ALIASES,
+                    "riskFlagCodes",
                     "RISK_FLAG_CODE",
                     false,
-                    failures);
+                    failures,
+                    normalizationWarnings);
             boolean evidenceCodesPresent = hasAtLeastOneValue(positiveEvidenceCodes)
                     || hasAtLeastOneValue(riskFlagCodes);
             if (!evidenceCodesPresent) {
                 failures.add("EVIDENCE_CODES_EMPTY");
             }
             String reasonCode = node.path("reasonCode").asText("");
-            boolean reasonCodeValid = REASON_CODES.contains(reasonCode);
-            if (!reasonCodeValid) {
+            String normalizedReasonCode = normalizeEnumValue(reasonCode, REASON_CODES, REASON_CODE_ALIASES);
+            boolean reasonCodeValid = normalizedReasonCode != null;
+            if (reasonCodeValid && !reasonCode.equals(normalizedReasonCode)) {
+                normalizationWarnings.add("ENUM_NORMALIZED:reasonCode:" + reasonCode + "->" + normalizedReasonCode);
+            } else if (!reasonCodeValid) {
                 failures.add("REASON_CODE_VALUE:" + reasonCode);
             }
             if (!positiveEvidenceCodesValid || !riskFlagCodesValid || !evidenceCodesPresent || !reasonCodeValid) {
@@ -1358,15 +1389,21 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 || !"NOT_TRADING_SIGNAL".equals(root.path("researchOnlyCode").asText(""))) {
             failures.add("REQUIRED_NOTES");
         }
-        return new Validation(true, failures.stream().distinct().toList());
+        return new Validation(
+                true,
+                failures.stream().distinct().toList(),
+                normalizationWarnings.stream().distinct().toList());
     }
 
     private boolean validateEnumArray(
             JsonNode node,
             Set<String> allowedValues,
+            Map<String, String> aliases,
+            String fieldName,
             String failurePrefix,
             boolean requireAtLeastOne,
-            List<String> failures
+            List<String> failures,
+            List<String> normalizationWarnings
     ) {
         if (!node.isArray()) {
             failures.add(failurePrefix + "_ARRAY");
@@ -1380,12 +1417,26 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         Set<String> seen = new HashSet<>();
         for (JsonNode value : node) {
             String code = value.asText("");
-            if (!allowedValues.contains(code) || !seen.add(code)) {
+            String normalized = normalizeEnumValue(code, allowedValues, aliases);
+            if (normalized == null || !seen.add(normalized)) {
                 failures.add(failurePrefix + "_VALUE:" + code);
                 valid = false;
+            } else if (!code.equals(normalized)) {
+                normalizationWarnings.add("ENUM_NORMALIZED:" + fieldName + ":" + code + "->" + normalized);
             }
         }
         return valid;
+    }
+
+    private String normalizeEnumValue(String value, Set<String> allowedValues, Map<String, String> aliases) {
+        if (allowedValues.contains(value)) {
+            return value;
+        }
+        String alias = aliases.get(value);
+        if (alias != null && allowedValues.contains(alias)) {
+            return alias;
+        }
+        return null;
     }
 
     private boolean hasAtLeastOneValue(JsonNode node) {
@@ -1488,6 +1539,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         }
     }
 
-    private record Validation(boolean parseableJson, List<String> failures) {
+    private record Validation(
+            boolean parseableJson,
+            List<String> failures,
+            List<String> normalizationWarnings
+    ) {
     }
 }

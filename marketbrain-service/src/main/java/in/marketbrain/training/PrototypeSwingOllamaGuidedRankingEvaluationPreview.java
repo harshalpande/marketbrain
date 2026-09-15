@@ -27,6 +27,7 @@ public record PrototypeSwingOllamaGuidedRankingEvaluationPreview(
         boolean responseParseableJson,
         boolean responseSchemaValid,
         List<String> responseValidationFailures,
+        List<String> responseNormalizationWarnings,
         String rankingQualityStatus,
         String topPickSymbol,
         Integer topPickActualRank,

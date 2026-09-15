@@ -48,8 +48,8 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("recovery_credit");
         assertThat(source).contains("overextension_penalty");
         assertThat(source).contains("rebound_breakout_credit");
-        assertThat(source).contains("java_pick_role");
-        assertThat(source).contains("top_pick_guard");
+        assertThat(source).contains("anchor_priority_hint");
+        assertThat(source).contains("top_pick_eligibility");
         assertThat(source).contains("RankingResponseDto");
         assertThat(source).contains("SignedContributionsDto");
         assertThat(source).contains("signedContributions");
@@ -69,6 +69,10 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("validateScoreCap");
         assertThat(source).contains("SCORE_CAP_VIOLATION");
         assertThat(source).contains("TOP_PICK_GUARD_VIOLATION");
+        assertThat(source).contains("normalizationWarnings");
+        assertThat(source).contains("ENUM_NORMALIZED");
+        assertThat(source).contains("POSITIVE_EVIDENCE_ALIASES");
+        assertThat(source).contains("REASON_CODE_ALIASES");
         assertThat(source).contains("EVIDENCE_CODES_EMPTY");
         assertThat(source).contains("hasAtLeastOneValue");
         assertThat(source).contains("positiveEvidenceCodes");

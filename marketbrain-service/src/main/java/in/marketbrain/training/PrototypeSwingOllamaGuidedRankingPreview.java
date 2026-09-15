@@ -36,6 +36,7 @@ public record PrototypeSwingOllamaGuidedRankingPreview(
         boolean responseParseableJson,
         boolean responseSchemaValid,
         List<String> responseValidationFailures,
+        List<String> responseNormalizationWarnings,
         boolean dailyFreshDataFeedbackLoopDesigned,
         boolean dailyFreshDataUsedForTraining,
         boolean survivorshipRiskPresent,

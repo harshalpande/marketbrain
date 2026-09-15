@@ -3681,7 +3681,7 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73/77/79/80/81/82: chunked calibrated Ollama ranking with DTO, enum, quality-anchor and top-pick guardrails
+## Step 70/71/72/73/77/79/80/81/82/83: chunked calibrated Ollama ranking with DTO, enum, quality-anchor and top-pick guardrails
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
@@ -3716,6 +3716,11 @@ Step 82 adds explicit top-pick governance and rebound-breakout support. Candidat
 honor `TOP_PICK_BLOCKED`, `TOP_PICK_CAUTION` and the hard score caps. Java validates `SCORE_CAP_VIOLATION` and
 `TOP_PICK_GUARD_VIOLATION` directly and sends targeted repair instructions on retry.
 
+Step 83 separates input hints from output enums after Granite copied `java_pick_role` labels into response enum fields.
+Candidate rows now use `anchor_priority_hint` and `top_pick_eligibility`, and Java records safe alias handling in
+`responseNormalizationWarnings`. The runner also supports `-StartOffset` so one problematic chunk can be smoke-tested
+before running the full six-chunk review.
+
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 
@@ -3735,6 +3740,7 @@ do {
 & '.\ops\windows\PreviewPrototypeSwingOllamaChunkedRankingAsync.ps1' `
     -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
     -Model 'ibm/granite4.1:8b' `
+    -StartOffset 0 `
     -TotalCandidateLimit 24 `
     -ChunkSize 4 `
     -FinalistsPerChunk 2 `
@@ -3743,6 +3749,18 @@ do {
     -StatusPollTimeoutSeconds 180 `
     -TimeoutSeconds 21600
 ```
+
+For a faster one-chunk smoke test, change `-TotalCandidateLimit` to `4`. To target a specific chunk, also change
+`-StartOffset`:
+
+| Target chunk | StartOffset | TotalCandidateLimit |
+| --- | ---: | ---: |
+| 1 | 0 | 4 |
+| 2 | 4 | 4 |
+| 3 | 8 | 4 |
+| 4 | 12 | 4 |
+| 5 | 16 | 4 |
+| 6 | 20 | 4 |
 
 The script starts the Java-owned async job, polls its job-status endpoint, prints real percentage progress with
 `Write-Progress`, and saves every guarded failure with timing/token evidence. Java additionally writes durable evidence

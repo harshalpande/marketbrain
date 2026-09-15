@@ -23,6 +23,7 @@ public record PrototypeSwingOllamaChunkedRankingAttempt(
         String rankingQualityStatus,
         String scoreCalibrationStatus,
         List<String> responseValidationFailures,
+        List<String> responseNormalizationWarnings,
         List<String> evaluationFailures,
         List<String> calibrationFailures,
         boolean acceptedForChunkSummary
