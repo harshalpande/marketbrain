@@ -27,6 +27,11 @@ class PrototypeSwingOllamaChunkedRankingPreviewServiceSourceTest {
         assertThat(source).contains("SCORE_CAP_VIOLATION");
         assertThat(source).contains("TOP_PICK_GUARD_VIOLATION");
         assertThat(source).contains("Honor score_cap_hint exactly");
+        assertThat(source).contains("Exact score cap repairs required");
+        assertThat(source).contains("ACCEPTED_BEST_VALID_ATTEMPT_AFTER_RETRY");
+        assertThat(source).contains("fallbackEligible");
+        assertThat(source).contains("fallbackScore");
+        assertThat(source).contains("markAcceptedAttempt");
         assertThat(source).contains("Do not rank a top_pick_eligibility=BLOCKED candidate as rank 1");
         assertThat(source).contains("responseNormalizationWarnings");
         assertThat(source).contains("startOffset(");

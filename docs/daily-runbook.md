@@ -3681,7 +3681,7 @@ Interpretation:
 - `SCORE_CALIBRATION_WITH_WARNINGS` means ranking may be usable for review, but confidence/score issues remain.
 - `SCORE_CALIBRATION_WEAK` means the model may rank but its numeric score scale is not yet trustworthy.
 
-## Step 70/71/72/73/77/79/80/81/82/83: chunked calibrated Ollama ranking with DTO, enum, quality-anchor and top-pick guardrails
+## Step 70/71/72/73/77/79/80/81/82/83/84: chunked calibrated Ollama ranking with DTO, enum, quality-anchor and top-pick guardrails
 
 Run this after Step 69. This keeps each Ollama request small by processing candidates in chunks of 4, retrying a
 failed chunk once only as a fallback, and printing percentage progress after every chunk. Step 71 additionally uses deterministic
@@ -3720,6 +3720,10 @@ Step 83 separates input hints from output enums after Granite copied `java_pick_
 Candidate rows now use `anchor_priority_hint` and `top_pick_eligibility`, and Java records safe alias handling in
 `responseNormalizationWarnings`. The runner also supports `-StartOffset` so one problematic chunk can be smoke-tested
 before running the full six-chunk review.
+
+Step 84 preserves the best valid attempt when a retry gets worse, logs this as
+`CHUNK_<n>_ACCEPTED_BEST_VALID_ATTEMPT_AFTER_RETRY`, tolerates only audited one-point score-cap misses as
+`SCORE_CAP_TOLERATED`, and sends exact symbol-level score-cap repair instructions on retry.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'

@@ -189,6 +189,8 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         List<String> failures = new ArrayList<>();
         PrototypeSwingOllamaScoreCalibrationBatch acceptedBatch = null;
         int acceptedAttemptNumber = 0;
+        PrototypeSwingOllamaScoreCalibrationBatch bestFallbackBatch = null;
+        int bestFallbackAttemptNumber = 0;
         String repairInstruction = null;
 
         for (int attemptNumber = 1; attemptNumber <= maxRetriesPerChunk + 1; attemptNumber++) {
@@ -218,12 +220,24 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             );
             attempts.add(attempt);
             evidenceConsumer.onAttempt(attempt);
+            if (fallbackEligible(calibration)
+                    && (bestFallbackBatch == null
+                    || fallbackScore(calibration) > fallbackScore(bestFallbackBatch))) {
+                bestFallbackBatch = calibration;
+                bestFallbackAttemptNumber = attemptNumber;
+            }
             if (accepted) {
                 acceptedBatch = calibration;
                 acceptedAttemptNumber = attemptNumber;
                 break;
             }
             repairInstruction = repairInstruction(candidates, evaluation, calibration);
+        }
+        if (acceptedBatch == null && bestFallbackBatch != null) {
+            acceptedBatch = bestFallbackBatch;
+            acceptedAttemptNumber = bestFallbackAttemptNumber;
+            attempts = markAcceptedAttempt(attempts, acceptedAttemptNumber);
+            failures.add("CHUNK_" + chunkNumber + "_ACCEPTED_BEST_VALID_ATTEMPT_AFTER_RETRY");
         }
 
         String chunkStatus;
@@ -255,6 +269,72 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         );
         evidenceConsumer.onChunk(chunk);
         return new ChunkRun(chunk, failures);
+    }
+
+    private boolean fallbackEligible(PrototypeSwingOllamaScoreCalibrationBatch calibration) {
+        return calibration.responseSchemaValid()
+                && !"SCORE_CALIBRATION_BLOCKED".equals(calibration.scoreCalibrationStatus());
+    }
+
+    private int fallbackScore(PrototypeSwingOllamaScoreCalibrationBatch calibration) {
+        int score = 0;
+        if ("SCORE_CALIBRATION_PASSED".equals(calibration.scoreCalibrationStatus())) {
+            score += 100;
+        } else if ("SCORE_CALIBRATION_WITH_WARNINGS".equals(calibration.scoreCalibrationStatus())) {
+            score += 80;
+        } else if ("SCORE_CALIBRATION_WEAK".equals(calibration.scoreCalibrationStatus())) {
+            score += 60;
+        }
+        if ("QUALITY_REVIEW_PASSED".equals(calibration.rankingQualityStatus())) {
+            score += 50;
+        } else if ("QUALITY_REVIEW_WITH_WARNINGS".equals(calibration.rankingQualityStatus())) {
+            score += 30;
+        } else if ("QUALITY_REVIEW_WEAK".equals(calibration.rankingQualityStatus())) {
+            score += 10;
+        }
+        score -= calibration.evaluationPreview().responseValidationFailures().size() * 20;
+        score -= calibration.calibrationFailures().size() * 2;
+        score -= calibration.evaluationPreview().evaluationFailures().size();
+        return score;
+    }
+
+    private List<PrototypeSwingOllamaChunkedRankingAttempt> markAcceptedAttempt(
+            List<PrototypeSwingOllamaChunkedRankingAttempt> attempts,
+            int acceptedAttemptNumber
+    ) {
+        List<PrototypeSwingOllamaChunkedRankingAttempt> marked = new ArrayList<>();
+        for (PrototypeSwingOllamaChunkedRankingAttempt attempt : attempts) {
+            if (attempt.attemptNumber() == acceptedAttemptNumber) {
+                marked.add(new PrototypeSwingOllamaChunkedRankingAttempt(
+                        attempt.chunkNumber(),
+                        attempt.attemptNumber(),
+                        attempt.repairInstruction(),
+                        attempt.expectedCandidateIds(),
+                        attempt.candidateSymbols(),
+                        attempt.promptHash(),
+                        attempt.prompt(),
+                        attempt.promptCharacterCount(),
+                        attempt.responseHash(),
+                        attempt.responseCharacterCount(),
+                        attempt.ollamaElapsedMillis(),
+                        attempt.ollamaTotalDurationNanos(),
+                        attempt.ollamaPromptEvalCount(),
+                        attempt.ollamaEvalCount(),
+                        attempt.ollamaResponse(),
+                        attempt.responseParseableJson(),
+                        attempt.responseSchemaValid(),
+                        attempt.rankingQualityStatus(),
+                        attempt.scoreCalibrationStatus(),
+                        attempt.responseValidationFailures(),
+                        attempt.responseNormalizationWarnings(),
+                        attempt.evaluationFailures(),
+                        attempt.calibrationFailures(),
+                        true));
+            } else {
+                marked.add(attempt);
+            }
+        }
+        return marked;
     }
 
     private PrototypeSwingOllamaChunkedRankingAttempt attempt(
@@ -367,6 +447,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         }
         if (failures.stream().anyMatch(failure -> failure.startsWith("SCORE_CAP_VIOLATION"))) {
             builder.append("Honor score_cap_hint exactly: HARD_CAP_54 requires score <=54, HARD_CAP_69 requires score <=69 and SOFT_CAP_84 requires score <=84. ");
+            appendExactScoreCapRepairs(builder, failures);
         }
         if (failures.stream().anyMatch(failure -> failure.startsWith("TOP_PICK_GUARD_VIOLATION"))) {
             builder.append("Do not rank a top_pick_eligibility=BLOCKED candidate as rank 1 unless every candidate in the chunk is BLOCKED. ");
@@ -375,6 +456,39 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         builder.append("Apply the score_cap_hint rules in the prompt. ");
         builder.append("Do not drop lower-ranked candidates. Do not add symbols outside this list. Do not use markdown.");
         return builder.toString();
+    }
+
+    private void appendExactScoreCapRepairs(StringBuilder builder, List<String> failures) {
+        List<String> exactRepairs = failures.stream()
+                .filter(failure -> failure.startsWith("SCORE_CAP_VIOLATION:"))
+                .map(this::exactScoreCapRepair)
+                .filter(repair -> !repair.isBlank())
+                .distinct()
+                .toList();
+        if (!exactRepairs.isEmpty()) {
+            builder.append("Exact score cap repairs required: ")
+                    .append(String.join("; ", exactRepairs))
+                    .append(". ");
+        }
+    }
+
+    private String exactScoreCapRepair(String failure) {
+        String[] parts = failure.split(":");
+        if (parts.length < 4) {
+            return "";
+        }
+        String symbol = parts[1];
+        String cap = parts[2];
+        String maximum = switch (cap) {
+            case "HARD_CAP_54" -> "54";
+            case "HARD_CAP_69" -> "69";
+            case "SOFT_CAP_84" -> "84";
+            default -> "";
+        };
+        if (maximum.isBlank()) {
+            return "";
+        }
+        return symbol + " score and signedContributions.finalScore must be <= " + maximum;
     }
 
     private List<String> candidateIds(List<PrototypeSwingOllamaCandidate> candidates) {

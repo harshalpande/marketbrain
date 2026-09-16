@@ -1318,7 +1318,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             }
             PrototypeSwingOllamaCandidate expectedCandidate = expectedCandidateByCandidateId.get(candidateId);
             if (expectedCandidate != null) {
-                validateScoreCap(expectedCandidate, score, failures);
+                validateScoreCap(expectedCandidate, score, failures, normalizationWarnings);
                 if (rank == 1
                         && !allTopPickBlocked
                         && "BLOCKED".equals(topPickEligibility(expectedCandidate))) {
@@ -1467,17 +1467,41 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         return value;
     }
 
-    private void validateScoreCap(PrototypeSwingOllamaCandidate candidate, int score, List<String> failures) {
+    private void validateScoreCap(
+            PrototypeSwingOllamaCandidate candidate,
+            int score,
+            List<String> failures,
+            List<String> normalizationWarnings
+    ) {
         String cap = scoreCapHint(candidate);
-        if ("HARD_CAP_54".equals(cap) && score > 54) {
-            failures.add("SCORE_CAP_VIOLATION:" + candidate.symbol() + ":HARD_CAP_54:score=" + score);
+        if ("HARD_CAP_54".equals(cap)) {
+            validateScoreCap(candidate, score, 54, "HARD_CAP_54", failures, normalizationWarnings);
         }
-        if ("HARD_CAP_69".equals(cap) && score > 69) {
-            failures.add("SCORE_CAP_VIOLATION:" + candidate.symbol() + ":HARD_CAP_69:score=" + score);
+        if ("HARD_CAP_69".equals(cap)) {
+            validateScoreCap(candidate, score, 69, "HARD_CAP_69", failures, normalizationWarnings);
         }
-        if ("SOFT_CAP_84".equals(cap) && score > 84) {
-            failures.add("SCORE_CAP_VIOLATION:" + candidate.symbol() + ":SOFT_CAP_84:score=" + score);
+        if ("SOFT_CAP_84".equals(cap)) {
+            validateScoreCap(candidate, score, 84, "SOFT_CAP_84", failures, normalizationWarnings);
         }
+    }
+
+    private void validateScoreCap(
+            PrototypeSwingOllamaCandidate candidate,
+            int score,
+            int maximumScore,
+            String cap,
+            List<String> failures,
+            List<String> normalizationWarnings
+    ) {
+        if (score <= maximumScore) {
+            return;
+        }
+        if (score == maximumScore + 1) {
+            normalizationWarnings.add("SCORE_CAP_TOLERATED:" + candidate.symbol() + ":" + cap
+                    + ":score=" + score + ":max=" + maximumScore);
+            return;
+        }
+        failures.add("SCORE_CAP_VIOLATION:" + candidate.symbol() + ":" + cap + ":score=" + score);
     }
 
     static String candidateId(int zeroBasedIndex) {

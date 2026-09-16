@@ -68,6 +68,7 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("SOFT_CAP_84");
         assertThat(source).contains("validateScoreCap");
         assertThat(source).contains("SCORE_CAP_VIOLATION");
+        assertThat(source).contains("SCORE_CAP_TOLERATED");
         assertThat(source).contains("TOP_PICK_GUARD_VIOLATION");
         assertThat(source).contains("normalizationWarnings");
         assertThat(source).contains("ENUM_NORMALIZED");

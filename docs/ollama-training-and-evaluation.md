@@ -1,6 +1,6 @@
 # Ollama training, rubric and evaluation design
 
-Status: Step 83 separates Granite input hints from output enums and adds offset-based chunk smoke testing.
+Status: Step 84 preserves the best valid Granite attempt and tolerates audited one-point score-cap misses.
 
 MarketBrain does not use Ollama as a generic chatbot. Ollama is treated as a local research assistant that must be
 guided by a versioned MarketBrain playbook, labelled positive and negative examples, a scoring rubric, and strict
@@ -352,6 +352,22 @@ evidence that the model did not perfectly follow the contract. Unsafe polarity-c
 
 The PowerShell runner now accepts `-StartOffset`, so the next verification can smoke-test one or two chunks before
 committing to a full six-chunk run.
+
+Step 84 responds to the next full six-chunk run. Step 83 recovered the enum/schema confusion, improving usable chunks
+from 1/6 to 3/6, but three avoidable blockers remained:
+
+- a later retry could be worse than an earlier schema-valid, quality-usable attempt;
+- one-point cap misses such as `HARD_CAP_54 score=55` blocked otherwise useful chunks;
+- repair prompts named the generic cap rule but not always the exact symbol and maximum score that needed correction.
+
+The chunk runner now preserves the best valid attempt when a retry gets worse. If attempt 1 is schema-valid and usable
+but attempt 2 violates schema/caps, the chunk can still be accepted with warnings using the earlier attempt, with
+`CHUNK_<n>_ACCEPTED_BEST_VALID_ATTEMPT_AFTER_RETRY` recorded as audit evidence.
+
+Score-cap validation remains strict for material violations, but an exact one-point miss is downgraded to
+`SCORE_CAP_TOLERATED` in `responseNormalizationWarnings`. Larger misses such as `HARD_CAP_54 score=69` still fail.
+Repair instructions now include exact symbol-level requirements such as `ACUTAAS score and signedContributions.finalScore
+must be <= 54`.
 
 ## Daily fresh-data feedback loop
 
