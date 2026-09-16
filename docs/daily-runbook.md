@@ -3731,6 +3731,11 @@ translate input-state tags into the fixed response enum DTO instead of copying r
 review-only misplacements are recorded as `ENUM_MISFILED_TOLERATED` warnings, while material score-cap violations
 such as `HARD_CAP_54 score=69` remain blocking failures.
 
+Step 86 adds a review-only Granite intelligence scorecard for completed Step 70 JSON results. It makes no Ollama call
+and creates no database writes, signals, paper fills, orders or broker actions. Use it after a full chunked run to
+separate pipeline reliability from actual ranking intelligence: schema discipline, score calibration, ranking quality,
+finalist quality, clean-pass percentage and pending improvement percentage.
+
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 
@@ -3819,6 +3824,21 @@ a fresh job only after the captured attempt/chunk files have been analysed.
 
 Accepted safety result: `DatabaseWritesPerformed=False`, `SignalsCreated=0`, `OrdersCreated=0`, and
 `ActionExecutionEnabled=False`.
+
+### Step 86. Review Granite intelligence scorecard
+
+After a completed Step 70 result JSON exists, run:
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+& '.\ops\windows\ReviewPrototypeSwingOllamaIntelligenceScorecard.ps1' `
+    -ResultPath 'C:\MarketBrainData\Review\prototype-swing-ollama-chunked-ranking-async-5bdbfcc1-d990-48d8-9e98-d4927596d917-ibm_granite4.1_8b-h20-offset0-total24-chunk4.json'
+```
+
+Read `overallIntelligenceScorePercent` as model-quality maturity, not as permission to trade. A 6/6 chunk pass means
+the pipeline is stable; warnings in score calibration, rank correlation, negative-return top-three picks or weak
+top-pick quality still require more training examples, pairwise ranking and random validation batches.
 
 ## Spare runtime laptop: normal update and redeploy
 
