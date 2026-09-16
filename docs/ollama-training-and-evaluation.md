@@ -318,11 +318,11 @@ showed three remaining weaknesses:
 - hard-capped or conflict-heavy candidates could still be promoted to rank 1 by the model, forcing Java arbitration to
   rescue the final review rank.
 
-The prompt now sends three additional deterministic fields per candidate:
+The prompt now sends deterministic anchor and guardrail fields per candidate:
 
 - `rebound_breakout_credit`, a bounded as-of credit for controlled low-range positive-momentum setups;
-- `java_pick_role`, marking Java's primary/secondary/supporting anchor or avoid-top-pick guidance;
-- `top_pick_guard`, one of `TOP_PICK_ALLOWED`, `TOP_PICK_CAUTION` or `TOP_PICK_BLOCKED`.
+- `anchor_priority_hint`, a numeric Java anchor-strength hint;
+- `top_pick_eligibility`, one of `ALLOWED`, `CAUTION` or `BLOCKED`.
 
 Java also validates score caps directly. `HARD_CAP_54`, `HARD_CAP_69` and `SOFT_CAP_84` now produce explicit
 `SCORE_CAP_VIOLATION` failures if Granite assigns a score above the allowed threshold. A `TOP_PICK_BLOCKED` candidate
@@ -333,8 +333,9 @@ Expected next-run improvement is not guaranteed, but the target is a 10-15 perce
 outcomes by converting the previous reason-code/schema failure and hard-capped top-pick mistakes into either clean
 passes or accepted-with-warning chunks.
 
-Step 83 responds to the Step 82 regression where Granite copied input guidance labels into output enum fields. The
-contract now uses `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V12` and `MARKETBRAIN_SWING_RUBRIC_V12`.
+Step 83 responds to the Step 82 regression where Granite copied input guidance labels into output enum fields. Step 85
+continues that hardening. The contract now uses `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13` and
+`MARKETBRAIN_SWING_RUBRIC_V13`.
 
 The candidate prompt no longer sends `java_pick_role` values such as `JAVA_PRIMARY_ANCHOR`, because those looked too
 similar to valid response enums. It now sends:
@@ -368,6 +369,13 @@ Score-cap validation remains strict for material violations, but an exact one-po
 `SCORE_CAP_TOLERATED` in `responseNormalizationWarnings`. Larger misses such as `HARD_CAP_54 score=69` still fail.
 Repair instructions now include exact symbol-level requirements such as `ACUTAAS score and signedContributions.finalScore
 must be <= 54`.
+
+Step 85 adds field-aware enum handling for the recurring Granite pattern where input-state tags are placed in the wrong
+response enum field. The prompt now gives an explicit translation table for common cases such as
+`VOLUME_CONFIRMED -> VOLUME_CONFIRMATION`, `RANGE_LEADERSHIP -> RANGE_BREAKOUT_LEADERSHIP`,
+`EMA_BULLISH -> EMA_MOMENTUM_SUPPORT`, and `RECOVERY_CANDIDATE -> RECOVERY_SETUP` or
+`RECOVERY_UNCONFIRMED` depending on context. Known misplaced review-only tags are recorded as
+`ENUM_MISFILED_TOLERATED` warnings instead of schema blockers. Material score-cap breaches still fail.
 
 ## Daily fresh-data feedback loop
 

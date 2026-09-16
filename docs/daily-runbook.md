@@ -3725,6 +3725,12 @@ Step 84 preserves the best valid attempt when a retry gets worse, logs this as
 `CHUNK_<n>_ACCEPTED_BEST_VALID_ATTEMPT_AFTER_RETRY`, tolerates only audited one-point score-cap misses as
 `SCORE_CAP_TOLERATED`, and sends exact symbol-level score-cap repair instructions on retry.
 
+Step 85 tightens the Granite/Java enum boundary for the remaining chunk 3 and chunk 4 failures. The active guided
+contract is now `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13` / `MARKETBRAIN_SWING_RUBRIC_V13`. Granite is told to
+translate input-state tags into the fixed response enum DTO instead of copying raw tags into the wrong field. Known
+review-only misplacements are recorded as `ENUM_MISFILED_TOLERATED` warnings, while material score-cap violations
+such as `HARD_CAP_54 score=69` remain blocking failures.
+
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 

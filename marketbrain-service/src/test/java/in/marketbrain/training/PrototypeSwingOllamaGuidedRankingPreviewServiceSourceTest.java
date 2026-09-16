@@ -54,6 +54,8 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("SignedContributionsDto");
         assertThat(source).contains("signedContributions");
         assertThat(source).contains("MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4");
+        assertThat(source).contains("MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13");
+        assertThat(source).contains("MARKETBRAIN_SWING_RUBRIC_V13");
         assertThat(source).contains("POSITIVE_EVIDENCE_CODES");
         assertThat(source).contains("RISK_FLAG_CODES");
         assertThat(source).contains("REASON_CODES");
@@ -72,7 +74,10 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("TOP_PICK_GUARD_VIOLATION");
         assertThat(source).contains("normalizationWarnings");
         assertThat(source).contains("ENUM_NORMALIZED");
+        assertThat(source).contains("ENUM_MISFILED_TOLERATED");
         assertThat(source).contains("POSITIVE_EVIDENCE_ALIASES");
+        assertThat(source).contains("POSITIVE_EVIDENCE_MISFILED_TOLERATED");
+        assertThat(source).contains("RISK_FLAG_MISFILED_TOLERATED");
         assertThat(source).contains("REASON_CODE_ALIASES");
         assertThat(source).contains("EVIDENCE_CODES_EMPTY");
         assertThat(source).contains("hasAtLeastOneValue");

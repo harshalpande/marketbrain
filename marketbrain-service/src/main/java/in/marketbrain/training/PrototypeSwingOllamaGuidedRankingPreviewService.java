@@ -23,9 +23,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V12";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V12";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V13";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -97,6 +97,38 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "RECOVERY_CANDIDATE", "RECOVERY_SETUP"
     );
     private static final Map<String, String> RISK_FLAG_ALIASES = Map.of();
+    private static final Set<String> POSITIVE_EVIDENCE_MISFILED_TOLERATED = Set.of(
+            "MIXED_TREND",
+            "TREND_CONFLICT",
+            "EMA_BEARISH",
+            "RSI_NEUTRAL",
+            "RSI_WEAK",
+            "RSI_OVERHEATED",
+            "VOLUME_WEAK",
+            "VOLUME_NEUTRAL",
+            "VOLATILITY_MODERATE",
+            "VOLATILITY_HIGH",
+            "RANGE_LOW",
+            "RANGE_EXTENDED",
+            "OVEREXTENSION_RISK",
+            "EXTENDED",
+            "EXTREME_OVEREXTENSION",
+            "CONFLICT_HEAVY",
+            "NOT_EXTENDED",
+            "NOT_RECOVERY",
+            "HARD_CAP_54",
+            "HARD_CAP_69",
+            "SOFT_CAP_84"
+    );
+    private static final Set<String> RISK_FLAG_MISFILED_TOLERATED = Set.of(
+            "EMA_BULLISH",
+            "RSI_CONSTRUCTIVE",
+            "VOLUME_CONFIRMED",
+            "RANGE_LEADERSHIP",
+            "RECOVERY_CANDIDATE",
+            "NOT_EXTENDED",
+            "NOT_RECOVERY"
+    );
     private static final Map<String, String> REASON_CODE_ALIASES = Map.of(
             "JAVA_PRIMARY_ANCHOR", "JAVA_ANCHOR_HELD",
             "JAVA_SECONDARY_ANCHOR", "JAVA_ANCHOR_HELD",
@@ -533,6 +565,18 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 RISK_ADJUSTED_LEADER_SELECTED, RELATIVE_LAGGARD_DEMOTED, JAVA_ANCHOR_HELD,
                 MULTI_FACTOR_ALIGNMENT, DRAWDOWN_TRAP.
 
+                Enum translation contract:
+                - Input tags are not output enums unless listed in the allowed enum list.
+                - If input says EMA_BULLISH, output positiveEvidenceCodes=EMA_MOMENTUM_SUPPORT, not riskFlagCodes=EMA_BULLISH.
+                - If input says VOLUME_CONFIRMED, output positiveEvidenceCodes=VOLUME_CONFIRMATION, not riskFlagCodes=VOLUME_CONFIRMED.
+                - If input says RANGE_LEADERSHIP, output positiveEvidenceCodes=RANGE_BREAKOUT_LEADERSHIP, not riskFlagCodes=RANGE_LEADERSHIP.
+                - If input says RECOVERY_CANDIDATE and recovery is helpful, output positiveEvidenceCodes=RECOVERY_SETUP.
+                - If recovery is not confirmed, output riskFlagCodes=RECOVERY_UNCONFIRMED.
+                - If input says NOT_EXTENDED or NOT_RECOVERY, do not output those words in any enum field. They mean absence of that risk/setup.
+                - If input says MIXED_TREND, use reasonCode=MIXED_EVIDENCE_CAPPED or riskFlagCodes=TREND_CONFLICT only when the trend conflict is material.
+                - If input says EMA_BEARISH, RSI_NEUTRAL, VOLUME_WEAK, VOLATILITY_MODERATE or RANGE_LOW, put the corresponding risk/neutral code only in riskFlagCodes, never in positiveEvidenceCodes.
+                - Hard cap is mandatory: HARD_CAP_54 => score <= 54; HARD_CAP_69 => score <= 69; SOFT_CAP_84 => score <= 84. Do not exceed these numbers.
+
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
         builder.append("scenario,symbol,daily_return_pct,sma20,sma50,sma200,rsi14,atr14,volatility20_pct,volume_ratio20,range_position252_pct,target_net_return_pct,target_benchmark_excess_pct,target_max_drawdown_pct,teaching_point\n");
@@ -671,6 +715,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 Do not copy input guidance values such as BULLISH_TREND, EMA_BULLISH, RANGE_LEADERSHIP, RECOVERY_CANDIDATE,
                 anchor_priority_hint, top_pick_eligibility, ALLOWED, CAUTION, BLOCKED, HIGH_ELIGIBLE or HARD_CAP_69 into
                 positiveEvidenceCodes, riskFlagCodes or reasonCode unless the same exact value appears in the allowed enum list above.
+                Never output NOT_EXTENDED, NOT_RECOVERY, VOLUME_CONFIRMED, RANGE_LEADERSHIP or RECOVERY_CANDIDATE as riskFlagCodes.
+                Never output MIXED_TREND, EMA_BEARISH, RSI_NEUTRAL, VOLUME_WEAK, VOLATILITY_MODERATE or RANGE_LOW as positiveEvidenceCodes.
+                Use enum translation instead: VOLUME_CONFIRMED -> VOLUME_CONFIRMATION; RANGE_LEADERSHIP -> RANGE_BREAKOUT_LEADERSHIP;
+                EMA_BULLISH -> EMA_MOMENTUM_SUPPORT; RECOVERY_CANDIDATE -> RECOVERY_SETUP when helpful, or RECOVERY_UNCONFIRMED when risky.
                 A weak or avoid candidate may use an empty positiveEvidenceCodes array only if riskFlagCodes is non-empty.
                 Score calibration rubric:
                 - 85..100: exceptional multi-factor setup with strong trend, participation, likely benchmark excess, controlled volatility/drawdown and almost no conflicts. HIGH confidence is allowed only here.
@@ -1340,6 +1388,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     "positiveEvidenceCodes",
                     "POSITIVE_EVIDENCE_CODE",
                     false,
+                    POSITIVE_EVIDENCE_MISFILED_TOLERATED,
                     failures,
                     normalizationWarnings);
             boolean riskFlagCodesValid = validateEnumArray(
@@ -1349,6 +1398,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     "riskFlagCodes",
                     "RISK_FLAG_CODE",
                     false,
+                    RISK_FLAG_MISFILED_TOLERATED,
                     failures,
                     normalizationWarnings);
             boolean evidenceCodesPresent = hasAtLeastOneValue(positiveEvidenceCodes)
@@ -1402,6 +1452,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             String fieldName,
             String failurePrefix,
             boolean requireAtLeastOne,
+            Set<String> toleratedMisfiledValues,
             List<String> failures,
             List<String> normalizationWarnings
     ) {
@@ -1418,6 +1469,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         for (JsonNode value : node) {
             String code = value.asText("");
             String normalized = normalizeEnumValue(code, allowedValues, aliases);
+            if (normalized == null && toleratedMisfiledValues.contains(code)) {
+                normalizationWarnings.add("ENUM_MISFILED_TOLERATED:" + fieldName + ":" + code);
+                continue;
+            }
             if (normalized == null || !seen.add(normalized)) {
                 failures.add(failurePrefix + "_VALUE:" + code);
                 valid = false;
