@@ -352,6 +352,19 @@ guidance row for every candidate. These are response-enum-safe suggestions only;
 prompt. It also reduces labelled examples to one per scenario type to cut prompt size and adds explicit pairwise anchor
 instructions for random and difficult-trap validation batches.
 
+Step 89 introduces a separate local typed decision primitive path using llama.cpp/GBNF. This is not a replacement for
+Java guardrails. Java still prepares the as-of candidate features and guardrail expectations, and the model is allowed
+to return only enum and band fields. The model no longer returns a free numeric score. Instead it returns `scoreBand`
+such as `VERY_LOW`, `LOW`, `MEDIUM`, `HIGH` or `VERY_HIGH`; Java converts bands into governed numeric ranges and
+enforces score caps. The first contract is `MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V1` /
+`MARKETBRAIN_TYPED_DECISION_GBNF_V1`.
+
+This changes the target architecture:
+
+- llama.cpp/GBNF is the strict decision primitive for machine-readable decisions;
+- Granite/Ollama remains a research benchmark or optional explanation/reviewer path;
+- Java remains the final judge for ranking, caps, human approval, broker eligibility and execution safety.
+
 Java now records safe enum normalization separately as `responseNormalizationWarnings`. This lets review runs proceed
 when Granite uses a near-equivalent alias such as `JAVA_PRIMARY_ANCHOR -> JAVA_PRIOR_STRONG`, while preserving audit
 evidence that the model did not perfectly follow the contract. Unsafe polarity-changing aliases are not normalized.

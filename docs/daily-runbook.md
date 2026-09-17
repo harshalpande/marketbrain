@@ -3879,6 +3879,39 @@ Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 To add a fourth focused scenario later, include `RECOVERY_OVEREXTENSION`. Scenario selection uses only as-of feature
 columns. Future labels remain hidden and evaluator-only.
 
+### Step 89. Run local llama.cpp / GBNF typed decision primitive preview
+
+Step 89 is the first local Jev-like decisioning prototype. It does not ask Granite to rank a whole chunk. Java prepares
+real prototype swing candidates and deterministic guardrail expectations, then a local `llama-cli` call must return
+only a strict GBNF-constrained JSON object with enum/band fields:
+
+- `decision`: `REJECT`, `WATCHLIST`, `SHORTLIST`, `TOP_PICK`;
+- `riskBucket`: `LOW`, `MEDIUM`, `HIGH`, `BLOCKED`;
+- `trapDetected`: `YES` or `NO`;
+- `scoreBand`: `VERY_LOW`, `LOW`, `MEDIUM`, `HIGH`, `VERY_HIGH`;
+- `confidenceBand`: `LOW`, `MEDIUM`, `HIGH`;
+- `primaryReasonCode`: one of the Java-approved reason enums.
+
+Use score bands, not free numeric model scores. Java remains authoritative for numeric scoring, score caps, approval
+windows, order sizing and future broker execution. This preview is review-only and creates no signal, paper fill,
+order or broker action.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+& '.\ops\windows\PreviewPrototypeSwingTypedDecisionPrimitives.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -SelectionMode DIFFICULT_TRAPS `
+    -StartOffset 0 `
+    -CandidateLimit 4 `
+    -RankingHorizonSessions 20
+```
+
+Start with `CandidateLimit 4`. If schema/business validity is strong, repeat with `RANDOM_VALIDATION` and then a larger
+candidate limit. The script writes a result JSON, attempt telemetry JSON, GBNF grammar, one prompt file per candidate,
+one raw llama.cpp output file per candidate, parsed decision JSON files and a transcript log under
+`C:\MarketBrainData\Review`.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:
