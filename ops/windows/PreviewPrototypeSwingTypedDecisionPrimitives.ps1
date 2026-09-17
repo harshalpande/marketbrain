@@ -175,7 +175,7 @@ try {
     Write-Host "Model ref: $ModelRef"
     Write-Host 'No database write, Ollama call, signal, paper fill, order, broker action, or live trading action will be created.'
 
-    $attempts = New-Object System.Collections.Generic.List[object]
+    $attempts = @()
     $total = @($preview.candidates).Count
     for ($index = 0; $index -lt $total; $index++) {
         $candidate = @($preview.candidates)[$index]
@@ -188,16 +188,29 @@ try {
         $responsePath = Join-Path $OutputDirectory ("$stem-{0}-{1}-decision.json" -f $candidate.candidateId, $candidate.symbol)
         [string]$candidate.prompt | Set-Content -LiteralPath $promptPath -Encoding UTF8
 
+        $stderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
         $startedAt = Get-Date
-        $rawOutput = & $llamaCli `
-            -hf $ModelRef `
-            --grammar-file $grammarPath `
-            --no-conversation `
-            --no-display-prompt `
-            -p ([string]$candidate.prompt) `
-            -n $MaxTokens `
-            --temp 0 2>&1 | Out-String
+        $llamaArguments = @(
+            '-hf', $ModelRef,
+            '--grammar-file', $grammarPath,
+            '--no-conversation',
+            '--no-display-prompt',
+            '-f', $promptPath,
+            '-n', ([string]$MaxTokens),
+            '--temp', '0'
+        )
+        $process = Start-Process `
+            -FilePath $llamaCli `
+            -ArgumentList $llamaArguments `
+            -NoNewWindow `
+            -Wait `
+            -PassThru `
+            -RedirectStandardOutput $rawPath `
+            -RedirectStandardError $stderrPath
         $elapsedMillis = [int](((Get-Date) - $startedAt).TotalMilliseconds)
+        $stdoutText = if (Test-Path -LiteralPath $rawPath) { Get-Content -LiteralPath $rawPath -Raw } else { '' }
+        $stderrText = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { '' }
+        $rawOutput = ($stdoutText + "`n" + $stderrText).Trim()
         $rawOutput | Set-Content -LiteralPath $rawPath -Encoding UTF8
 
         $jsonText = Get-FirstJsonObject -Text $rawOutput
@@ -205,11 +218,14 @@ try {
         $schemaValid = $false
         $businessValid = $false
         $decisionAligned = $false
-        $warnings = New-Object System.Collections.Generic.List[string]
-        $failures = New-Object System.Collections.Generic.List[string]
+        $warnings = @()
+        $failures = @()
         $decision = $null
+        if ($process.ExitCode -ne 0) {
+            $failures += "LLAMA_EXIT_CODE_$($process.ExitCode)"
+        }
         if ([string]::IsNullOrWhiteSpace($jsonText)) {
-            $failures.Add('NO_JSON_OBJECT_FOUND')
+            $failures += 'NO_JSON_OBJECT_FOUND'
         }
         else {
             $jsonText | Set-Content -LiteralPath $responsePath -Encoding UTF8
@@ -218,62 +234,62 @@ try {
                 $parseable = $true
             }
             catch {
-                $failures.Add('JSON_PARSE_FAILED')
+                $failures += 'JSON_PARSE_FAILED'
             }
         }
 
         if ($parseable) {
             if ([string]$decision.candidateId -ne [string]$candidate.candidateId) {
-                $failures.Add('CANDIDATE_ID_MISMATCH')
+                $failures += 'CANDIDATE_ID_MISMATCH'
             }
             if (-not (Test-InSet $decision.decision $preview.allowedDecisions)) {
-                $failures.Add('INVALID_DECISION_ENUM')
+                $failures += 'INVALID_DECISION_ENUM'
             }
             if (-not (Test-InSet $decision.riskBucket $preview.allowedRiskBuckets)) {
-                $failures.Add('INVALID_RISK_BUCKET_ENUM')
+                $failures += 'INVALID_RISK_BUCKET_ENUM'
             }
             if (-not (Test-InSet $decision.trapDetected $preview.allowedTrapFlags)) {
-                $failures.Add('INVALID_TRAP_ENUM')
+                $failures += 'INVALID_TRAP_ENUM'
             }
             if (-not (Test-InSet $decision.scoreBand $preview.allowedScoreBands)) {
-                $failures.Add('INVALID_SCORE_BAND_ENUM')
+                $failures += 'INVALID_SCORE_BAND_ENUM'
             }
             if (-not (Test-InSet $decision.confidenceBand $preview.allowedConfidenceBands)) {
-                $failures.Add('INVALID_CONFIDENCE_BAND_ENUM')
+                $failures += 'INVALID_CONFIDENCE_BAND_ENUM'
             }
             if (-not (Test-InSet $decision.primaryReasonCode $preview.allowedReasonCodes)) {
-                $failures.Add('INVALID_REASON_CODE_ENUM')
+                $failures += 'INVALID_REASON_CODE_ENUM'
             }
             $schemaValid = $failures.Count -eq 0
         }
 
         if ($schemaValid) {
             if ($decision.riskBucket -eq 'BLOCKED' -and $decision.decision -eq 'TOP_PICK') {
-                $failures.Add('BLOCKED_CANDIDATE_PROMOTED_TO_TOP_PICK')
+                $failures += 'BLOCKED_CANDIDATE_PROMOTED_TO_TOP_PICK'
             }
             if ($candidate.javaTopPickEligibility -eq 'BLOCKED' -and $decision.decision -eq 'TOP_PICK') {
-                $failures.Add('JAVA_BLOCKED_CANDIDATE_PROMOTED_TO_TOP_PICK')
+                $failures += 'JAVA_BLOCKED_CANDIDATE_PROMOTED_TO_TOP_PICK'
             }
             if ($decision.decision -eq 'REJECT' -and @('HIGH', 'VERY_HIGH') -contains $decision.scoreBand) {
-                $failures.Add('REJECT_WITH_HIGH_SCORE_BAND')
+                $failures += 'REJECT_WITH_HIGH_SCORE_BAND'
             }
             if ($decision.riskBucket -eq 'BLOCKED' -and @('MEDIUM', 'HIGH', 'VERY_HIGH') -contains $decision.scoreBand) {
-                $failures.Add('BLOCKED_WITH_ELEVATED_SCORE_BAND')
+                $failures += 'BLOCKED_WITH_ELEVATED_SCORE_BAND'
             }
             if ($candidate.javaScoreCapHint -eq 'HARD_CAP_54' -and @('HIGH', 'VERY_HIGH') -contains $decision.scoreBand) {
-                $failures.Add('HARD_CAP_54_SCORE_BAND_VIOLATION')
+                $failures += 'HARD_CAP_54_SCORE_BAND_VIOLATION'
             }
             if ($candidate.javaScoreCapHint -eq 'HARD_CAP_69' -and $decision.scoreBand -eq 'VERY_HIGH') {
-                $failures.Add('HARD_CAP_69_SCORE_BAND_VIOLATION')
+                $failures += 'HARD_CAP_69_SCORE_BAND_VIOLATION'
             }
             if ([string]$decision.decision -ne [string]$candidate.javaDecision) {
-                $warnings.Add('DECISION_DIVERGED_FROM_JAVA_GUARDRAIL')
+                $warnings += 'DECISION_DIVERGED_FROM_JAVA_GUARDRAIL'
             }
             if ([string]$decision.riskBucket -ne [string]$candidate.javaRiskBucket) {
-                $warnings.Add('RISK_BUCKET_DIVERGED_FROM_JAVA_GUARDRAIL')
+                $warnings += 'RISK_BUCKET_DIVERGED_FROM_JAVA_GUARDRAIL'
             }
             if ([string]$decision.scoreBand -ne [string]$candidate.javaScoreBand) {
-                $warnings.Add('SCORE_BAND_DIVERGED_FROM_JAVA_GUARDRAIL')
+                $warnings += 'SCORE_BAND_DIVERGED_FROM_JAVA_GUARDRAIL'
             }
             $businessValid = $failures.Count -eq 0
             $decisionAligned = ([string]$decision.decision -eq [string]$candidate.javaDecision) `
@@ -288,6 +304,8 @@ try {
             symbol                                 = $candidate.symbol
             promptPath                             = $promptPath
             rawOutputPath                          = $rawPath
+            stderrPath                             = $stderrPath
+            llamaExitCode                          = $process.ExitCode
             responsePath                           = if (Test-Path -LiteralPath $responsePath) { $responsePath } else { $null }
             elapsedMillis                          = $elapsedMillis
             parseableJson                          = $parseable
@@ -317,7 +335,7 @@ try {
             warnings                               = $warningArray
             failures                               = $failureArray
         }
-        $attempts.Add($attemptRecord)
+        $attempts += $attemptRecord
         @($attempts) |
             ConvertTo-Json -Depth 80 |
             Set-Content -LiteralPath $attemptPath -Encoding UTF8
