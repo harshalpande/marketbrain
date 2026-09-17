@@ -3726,10 +3726,14 @@ Step 84 preserves the best valid attempt when a retry gets worse, logs this as
 `SCORE_CAP_TOLERATED`, and sends exact symbol-level score-cap repair instructions on retry.
 
 Step 85 tightens the Granite/Java enum boundary for the remaining chunk 3 and chunk 4 failures. The active guided
-contract is now `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13` / `MARKETBRAIN_SWING_RUBRIC_V13`. Granite is told to
+contract is now `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V14` / `MARKETBRAIN_SWING_RUBRIC_V14`. Granite is told to
 translate input-state tags into the fixed response enum DTO instead of copying raw tags into the wrong field. Known
 review-only misplacements are recorded as `ENUM_MISFILED_TOLERATED` warnings, while material score-cap violations
 such as `HARD_CAP_54 score=69` remain blocking failures.
+
+Step 88 reduces prompt size by limiting labelled examples to one per scenario type, adds Java-generated safe enum
+guidance per candidate, and adds pairwise anchor guidance for random and difficult-trap batches. The goal is to lower
+Ollama time while improving generalization beyond the fixed-symbol regression batch.
 
 Step 86 adds a review-only Granite intelligence scorecard for completed Step 70 JSON results. It makes no Ollama call
 and creates no database writes, signals, paper fills, orders or broker actions. Use it after a full chunked run to

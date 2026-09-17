@@ -414,6 +414,9 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 || failures.contains("REASONING_ENUM_FIELDS")) {
             builder.append("Use only the allowed enum values for positiveEvidenceCodes, riskFlagCodes and reasonCode. ");
             builder.append("Do not return descriptive prose in evidence fields. ");
+            builder.append("Never output RANGE_MIDDLE, VOLATILITY_CONTROLLED, VOLUME_CONFIRMED, RANGE_LEADERSHIP, RECOVERY_CANDIDATE, NOT_EXTENDED, NOT_RECOVERY or EMA_BULLISH in any enum field. ");
+            builder.append("Use the safe enum guidance table from the prompt for each candidate. ");
+            builder.append("If a candidate is weak, use positiveEvidenceCodes=[] and put only allowed caveats in riskFlagCodes. ");
         }
         if (failures.contains("RANKED_CANDIDATE_COUNT")) {
             builder.append("Specifically fix RANKED_CANDIDATE_COUNT by returning one rankedCandidates row for every listed candidateId. ");
@@ -439,6 +442,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
         }
         if (failures.contains("BEST_ACTUAL_SCORE_TOO_LOW")) {
             builder.append("Use a wider score scale and make the strongest relative setup in this chunk score at least 70 unless every candidate is poor. ");
+            builder.append("Do not keep all non-leaders at the same score when anchor ranks or risk flags differ. ");
         }
         if (failures.stream().anyMatch(failure -> failure.startsWith("SIGNED_CONTRIBUTION"))
                 || failures.contains("SIGNED_CONTRIBUTIONS_OBJECT")) {

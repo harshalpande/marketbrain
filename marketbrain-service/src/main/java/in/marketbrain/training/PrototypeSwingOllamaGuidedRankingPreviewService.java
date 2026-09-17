@@ -24,9 +24,9 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
-    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13";
+    static final String INSTRUCTION_PACK_VERSION = "MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V14";
     static final String RESPONSE_SCHEMA_VERSION = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
-    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V13";
+    static final String RUBRIC_VERSION = "MARKETBRAIN_SWING_RUBRIC_V14";
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
     private static final int MAXIMUM_CANDIDATE_LIMIT = 25;
     private static final int DEFAULT_RANKING_HORIZON_SESSIONS = 20;
@@ -97,7 +97,9 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "RANGE_LEADERSHIP", "RANGE_BREAKOUT_LEADERSHIP",
             "RECOVERY_CANDIDATE", "RECOVERY_SETUP"
     );
-    private static final Map<String, String> RISK_FLAG_ALIASES = Map.of();
+    private static final Map<String, String> RISK_FLAG_ALIASES = Map.of(
+            "RELATIVE_LAGGARD", "RELATIVE_LAGGARD"
+    );
     private static final Set<String> POSITIVE_EVIDENCE_MISFILED_TOLERATED = Set.of(
             "MIXED_TREND",
             "TREND_CONFLICT",
@@ -127,6 +129,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "VOLUME_CONFIRMED",
             "RANGE_LEADERSHIP",
             "RECOVERY_CANDIDATE",
+            "RANGE_MIDDLE",
+            "VOLATILITY_CONTROLLED",
             "NOT_EXTENDED",
             "NOT_RECOVERY"
     );
@@ -134,7 +138,8 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             "JAVA_PRIMARY_ANCHOR", "JAVA_ANCHOR_HELD",
             "JAVA_SECONDARY_ANCHOR", "JAVA_ANCHOR_HELD",
             "JAVA_SUPPORTING_CANDIDATE", "JAVA_BASELINE_ALIGNED",
-            "CONFLICT_HEAVY", "LOW_QUALITY_AVOID"
+            "CONFLICT_HEAVY", "LOW_QUALITY_AVOID",
+            "RELATIVE_LAGGARD", "RELATIVE_LAGGARD_DEMOTED"
     );
 
     private final PrototypeSwingTrainingDatasetAuditService auditService;
@@ -394,35 +399,35 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
     ) {
         List<PrototypeSwingOllamaTrainingExample> examples = new ArrayList<>();
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "POSITIVE_WINNER",
-                "label.net_return_percent DESC, label.benchmark_excess_return_percent DESC", 4,
+                "label.net_return_percent DESC, label.benchmark_excess_return_percent DESC", 1,
                 "Strong labelled winner: learn confluence that produced high net return and positive benchmark excess.",
                 "label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "NEGATIVE_LOSER",
-                "label.net_return_percent ASC, label.benchmark_excess_return_percent ASC", 4,
+                "label.net_return_percent ASC, label.benchmark_excess_return_percent ASC", 1,
                 "Labelled loser: weak future return or benchmark lag should reduce rank even if one feature looks attractive.",
                 "label.net_return_percent < 0 OR label.benchmark_excess_return_percent < 0"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "BENCHMARK_LAGGARD_TRAP",
-                "label.benchmark_excess_return_percent ASC, item.daily_return_percent DESC", 2,
+                "label.benchmark_excess_return_percent ASC, item.daily_return_percent DESC", 1,
                 "Trap example: do not over-rank candidates that may rise but lag the benchmark or equal-weight proxy.",
                 "label.benchmark_excess_return_percent < 0"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "DRAWDOWN_TRAP",
-                "label.maximum_drawdown_percent DESC, label.net_return_percent ASC", 2,
+                "label.maximum_drawdown_percent DESC, label.net_return_percent ASC", 1,
                 "Trap example: high pain/drawdown or unstable path must cap confidence and score.",
                 "label.maximum_drawdown_percent >= 10"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "FALSE_CONFIDENCE_TRAP",
-                "item.annualized_volatility20_percent DESC, item.volume_ratio20 ASC", 2,
+                "item.annualized_volatility20_percent DESC, item.volume_ratio20 ASC", 1,
                 "Trap example: do not assign HIGH confidence when volatility is high, participation is weak, or evidence is conflicted.",
                 "label.net_return_percent <= 5 OR label.benchmark_excess_return_percent <= 0"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "SMOOTH_OUTPERFORMER",
-                "label.benchmark_excess_return_percent DESC, label.maximum_drawdown_percent ASC", 2,
+                "label.benchmark_excess_return_percent DESC, label.maximum_drawdown_percent ASC", 1,
                 "Preferred pattern: positive benchmark excess with manageable drawdown deserves a better rank than a noisy chart.",
                 "label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0 AND label.maximum_drawdown_percent < 6"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "RECOVERY_OUTPERFORMER",
-                "label.benchmark_excess_return_percent DESC, item.annualized_volatility20_percent ASC", 2,
+                "label.benchmark_excess_return_percent DESC, item.annualized_volatility20_percent ASC", 1,
                 "Recovery winner: low range position or weak recent momentum can still be attractive when volatility is controlled and participation is not broken.",
                 "item.range_position252_percent < 40 AND label.net_return_percent > 0 AND label.benchmark_excess_return_percent > 0"));
         examples.addAll(trainingExamples(runId, horizon, excludedSymbols, "OVEREXTENDED_MOMENTUM_TRAP",
-                "item.range_position252_percent DESC, item.annualized_volatility20_percent DESC", 2,
+                "item.range_position252_percent DESC, item.annualized_volatility20_percent DESC", 1,
                 "Overextended trap: high daily return, hot RSI/range and high volatility should cap score even when the chart looks exciting.",
                 "item.range_position252_percent > 90 AND item.rsi14 > 65 AND item.annualized_volatility20_percent > 35"));
         return List.copyOf(examples);
@@ -554,80 +559,10 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
 
                 """);
         builder.append("""
-                MarketBrain deterministic ranking algorithm contract:
-                1. Treat feature_prior_rank as the baseline rank for this chunk.
-                2. Treat feature_prior_score as Java's bounded 0..100 baseline score.
-                3. The input contribution fields are signed/positive Java factors except penalty columns:
-                   - trend_score can be negative or positive.
-                   - momentum_score can be negative or positive.
-                   - participation_score can be negative or positive.
-                   - risk_penalty is a positive penalty in the input; report it as a negative signed contribution in JSON.
-                   - recovery_credit is a positive contribution in the input.
-                   - overextension_penalty is a positive penalty in the input; report it as a negative signed contribution in JSON.
-                4. finalScore must equal your top-level score within 10 points and stay inside 0..100.
-                5. If rank differs from feature_prior_rank by more than one position, encode the exact feature conflict or recovery/overextension evidence through positiveEvidenceCodes, riskFlagCodes and reasonCode.
-                6. Score cap hints are mandatory guardrails unless the enum-coded evidence shows exceptional cross-feature support.
-
-                Exact response DTO to populate:
-                RankingResponseDto {
-                  string schemaVersion = "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4";
-                  integer rankingHorizonSessions;
-                  RankedCandidateDto[] rankedCandidates;
-                  string riskNoteCode;           // SURVIVORSHIP_PROTOTYPE_REVIEW_ONLY
-                  string researchOnlyCode;       // NOT_TRADING_SIGNAL
-                }
-                RankedCandidateDto {
-                  integer rank;                 // complete sequence 1..candidateCount
-                  string candidateId;            // exact supplied candidateId
-                  string symbol;                 // exact supplied symbol for candidateId
-                  integer score;                 // 0..100
-                  string confidence;             // LOW | MEDIUM | HIGH
-                  string[] positiveEvidenceCodes;// enum values only, can be [] for weak/avoid candidates
-                  string[] riskFlagCodes;        // enum values only, or []
-                  string reasonCode;             // enum value only, not prose
-                  SignedContributionsDto signedContributions;
-                  boolean notTradingSignal = true;
-                }
-                SignedContributionsDto {
-                  integer trendContribution;        // -100..100
-                  integer momentumContribution;     // -100..100
-                  integer participationContribution;// -100..100
-                  integer riskPenalty;              // -100..100, normally zero or negative
-                  integer recoveryCredit;            // -100..100, normally zero or positive
-                  integer overextensionPenalty;      // -100..100, normally zero or negative
-                  integer algorithmAdjustment;       // -100..100, only for relative/tie-break adjustment
-                  integer finalScore;                // 0..100, within 10 points of score
-                }
-
-                Allowed positiveEvidenceCodes:
-                TREND_SUPPORT, EMA_MOMENTUM_SUPPORT, RSI_CONSTRUCTIVE, VOLUME_CONFIRMATION,
-                CONTROLLED_VOLATILITY, RANGE_BREAKOUT_LEADERSHIP, RECOVERY_SETUP, JAVA_PRIOR_STRONG,
-                RELATIVE_BEST_IN_CHUNK, RISK_ADJUSTED_LEADER, MULTI_FACTOR_ALIGNMENT, PEER_QUALITY_ADVANTAGE.
-                Allowed riskFlagCodes:
-                TREND_CONFLICT, EMA_BEARISH, RSI_WEAK, RSI_OVERHEATED, VOLUME_WEAK, VOLATILITY_HIGH,
-                RANGE_EXTENDED, OVEREXTENSION_RISK, RECOVERY_UNCONFIRMED, SCORE_CAP_LIMITED,
-                ONE_DAY_SPIKE_RISK, JAVA_PRIOR_LOW, RELATIVE_LAGGARD, MATERIAL_QUALITY_GAP,
-                MULTIPLE_MAJOR_CONFLICTS, VOLUME_NEUTRAL, RSI_NEUTRAL, VOLATILITY_MODERATE,
-                RANGE_LOW, EXTENDED, EXTREME_OVEREXTENSION, CONFLICT_HEAVY, HARD_CAP_54,
-                HARD_CAP_69, SOFT_CAP_84.
-                Allowed reasonCode:
-                BALANCED_STRENGTH, JAVA_BASELINE_ALIGNED, RECOVERY_WITH_CONTROLLED_RISK,
-                DEMOTED_OVEREXTENSION, DEMOTED_WEAK_PARTICIPATION, DEMOTED_TREND_CONFLICT,
-                MIXED_EVIDENCE_CAPPED, LEAST_BAD_OPTION, MODEL_CHALLENGE_FEATURED, LOW_QUALITY_AVOID,
-                RISK_ADJUSTED_LEADER_SELECTED, RELATIVE_LAGGARD_DEMOTED, JAVA_ANCHOR_HELD,
-                MULTI_FACTOR_ALIGNMENT, DRAWDOWN_TRAP.
-
-                Enum translation contract:
-                - Input tags are not output enums unless listed in the allowed enum list.
-                - If input says EMA_BULLISH, output positiveEvidenceCodes=EMA_MOMENTUM_SUPPORT, not riskFlagCodes=EMA_BULLISH.
-                - If input says VOLUME_CONFIRMED, output positiveEvidenceCodes=VOLUME_CONFIRMATION, not riskFlagCodes=VOLUME_CONFIRMED.
-                - If input says RANGE_LEADERSHIP, output positiveEvidenceCodes=RANGE_BREAKOUT_LEADERSHIP, not riskFlagCodes=RANGE_LEADERSHIP.
-                - If input says RECOVERY_CANDIDATE and recovery is helpful, output positiveEvidenceCodes=RECOVERY_SETUP.
-                - If recovery is not confirmed, output riskFlagCodes=RECOVERY_UNCONFIRMED.
-                - If input says NOT_EXTENDED or NOT_RECOVERY, do not output those words in any enum field. They mean absence of that risk/setup.
-                - If input says MIXED_TREND, use reasonCode=MIXED_EVIDENCE_CAPPED or riskFlagCodes=TREND_CONFLICT only when the trend conflict is material.
-                - If input says EMA_BEARISH, RSI_NEUTRAL, VOLUME_WEAK, VOLATILITY_MODERATE or RANGE_LOW, put the corresponding risk/neutral code only in riskFlagCodes, never in positiveEvidenceCodes.
-                - Hard cap is mandatory: HARD_CAP_54 => score <= 54; HARD_CAP_69 => score <= 69; SOFT_CAP_84 => score <= 84. Do not exceed these numbers.
+                Contract summary:
+                - Java supplies bounded feature priors, quality anchors, score caps and top-pick guardrails.
+                - Granite must review/challenge only inside that contract, return the exact DTO shown below, and use enum whitelists only.
+                - Hidden future labels are not in this prompt; Java evaluates the response separately after the call.
 
                 """);
         builder.append("Labelled training examples. Learn patterns from these examples; do not rank these symbols:\n");
@@ -706,6 +641,31 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                     .append(topPickEligibility(candidate)).append(',')
                     .append(scoreCapHint(candidate)).append('\n');
         }
+        builder.append("\nSafe enum guidance generated by Java. Prefer these allowed output codes; do not invent alternatives:\n");
+        builder.append("candidate_id,symbol,preferred_anchor_rank,top_pick_eligibility,score_cap_hint,safe_positiveEvidenceCodes,safe_riskFlagCodes,preferred_reasonCode\n");
+        for (int index = 0; index < candidates.size(); index++) {
+            PrototypeSwingOllamaCandidate candidate = candidates.get(index);
+            int qualityAnchorScore = qualityAnchorScore(candidate);
+            builder.append(candidateId(index)).append(',')
+                    .append(candidate.symbol()).append(',')
+                    .append(qualityAnchorRanks.get(candidate.symbol())).append(',')
+                    .append(topPickEligibility(candidate)).append(',')
+                    .append(scoreCapHint(candidate)).append(',')
+                    .append('"').append(String.join("|", safePositiveEvidenceCodes(candidate, qualityAnchorRanks.get(candidate.symbol())))).append('"').append(',')
+                    .append('"').append(String.join("|", safeRiskFlagCodes(candidate, qualityAnchorScore, leaderQualityAnchorScore))).append('"').append(',')
+                    .append(preferredReasonCode(candidate, qualityAnchorRanks.get(candidate.symbol()), qualityAnchorScore, leaderQualityAnchorScore))
+                    .append('\n');
+        }
+        builder.append("""
+
+                Pairwise ranking procedure before final JSON:
+                - Compare every candidate against the current quality_anchor_rank leader.
+                - Rank the better anchor first unless the leader is BLOCKED, violates a score cap, or has materially worse risk flags.
+                - A RELATIVE_LAGGARD or CONFLICT_HEAVY candidate should lose pairwise comparisons to CHUNK_LEADER/CHUNK_CONTENDER names unless all leaders are BLOCKED.
+                - For trap-heavy chunks, prefer the least-bad risk-adjusted candidate; keep scores low instead of forcing a strong-looking winner.
+                - If every candidate is weak, rank the least-bad candidate first with LOW/MEDIUM confidence and a capped score.
+
+                """);
         builder.append("\nExact rankedCandidates skeleton for this request. Return these candidateId/symbol pairs exactly once each; only decide rank, score, confidence, enum evidence codes and signed contributions:\n");
         builder.append("[\n");
         for (int index = 0; index < candidates.size(); index++) {
@@ -728,6 +688,7 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
         builder.append("""
 
                 Return ONLY valid JSON, no markdown and no prose outside JSON.
+                Exact response DTO names: RankingResponseDto with RankedCandidateDto rows and SignedContributionsDto.
                 Required JSON shape:
                 {
                   "schemaVersion": "MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4",
@@ -763,9 +724,25 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 score must be 0..100; confidence must be LOW, MEDIUM, or HIGH; notTradingSignal must be true.
                 Use only the listed enum values for positiveEvidenceCodes, riskFlagCodes and reasonCode.
                 Do not write descriptive prose in evidence fields.
+                Allowed positiveEvidenceCodes: TREND_SUPPORT, EMA_MOMENTUM_SUPPORT, RSI_CONSTRUCTIVE,
+                VOLUME_CONFIRMATION, CONTROLLED_VOLATILITY, RANGE_BREAKOUT_LEADERSHIP, RECOVERY_SETUP,
+                JAVA_PRIOR_STRONG, RELATIVE_BEST_IN_CHUNK, RISK_ADJUSTED_LEADER, MULTI_FACTOR_ALIGNMENT,
+                PEER_QUALITY_ADVANTAGE.
+                Allowed riskFlagCodes: TREND_CONFLICT, EMA_BEARISH, RSI_WEAK, RSI_OVERHEATED, VOLUME_WEAK,
+                VOLATILITY_HIGH, RANGE_EXTENDED, OVEREXTENSION_RISK, RECOVERY_UNCONFIRMED, SCORE_CAP_LIMITED,
+                ONE_DAY_SPIKE_RISK, JAVA_PRIOR_LOW, RELATIVE_LAGGARD, MATERIAL_QUALITY_GAP,
+                MULTIPLE_MAJOR_CONFLICTS, VOLUME_NEUTRAL, RSI_NEUTRAL, VOLATILITY_MODERATE, RANGE_LOW,
+                EXTENDED, EXTREME_OVEREXTENSION, CONFLICT_HEAVY, HARD_CAP_54, HARD_CAP_69, SOFT_CAP_84.
+                Allowed reasonCode: BALANCED_STRENGTH, JAVA_BASELINE_ALIGNED, RECOVERY_WITH_CONTROLLED_RISK,
+                DEMOTED_OVEREXTENSION, DEMOTED_WEAK_PARTICIPATION, DEMOTED_TREND_CONFLICT,
+                MIXED_EVIDENCE_CAPPED, LEAST_BAD_OPTION, MODEL_CHALLENGE_FEATURED, LOW_QUALITY_AVOID,
+                RISK_ADJUSTED_LEADER_SELECTED, RELATIVE_LAGGARD_DEMOTED, JAVA_ANCHOR_HELD,
+                MULTI_FACTOR_ALIGNMENT, DRAWDOWN_TRAP.
+                Forbidden enum outputs: RANGE_MIDDLE, VOLATILITY_CONTROLLED, VOLUME_CONFIRMED,
+                RANGE_LEADERSHIP, RECOVERY_CANDIDATE, NOT_EXTENDED, NOT_RECOVERY, EMA_BULLISH.
                 Candidate input columns with names ending in _tag, _hint, _eligibility, _bucket or _flag are input guidance only.
                 Do not copy input guidance values such as BULLISH_TREND, EMA_BULLISH, RANGE_LEADERSHIP, RECOVERY_CANDIDATE,
-                anchor_priority_hint, top_pick_eligibility, ALLOWED, CAUTION, BLOCKED, HIGH_ELIGIBLE or HARD_CAP_69 into
+                RANGE_MIDDLE, VOLATILITY_CONTROLLED, anchor_priority_hint, top_pick_eligibility, ALLOWED, CAUTION, BLOCKED, HIGH_ELIGIBLE or HARD_CAP_69 into
                 positiveEvidenceCodes, riskFlagCodes or reasonCode unless the same exact value appears in the allowed enum list above.
                 Never output NOT_EXTENDED, NOT_RECOVERY, VOLUME_CONFIRMED, RANGE_LEADERSHIP or RECOVERY_CANDIDATE as riskFlagCodes.
                 Never output MIXED_TREND, EMA_BEARISH, RSI_NEUTRAL, VOLUME_WEAK, VOLATILITY_MODERATE or RANGE_LOW as positiveEvidenceCodes.
@@ -1126,6 +1103,146 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
             positives++;
         }
         return positives;
+    }
+
+    List<String> safePositiveEvidenceCodes(
+            PrototypeSwingOllamaCandidate candidate,
+            int qualityAnchorRank
+    ) {
+        List<String> codes = new ArrayList<>();
+        if ("BULLISH_TREND".equals(trendTag(candidate))) {
+            codes.add("TREND_SUPPORT");
+        }
+        if ("EMA_BULLISH".equals(emaTag(candidate))) {
+            codes.add("EMA_MOMENTUM_SUPPORT");
+        }
+        if ("RSI_CONSTRUCTIVE".equals(rsiTag(candidate))) {
+            codes.add("RSI_CONSTRUCTIVE");
+        }
+        if ("VOLUME_CONFIRMED".equals(volumeTag(candidate))) {
+            codes.add("VOLUME_CONFIRMATION");
+        }
+        if ("VOLATILITY_CONTROLLED".equals(volatilityTag(candidate))) {
+            codes.add("CONTROLLED_VOLATILITY");
+        }
+        if ("RANGE_LEADERSHIP".equals(rangeTag(candidate))) {
+            codes.add("RANGE_BREAKOUT_LEADERSHIP");
+        }
+        if ("RECOVERY_CANDIDATE".equals(recoveryTag(candidate))) {
+            codes.add("RECOVERY_SETUP");
+        }
+        if (qualityAnchorRank == 1) {
+            codes.add("RELATIVE_BEST_IN_CHUNK");
+            codes.add("RISK_ADJUSTED_LEADER");
+        }
+        if (featurePriorScore(candidate) >= 60) {
+            codes.add("JAVA_PRIOR_STRONG");
+        }
+        if (positiveSignalCount(candidate) >= 3 && majorConflictCount(candidate) <= 1) {
+            codes.add("MULTI_FACTOR_ALIGNMENT");
+        }
+        return codes.stream()
+                .filter(POSITIVE_EVIDENCE_CODES::contains)
+                .distinct()
+                .toList();
+    }
+
+    List<String> safeRiskFlagCodes(
+            PrototypeSwingOllamaCandidate candidate,
+            int qualityAnchorScore,
+            int leaderQualityAnchorScore
+    ) {
+        List<String> codes = new ArrayList<>();
+        if ("TREND_CONFLICT".equals(trendTag(candidate))) {
+            codes.add("TREND_CONFLICT");
+        }
+        if ("EMA_BEARISH".equals(emaTag(candidate))) {
+            codes.add("EMA_BEARISH");
+        }
+        if ("RSI_WEAK".equals(rsiTag(candidate))) {
+            codes.add("RSI_WEAK");
+        }
+        if ("RSI_OVERHEATED".equals(rsiTag(candidate))) {
+            codes.add("RSI_OVERHEATED");
+        }
+        if ("VOLUME_WEAK".equals(volumeTag(candidate))) {
+            codes.add("VOLUME_WEAK");
+        }
+        if ("VOLUME_NEUTRAL".equals(volumeTag(candidate))) {
+            codes.add("VOLUME_NEUTRAL");
+        }
+        if ("VOLATILITY_HIGH".equals(volatilityTag(candidate))) {
+            codes.add("VOLATILITY_HIGH");
+        } else if ("VOLATILITY_MODERATE".equals(volatilityTag(candidate))) {
+            codes.add("VOLATILITY_MODERATE");
+        }
+        if ("RANGE_EXTENDED".equals(rangeTag(candidate))) {
+            codes.add("RANGE_EXTENDED");
+        }
+        if ("RANGE_LOW".equals(rangeTag(candidate))) {
+            codes.add("RANGE_LOW");
+        }
+        if ("EXTENDED".equals(overextensionTag(candidate))) {
+            codes.add("EXTENDED");
+            codes.add("OVEREXTENSION_RISK");
+        }
+        if ("EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+            codes.add("EXTREME_OVEREXTENSION");
+            codes.add("OVEREXTENSION_RISK");
+        }
+        String cap = scoreCapHint(candidate);
+        if (!"HIGH_ELIGIBLE".equals(cap)) {
+            codes.add("SCORE_CAP_LIMITED");
+            codes.add(cap);
+        }
+        if (featurePriorScore(candidate) < 40) {
+            codes.add("JAVA_PRIOR_LOW");
+        }
+        if (majorConflictCount(candidate) >= 2) {
+            codes.add("MULTIPLE_MAJOR_CONFLICTS");
+        }
+        if (Math.max(0, leaderQualityAnchorScore - qualityAnchorScore) >= 20) {
+            codes.add("RELATIVE_LAGGARD");
+            codes.add("MATERIAL_QUALITY_GAP");
+        }
+        if ("CONFLICT_HEAVY".equals(relativeQualityFlag(1, 1, leaderQualityAnchorScore, qualityAnchorScore, candidate))) {
+            codes.add("CONFLICT_HEAVY");
+        }
+        return codes.stream()
+                .filter(RISK_FLAG_CODES::contains)
+                .distinct()
+                .toList();
+    }
+
+    String preferredReasonCode(
+            PrototypeSwingOllamaCandidate candidate,
+            int qualityAnchorRank,
+            int qualityAnchorScore,
+            int leaderQualityAnchorScore
+    ) {
+        if ("BLOCKED".equals(topPickEligibility(candidate)) || qualityAnchorScore < 35) {
+            return "LOW_QUALITY_AVOID";
+        }
+        if ("EXTENDED".equals(overextensionTag(candidate))
+                || "EXTREME_OVEREXTENSION".equals(overextensionTag(candidate))) {
+            return "DEMOTED_OVEREXTENSION";
+        }
+        if ("RECOVERY_CANDIDATE".equals(recoveryTag(candidate)) && riskControlScore(candidate) >= 60) {
+            return "RECOVERY_WITH_CONTROLLED_RISK";
+        }
+        if (Math.max(0, leaderQualityAnchorScore - qualityAnchorScore) >= 20) {
+            return "RELATIVE_LAGGARD_DEMOTED";
+        }
+        if (majorConflictCount(candidate) >= 2) {
+            return "MIXED_EVIDENCE_CAPPED";
+        }
+        if (qualityAnchorRank == 1) {
+            return "RISK_ADJUSTED_LEADER_SELECTED";
+        }
+        if (positiveSignalCount(candidate) >= 3) {
+            return "MULTI_FACTOR_ALIGNMENT";
+        }
+        return "JAVA_BASELINE_ALIGNED";
     }
 
     int reboundBreakoutCredit(PrototypeSwingOllamaCandidate candidate) {

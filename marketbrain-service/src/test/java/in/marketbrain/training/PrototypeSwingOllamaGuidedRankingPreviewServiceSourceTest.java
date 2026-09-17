@@ -54,8 +54,8 @@ class PrototypeSwingOllamaGuidedRankingPreviewServiceSourceTest {
         assertThat(source).contains("SignedContributionsDto");
         assertThat(source).contains("signedContributions");
         assertThat(source).contains("MARKETBRAIN_OLLAMA_RANKING_RESPONSE_V4");
-        assertThat(source).contains("MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13");
-        assertThat(source).contains("MARKETBRAIN_SWING_RUBRIC_V13");
+        assertThat(source).contains("MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V14");
+        assertThat(source).contains("MARKETBRAIN_SWING_RUBRIC_V14");
         assertThat(source).contains("POSITIVE_EVIDENCE_CODES");
         assertThat(source).contains("RISK_FLAG_CODES");
         assertThat(source).contains("REASON_CODES");

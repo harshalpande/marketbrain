@@ -334,8 +334,8 @@ outcomes by converting the previous reason-code/schema failure and hard-capped t
 passes or accepted-with-warning chunks.
 
 Step 83 responds to the Step 82 regression where Granite copied input guidance labels into output enum fields. Step 85
-continues that hardening. The contract now uses `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V13` and
-`MARKETBRAIN_SWING_RUBRIC_V13`.
+continues that hardening. Step 88 advances the same contract to `MARKETBRAIN_SWING_OLLAMA_INSTRUCTION_PACK_V14` and
+`MARKETBRAIN_SWING_RUBRIC_V14`.
 
 The candidate prompt no longer sends `java_pick_role` values such as `JAVA_PRIMARY_ANCHOR`, because those looked too
 similar to valid response enums. It now sends:
@@ -346,6 +346,11 @@ similar to valid response enums. It now sends:
 The prompt also explicitly states that input columns ending in `_tag`, `_hint`, `_eligibility`, `_bucket` or `_flag`
 are not output enums and must not be copied into `positiveEvidenceCodes`, `riskFlagCodes` or `reasonCode` unless the
 exact value appears in the allowed output enum list.
+
+Step 88 adds a compact Java-generated `safe_positiveEvidenceCodes`, `safe_riskFlagCodes`, and `preferred_reasonCode`
+guidance row for every candidate. These are response-enum-safe suggestions only; hidden labels remain outside the
+prompt. It also reduces labelled examples to one per scenario type to cut prompt size and adds explicit pairwise anchor
+instructions for random and difficult-trap validation batches.
 
 Java now records safe enum normalization separately as `responseNormalizationWarnings`. This lets review runs proceed
 when Granite uses a near-equivalent alias such as `JAVA_PRIMARY_ANCHOR -> JAVA_PRIOR_STRONG`, while preserving audit
