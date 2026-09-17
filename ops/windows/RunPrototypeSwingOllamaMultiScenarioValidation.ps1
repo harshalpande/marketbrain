@@ -281,7 +281,7 @@ try {
     Write-Host "Candidates per scenario: $TotalCandidateLimitPerScenario; chunk size: $ChunkSize"
     Write-Host "Resume completed scenarios: $ResumeCompletedScenarios"
     Write-Host 'Each scenario remains review-only: no database write, signal, paper fill, order, broker action, or live trading action will be created.'
-    Save-AggregateCheckpoint -ScenarioResultRows @($scenarioResults) | Out-Null
+    Save-AggregateCheckpoint -ScenarioResultRows @($scenarioResults.ToArray()) | Out-Null
 
     for ($index = 0; $index -lt $SelectionModes.Count; $index++) {
         $mode = $SelectionModes[$index]
@@ -369,10 +369,10 @@ try {
 
         $donePercent = [int][Math]::Floor((($index + 1) / [double]$SelectionModes.Count) * 100)
         Write-StepProgress $donePercent ("Completed scenario {0}/{1}: {2} => {3}" -f $scenarioNumber, $SelectionModes.Count, $mode, $scenarioStatus)
-        Save-AggregateCheckpoint -ScenarioResultRows @($scenarioResults) | Out-Null
+        Save-AggregateCheckpoint -ScenarioResultRows @($scenarioResults.ToArray()) | Out-Null
     }
 
-    $aggregate = Save-AggregateCheckpoint -ScenarioResultRows @($scenarioResults)
+    $aggregate = Save-AggregateCheckpoint -ScenarioResultRows @($scenarioResults.ToArray())
 
     Write-Host ''
     Write-Host 'Step 87 scenario summary'
