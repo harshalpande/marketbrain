@@ -3845,6 +3845,9 @@ top-pick quality still require more training examples, pairwise ranking and rand
 After the fixed regression batch is stable, validate whether Granite generalizes beyond the same symbols. Step 87 runs
 multiple review-only scenarios sequentially with local Ollama concurrency still fixed at `1`. It writes one Step 70
 result, root-cause file, attempt telemetry file and Step 86 scorecard per scenario, plus one combined Step 87 report.
+The script retries transient health-check failures and writes a partial aggregate checkpoint after every scenario.
+By default, it resumes completed scenarios from existing Step 70 result JSON plus Step 86 scorecard files, so a reboot
+or shutdown does not force rerunning already-completed scenarios.
 
 Default scenario set:
 
@@ -3865,7 +3868,8 @@ Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
     -MaxRetriesPerChunk 1 `
     -RankingHorizonSessions 20 `
     -StatusPollTimeoutSeconds 180 `
-    -TimeoutSecondsPerScenario 21600
+    -TimeoutSecondsPerScenario 21600 `
+    -ResumeCompletedScenarios $true
 ```
 
 To add a fourth focused scenario later, include `RECOVERY_OVEREXTENSION`. Scenario selection uses only as-of feature
