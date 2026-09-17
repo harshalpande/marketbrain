@@ -281,7 +281,9 @@ try {
                 -and ([string]$decision.scoreBand -eq [string]$candidate.javaScoreBand)
         }
 
-        $attempts.Add([pscustomobject][ordered]@{
+        $warningArray = @($warnings | ForEach-Object { [string]$_ })
+        $failureArray = @($failures | ForEach-Object { [string]$_ })
+        $attemptRecord = [pscustomobject][ordered]@{
             candidateId                            = $candidate.candidateId
             symbol                                 = $candidate.symbol
             promptPath                             = $promptPath
@@ -312,13 +314,17 @@ try {
             actualRank                             = $candidate.actualRank
             targetNetReturnPercent                 = $candidate.targetNetReturnPercent
             targetMaximumDrawdownPercent           = $candidate.targetMaximumDrawdownPercent
-            warnings                               = @($warnings)
-            failures                               = @($failures)
-        })
+            warnings                               = $warningArray
+            failures                               = $failureArray
+        }
+        $attempts.Add($attemptRecord)
+        @($attempts) |
+            ConvertTo-Json -Depth 80 |
+            Set-Content -LiteralPath $attemptPath -Encoding UTF8
     }
 
     Write-StepProgress 92 'Summarizing typed decision primitive results...'
-    $attemptArray = @($attempts)
+    $attemptArray = @($attempts | ForEach-Object { $_ })
     $schemaValidCount = @($attemptArray | Where-Object { $_.schemaValid }).Count
     $businessValidCount = @($attemptArray | Where-Object { $_.businessValid }).Count
     $alignedCount = @($attemptArray | Where-Object { $_.decisionAlignedWithJavaGuardrail }).Count
@@ -352,7 +358,7 @@ try {
         signalsCreated                 = 0
         ordersCreated                  = 0
         actionExecutionEnabled         = $false
-        attempts                       = $attemptArray
+        attempts                       = @($attemptArray)
         detail                         = 'Step 89 used local llama.cpp with GBNF to produce enum/band typed decision primitives. Java guardrails remained authoritative. No trading action was created.'
     }
 
