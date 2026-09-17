@@ -424,7 +424,7 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
 
     private void ensureAuditReady(PrototypeSwingTrainingDatasetAudit audit) {
         if (audit == null
-                || !"COMPLETED".equals(audit.status())
+                || !"REVIEW_REQUIRED".equals(audit.status())
                 || !audit.prototypeTrainingEligible()
                 || !audit.pointInTimeSafe()
                 || !audit.futureLabelsSeparated()

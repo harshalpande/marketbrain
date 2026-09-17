@@ -22,6 +22,7 @@ class PrototypeSwingTypedDecisionPrimitivePreviewServiceSourceTest {
         assertThat(source).doesNotContain("paper_order");
         assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V1");
         assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_GBNF_V1");
+        assertThat(source).contains("\"REVIEW_REQUIRED\".equals(audit.status())");
         assertThat(source).contains("REJECT");
         assertThat(source).contains("WATCHLIST");
         assertThat(source).contains("SHORTLIST");
