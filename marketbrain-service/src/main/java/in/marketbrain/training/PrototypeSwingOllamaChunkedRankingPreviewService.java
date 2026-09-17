@@ -59,6 +59,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 ? new PrototypeSwingOllamaChunkedRankingRequest(null, null, null, null, null, null, null, null)
                 : request;
         String model = model(safeRequest.model());
+        String selectionMode = selectionMode(safeRequest.selectionMode());
         int startOffset = startOffset(safeRequest.startOffset());
         int totalCandidateLimit = totalCandidateLimit(safeRequest.totalCandidateLimit());
         int chunkSize = chunkSize(safeRequest.chunkSize());
@@ -89,7 +90,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                     "Starting chunk " + chunkNumber + " of " + targetChunkCount
             ));
             List<PrototypeSwingOllamaCandidate> candidates =
-                    guidedRankingService.candidates(runId, offset, requestedChunkSize);
+                    guidedRankingService.candidates(runId, offset, requestedChunkSize, selectionMode);
             if (candidates.isEmpty()) {
                 break;
             }
@@ -154,6 +155,7 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
                 maxRetriesPerChunk,
                 horizon,
                 CHUNKED_RANKING_VERSION,
+                selectionMode,
                 chunks.size(),
                 passedChunkCount,
                 warningChunkCount,
@@ -576,6 +578,19 @@ public class PrototypeSwingOllamaChunkedRankingPreviewService {
             throw new IllegalArgumentException("startOffset must be between 0 and 500.");
         }
         return offset;
+    }
+
+    private String selectionMode(String value) {
+        if (value == null || value.isBlank()) {
+            return "FIXED_SYMBOL";
+        }
+        String normalized = value.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!List.of("FIXED_SYMBOL", "RANDOM_VALIDATION", "DIFFICULT_TRAPS", "RECOVERY_OVEREXTENSION")
+                .contains(normalized)) {
+            throw new IllegalArgumentException(
+                    "selectionMode must be one of FIXED_SYMBOL, RANDOM_VALIDATION, DIFFICULT_TRAPS, or RECOVERY_OVEREXTENSION.");
+        }
+        return normalized;
     }
 
     private int chunkSize(Integer value) {

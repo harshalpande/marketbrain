@@ -26,6 +26,7 @@ class PrototypeSwingOllamaChunkedRankingPreviewControllerTest {
                         "REVIEW_REQUIRED", runId, "gemma3:4b",
                         LocalDate.of(2026, 6, 5), LocalDate.of(2026, 9, 8),
                         0, 12, 4, 2, 1, 20, "CHUNKED_V1",
+                        "FIXED_SYMBOL",
                         3, 3, 0, 0, 12, 6, 3,
                         List.of(), List.of(), List.of(), false, 0, 0, false, "review");
         when(service.preview(request)).thenReturn(expected);

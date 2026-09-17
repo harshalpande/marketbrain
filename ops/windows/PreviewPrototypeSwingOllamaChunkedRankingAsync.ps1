@@ -10,6 +10,10 @@ param(
     [string]$Model = 'ibm/granite4.1:8b',
 
     [Parameter()]
+    [ValidateSet('FIXED_SYMBOL', 'RANDOM_VALIDATION', 'DIFFICULT_TRAPS', 'RECOVERY_OVEREXTENSION')]
+    [string]$SelectionMode = 'FIXED_SYMBOL',
+
+    [Parameter()]
     [ValidateRange(1, 100)]
     [int]$TotalCandidateLimit = 24,
 
@@ -62,7 +66,8 @@ if ($FinalistsPerChunk -gt $ChunkSize) {
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $suffix = if ([string]::IsNullOrWhiteSpace($DatasetRunId)) { 'latest' } else { $DatasetRunId }
 $safeModel = $Model -replace '[^A-Za-z0-9._-]', '_'
-$stem = "prototype-swing-ollama-chunked-ranking-async-$suffix-$safeModel-h$RankingHorizonSessions-offset$StartOffset-total$TotalCandidateLimit-chunk$ChunkSize"
+$safeSelectionMode = $SelectionMode -replace '[^A-Za-z0-9._-]', '_'
+$stem = "prototype-swing-ollama-chunked-ranking-async-$suffix-$safeModel-$safeSelectionMode-h$RankingHorizonSessions-offset$StartOffset-total$TotalCandidateLimit-chunk$ChunkSize"
 $resultPath = Join-Path $OutputDirectory "$stem.json"
 $rootCausePath = Join-Path $OutputDirectory "$stem-root-causes.json"
 $logPath = Join-Path $OutputDirectory "$stem.log"
@@ -79,6 +84,7 @@ try {
 
     Write-Host 'Step 70 async: starting or monitoring Java-owned chunked calibrated Ollama ranking job...'
     Write-Host 'Java runs the job in the background; local Ollama model concurrency remains fixed at 1.'
+    Write-Host "Selection mode: $SelectionMode"
     Write-Host "Start offset: $StartOffset; chunk size: $ChunkSize; total candidate limit: $TotalCandidateLimit; max retries per chunk: $MaxRetriesPerChunk"
     Write-Host 'No database write, signal, paper fill, order, broker action, or live trading action will be created.'
 
@@ -86,6 +92,7 @@ try {
     if ([string]::IsNullOrWhiteSpace($jobId)) {
         $body = [ordered]@{
             model                  = $Model
+            selectionMode          = $SelectionMode
             startOffset            = $StartOffset
             totalCandidateLimit    = $TotalCandidateLimit
             chunkSize              = $ChunkSize
@@ -323,7 +330,7 @@ try {
     }
 
     $status.result |
-        Select-Object status, model, chunkCount, passedChunkCount, warningChunkCount,
+        Select-Object status, model, selectionMode, chunkCount, passedChunkCount, warningChunkCount,
             failedChunkCount, processedCandidateCount, finalistCount, ollamaCallCount,
             databaseWritesPerformed, signalsCreated, ordersCreated, actionExecutionEnabled |
         Format-List

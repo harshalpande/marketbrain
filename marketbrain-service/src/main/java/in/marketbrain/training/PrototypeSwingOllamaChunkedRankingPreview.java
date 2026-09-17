@@ -17,6 +17,7 @@ public record PrototypeSwingOllamaChunkedRankingPreview(
         int maxRetriesPerChunk,
         int rankingHorizonSessions,
         String chunkedRankingVersion,
+        String selectionMode,
         int chunkCount,
         int passedChunkCount,
         int warningChunkCount,

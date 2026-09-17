@@ -3840,6 +3840,37 @@ Read `overallIntelligenceScorePercent` as model-quality maturity, not as permiss
 the pipeline is stable; warnings in score calibration, rank correlation, negative-return top-three picks or weak
 top-pick quality still require more training examples, pairwise ranking and random validation batches.
 
+### Step 87. Run multi-scenario Granite validation
+
+After the fixed regression batch is stable, validate whether Granite generalizes beyond the same symbols. Step 87 runs
+multiple review-only scenarios sequentially with local Ollama concurrency still fixed at `1`. It writes one Step 70
+result, root-cause file, attempt telemetry file and Step 86 scorecard per scenario, plus one combined Step 87 report.
+
+Default scenario set:
+
+- `FIXED_SYMBOL`: the deterministic regression benchmark;
+- `RANDOM_VALIDATION`: a stable pseudo-random ordering from symbol plus dataset seed;
+- `DIFFICULT_TRAPS`: high-volatility, weak-volume, trend-conflict, overextension and negative-day cases first.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+
+& '.\ops\windows\RunPrototypeSwingOllamaMultiScenarioValidation.ps1' `
+    -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' `
+    -Model 'ibm/granite4.1:8b' `
+    -SelectionModes FIXED_SYMBOL,RANDOM_VALIDATION,DIFFICULT_TRAPS `
+    -TotalCandidateLimitPerScenario 12 `
+    -ChunkSize 4 `
+    -FinalistsPerChunk 2 `
+    -MaxRetriesPerChunk 1 `
+    -RankingHorizonSessions 20 `
+    -StatusPollTimeoutSeconds 180 `
+    -TimeoutSecondsPerScenario 21600
+```
+
+To add a fourth focused scenario later, include `RECOVERY_OVEREXTENSION`. Scenario selection uses only as-of feature
+columns. Future labels remain hidden and evaluator-only.
+
 ## Spare runtime laptop: normal update and redeploy
 
 Use this after each future commit and push from the development laptop:

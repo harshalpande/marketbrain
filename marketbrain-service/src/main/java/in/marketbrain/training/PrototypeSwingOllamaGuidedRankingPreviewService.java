@@ -3,6 +3,7 @@ package in.marketbrain.training;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -279,7 +280,46 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
     }
 
     List<PrototypeSwingOllamaCandidate> candidates(UUID runId, int offset, int limit) {
-        return jdbcTemplate.query("""
+        return candidates(runId, offset, limit, "FIXED_SYMBOL");
+    }
+
+    List<PrototypeSwingOllamaCandidate> candidates(UUID runId, int offset, int limit, String selectionMode) {
+        String normalizedMode = selectionMode == null || selectionMode.isBlank()
+                ? "FIXED_SYMBOL"
+                : selectionMode.trim().toUpperCase(Locale.ROOT);
+        String orderExpression = switch (normalizedMode) {
+            case "FIXED_SYMBOL" -> "item.symbol";
+            case "RANDOM_VALIDATION" -> "md5(item.symbol || '-' || ?)";
+            case "DIFFICULT_TRAPS" -> """
+                    (
+                      CASE WHEN item.annualized_volatility20_percent > 35 THEN 1 ELSE 0 END
+                      + CASE WHEN item.volume_ratio20 < 0.8 THEN 1 ELSE 0 END
+                      + CASE WHEN item.latest_close < item.sma20 THEN 1 ELSE 0 END
+                      + CASE WHEN item.ema12 < item.ema26 THEN 1 ELSE 0 END
+                      + CASE WHEN item.rsi14 < 45 OR item.rsi14 > 70 THEN 1 ELSE 0 END
+                      + CASE WHEN item.range_position252_percent > 90 THEN 1 ELSE 0 END
+                      + CASE WHEN item.daily_return_percent < 0 THEN 1 ELSE 0 END
+                    ) DESC, item.symbol
+                    """;
+            case "RECOVERY_OVEREXTENSION" -> """
+                    (
+                      CASE
+                        WHEN item.range_position252_percent < 40
+                         AND item.annualized_volatility20_percent <= 30
+                         AND item.volume_ratio20 >= 0.7 THEN 4
+                        WHEN item.range_position252_percent > 90
+                         AND item.rsi14 > 65 THEN 3
+                        WHEN item.daily_return_percent > 3
+                         AND item.annualized_volatility20_percent > 35 THEN 2
+                        WHEN item.range_position252_percent < 30 THEN 1
+                        ELSE 0
+                      END
+                    ) DESC, item.symbol
+                    """;
+            default -> throw new IllegalArgumentException(
+                    "selectionMode must be one of FIXED_SYMBOL, RANDOM_VALIDATION, DIFFICULT_TRAPS, or RECOVERY_OVEREXTENSION.");
+        };
+        String sql = """
                 SELECT item.symbol, item.effective_as_of, item.latest_close,
                        item.daily_return_percent, item.sma20, item.sma50, item.sma200,
                        item.ema12, item.ema26, item.rsi14, item.atr14,
@@ -302,37 +342,49 @@ public class PrototypeSwingOllamaGuidedRankingPreviewService {
                 JOIN prototype_swing_training_dataset_label label60
                   ON label60.item_id = item.id AND label60.horizon_sessions = 60
                 WHERE item.run_id = ? AND item.classification = 'LABELED'
-                ORDER BY item.symbol
+                ORDER BY %s
                 LIMIT ?
                 OFFSET ?
-                """, (resultSet, row) -> new PrototypeSwingOllamaCandidate(
-                        resultSet.getString("symbol"),
-                        resultSet.getObject("effective_as_of", LocalDate.class),
-                        resultSet.getBigDecimal("latest_close"),
-                        resultSet.getBigDecimal("daily_return_percent"),
-                        resultSet.getBigDecimal("sma20"),
-                        resultSet.getBigDecimal("sma50"),
-                        resultSet.getBigDecimal("sma200"),
-                        resultSet.getBigDecimal("ema12"),
-                        resultSet.getBigDecimal("ema26"),
-                        resultSet.getBigDecimal("rsi14"),
-                        resultSet.getBigDecimal("atr14"),
-                        resultSet.getBigDecimal("annualized_volatility20_percent"),
-                        resultSet.getBigDecimal("volume_ratio20"),
-                        resultSet.getBigDecimal("range_position252_percent"),
-                        resultSet.getBigDecimal("net_return_5"),
-                        resultSet.getBigDecimal("net_return_20"),
-                        resultSet.getBigDecimal("net_return_60"),
-                        resultSet.getBigDecimal("benchmark_excess_5"),
-                        resultSet.getBigDecimal("benchmark_excess_20"),
-                        resultSet.getBigDecimal("benchmark_excess_60"),
-                        resultSet.getBigDecimal("maximum_drawdown_5"),
-                        resultSet.getBigDecimal("maximum_drawdown_20"),
-                        resultSet.getBigDecimal("maximum_drawdown_60")), runId, limit, offset);
+                """.formatted(orderExpression);
+        List<Object> parameters = new ArrayList<>();
+        parameters.add(runId);
+        if ("RANDOM_VALIDATION".equals(normalizedMode)) {
+            parameters.add(runId + "-" + normalizedMode);
+        }
+        parameters.add(limit);
+        parameters.add(offset);
+        return jdbcTemplate.query(sql, candidateRowMapper(), parameters.toArray());
     }
 
     private List<PrototypeSwingOllamaCandidate> candidates(UUID runId, int limit) {
         return candidates(runId, 0, limit);
+    }
+
+    private RowMapper<PrototypeSwingOllamaCandidate> candidateRowMapper() {
+        return (resultSet, row) -> new PrototypeSwingOllamaCandidate(
+                resultSet.getString("symbol"),
+                resultSet.getObject("effective_as_of", LocalDate.class),
+                resultSet.getBigDecimal("latest_close"),
+                resultSet.getBigDecimal("daily_return_percent"),
+                resultSet.getBigDecimal("sma20"),
+                resultSet.getBigDecimal("sma50"),
+                resultSet.getBigDecimal("sma200"),
+                resultSet.getBigDecimal("ema12"),
+                resultSet.getBigDecimal("ema26"),
+                resultSet.getBigDecimal("rsi14"),
+                resultSet.getBigDecimal("atr14"),
+                resultSet.getBigDecimal("annualized_volatility20_percent"),
+                resultSet.getBigDecimal("volume_ratio20"),
+                resultSet.getBigDecimal("range_position252_percent"),
+                resultSet.getBigDecimal("net_return_5"),
+                resultSet.getBigDecimal("net_return_20"),
+                resultSet.getBigDecimal("net_return_60"),
+                resultSet.getBigDecimal("benchmark_excess_5"),
+                resultSet.getBigDecimal("benchmark_excess_20"),
+                resultSet.getBigDecimal("benchmark_excess_60"),
+                resultSet.getBigDecimal("maximum_drawdown_5"),
+                resultSet.getBigDecimal("maximum_drawdown_20"),
+                resultSet.getBigDecimal("maximum_drawdown_60"));
     }
 
     private List<PrototypeSwingOllamaTrainingExample> trainingExamples(

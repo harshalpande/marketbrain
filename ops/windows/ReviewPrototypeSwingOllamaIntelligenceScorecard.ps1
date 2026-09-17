@@ -65,6 +65,7 @@ try {
         Select-Object `
             status,
             model,
+            selectionMode,
             overallIntelligenceScorePercent,
             pendingImprovementPercent,
             maturityBand,

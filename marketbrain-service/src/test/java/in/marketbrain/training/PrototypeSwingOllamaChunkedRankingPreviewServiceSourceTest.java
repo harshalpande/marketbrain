@@ -35,7 +35,7 @@ class PrototypeSwingOllamaChunkedRankingPreviewServiceSourceTest {
         assertThat(source).contains("Do not rank a top_pick_eligibility=BLOCKED candidate as rank 1");
         assertThat(source).contains("responseNormalizationWarnings");
         assertThat(source).contains("startOffset(");
-        assertThat(source).contains("guidedRankingService.candidates(runId, offset, requestedChunkSize)");
+        assertThat(source).contains("guidedRankingService.candidates(runId, offset, requestedChunkSize, selectionMode)");
         assertThat(source).doesNotContain("jdbcTemplate.update");
         assertThat(source).doesNotContain("INSERT INTO");
         assertThat(source).doesNotContain("market_signal");

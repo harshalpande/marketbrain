@@ -7,6 +7,7 @@ public record PrototypeSwingOllamaIntelligenceScorecard(
         String status,
         UUID datasetRunId,
         String model,
+        String selectionMode,
         int startOffset,
         int totalCandidateLimit,
         int chunkSize,

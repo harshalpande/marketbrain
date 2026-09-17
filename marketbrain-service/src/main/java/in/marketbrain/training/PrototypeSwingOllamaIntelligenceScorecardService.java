@@ -77,6 +77,7 @@ public class PrototypeSwingOllamaIntelligenceScorecardService {
                 status(overall, preview.failedChunkCount()),
                 preview.datasetRunId(),
                 preview.model(),
+                preview.selectionMode(),
                 preview.startOffset(),
                 preview.totalCandidateLimit(),
                 preview.chunkSize(),
