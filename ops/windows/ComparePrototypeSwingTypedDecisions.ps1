@@ -2,7 +2,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$DatasetRunId,
-    [string[]]$ModelRefs = @('Qwen/Qwen2.5-0.5B-Instruct-GGUF:Q4_K_M', 'Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M'),
+    # Legacy multi-model comparison remains opt-in through explicit ModelRefs.
+    [string[]]$ModelRefs = @('Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M'),
     [ValidateSet('BALANCED_VALIDATION', 'RECOVERY_OVEREXTENSION', 'RANDOM_VALIDATION', 'DIFFICULT_TRAPS', 'FIXED_SYMBOL')]
     [string]$SelectionMode = 'BALANCED_VALIDATION',
     [switch]$IncludeContrastChecks,

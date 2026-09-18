@@ -2,6 +2,17 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-18 — Spare inventory evidence and bounded dependency follow-up
+
+- Authorization: owner asked to proceed with dependency check and cleanup preparation. No approval for actual deletion, service stops, downloads or model inference was inferred.
+- E22: reviewed the supplied single JSON; SHA256 recorded in evidence register. Inventory took 13.25 seconds on spare PS7.6.6. Granite remains installed (not loaded), both Qwen sizes exist, llama.cpp executables exist. Hardware/process snapshot is not live-job clearance. About 607 GiB free on C: means storage capacity is not the immediate issue. Unloaded-model deletion is not a measured inference speedup.
+- Added one-report dependency review with health, process names, Ollama lists, redacted scheduled-task hints and bounded persisted-job scan; atomic checkpoints, timings, visible progress and unknown/partial states. Never auto-clears cleanup. Operator must confirm actual review-volume mapping, outstanding jobs/terminals and indirect dependencies.
+- Source finding: Java job GET may write LOST_AFTER_RESTART to saved status. It is excluded from this read-only tool; no Java changes or rebuild needed.
+- Typed preview/comparison defaults now use Qwen 1.5B only. Legacy models remain explicitly selectable for reproduction; default replacement does not train/validate the retained model. Architecture candidate annotation updated, full design unchanged.
+- Verification: 29 dependency assertions and 41 inventory assertions passed offline on local Windows PowerShell 5.1. Tests use mocks/temporary fixtures, never real local model jobs/APIs. Changed scripts parsed with the local parser; runtime verification of new tool on PS7 awaits spare report. Temporary fixtures retained, no destructive test cleanup.
+- C1/C2 now PARTIAL, not complete; C3/C4/C5 remain pending; 0/5 fully closed cleanup checkpoints. Weighted project baseline remains 12.4%; no predictive improvement claimed.
+- Next handoff: pull, run `GetSpareLlmDependencyReview.ps1`, share its single JSON and confirm whether any model test terminals/jobs remain active. No Docker rebuild, inference or cleanup command in this handoff.
+
 ## 2026-09-18 — Documentation reset and scope baseline
 
 - Scope: documentation and design only, at owner request. No new application implementation, model inference, database mutation, deployment or broker action.

@@ -21,7 +21,7 @@ param(
     [int]$RankingHorizonSessions = 20,
 
     [Parameter()]
-    [string]$ModelRef = 'Qwen/Qwen2.5-0.5B-Instruct-GGUF:Q4_K_M',
+    [string]$ModelRef = 'Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M',
 
     [Parameter()]
     [ValidateSet('INDEPENDENT', 'BASELINE_CONSTRAINED')]

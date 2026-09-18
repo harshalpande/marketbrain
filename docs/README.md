@@ -69,3 +69,19 @@ Ollama inspection uses only loopback [GET /api/tags](https://docs.ollama.com/api
 Default GGUF roots are the user's Hugging Face hub cache, user/local-app-data llama.cpp caches, and `C:\MarketBrainTools\llama.cpp`. Add a specific nonstandard model directory using `-AdditionalModelDirectories @('D:\MyModelFolder')` only if that is your actual location. No whole-drive search. The scan has a cooperative 30-second / 10,000-entry / depth-10 limit, skips directory links and labels partial results. Slow filesystem/CIM operations can exceed the time budget; this is not a hard wall-clock guarantee. Model blobs are not hashed or loaded, shared/hardlinked size is not summed as recoverable space, and Ollama blob stores are not manually traversed.
 
 Fixed-token source references provide dependency hints only; actual dependency review, retain/remove approval and cleanup remain pending. Normally allow a few minutes, not a model-evaluation session. Do not stop running jobs or start Ollama merely to force a green report; unavailable components are useful evidence too.
+
+### G10.6 dependency follow-up (no removal)
+
+Inventory E22 was received and reviewed: 13.25 seconds on spare PowerShell 7.6.6. It found Granite installed but unloaded, both Qwen GGUFs, and llama-cli/server. These facts do not prove Java jobs are idle. Run the follow-up after pulling, without rebuilding Docker:
+
+```powershell
+& '.\ops\windows\GetSpareLlmDependencyReview.ps1'
+```
+
+Share only the printed `llm-dependencies-<timestamp>-<id>.json`. The tool checkpoints progress/timings/errors into one report, reads service health, current process names/IDs, Ollama lists, fixed-token scheduled-task hints, and saved `status.json`/`sweep.json`/`comparison.json` files. Default review root is `C:\MarketBrainData\Review`; if the deployed volume uses another location, explicitly pass that location with `-ReviewDirectory`. No whole-drive scan, inference, downloads, stops, cleanup, `.env` dump, model contents or broker/database queries.
+
+Task metadata uses Microsoft's [MSFT_ScheduledTask CIM class](https://github.com/microsoft/wmi/blob/master/server23h2/root/microsoft/windows/taskscheduler/MSFT_ScheduledTask.go). Only allowlisted tokens, opaque indices and state codes are exported, not names/accounts/action text. Generic shell tasks are included as hints; inspect indirect wrappers locally. A permissions failure becomes UNKNOWN. CIM has a 10-second operation timeout and a 1,000-task inspection cap. Saved evidence has a cooperative 20-second, 2,000-entry, depth-3, 2-MiB-per-file limit; links are skipped and incomplete scans marked partial. Slow underlying I/O can exceed cooperative bounds.
+
+Important source finding: the Java GET job-status handler may persist `LOST_AFTER_RESTART`. The tool therefore never calls job-status endpoints. Saved RUNNING/QUEUED states require review, not automatic stopping; even terminal evidence does not establish no new jobs. No global read-only Java job-list API exists. Actual container configuration, Windows services, indirect wrappers and external schedulers remain outside this check. The report always says NOT CLEARED until operator/dependency review and exact removal approval. Confirm that no model-run terminals/jobs or planned experiments need the proposed removals; do not share credentials or full process arguments.
+
+Typed preview and comparison defaults now select only `Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M`. Explicit `-ModelRef`/`-ModelRefs` overrides preserve historical experiments; using a retired reference can fetch it again. Legacy Granite scripts are retained for evidence reproduction, not part of this handoff. This default change is not model validation or retraining. Retain llama.cpp and Qwen 1.5B provisionally. Granite and 0.5B are removal candidates only after dependency review/approval; do not delete shared cache roots. No architectural runtime or Java change is deployed by this step.

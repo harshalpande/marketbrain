@@ -29,7 +29,7 @@
   <rect x="820" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="838" y="121" class="label">Marketaux / news events</text>
   <text x="838" y="148" class="body">Connector exists; entity/event work pending</text>
-  <text x="838" y="173" class="body">Optional small LLM; evidence, no commands</text>
+  <text x="838" y="173" class="body">Qwen 1.5B candidate; not validated</text>
   <path d="M205 204 V238 H600 V258" class="line"/>
   <path d="M600 204 V258" class="line"/>
   <path d="M995 204 V238 H600" fill="none" stroke="#405870" stroke-width="2"/>
