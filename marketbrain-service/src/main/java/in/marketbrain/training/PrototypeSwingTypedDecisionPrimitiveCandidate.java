@@ -33,6 +33,9 @@ public record PrototypeSwingTypedDecisionPrimitiveCandidate(
         int actualRank,
         BigDecimal targetNetReturnPercent,
         BigDecimal targetBenchmarkExcessReturnPercent,
-        BigDecimal targetMaximumDrawdownPercent
+        BigDecimal targetMaximumDrawdownPercent,
+        String independentPrompt,
+        String evidenceCategory,
+        String hardExclusionReason
 ) {
 }

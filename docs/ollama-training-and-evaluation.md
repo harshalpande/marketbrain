@@ -413,7 +413,48 @@ response enum field. The prompt now gives an explicit translation table for comm
 `RECOVERY_UNCONFIRMED` depending on context. Known misplaced review-only tags are recorded as
 `ENUM_MISFILED_TOLERATED` warnings instead of schema blockers. Material score-cap breaches still fail.
 
-## Daily fresh-data feedback loop
+## Step 89 V3: independent decision evaluation
+
+The September 18 comparison found identical decisions from 0.5B and 1.5B with the previous candidate-specific
+grammar. All four responses were valid, but the grammar permitted exactly one complete answer for AADHARHFC and
+only two for each other candidate. Validity was therefore not evidence of independent intelligence. Agreement
+with Java is also not investment accuracy. Prompt/grammar changes do not update model weights.
+
+The runner now defaults to `-EvaluationMode INDEPENDENT`. This requires the V3 Java service; an old server fails
+preflight before inference. `BASELINE_CONSTRAINED` preserves the earlier mode for explicit regression checks.
+
+- The independent prompt contains raw as-of technical features, identity and policy restrictions. It excludes the
+  stock symbol, Java's baseline answer, aggregate opportunity/anchor scores, future returns and actual ranks.
+- Generic GBNF constrains JSON keys/enums and candidate identity, not which assessment to choose. Semantic errors
+  remain measurable and are rejected after generation. Do not compare validity rates across these grammar modes as
+  though the same test were being performed.
+- `topPickEligibility=BLOCKED` prevents TOP_PICK only. A hard exclusion (currently missing/invalid required technical
+  inputs) requires REJECT/BLOCKED. HIGH risk is caution, not automatically a trap or rejection. This definition is
+  specific to offline research; live risk/approval controls are unchanged and this endpoint cannot execute anything.
+- `BALANCED_VALIDATION` takes at most 500 candidates using the existing dataset-scoped read query and deterministic
+  ordering, then interleaves OPPORTUNITY, CAUTION and AVOID strata before applying the offset/limit. It uses only as-of
+  features and Java heuristics for strata, never future outcomes. Missing strata are reported, not invented. These
+  strata are coverage categories, not objectively correct target decisions. Same dataset/offset repeats the same test;
+  new dates and an untouched evaluation set remain necessary.
+- Business validity, Java agreement, selection count, labelled outcome recall, selected-positive fraction, net return,
+  drawdown and latency are separate metrics. Outcome-positive means net return > 0 AND benchmark excess > 0. An
+  empty selected set has null precision/return, not 100% success; missing labels are excluded and reported. Invalid
+  model outputs never count as accepted selections. Returns are descriptive averages, not a portfolio backtest.
+- Independent mode uses one invocation per candidate with no repair retry. Exit failures and timeouts cannot become
+  accepted assessments just because some JSON was emitted. Prompts, grammar, full offline candidate evidence, stdout,
+  stderr, timings and exceptions are persisted; only the explicit prompt/grammar go to llama.cpp.
+
+`ComparePrototypeSwingTypedDecisions.ps1` runs 0.5B and 1.5B sequentially on six balanced candidates by default. It
+checks prompt/grammar/candidate/outcome parity before presenting a comparison. Share only `comparison.json` and
+`comparison.log`. Completed child evidence is consolidated before temporary copies are removed; partial evidence is
+retained on error. The comparison uses the existing checkpoint mechanism and never calls a broker or creates a signal.
+
+Initial acceptance: both models finish, every row's schema/policy status is explicit, all three strata are represented
+or a coverage warning explains why, and the report exposes reject-all behavior. Model promotion requires repeated
+outcome improvement over Java alone on unseen dates with comparable risk and acceptable latency. Six examples cannot
+establish that requirement or support a numerical confidence promise.
+
+## Daily fresh-data feedback loop (governed)
 
 Post-market collection and Telegram/WhatsApp process notifications prove that fresh data is arriving. That fresh data
 should eventually strengthen Ollama's training loop, but only after a governed feedback design is implemented:

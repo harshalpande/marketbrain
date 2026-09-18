@@ -2,7 +2,7 @@
 
 MarketBrain is a personal, self-hosted Indian-market research and paper-trading platform.
 
-![MarketBrain target architecture](docs/marketbrain-architecture.png)
+![MarketBrain target architecture](docs/marketbrain-architecture.svg)
 
 ## Current phase
 
