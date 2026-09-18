@@ -371,6 +371,12 @@ The Step 89 runner now defaults to compact embedded evidence. It writes only the
 stderr and parsed decision JSON. Temporary prompt/grammar/stdout files needed by `llama-cli` are created under the
 Windows temp directory and deleted at the end of the run.
 
+Step 89 V3-style runner hardening moves semantic consistency from prompt-only guidance into candidate-specific GBNF.
+Each candidate attempt now receives a grammar that allows the Java baseline output plus only safe downgrade alternatives.
+This structurally blocks invalid combinations such as `REJECT + HIGH`, `REJECT + VERY_HIGH`, `BLOCKED + MEDIUM` and
+`BLOCKED + HIGH` before the model can emit them. The compact result records `grammarMode =
+CANDIDATE_SPECIFIC_SEMANTIC_GBNF` and embeds the exact grammar used for each attempt.
+
 This changes the target architecture:
 
 - llama.cpp/GBNF is the strict decision primitive for machine-readable decisions;

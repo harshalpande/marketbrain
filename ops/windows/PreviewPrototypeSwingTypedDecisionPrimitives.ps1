@@ -239,6 +239,126 @@ function Get-LlamaCliCapabilities {
     }
 }
 
+function ConvertTo-GbnfQuotedJsonString {
+    param([string]$Value)
+    return '"\"' + ($Value -replace '\\', '\\' -replace '"', '\"') + '\""'
+}
+
+function Get-SafeRejectScoreBand {
+    param([object]$Candidate)
+    $scoreBand = [string]$Candidate.javaScoreBand
+    if (@('VERY_LOW', 'LOW', 'MEDIUM') -contains $scoreBand) {
+        return $scoreBand
+    }
+    if ([string]$Candidate.javaRiskBucket -eq 'BLOCKED') {
+        return 'LOW'
+    }
+    return 'MEDIUM'
+}
+
+function New-TypedDecisionCandidateGrammar {
+    param([object]$Candidate)
+
+    $rows = [System.Collections.Generic.List[string]]::new()
+    $seen = @{}
+
+    function Add-TypedDecisionRow {
+        param(
+            [System.Collections.Generic.List[string]]$Rows,
+            [hashtable]$Seen,
+            [string]$CandidateId,
+            [string]$Decision,
+            [string]$RiskBucket,
+            [string]$TrapDetected,
+            [string]$ScoreBand,
+            [string]$ConfidenceBand,
+            [string]$PrimaryReasonCode
+        )
+
+        if ($Decision -eq 'REJECT' -and @('HIGH', 'VERY_HIGH') -contains $ScoreBand) {
+            return
+        }
+        if ($RiskBucket -eq 'BLOCKED' -and @('MEDIUM', 'HIGH', 'VERY_HIGH') -contains $ScoreBand) {
+            return
+        }
+        if ($RiskBucket -eq 'BLOCKED' -and $Decision -ne 'REJECT') {
+            return
+        }
+        $key = @($Decision, $RiskBucket, $TrapDetected, $ScoreBand, $ConfidenceBand, $PrimaryReasonCode) -join '|'
+        if ($Seen.ContainsKey($key)) {
+            return
+        }
+        $Seen[$key] = $true
+
+        $row = @(
+            '"{" ws',
+            (ConvertTo-GbnfQuotedJsonString 'candidateId'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $CandidateId), 'ws "," ws',
+            (ConvertTo-GbnfQuotedJsonString 'decision'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $Decision), 'ws "," ws',
+            (ConvertTo-GbnfQuotedJsonString 'riskBucket'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $RiskBucket), 'ws "," ws',
+            (ConvertTo-GbnfQuotedJsonString 'trapDetected'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $TrapDetected), 'ws "," ws',
+            (ConvertTo-GbnfQuotedJsonString 'scoreBand'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $ScoreBand), 'ws "," ws',
+            (ConvertTo-GbnfQuotedJsonString 'confidenceBand'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $ConfidenceBand), 'ws "," ws',
+            (ConvertTo-GbnfQuotedJsonString 'primaryReasonCode'), 'ws ":" ws', (ConvertTo-GbnfQuotedJsonString $PrimaryReasonCode), 'ws',
+            '"}"'
+        ) -join ' '
+        $Rows.Add($row)
+    }
+
+    Add-TypedDecisionRow `
+        -Rows $rows `
+        -Seen $seen `
+        -CandidateId ([string]$Candidate.candidateId) `
+        -Decision ([string]$Candidate.javaDecision) `
+        -RiskBucket ([string]$Candidate.javaRiskBucket) `
+        -TrapDetected ([string]$Candidate.javaTrapDetected) `
+        -ScoreBand ([string]$Candidate.javaScoreBand) `
+        -ConfidenceBand ([string]$Candidate.javaConfidenceBand) `
+        -PrimaryReasonCode ([string]$Candidate.javaPrimaryReasonCode)
+
+    if ([string]$Candidate.javaDecision -ne 'REJECT') {
+        $rejectReason = if ([string]$Candidate.javaPrimaryReasonCode -in @('TRAP_RISK', 'OVEREXTENSION_RISK', 'BLOCKED_BY_RISK')) {
+            [string]$Candidate.javaPrimaryReasonCode
+        }
+        else {
+            'MIXED_EVIDENCE'
+        }
+        Add-TypedDecisionRow `
+            -Rows $rows `
+            -Seen $seen `
+            -CandidateId ([string]$Candidate.candidateId) `
+            -Decision 'REJECT' `
+            -RiskBucket ([string]$Candidate.javaRiskBucket) `
+            -TrapDetected 'YES' `
+            -ScoreBand (Get-SafeRejectScoreBand -Candidate $Candidate) `
+            -ConfidenceBand ([string]$Candidate.javaConfidenceBand) `
+            -PrimaryReasonCode $rejectReason
+    }
+
+    if ($rows.Count -eq 0) {
+        Add-TypedDecisionRow `
+            -Rows $rows `
+            -Seen $seen `
+            -CandidateId ([string]$Candidate.candidateId) `
+            -Decision 'REJECT' `
+            -RiskBucket 'HIGH' `
+            -TrapDetected 'YES' `
+            -ScoreBand 'LOW' `
+            -ConfidenceBand 'MEDIUM' `
+            -PrimaryReasonCode 'MIXED_EVIDENCE'
+    }
+
+    $grammarLines = [System.Collections.Generic.List[string]]::new()
+    $rowNames = [System.Collections.Generic.List[string]]::new()
+    for ($rowIndex = 0; $rowIndex -lt $rows.Count; $rowIndex++) {
+        $rowName = 'row' + ($rowIndex + 1)
+        $rowNames.Add($rowName)
+        $grammarLines.Add($rowName + ' ::= ' + $rows[$rowIndex])
+    }
+    $grammarLines.Insert(0, 'root ::= ' + ($rowNames -join ' | '))
+    $grammarLines.Add('ws ::= [ \t\n]*')
+    return ($grammarLines -join "`n")
+}
+
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 $suffix = if ([string]::IsNullOrWhiteSpace($DatasetRunId)) { 'latest' } else { $DatasetRunId }
@@ -289,9 +409,6 @@ try {
         -ContentType 'application/json' `
         -Body ($body | ConvertTo-Json -Depth 8) `
         -TimeoutSec $TimeoutSeconds
-
-    [string]$preview.grammar | Set-Content -LiteralPath $grammarPath -Encoding UTF8
-
     Write-Host 'Step 89: running local llama.cpp + GBNF typed decision primitive preview...'
     Write-Host "Selection mode: $SelectionMode; start offset: $StartOffset; candidates: $($preview.candidateCount)"
     Write-Host "Model ref: $ModelRef"
@@ -310,6 +427,8 @@ try {
         $rawPath = Join-Path $scratchDirectory "$shortCandidateStem-raw.txt"
         $responsePath = Join-Path $scratchDirectory "$shortCandidateStem-decision.json"
         [string]$candidate.prompt | Set-Content -LiteralPath $promptPath -Encoding UTF8
+        $candidateGrammar = New-TypedDecisionCandidateGrammar -Candidate $candidate
+        $candidateGrammar | Set-Content -LiteralPath $grammarPath -Encoding UTF8
 
         $stderrPath = Join-Path $scratchDirectory "$shortCandidateStem-stderr.txt"
         $fallbackRawPath = Join-Path $scratchDirectory "$shortCandidateStem-fallback-raw.txt"
@@ -470,6 +589,7 @@ try {
         $attemptRecord = [pscustomobject][ordered]@{
             candidateId                            = $candidate.candidateId
             symbol                                 = $candidate.symbol
+            grammar                                = $candidateGrammar
             prompt                                 = [string]$candidate.prompt
             rawOutput                              = $rawOutput
             stdout                                 = $stdoutText
@@ -523,9 +643,10 @@ try {
             decisionContractVersion      = $preview.decisionContractVersion
             grammarVersion               = $preview.grammarVersion
             evidenceMode                 = 'COMPACT_EMBEDDED'
+            grammarMode                  = 'CANDIDATE_SPECIFIC_SEMANTIC_GBNF'
             generatedFileCount           = 2
             generatedFiles               = @($resultPath, $logPath)
-            grammar                      = [string]$preview.grammar
+            grammar                      = 'Candidate-specific semantic GBNF is embedded in attempts[].grammar.'
             llamaHelp                    = $llamaCapabilities.helpText
             llamaHelpStderr              = $llamaCapabilities.helpStderr
             llamaHelpExitCode            = $llamaCapabilities.helpExitCode
@@ -574,9 +695,10 @@ try {
         businessValidPercent           = if ($total -eq 0) { 0 } else { [math]::Round($businessValidCount * 100.0 / $total, 2) }
         javaAlignmentPercent           = if ($total -eq 0) { 0 } else { [math]::Round($alignedCount * 100.0 / $total, 2) }
         evidenceMode                   = 'COMPACT_EMBEDDED'
+        grammarMode                    = 'CANDIDATE_SPECIFIC_SEMANTIC_GBNF'
         generatedFileCount             = 2
         generatedFiles                 = @($resultPath, $logPath)
-        grammar                        = [string]$preview.grammar
+        grammar                        = 'Candidate-specific semantic GBNF is embedded in attempts[].grammar.'
         llamaHelp                      = $llamaCapabilities.helpText
         llamaHelpStderr                = $llamaCapabilities.helpStderr
         llamaHelpExitCode              = $llamaCapabilities.helpExitCode

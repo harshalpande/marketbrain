@@ -50,6 +50,7 @@ class PrototypeSwingTypedDecisionPrimitivePreviewServiceSourceTest {
         assertThat(source).contains("prototype-swing-typed-decision-primitives");
         assertThat(source).contains("grammarPath");
         assertThat(source).contains("COMPACT_EMBEDDED");
+        assertThat(source).contains("CANDIDATE_SPECIFIC_SEMANTIC_GBNF");
         assertThat(source).contains("generatedFileCount");
         assertThat(source).contains("NO_JSON_OBJECT_FOUND");
         assertThat(source).contains("BLOCKED_CANDIDATE_PROMOTED_TO_TOP_PICK");

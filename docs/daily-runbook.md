@@ -3914,7 +3914,9 @@ Start with `CandidateLimit 4`. If schema/business validity is strong, repeat wit
 candidate limit. Step 89 now writes compact evidence by default: one result JSON and one transcript log under
 `C:\MarketBrainData\Review`. The result JSON embeds the attempts, candidate prompts, GBNF grammar, `llama-cli --help`
 capability evidence, raw llama.cpp output, stderr and parsed decision JSON so the spare machine does not need to share
-dozens of per-candidate files.
+dozens of per-candidate files. The runner uses candidate-specific semantic GBNF: each attempt's embedded grammar allows
+the Java baseline output plus only safe downgrade alternatives, preventing invalid pairings such as `REJECT + HIGH` and
+`BLOCKED + MEDIUM` structurally rather than relying on prompt wording alone.
 
 ## Spare runtime laptop: normal update and redeploy
 
