@@ -13,7 +13,7 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingTypedDecisionPrimitivePreviewService {
 
-    static final String DECISION_CONTRACT_VERSION = "MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V1";
+    static final String DECISION_CONTRACT_VERSION = "MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V2";
     static final String GRAMMAR_VERSION = "MARKETBRAIN_TYPED_DECISION_GBNF_V1";
 
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
@@ -196,7 +196,20 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
                 Reason code choices: WEAK_TREND, STRONG_MOMENTUM, TRAP_RISK, RELATIVE_STRENGTH, RISK_ADJUSTED_LEADER, JAVA_BASELINE_ALIGNED, BLOCKED_BY_RISK, RECOVERY_SETUP, OVEREXTENSION_RISK, MIXED_EVIDENCE.
                 Java as-of features: featurePriorScore=%d; qualityAnchorScore=%d; qualityAnchorRank=%d; riskControlScore=%d; opportunityScore=%d; majorConflictCount=%d; positiveSignalCount=%d; scoreCapHint=%s; topPickEligibility=%s; trend=%s; ema=%s; rsi=%s; volume=%s; volatility=%s; range=%s; recovery=%s; overextension=%s.
                 Java guardrail expectation for calibration: decision=%s; riskBucket=%s; trapDetected=%s; scoreBand=%s; confidenceBand=%s; primaryReasonCode=%s.
-                Use the Java guardrail expectation unless the feature tags clearly indicate a safer lower-risk decision. Never upgrade BLOCKED or HARD_CAP candidates to TOP_PICK. This is a review-only prototype for horizon %d sessions.
+                Semantic consistency contract:
+                - Default answer: copy the Java guardrail expectation exactly when features are mixed or ambiguous.
+                - Safer lower-risk override is allowed only as a downgrade, never as a promotion.
+                - If decision=REJECT, scoreBand must be VERY_LOW, LOW, or MEDIUM. Never output REJECT with HIGH or VERY_HIGH.
+                - If riskBucket=BLOCKED, decision must be REJECT and scoreBand must be VERY_LOW or LOW.
+                - If topPickEligibility=BLOCKED or scoreCapHint=HARD_CAP_54, decision must be REJECT and never TOP_PICK.
+                - If scoreCapHint=HARD_CAP_69, scoreBand must not be VERY_HIGH and decision must not be TOP_PICK.
+                - If you downgrade Java decision from SHORTLIST or WATCHLIST to REJECT due to trap risk, also downgrade scoreBand to LOW or MEDIUM and use TRAP_RISK or OVEREXTENSION_RISK.
+                - If Java decision is SHORTLIST with scoreBand=HIGH and you do not downgrade for risk, keep SHORTLIST with HIGH.
+                Candidate-specific valid baseline output: decision=%s; riskBucket=%s; trapDetected=%s; scoreBand=%s; confidenceBand=%s; primaryReasonCode=%s.
+                Positive example: SHORTLIST + MEDIUM/HIGH scoreBand is consistent for a non-blocked contender.
+                Negative example: REJECT + HIGH scoreBand is invalid because rejection cannot carry a high score band.
+                Negative example: BLOCKED + MEDIUM/HIGH/VERY_HIGH scoreBand is invalid because blocked candidates must stay very low or low.
+                This is a review-only prototype for horizon %d sessions.
                 Required JSON keys: candidateId, decision, riskBucket, trapDetected, scoreBand, confidenceBand, primaryReasonCode.
                 """.formatted(
                 PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index),
@@ -218,6 +231,12 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
                 guidedRankingService.rangeTag(candidate),
                 guidedRankingService.recoveryTag(candidate),
                 guidedRankingService.overextensionTag(candidate),
+                javaDecision,
+                javaRiskBucket,
+                javaTrapDetected,
+                javaScoreBand,
+                javaConfidenceBand,
+                javaReasonCode,
                 javaDecision,
                 javaRiskBucket,
                 javaTrapDetected,

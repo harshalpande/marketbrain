@@ -20,8 +20,11 @@ class PrototypeSwingTypedDecisionPrimitivePreviewServiceSourceTest {
         assertThat(source).doesNotContain("INSERT INTO");
         assertThat(source).doesNotContain("market_signal");
         assertThat(source).doesNotContain("paper_order");
-        assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V1");
+        assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V2");
         assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_GBNF_V1");
+        assertThat(source).contains("Semantic consistency contract");
+        assertThat(source).contains("Never output REJECT with HIGH or VERY_HIGH");
+        assertThat(source).contains("BLOCKED + MEDIUM/HIGH/VERY_HIGH scoreBand is invalid");
         assertThat(source).contains("\"REVIEW_REQUIRED\".equals(audit.status())");
         assertThat(source).contains("REJECT");
         assertThat(source).contains("WATCHLIST");

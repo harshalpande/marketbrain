@@ -3883,7 +3883,8 @@ columns. Future labels remain hidden and evaluator-only.
 
 Step 89 is the first local Jev-like decisioning prototype. It does not ask Granite to rank a whole chunk. Java prepares
 real prototype swing candidates and deterministic guardrail expectations, then a local `llama-cli` call must return
-only a strict GBNF-constrained JSON object with enum/band fields:
+only a strict GBNF-constrained JSON object with enum/band fields. The current baseline uses Qwen2.5 0.5B GGUF Q4_K_M
+through llama.cpp with documented `--grammar-file`, `--single-turn` and `--no-display-prompt` capability detection.
 
 - `decision`: `REJECT`, `WATCHLIST`, `SHORTLIST`, `TOP_PICK`;
 - `riskBucket`: `LOW`, `MEDIUM`, `HIGH`, `BLOCKED`;
@@ -3894,7 +3895,9 @@ only a strict GBNF-constrained JSON object with enum/band fields:
 
 Use score bands, not free numeric model scores. Java remains authoritative for numeric scoring, score caps, approval
 windows, order sizing and future broker execution. This preview is review-only and creates no signal, paper fill,
-order or broker action.
+order or broker action. The active typed-decision contract is `MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V2`; it explicitly
+forbids invalid semantic pairings such as `REJECT + HIGH`, `REJECT + VERY_HIGH`, `BLOCKED + MEDIUM`, `BLOCKED + HIGH`
+and `HARD_CAP_69 + VERY_HIGH`.
 
 ```powershell
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'

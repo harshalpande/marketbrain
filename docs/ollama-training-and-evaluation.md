@@ -356,8 +356,15 @@ Step 89 introduces a separate local typed decision primitive path using llama.cp
 Java guardrails. Java still prepares the as-of candidate features and guardrail expectations, and the model is allowed
 to return only enum and band fields. The model no longer returns a free numeric score. Instead it returns `scoreBand`
 such as `VERY_LOW`, `LOW`, `MEDIUM`, `HIGH` or `VERY_HIGH`; Java converts bands into governed numeric ranges and
-enforces score caps. The first contract is `MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V1` /
+enforces score caps. The active typed-decision contract is `MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V2` /
 `MARKETBRAIN_TYPED_DECISION_GBNF_V1`.
+
+Step 89 V2 keeps the successful llama.cpp runtime baseline from the first clean run: Qwen2.5 0.5B GGUF Q4_K_M,
+`llama-cli`, `--grammar-file`, `--single-turn`, `--no-display-prompt`, timeout protection and persisted
+`llama-cli --help` capability evidence. V2 tightens semantic consistency after the first multi-scenario checks showed
+valid JSON but occasional invalid decision/score pairings such as `REJECT + HIGH`. The prompt now explicitly states
+that `REJECT` cannot use `HIGH` or `VERY_HIGH`, `BLOCKED` candidates must stay `REJECT` with `VERY_LOW` or `LOW`, and
+`HARD_CAP_69` candidates must not use `VERY_HIGH` or `TOP_PICK`.
 
 This changes the target architecture:
 
