@@ -548,7 +548,9 @@ are not copies of screening cases. The grammar still permits all independent cho
 selection, not weight training. Policy/diagnostic tests do not measure investment accuracy.
 
 The local GGUF and llama executable are SHA256-pinned, avoiding mutable remote model downloads during a sweep. Scripts,
-settings, task plan and input snapshot also have hashes. Resume refuses changed identities. A per-user sweep lock and
+settings, task plan and input snapshot also have hashes. Resume refuses changed identities except the explicitly
+reviewed `7e9cd14` storage-only checkpoint upgrade, which preserves original evidence and records provenance.
+A per-user sweep lock and
 existing llama process check prevent overlapping sweep runs; keep other legacy model/Ollama jobs idle too.
 
 Each call gets a checkpoint; raw response, prompt, grammar, process exit/timeout, rule failures, seed and elapsed time
@@ -572,6 +574,12 @@ repeated observations are not independent samples. Future untouched dates remain
 
 Offline coverage includes matrix deduplication/budget checks, no-qualifier handling, pinned identity rejection,
 checkpoint recovery without repeating completed calls, finalist reuse, and real runner snapshot/sampling argument plumbing.
+Storage regressions exercise repeated replacement, transient reader locks, bounded retry exhaustion, retention of
+last-good/pending evidence, and a legacy storage-only migration without repeating completed inference. Unknown code
+identities still fail closed without modifying the checkpoint. This patch changes persistence, not model intelligence.
+The previous `Move-Item -Force` writer is replaced with flushed same-directory temporary files and `File.Replace`
+with a rolling `.bak` for the sweep checkpoint (other compact reports do not add backup files);
+source: [Microsoft File.Replace documentation](https://learn.microsoft.com/en-us/dotnet/api/system.io.file.replace).
 Flags are checked against installed llama help; upstream reference: https://github.com/ggml-org/llama.cpp/tree/master/tools/cli
 
 ## Daily fresh-data feedback loop (governed)

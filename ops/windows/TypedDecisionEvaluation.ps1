@@ -273,8 +273,32 @@ function Get-TypedDecisionEvaluation {
 }
 
 function Save-TypedDecisionEvidence {
-    param([object]$Evidence, [string]$Path)
-    $temporaryPath = $Path + '.tmp'
-    $Evidence | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
-    Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
+    [CmdletBinding()]
+    param([object]$Evidence, [string]$Path, [switch]$KeepBackup)
+    # Use a same-directory replacement, never delete the last good checkpoint first.
+    # Unique temp names also avoid reusing a partial file left by an interrupted save.
+    $destination = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+    $temporaryPath = $destination + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes(($Evidence | ConvertTo-Json -Depth 100))
+    $stream = [IO.FileStream]::new($temporaryPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try { $stream.Write($bytes, 0, $bytes.Length); $stream.Flush($true) }
+    finally { $stream.Dispose() }
+    for ($saveAttempt = 1; $saveAttempt -le 6; $saveAttempt++) {
+        try {
+            if ([IO.File]::Exists($destination)) {
+                $backupPath = if ($KeepBackup) { $destination + '.bak' } else { [NullString]::Value }
+                [IO.File]::Replace($temporaryPath, $destination, $backupPath)
+            } else {
+                [IO.File]::Move($temporaryPath, $destination)
+            }
+            return
+        } catch {
+            $cause = $_.Exception.GetBaseException()
+            if ($cause -isnot [IO.IOException] -or $saveAttempt -eq 6) {
+                throw [IO.IOException]::new("Checkpoint save failed for '$destination' after $saveAttempt replacement attempt(s). Last checkpoint/backup were not deliberately deleted; pending evidence: '$temporaryPath'. $($cause.Message)", $cause)
+            }
+            Write-Warning "Checkpoint replacement retry $saveAttempt/6: $destination; $($cause.Message)"
+            Start-Sleep -Milliseconds (200 * $saveAttempt)
+        }
+    }
 }

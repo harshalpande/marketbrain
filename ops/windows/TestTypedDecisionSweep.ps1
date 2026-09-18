@@ -69,6 +69,33 @@ function Invoke-SweepCandidate([hashtable]$Parameters) {
     Assert-Sweep ([int]$env:MARKETBRAIN_SWEEP_TEST_CALLS -eq 64) 'Resume repeated completed inference.'
     $resumed=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
     Assert-Sweep ($resumed.records.Count -eq 64) 'Resume failed to restore checkpoints.'
+    Write-Host '[55%] Checking approved storage-only migration preserves completed inference...'
+    $resumed.records=@($resumed.records | Select-Object -First 62)
+    $resumed.status='INTERRUPTED'
+    $resumed.codeIdentity=[ordered]@{
+        'RunTypedDecisionConfigurationSweep.ps1'='85B28C962934EFAAF60C2B4471DAC2FE7FB6A430E99BA85C75009A2A68E4D0C3'
+        'TypedDecisionSweep.ps1'='6E87D0ED7F6130B109B2E91A418A35052CDEF638AC76254AA83D91C2754AF591'
+        'PreviewPrototypeSwingTypedDecisionPrimitives.ps1'='DF7DF615C366FD37DE32EEA1EEBBB38A6C414659926EAB536FA9D1676513B56C'
+        'TypedDecisionEvaluation.ps1'='303FD2FD96BA99AAD38A9CEB16BE7E817C95700EF4BD9B34A42770C04442FDD7'
+    }
+    $resumed.codeHash=Get-SweepHash $resumed.codeIdentity
+    Assert-Sweep ($resumed.codeHash -eq '84F24531B6B3A6A5EE5E1F13CA2A9ED1FBF96A05A8141576084819266D7F5E52') 'Wrong legacy migration identity.'
+    Save-TypedDecisionEvidence $resumed $path
+    $beforeMigration=(Get-FileHash -LiteralPath $path).Hash
+    & $script -ResumeDirectory (Split-Path -Parent $path)
+    $migrated=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    Assert-Sweep ($migrated.records.Count -eq 64 -and [int]$env:MARKETBRAIN_SWEEP_TEST_CALLS -eq 64) 'Storage migration repeated inference.'
+    Assert-Sweep ((Get-FileHash -LiteralPath $migrated.storageMigration.backupPath).Hash -eq $beforeMigration) 'Original checkpoint was not preserved byte-for-byte.'
+    & $script -ResumeDirectory (Split-Path -Parent $path)
+    Assert-Sweep ([int]$env:MARKETBRAIN_SWEEP_TEST_CALLS -eq 64) 'Second migrated resume repeated inference.'
+    $tampered=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    $tampered.codeIdentity.'TypedDecisionEvaluation.ps1'='UNKNOWN'
+    $tampered.codeHash=Get-SweepHash $tampered.codeIdentity
+    Save-TypedDecisionEvidence $tampered $path
+    $tamperedHash=(Get-FileHash -LiteralPath $path).Hash
+    $blocked=$false; try { & $script -ResumeDirectory (Split-Path -Parent $path) } catch { $blocked=$_.Exception.Message -like '*Sweep code changed*' }
+    Assert-Sweep ($blocked -and (Get-FileHash -LiteralPath $path).Hash -eq $tamperedHash) 'Unknown code allowed or rejected checkpoint mutated.'
+    Save-TypedDecisionEvidence $migrated $path
     Write-Host '[60%] Reusing frozen top configurations for another selection mode...'
     $validationParams=$parameters.Clone();$validationParams.OutputDirectory=Join-Path $temp 'validation'
     & $script @validationParams -FinalistsFromDirectory (Split-Path -Parent $path) -SelectionMode BALANCED_VALIDATION

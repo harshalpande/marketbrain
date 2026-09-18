@@ -4121,6 +4121,21 @@ Resume with identical code/model after interruption or `PAUSED_BUDGET`:
 & '.\ops\windows\RunTypedDecisionConfigurationSweep.ps1' -ResumeDirectory 'C:\MarketBrainData\Review\typed-sweep-REPLACE' -MaxRunMinutes 120
 ```
 
+Checkpoint storage fix (2026-09-18): `Move-Item -Force` intermittently failed with
+`Cannot create a file when that file already exists` at the previous evaluation helper line 279.
+The writer now flushes a unique same-directory temporary file, replaces an existing checkpoint with .NET
+`File.Replace`, retains the previous sweep checkpoint in `.bak`, and retries I/O replacement failures at most six times.
+Other compact report writers use the same replacement fix without creating extra backup files.
+It never deletes the checkpoint first. Exhausted retries retain pending `.tmp` evidence and identify its path.
+The underlying Windows lock/interference source was not captured; this does not promise recovery from disk or permission failures.
+
+Stop the old runner before pulling this storage fix, then resume the SAME directory using the command above.
+No Docker rebuild, fresh Java snapshot or model download is needed. A narrow, audited migration accepts only the
+original `7e9cd14` sweep code identity: it validates frozen input/settings/model/executable hashes, preserves the
+original `sweep.json` bytes in a uniquely named `.json.backup`, and records `storageMigration` provenance.
+Completed records and child checkpoints are reused; prompts, policy, sampling and scoring remain unchanged.
+Other code changes still block resume. Keep `_work`, `.bak`, and any pending `.tmp` files; do not manually change hashes.
+
 Do not edit a saved sweep to change settings. Resume uses its frozen parameters. `PAUSED_CALL_BUDGET` requires investigation
 before starting a new sweep; it must not become an unbounded retry loop. A stale heartbeat in the monitor means check the
 original terminal/process; do not assume completion or automatically launch another model.
@@ -4137,7 +4152,7 @@ $parameters.CandidateLimit = 4
 & '.\ops\windows\RunTypedDecisionConfigurationSweep.ps1' @parameters
 ```
 
-Run `TestTypedDecisionSweep.ps1` and the existing response/evaluation/replay/offline-runner suites before publishing changes.
+Run `TestTypedDecisionEvidencePersistence.ps1`, `TestTypedDecisionSweep.ps1` and the existing response/evaluation/replay/offline-runner suites before publishing changes.
 Real inference remains a spare-laptop acceptance test; offline mocks do not prove model improvement.
 
 ## Runbook maintenance rule

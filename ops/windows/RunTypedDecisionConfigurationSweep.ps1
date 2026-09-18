@@ -29,7 +29,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'TypedDecisionEvaluation.ps1')
 . (Join-Path $PSScriptRoot 'TypedDecisionSweep.ps1')
 $sweepClock=[Diagnostics.Stopwatch]::StartNew()
-$report=$null; $lock=$null; $runDirectory=$null
+$report=$null; $lock=$null; $runDirectory=$null; $checkpointWritable=$false; $migrateStorage=$false
 
 function Save-SweepProgress([string]$Message) {
     $report.updatedAt=[DateTime]::UtcNow.ToString('o')
@@ -39,7 +39,7 @@ function Save-SweepProgress([string]$Message) {
     $report.leaderboard=@(Get-SweepLeaderboard $report)
     $report.topConfigurations=@($report.leaderboard | Where-Object { $_.qualifiesForNextStage } | Select-Object -First $report.settings.topCount)
     $report.detail=$Message
-    Save-TypedDecisionEvidence $report (Join-Path $runDirectory 'sweep.json')
+    Save-TypedDecisionEvidence $report (Join-Path $runDirectory 'sweep.json') -KeepBackup
     $line='[{0}%] {1} {2}; completed={3}/{4}; elapsed={5:N0}s' -f $report.progressPercent,$report.updatedAt,$Message,$report.completedTaskCount,$report.tasks.Count,$report.elapsedSeconds
     [IO.File]::AppendAllText((Join-Path $runDirectory 'sweep.log'),$line+[Environment]::NewLine)
     Write-Progress -Id 90 -Activity 'Typed decision configuration sweep' -Status $Message -PercentComplete $report.progressPercent
@@ -58,7 +58,13 @@ try {
     if ($ResumeDirectory) {
         $runDirectory=(Resolve-Path -LiteralPath $ResumeDirectory).Path
         $report=ConvertFrom-SweepJson (Get-Content -LiteralPath (Join-Path $runDirectory 'sweep.json') -Raw)
-        if ($report.version -ne 'TYPED_SWEEP_V1' -or (Get-SweepHash $identity) -ne $report.codeHash) { throw 'Sweep code changed: start a new sweep, do not mix versions.' }
+        if ($report.version -ne 'TYPED_SWEEP_V1' -or (Get-SweepHash $report.codeIdentity) -ne $report.codeHash) { throw 'Invalid sweep version or code identity.' }
+        if ((Get-SweepHash $identity) -ne $report.codeHash) {
+            # Explicitly reviewed storage-only upgrade from 7e9cd14. No generic hash bypass:
+            # prompts, sampling, evaluator policy, candidate/task plan and model remain unchanged.
+            $migrateStorage = $report.codeHash -eq '84F24531B6B3A6A5EE5E1F13CA2A9ED1FBF96A05A8141576084819266D7F5E52'
+            if (-not $migrateStorage) { throw 'Sweep code changed: start a new sweep, do not mix versions.' }
+        }
         if ((Get-SweepHash $report.snapshot) -ne $report.snapshotHash -or (Get-SweepHash $report.configurations) -ne $report.configurationHash -or
             (Get-SweepHash $report.tasks) -ne $report.taskHash -or (Get-SweepHash $report.settings) -ne $report.settingsHash) { throw 'Frozen sweep inputs were modified.' }
         $ModelPath=$report.settings.modelPath; $LlamaCliPath=$report.settings.llamaCliPath
@@ -115,7 +121,19 @@ try {
     # Pin both local model weights and executable, including on resume.
     if ((Get-FileHash -LiteralPath $ModelPath -Algorithm SHA256).Hash -ne $report.modelSha256 -or
         (Get-FileHash -LiteralPath $LlamaCliPath -Algorithm SHA256).Hash -ne $report.llamaSha256) { throw 'Model or llama executable changed. Start a new sweep.' }
+    if ($migrateStorage) {
+        # Preserve the original bytes before changing provenance. Backups are not child result JSONs.
+        $migrationBackup=Join-Path $runDirectory ('sweep-pre-storage-upgrade-'+[guid]::NewGuid().ToString('N')+'.json.backup')
+        [IO.File]::Copy((Join-Path $runDirectory 'sweep.json'), $migrationBackup, $false)
+        $migration=[pscustomobject]@{kind='CHECKPOINT_STORAGE_ONLY_V2';at=[DateTime]::UtcNow.ToString('o')
+            fromCodeHash=$report.codeHash;fromCodeIdentity=$report.codeIdentity;toCodeHash=(Get-SweepHash $identity);backupPath=$migrationBackup
+            completedTaskCount=@($report.records).Count;detail='File replacement and bounded I/O retries only; inference and scoring unchanged.'}
+        $report | Add-Member -NotePropertyName storageMigration -NotePropertyValue $migration -Force
+        $report.codeIdentity=$identity; $report.codeHash=Get-SweepHash $identity
+        Write-Host "Storage-only checkpoint upgrade; preserving $(@($report.records).Count) recorded tasks. Backup: $migrationBackup"
+    }
     $sweepPreviousElapsed=[double]$report.elapsedSeconds
+    $checkpointWritable=$true
     $report.ownerPid=$PID; $report.ownerStartedAt=(Get-Process -Id $PID).StartTime.ToUniversalTime().ToString('o')
     $report.status='RUNNING'
     Save-SweepProgress 'Sweep started/resumed'
@@ -180,11 +198,13 @@ try {
     $report.leaderboard | Select-Object configurationId,completed,planned,qualifiesForNextStage,diagnosticPassPercent,businessValidPercent,unsafePromotionCount,meanAttemptSeconds | Format-Table -AutoSize
 }
 catch {
-    if ($null -ne $report -and $null -ne $runDirectory -and (Get-Variable sweepPreviousElapsed -ErrorAction SilentlyContinue)) {
-        $report.status='INTERRUPTED';$report.errors += [pscustomobject]@{message=$_.Exception.Message;stack=$_.ScriptStackTrace;at=[DateTime]::UtcNow.ToString('o')}
-        Save-SweepProgress "Stopped: $($_.Exception.Message)"
+    $originalError=$_
+    if ($checkpointWritable) {
+        $report.status='INTERRUPTED';$report.errors += [pscustomobject]@{message=$originalError.Exception.Message;stack=$originalError.ScriptStackTrace;at=[DateTime]::UtcNow.ToString('o')}
+        try { Save-SweepProgress "Stopped: $($originalError.Exception.Message)" }
+        catch { Write-Warning "Unable to save interruption state; retain the previous checkpoint, .bak and pending .tmp evidence. $($_.Exception.Message)" }
     }
-    throw
+    throw $originalError
 }
 finally {
     if ($null -ne $lock) { $lock.Dispose() }
