@@ -210,6 +210,35 @@ function Invoke-LlamaCliProcess {
     }
 }
 
+function Get-LlamaCliCapabilities {
+    param(
+        [string]$ExecutablePath,
+        [int]$ProcessTimeoutSeconds,
+        [string]$OutputDirectory,
+        [string]$Stem
+    )
+
+    $helpOutPath = Join-Path $OutputDirectory "$Stem-llama-help.txt"
+    $helpErrPath = Join-Path $OutputDirectory "$Stem-llama-help-stderr.txt"
+    $helpProcess = Invoke-LlamaCliProcess `
+        -ExecutablePath $ExecutablePath `
+        -Arguments @('--help') `
+        -StandardOutputPath $helpOutPath `
+        -StandardErrorPath $helpErrPath `
+        -ProcessTimeoutSeconds $ProcessTimeoutSeconds `
+        -StandardInputText ''
+    $helpText = (($helpProcess.stdout + "`n" + $helpProcess.stderr) -join '').Trim()
+    [pscustomobject][ordered]@{
+        helpPath          = $helpOutPath
+        helpStderrPath    = $helpErrPath
+        helpExitCode      = $helpProcess.exitCode
+        helpTimedOut      = $helpProcess.timedOut
+        supportsSingleTurn = ($helpText -match '(^|\s)(-st|--single-turn)(\s|,|$)')
+        supportsNoDisplayPrompt = ($helpText -match '--no-display-prompt')
+        supportsGrammarFile = ($helpText -match '--grammar-file')
+    }
+}
+
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 $suffix = if ([string]::IsNullOrWhiteSpace($DatasetRunId)) { 'latest' } else { $DatasetRunId }
@@ -232,6 +261,16 @@ try {
     Write-StepProgress 10 'Resolving llama-cli...'
     $llamaCli = Resolve-LlamaCli -RequestedPath $LlamaCliPath
     Write-Host "llama-cli: $llamaCli"
+    $llamaCapabilities = Get-LlamaCliCapabilities `
+        -ExecutablePath $llamaCli `
+        -ProcessTimeoutSeconds 30 `
+        -OutputDirectory $OutputDirectory `
+        -Stem $stem
+    Write-Host ("llama-cli capabilities: singleTurn={0}; grammarFile={1}; noDisplayPrompt={2}; helpExitCode={3}" -f `
+            $llamaCapabilities.supportsSingleTurn, `
+            $llamaCapabilities.supportsGrammarFile, `
+            $llamaCapabilities.supportsNoDisplayPrompt, `
+            $llamaCapabilities.helpExitCode)
 
     Write-StepProgress 15 'Requesting Java-owned typed decision primitive candidates...'
     $body = [ordered]@{
@@ -274,15 +313,20 @@ try {
         $fallbackRawPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-raw.txt" -f $candidate.candidateId, $candidate.symbol)
         $fallbackStderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
         $startedAt = Get-Date
-        $llamaExitCommand = "/exit`n"
+        $llamaExitCommand = if ($llamaCapabilities.supportsSingleTurn) { '' } else { "/exit`n" }
         $llamaArguments = @(
             '-hf', $ModelRef,
             '--grammar-file', $grammarPath,
-            '--no-display-prompt',
             '-f', $promptPath,
             '-n', ([string]$MaxTokens),
             '--temp', '0'
         )
+        if ($llamaCapabilities.supportsSingleTurn) {
+            $llamaArguments += '-st'
+        }
+        if ($llamaCapabilities.supportsNoDisplayPrompt) {
+            $llamaArguments += '--no-display-prompt'
+        }
         $process = Invoke-LlamaCliProcess `
             -ExecutablePath $llamaCli `
             -Arguments $llamaArguments `
@@ -300,6 +344,9 @@ try {
                 '-n', ([string]$MaxTokens),
                 '--temp', '0'
             )
+            if ($llamaCapabilities.supportsSingleTurn) {
+                $fallbackArguments += '-st'
+            }
             $process = Invoke-LlamaCliProcess `
                 -ExecutablePath $llamaCli `
                 -Arguments $fallbackArguments `
@@ -423,6 +470,11 @@ try {
             promptPath                             = $promptPath
             rawOutputPath                          = $rawPath
             stderrPath                             = $stderrPath
+            llamaHelpPath                          = $llamaCapabilities.helpPath
+            llamaHelpStderrPath                    = $llamaCapabilities.helpStderrPath
+            llamaSupportsSingleTurn                = $llamaCapabilities.supportsSingleTurn
+            llamaSupportsGrammarFile               = $llamaCapabilities.supportsGrammarFile
+            llamaSupportsNoDisplayPrompt           = $llamaCapabilities.supportsNoDisplayPrompt
             fallbackRawOutputPath                  = if ($usedFallbackInvocation) { $fallbackRawPath } else { $null }
             fallbackStderrPath                     = if ($usedFallbackInvocation) { $fallbackStderrPath } else { $null }
             usedFallbackInvocation                 = $usedFallbackInvocation
