@@ -106,47 +106,6 @@ function Resolve-LlamaCli {
     throw 'llama-cli.exe was not found. Install llama.cpp under C:\MarketBrainTools\llama.cpp or pass -LlamaCliPath.'
 }
 
-function Get-FirstJsonObject {
-    param([string]$Text)
-    if ([string]::IsNullOrWhiteSpace($Text)) {
-        return $null
-    }
-    $start = $Text.IndexOf('{')
-    if ($start -lt 0) {
-        return $null
-    }
-    $depth = 0
-    $inString = $false
-    $escaped = $false
-    for ($index = $start; $index -lt $Text.Length; $index++) {
-        $char = $Text[$index]
-        if ($escaped) {
-            $escaped = $false
-            continue
-        }
-        if ($char -eq '\') {
-            $escaped = $true
-            continue
-        }
-        if ($char -eq '"') {
-            $inString = -not $inString
-            continue
-        }
-        if ($inString) {
-            continue
-        }
-        if ($char -eq '{') {
-            $depth++
-        }
-        elseif ($char -eq '}') {
-            $depth--
-            if ($depth -eq 0) {
-                return $Text.Substring($start, $index - $start + 1)
-            }
-        }
-    }
-    return $null
-}
 
 function Test-InSet {
     param(
@@ -437,8 +396,8 @@ try {
         -ContentType 'application/json' `
         -Body ($body | ConvertTo-Json -Depth 8) `
         -TimeoutSec $TimeoutSeconds
-    if ($EvaluationMode -eq 'INDEPENDENT' -and $preview.decisionContractVersion -ne 'MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4') {
-        throw 'Independent evaluation requires the V4 Java service. Rebuild/redeploy marketbrain-service first.'
+    if ($EvaluationMode -eq 'INDEPENDENT' -and $preview.decisionContractVersion -ne 'MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V5') {
+        throw 'Independent evaluation requires the V5 Java service. Rebuild/redeploy marketbrain-service first.'
     }
     Write-Host 'Step 89: running local llama.cpp + GBNF typed decision primitive preview...'
     Write-Host "Selection mode: $SelectionMode; start offset: $StartOffset; candidates: $($preview.candidateCount)"
@@ -529,115 +488,21 @@ try {
         $stderrText = if (Test-Path -LiteralPath $effectiveStderrPath) { [System.IO.File]::ReadAllText($effectiveStderrPath) } else { '' }
         $rawOutput = $stdoutText.Trim()
 
-        $jsonText = Get-FirstJsonObject -Text $rawOutput
-        $parseable = $false
-        $schemaValid = $false
-        $businessValid = $false
-        $decisionAligned = $false
-        $warnings = @()
-        $failures = @()
-        $processFailures = @()
-        $decision = $null
-        if ($process.exitCode -ne 0) {
-            $processFailures += "LLAMA_EXIT_CODE_$($process.exitCode)"
+        $assessment = Test-TypedDecisionResponse -Text $rawOutput -Prompt $candidatePrompt -Candidate $candidate -ExitCode $process.exitCode -TimedOut $process.timedOut -EvaluationMode $EvaluationMode
+        $decision = $assessment.decision
+        $parseable = $assessment.parseableJson
+        $schemaValid = $assessment.schemaValid
+        $businessValid = $assessment.businessValid
+        $decisionAligned = $assessment.aligned
+        $warnings = @($assessment.warnings)
+        $failures = @($assessment.failures)
+        $reasonWarnings = @($assessment.reasonEvidenceWarnings)
+        $expectedDecisions = @($assessment.diagnosticExpectedDecisions)
+        $diagnosticFailures = @($assessment.diagnosticFailures)
+        $diagnosticPassed = $assessment.diagnosticPassed
+        if ($assessment.extraction.json) {
+            $assessment.extraction.json | Set-Content -LiteralPath $responsePath -Encoding UTF8
         }
-        if ($process.timedOut) {
-            $processFailures += 'LLAMA_PROCESS_TIMEOUT'
-        }
-        if ([string]::IsNullOrWhiteSpace($jsonText)) {
-            $failures += $processFailures
-            $failures += 'NO_JSON_OBJECT_FOUND'
-        }
-        else {
-            $jsonText | Set-Content -LiteralPath $responsePath -Encoding UTF8
-            try {
-                $decision = $jsonText | ConvertFrom-Json
-                if ($null -eq $decision -or $decision -isnot [pscustomobject]) {
-                    $failures += 'JSON_OBJECT_REQUIRED'
-                    $decision = $null
-                } else {
-                    $parseable = $true
-                    $requiredKeys = @('candidateId', 'decision', 'riskBucket', 'trapDetected', 'scoreBand', 'confidenceBand', 'primaryReasonCode')
-                    foreach ($key in $requiredKeys) {
-                        if (@($decision.PSObject.Properties.Name) -cnotcontains $key) {
-                            $failures += "MISSING_KEY_$key"
-                            $decision | Add-Member -NotePropertyName $key -NotePropertyValue $null -Force
-                        }
-                    }
-                    foreach ($key in @($decision.PSObject.Properties.Name)) {
-                        if ($requiredKeys -cnotcontains $key) { $failures += "UNEXPECTED_KEY_$key" }
-                    }
-                }
-            }
-            catch {
-                $failures += $processFailures
-                $failures += 'JSON_PARSE_FAILED'
-            }
-        }
-
-        if ($parseable) {
-            if ($decision.candidateId -isnot [string] -or $decision.candidateId -cne $candidate.candidateId) {
-                $failures += 'CANDIDATE_ID_MISMATCH'
-            }
-            if (-not (Test-InSet $decision.decision $preview.allowedDecisions)) {
-                $failures += 'INVALID_DECISION_ENUM'
-            }
-            if (-not (Test-InSet $decision.riskBucket $preview.allowedRiskBuckets)) {
-                $failures += 'INVALID_RISK_BUCKET_ENUM'
-            }
-            if (-not (Test-InSet $decision.trapDetected $preview.allowedTrapFlags)) {
-                $failures += 'INVALID_TRAP_ENUM'
-            }
-            if (-not (Test-InSet $decision.scoreBand $preview.allowedScoreBands)) {
-                $failures += 'INVALID_SCORE_BAND_ENUM'
-            }
-            if (-not (Test-InSet $decision.confidenceBand $preview.allowedConfidenceBands)) {
-                $failures += 'INVALID_CONFIDENCE_BAND_ENUM'
-            }
-            if (-not (Test-InSet $decision.primaryReasonCode $preview.allowedReasonCodes)) {
-                $failures += 'INVALID_REASON_CODE_ENUM'
-            }
-            if ($failures.Count -eq 0 -and $processFailures.Count -gt 0) {
-                foreach ($processFailure in $processFailures) {
-                    $warnings += "JSON_RECOVERED_AFTER_$processFailure"
-                }
-            }
-            elseif ($failures.Count -gt 0 -and $processFailures.Count -gt 0) {
-                $failures += $processFailures
-            }
-            $schemaValid = $failures.Count -eq 0
-        }
-
-        if ($schemaValid) {
-            $failures += @(Get-DecisionPolicyFailures -Candidate $candidate -Decision $decision -EvaluationMode $EvaluationMode)
-            # Valid JSON from a timed-out or failed process is retained as evidence but not accepted.
-            $failures += $processFailures
-            if ([string]$decision.decision -ne [string]$candidate.javaDecision) {
-                $warnings += 'DECISION_DIVERGED_FROM_JAVA_GUARDRAIL'
-            }
-            if ([string]$decision.riskBucket -ne [string]$candidate.javaRiskBucket) {
-                $warnings += 'RISK_BUCKET_DIVERGED_FROM_JAVA_GUARDRAIL'
-            }
-            if ([string]$decision.scoreBand -ne [string]$candidate.javaScoreBand) {
-                $warnings += 'SCORE_BAND_DIVERGED_FROM_JAVA_GUARDRAIL'
-            }
-            $businessValid = $failures.Count -eq 0
-            $decisionAligned = $businessValid -and ([string]$decision.decision -eq [string]$candidate.javaDecision) `
-                -and ([string]$decision.riskBucket -eq [string]$candidate.javaRiskBucket) `
-                -and ([string]$decision.scoreBand -eq [string]$candidate.javaScoreBand)
-        }
-
-        $reasonWarnings = @(if ($schemaValid -and $EvaluationMode -eq 'INDEPENDENT') {
-            @(Get-DecisionEvidenceWarnings -Candidate $candidate -Decision $decision)
-        })
-        $expectedDecisions = @(if ($candidate.PSObject.Properties['diagnosticExpectedDecisions']) {
-            @($candidate.diagnosticExpectedDecisions)
-        })
-        $diagnosticFailures = @(Get-TypedDiagnosticFailures -Candidate $candidate -Decision $decision -BusinessValid $businessValid -ReasonWarnings $reasonWarnings)
-        $diagnosticPassed = if ($expectedDecisions.Count -gt 0) {
-            $diagnosticFailures.Count -eq 0
-        } else { $null }
-        $warnings += $reasonWarnings
         $warningArray = @($warnings | ForEach-Object { [string]$_ })
         $failureArray = @($failures | ForEach-Object { [string]$_ })
         $responseText = if (Test-Path -LiteralPath $responsePath) { [System.IO.File]::ReadAllText($responsePath) } else { $null }
@@ -655,6 +520,8 @@ try {
             diagnosticFailures                     = $diagnosticFailures
             reasonEvidenceWarnings                 = $reasonWarnings
             rawOutput                              = $rawOutput
+            extraction                             = $assessment.extraction
+            failureStage                           = $assessment.failureStage
             stdout                                 = $stdoutText
             stderr                                 = $stderrText
             primaryExitCode                        = $primaryProcess.exitCode

@@ -75,5 +75,9 @@ Assert-Check (@(Get-TypedDiagnosticFailures $highVolCandidate $highVolDecision $
 $highVolDecision.riskBucket='HIGH'
 Assert-Check (@(Get-TypedDiagnosticFailures $highVolCandidate $highVolDecision $true @()).Count -eq 0) 'Valid high-volatility research caution failed'
 Assert-Check (@(Get-TypedDiagnosticFailures $highVolCandidate $null $false @()) -contains 'DIAGNOSTIC_INVALID_RESPONSE') 'Invalid diagnostic response not guarded'
+$noDrawdown=[pscustomobject]@{ businessValid=$true; modelDecision='SHORTLIST'; javaDecision='SHORTLIST'; targetNetReturnPercent=$null; targetBenchmarkExcessReturnPercent=$null; targetMaximumDrawdownPercent=$null; evidenceCategory='SYNTHETIC'; elapsedMillis=1 }
+$noDrawdownMetrics=Get-TypedDecisionEvaluation @($noDrawdown)
+Assert-Check ($null -eq $noDrawdownMetrics.javaSelectedMeanMaximumDrawdownPercent -and $null -eq $noDrawdownMetrics.modelSelectedMeanMaximumDrawdownPercent) 'Missing drawdown incorrectly reported as zero'
+Assert-Check ($noDrawdownMetrics.javaSelectedDrawdownLabelCount -eq 0) 'Missing drawdown denominator incorrect'
 Write-Progress -Activity 'Offline decision evaluation tests' -Completed
 Write-Host '[100%] Offline decision evaluation checks passed.'

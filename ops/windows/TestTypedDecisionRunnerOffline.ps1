@@ -34,6 +34,9 @@ function Invoke-LlamaCliProcess {
             if ($mockCall -eq 4) { $timedOut=$true; $exitCode=-999 }
         }
         $stdout = $payload | ConvertTo-Json -Compress
+        $promptIndex=[array]::IndexOf($Arguments,'-f') + 1
+        $echo=[IO.File]::ReadAllText($Arguments[$promptIndex]).Trim()
+        $stdout="Loading model...`n> " + $echo.Substring(0,$echo.Length-4) + " ... (truncated)`n" + $stdout
     }
     $stdout | Set-Content -LiteralPath $StandardOutputPath -Encoding UTF8
     'offline stderr evidence' | Set-Content -LiteralPath $StandardErrorPath -Encoding UTF8
@@ -54,7 +57,7 @@ function Invoke-RestMethod {
     $contrast = ($Body | ConvertFrom-Json).selectionMode -eq 'CONTRAST_VALIDATION'
     $candidates = @(1..4 | ForEach-Object {
         [pscustomobject]@{
-            candidateId=('CANDIDATE_{0:D3}' -f $_); symbol="SYNTHETIC_$_"; independentPrompt="As-of fixture $_"
+            candidateId=('CANDIDATE_{0:D3}' -f $_); symbol="SYNTHETIC_$_"; independentPrompt="As-of fixture $_`n{factsVersion=TEST, unfinished map and tail"
             prompt='BASELINE MUST NOT BE SENT'; evidenceCategory='CAUTION'; hardExclusionReason='NONE'
             javaDecision='SHORTLIST'; javaRiskBucket='HIGH'; javaTrapDetected='YES'; javaScoreBand='HIGH'
             javaConfidenceBand='MEDIUM'; javaPrimaryReasonCode='RECOVERY_SETUP'; javaFeaturePriorScore=60
@@ -65,7 +68,7 @@ function Invoke-RestMethod {
         }
     })
     [pscustomobject]@{
-        decisionContractVersion='MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4'; grammarVersion='GBNF_V1'
+        decisionContractVersion='MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V5'; grammarVersion='GBNF_V1'
         datasetRunId='offline'; asOf='2026-06-05'; labelThrough='2026-09-08'; candidateCount=4; candidates=$candidates
         grammar="root ::= candidate-id`ncandidate-id ::= digit`ndigit ::= [0-9]"
         allowedDecisions=@('REJECT','WATCHLIST','SHORTLIST','TOP_PICK'); allowedRiskBuckets=@('LOW','MEDIUM','HIGH','BLOCKED')
@@ -85,13 +88,14 @@ try {
     if ($result.businessValidCount -ne 1 -or $result.schemaValidCount -ne 3 -or $result.llamaCppCallCount -ne 4 -or $result.decisionAlignedWithJavaCount -ne 1) {
         throw 'Missing keys, nonzero exits or timeouts were not evaluated correctly.'
     }
-    if ($result.attempts[0].prompt -ne 'As-of fixture 1') { throw 'Wrong prompt reached the runner.' }
+    if (-not $result.attempts[0].prompt.StartsWith('As-of fixture 1')) { throw 'Wrong prompt reached the runner.' }
+    if (-not $result.attempts[0].extraction.echoRemoved) { throw 'Full runner did not remove echoed prompt.' }
     if (@(Get-ChildItem -LiteralPath $outputDirectory -File).Count -ne 2) { throw 'Expected only result and log.' }
     $env:MARKETBRAIN_OFFLINE_TEST_OLD_SERVER = '1'
     $oldDirectory = Join-Path $testDirectory 'old-server'
     $blocked=$false
     try { & $fixturePath -DatasetRunId 'offline' -OutputDirectory $oldDirectory }
-    catch { $blocked = $_.Exception.Message -like '*V4 Java service*' }
+    catch { $blocked = $_.Exception.Message -like '*V5 Java service*' }
     if (-not $blocked -or [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS -ne 4) { throw 'Old deployment was not blocked before inference.' }
     $failed = Get-ChildItem -LiteralPath $oldDirectory -Filter '*.json' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json }
     if ($failed.status -ne 'FAILED' -or $failed.llamaCppCallCount -ne 0) { throw 'Failure evidence missing.' }
@@ -126,7 +130,8 @@ try {
     if ($passedGate.contrastGateBlocked -or $passedGate.results.Count -ne 2 -or [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS -ne 8) {
         throw 'Successful contrast gate did not proceed to balanced validation.'
     }
-    if ($passedGate.results[0].evaluation.diagnosticPassedCount -ne 4 -or -not $passedGate.comparableInputs) { throw 'Incorrect diagnostic metrics or cross-scenario comparison.' }
+    if ($passedGate.results[0].evaluation.diagnosticPassedCount -ne 4 -or $null -ne $passedGate.comparableInputs -or $passedGate.comparedRunPairCount -ne 0) { throw 'Incorrect diagnostic metrics or cross-scenario comparison.' }
+    if ($gate.skippedStageCount -ne 1 -or $passedGate.skippedStageCount -ne 0) { throw 'Skipped stages not explicit.' }
     Write-Host '[100%] Offline runner tests passed; no external services or models were invoked.'
 }
 finally {

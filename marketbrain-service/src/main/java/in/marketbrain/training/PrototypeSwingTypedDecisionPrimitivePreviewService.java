@@ -13,7 +13,7 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingTypedDecisionPrimitivePreviewService {
 
-    static final String DECISION_CONTRACT_VERSION = "MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4";
+    static final String DECISION_CONTRACT_VERSION = "MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V5";
     static final String GRAMMAR_VERSION = "MARKETBRAIN_TYPED_DECISION_GBNF_V1";
 
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
@@ -156,8 +156,8 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
                 qualityAnchorScore,
                 qualityAnchorRank,
                 guidedRankingService.qualityAnchorBand(qualityAnchorRank, candidateCount, qualityAnchorScore),
-                guidedRankingService.scoreCapHint(candidate),
-                guidedRankingService.topPickEligibility(candidate),
+                scoreCapHint(candidate),
+                topPickEligibility(candidate),
                 guidedRankingService.riskControlScore(candidate),
                 guidedRankingService.opportunityScore(candidate),
                 guidedRankingService.majorConflictCount(candidate),
@@ -231,44 +231,46 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
     }
 
     String independentPrompt(PrototypeSwingOllamaCandidate c, int index, int horizon) {
-        // Intentionally excludes symbol, Java decisions/scores/ranks, strata, and future labels.
+        // Flat evidence avoids ambiguous Java-map braces; no baseline answer, symbol or future labels.
+        String facts = TypedDecisionFacts.of(c).entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue()).collect(java.util.stream.Collectors.joining("; "));
         return """
-                Assess this candidate for %d sessions; research only, never permission to trade. Return only JSON.
-                Prompt policy=TYPED_POLICY_V2; arithmetic facts=TYPED_FACTS_V1. No baseline answer is supplied.
-                EVIDENCE for candidateId=%s:
+                Return one JSON research assessment, not a trade order. Policy=TYPED_POLICY_V3; horizon=%d sessions.
+                Fields: candidateId, decision, riskBucket, trapDetected, scoreBand, confidenceBand, primaryReasonCode.
+                decision: REJECT|WATCHLIST|SHORTLIST|TOP_PICK. riskBucket: LOW|MEDIUM|HIGH|BLOCKED.
+                trapDetected: YES|NO. scoreBand: VERY_LOW|LOW|MEDIUM|HIGH|VERY_HIGH. confidenceBand: LOW|MEDIUM|HIGH.
+                primaryReasonCode: WEAK_TREND|STRONG_MOMENTUM|TRAP_RISK|RELATIVE_STRENGTH|RISK_ADJUSTED_LEADER|BLOCKED_BY_RISK|RECOVERY_SETUP|OVEREXTENSION_RISK|MIXED_EVIDENCE.
+
+                Apply these steps in order:
+                1. Hard exclusion not NONE: REJECT, BLOCKED, VERY_LOW, BLOCKED_BY_RISK. Missing data alone is not a trap.
+                2. Otherwise BLOCKED is forbidden. Volatility at least 45 means HIGH risk, not automatic rejection.
+                3. ABOVE_ALL + POSITIVE EMA + RSI 40..69 + volume at least 1.2 supports SHORTLIST.
+                   BELOW_ALL + NEGATIVE EMA + RSI below 40 supports REJECT/LOW score/WEAK_TREND.
+                   Conflicting or incomplete confirmation supports WATCHLIST/MEDIUM score/MIXED_EVIDENCE.
+                   High volatility alone can lower priority to WATCHLIST without inventing a weak trend.
+                4. REJECT cannot have HIGH/VERY_HIGH score. TOP_PICK requires strong confirmation and controlled risk.
+                   topPickEligibility=BLOCKED limits TOP_PICK only, not other research priorities.
+                   HARD_CAP_54 forbids HIGH/VERY_HIGH and TOP_PICK; HARD_CAP_69 forbids VERY_HIGH and TOP_PICK.
+                5. Choose a reason grounded in these facts. Trap YES requires adverse pattern evidence, not just HIGH risk.
+                   No benchmark is provided: do not claim RELATIVE_STRENGTH. Confidence is not profit probability.
+
+                Assess the following input, independently of any Java baseline:
+                candidateId=%s; date=%s; close=%s; rsi14=%s; volumeRatio20=%s; annualizedVolatility20Percent=%s; rangePosition252Percent=%s; dailyReturnPercent=%s.
                 %s
-                Raw: close=%s; rsi14=%s; volumeRatio20=%s; annualizedVolatility20Percent=%s; rangePosition252Percent=%s; dailyReturnPercent=%s; date=%s.
-                Hard exclusion reason=%s. topPickEligibility=%s limits TOP_PICK only. scoreCapHint=%s.
-
-                POLICY: first read the evidence, then select research priority.
-                ABOVE_ALL plus POSITIVE EMA supports trend; BELOW_ALL plus NEGATIVE EMA supports WEAK_TREND.
-                RSI below 40 weakens confirmation; RSI at least 70 flags extension. Volume below 0.8 weakens participation.
-                SHORTLIST = supported opportunity; WATCHLIST = mixed/unconfirmed; REJECT = predominantly adverse evidence.
-                TOP_PICK needs aligned trend, momentum, participation, controlled risk and permission from the caps.
-                HIGH volatility raises risk, not automatically REJECT or trapDetected=YES.
-                BLOCKED is legal ONLY when hard exclusion is not NONE; then REJECT and VERY_LOW/LOW are mandatory.
-                Otherwise riskBucket must be LOW, MEDIUM or HIGH, even when topPickEligibility is BLOCKED.
-                HARD_CAP_54 forbids HIGH/VERY_HIGH score and TOP_PICK. HARD_CAP_69 forbids VERY_HIGH and TOP_PICK.
-                REJECT forbids HIGH/VERY_HIGH score. Score is opportunity strength; confidence is evidence clarity, not profit probability.
-                Trap YES needs adverse pattern evidence. Mixed indicators alone do not establish a trap.
-                Select a reason supported by these facts; do not invent relative strength against an absent benchmark.
-
-                Illustrative patterns, not answers for this candidate:
-                - Above averages, positive EMA, RSI 57, volume 1.5, volatility 21, range 60, no exclusion: SHORTLIST/MEDIUM/HIGH, trap NO, STRONG_MOMENTUM.
-                - Below averages, negative EMA, RSI 31, no exclusion: REJECT/HIGH/LOW, WEAK_TREND; not BLOCKED.
-                - Improving EMA but mixed averages and low volume: WATCHLIST/HIGH/MEDIUM, MIXED_EVIDENCE.
-                - Missing required input: REJECT/BLOCKED/VERY_LOW, BLOCKED_BY_RISK; missing data alone is not a price trap.
-
-                Output exactly these keys: candidateId, decision, riskBucket, trapDetected, scoreBand, confidenceBand, primaryReasonCode.
-                decision: REJECT, WATCHLIST, SHORTLIST, TOP_PICK.
-                riskBucket: LOW, MEDIUM, HIGH, BLOCKED. trapDetected: YES, NO.
-                scoreBand: VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH. confidenceBand: LOW, MEDIUM, HIGH.
-                primaryReasonCode: WEAK_TREND, STRONG_MOMENTUM, TRAP_RISK, RELATIVE_STRENGTH,
-                RISK_ADJUSTED_LEADER, BLOCKED_BY_RISK, RECOVERY_SETUP, OVEREXTENSION_RISK, MIXED_EVIDENCE.
+                Hard exclusion reason=%s; topPickEligibility=%s; scoreCapHint=%s.
+                Return the seven fields only. Keep decision, risk and score consistent.
                 """.formatted(horizon, PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index),
-                TypedDecisionFacts.of(c), c.latestClose(), c.rsi14(), c.volumeRatio20(),
-                c.annualizedVolatility20Percent(), c.rangePosition252Percent(), c.dailyReturnPercent(), c.effectiveAsOf(),
-                hardExclusionReason(c), guidedRankingService.topPickEligibility(c), guidedRankingService.scoreCapHint(c)).strip();
+                c.effectiveAsOf(), c.latestClose(), c.rsi14(), c.volumeRatio20(),
+                c.annualizedVolatility20Percent(), c.rangePosition252Percent(), c.dailyReturnPercent(), facts,
+                hardExclusionReason(c), topPickEligibility(c), scoreCapHint(c)).strip();
+    }
+
+    private String topPickEligibility(PrototypeSwingOllamaCandidate c) {
+        return "NONE".equals(hardExclusionReason(c)) ? guidedRankingService.topPickEligibility(c) : "BLOCKED";
+    }
+
+    private String scoreCapHint(PrototypeSwingOllamaCandidate c) {
+        return "NONE".equals(hardExclusionReason(c)) ? guidedRankingService.scoreCapHint(c) : "HARD_CAP_54";
     }
 
     private String prompt(
@@ -354,7 +356,8 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
             int qualityAnchorRank,
             int qualityAnchorScore
     ) {
-        if ("BLOCKED".equals(guidedRankingService.topPickEligibility(candidate)) || qualityAnchorScore < 35) {
+        if (!"NONE".equals(hardExclusionReason(candidate))
+                || "BLOCKED".equals(guidedRankingService.topPickEligibility(candidate)) || qualityAnchorScore < 35) {
             return "REJECT";
         }
         if (qualityAnchorRank == 1 && qualityAnchorScore >= 55
@@ -372,9 +375,12 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
     }
 
     private String javaRiskBucket(PrototypeSwingOllamaCandidate candidate, int qualityAnchorScore) {
+        if (!"NONE".equals(hardExclusionReason(candidate))) {
+            return "BLOCKED";
+        }
         if ("BLOCKED".equals(guidedRankingService.topPickEligibility(candidate))
                 || "HARD_CAP_54".equals(guidedRankingService.scoreCapHint(candidate))) {
-            return "BLOCKED";
+            return "HIGH";
         }
         if (guidedRankingService.majorConflictCount(candidate) >= 3
                 || "VOLATILITY_HIGH".equals(guidedRankingService.volatilityTag(candidate))
@@ -394,9 +400,8 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
             String riskBucket,
             int qualityAnchorScore
     ) {
-        if ("BLOCKED".equals(riskBucket)
-                || "HIGH".equals(riskBucket)
-                || "EXTREME_OVEREXTENSION".equals(guidedRankingService.overextensionTag(candidate))
+        if (!"NONE".equals(hardExclusionReason(candidate))) { return "NO"; }
+        if ("EXTREME_OVEREXTENSION".equals(guidedRankingService.overextensionTag(candidate))
                 || guidedRankingService.majorConflictCount(candidate) >= 3
                 || qualityAnchorScore < 35) {
             return "YES";
@@ -411,8 +416,11 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
             int qualityAnchorScore
     ) {
         int cappedScore = qualityAnchorScore;
+        if (!"NONE".equals(hardExclusionReason(candidate))) { return "VERY_LOW"; }
         if ("BLOCKED".equals(riskBucket) || "REJECT".equals(decision)) {
             cappedScore = Math.min(cappedScore, 30);
+        } else if ("HARD_CAP_54".equals(scoreCapHint(candidate))) {
+            cappedScore = Math.min(cappedScore, 54);
         } else if ("HARD_CAP_69".equals(guidedRankingService.scoreCapHint(candidate))) {
             cappedScore = Math.min(cappedScore, 69);
         } else if ("SOFT_CAP_84".equals(guidedRankingService.scoreCapHint(candidate))) {
@@ -483,9 +491,6 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
         }
         if ("TREND_CONFLICT".equals(guidedRankingService.trendTag(candidate))) {
             return "WEAK_TREND";
-        }
-        if (guidedRankingService.qualityAnchorScore(candidate) >= 45) {
-            return "RELATIVE_STRENGTH";
         }
         return "MIXED_EVIDENCE";
     }

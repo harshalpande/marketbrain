@@ -27,6 +27,7 @@ $report = [pscustomobject][ordered]@{
     evaluationMode = 'INDEPENDENT'; candidateLimit = $CandidateLimit
     rankingHorizonSessions = $RankingHorizonSessions; modelConcurrency = 1
     comparableInputs = $null; results = @(); comparison = @(); failures = @()
+    comparedRunPairCount = 0; plannedStageCount = 0; completedStageCount = 0; skippedStageCount = 0
     contrastGateBlocked = $false
     actionExecutionEnabled = $false
 }
@@ -45,6 +46,7 @@ try {
         }
         foreach ($model in $ModelRefs) { [pscustomobject]@{ model=$model; mode=$SelectionMode; limit=$CandidateLimit } }
     )
+    $report.plannedStageCount=$tasks.Count
     for ($index = 0; $index -lt $tasks.Count; $index++) {
         $task = $tasks[$index]
         $percent = [int][math]::Floor(100.0 * $index / $tasks.Count)
@@ -63,6 +65,7 @@ try {
         if ($null -eq $jsonFile) { throw "No child evidence saved for $($task.model): $childError" }
         $childResult = Get-Content -LiteralPath $jsonFile.FullName -Raw | ConvertFrom-Json
         $report.results += $childResult
+        $report.completedStageCount=$report.results.Count
         Get-ChildItem -LiteralPath $childDirectory -Filter '*.log' | ForEach-Object {
             [System.IO.File]::AppendAllText($logPath, [System.IO.File]::ReadAllText($_.FullName), [System.Text.Encoding]::UTF8)
         }
@@ -71,7 +74,8 @@ try {
         if ($task.mode -eq 'CONTRAST_VALIDATION' -and
             ($childResult.evaluation.diagnosticCaseCount -ne 4 -or $childResult.evaluation.diagnosticPassedCount -ne 4)) {
             $report.contrastGateBlocked = $true
-            Write-ComparisonStatus $percent 'Diagnostic gate failed; remaining inference skipped. Review saved evidence before another run.'
+            $report.skippedStageCount=$tasks.Count-$report.completedStageCount
+            Write-ComparisonStatus ([int][Math]::Floor(100.0*($index+1)/$tasks.Count)) 'Diagnostic gate failed; remaining inference skipped. Review saved evidence before another run.'
             break
         }
     }
@@ -82,6 +86,7 @@ try {
             [ordered]@{ symbol=$_.symbol; prompt=$_.prompt; grammar=$_.grammar; netReturn=$_.targetNetReturnPercent; benchmarkExcess=$_.targetBenchmarkExcessReturnPercent; drawdown=$_.targetMaximumDrawdownPercent }
         }) | ConvertTo-Json -Depth 8 -Compress
         if ($references.ContainsKey($result.selectionMode)) {
+            $report.comparedRunPairCount++
             if ($signature -cne $references[$result.selectionMode]) { $report.comparableInputs = $false }
         } else { $references[$result.selectionMode] = $signature }
         $report.comparison += [pscustomobject]@{
@@ -94,8 +99,9 @@ try {
             averageSeconds=[math]::Round($result.evaluation.meanCandidateElapsedMillis / 1000.0, 2)
         }
     }
+    if ($report.comparedRunPairCount -eq 0) { $report.comparableInputs=$null }
     $report.status = if ($report.contrastGateBlocked) { 'DIAGNOSTIC_GATE_BLOCKED' }
-        elseif (-not $report.comparableInputs) { 'INCOMPARABLE_INPUTS' }
+        elseif ($report.comparableInputs -eq $false) { 'INCOMPARABLE_INPUTS' }
         elseif (@($report.results | Where-Object { $_.status -ne 'REVIEW_REQUIRED' }).Count -gt 0) { 'REVIEW_WITH_WARNINGS' }
         else { 'REVIEW_REQUIRED' }
     Save-TypedDecisionEvidence $report $resultPath

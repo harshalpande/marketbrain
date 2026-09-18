@@ -3920,9 +3920,9 @@ the Java baseline output plus only safe downgrade alternatives, preventing inval
 
 ## Spare runtime laptop: normal update and redeploy
 
-### Step 89 independent model comparison (V4)
+### Step 89 independent model comparison (V5)
 
-Deploy the V4 service and updated scripts together before running independent mode. No model installation, inference,
+Deploy the V5 service and updated scripts together before running independent mode. No model installation, inference,
 or production database operation is required on the development laptop. On the spare laptop, use PowerShell 7 and
 keep Qwen2.5 1.5B Q4_K_M cached. A previously running long job must finish before service recreation.
 
@@ -3964,7 +3964,26 @@ Offline development checks: `mvn -q "-Dtest=PrototypeSwingTypedDecision*Test" pa
 `ops/windows/TestTypedDecisionEvaluation.ps1`, and `ops/windows/TestTypedDecisionRunnerOffline.ps1`. The PowerShell
 checks use synthetic fixtures and invoke no model or service. The runner test replaces HTTP/process functions before
 execution and covers missing keys, nonzero exits, timeouts, old-server rejection, contrast-gate stop/continue and
-two-file comparison consolidation. The V4 script rejects a V3 deployment before candidate inference.
+two-file comparison consolidation. The V5 script rejects an older deployment before candidate inference.
+Also run `ops/windows/TestTypedDecisionResponse.ps1` (captured stdout plus adversarial framing cases) and
+`ops/windows/TestTypedDecisionReplay.ps1` (source hash preservation and corrected historical metrics). These are offline.
+
+#### Reassess saved output without running the model
+
+After updating scripts, run this on either machine that holds the evidence (no service deployment needed for replay):
+
+```powershell
+$replayParameters = @{
+    EvidencePath = 'C:\MarketBrainData\Review\typed-comparison-20260918-131620-fd0dfe\comparison.json'
+    OutputDirectory = 'C:\MarketBrainData\Review'
+}
+& '.\ops\windows\ReplayPrototypeSwingTypedDecisions.ps1' @replayParameters
+```
+
+Use the actual saved input path if different. Share `replay.json` and `replay.log` from the printed unique directory.
+The original JSON is not changed; replay contains the original reported flags alongside the re-evaluated flags and
+historical baseline. Do not treat this as another model run or as evidence that the new prompt improved decisions.
+For the captured V4 four-case failure, expected replay is 100% schema, 25% business validity, zero diagnostic passes.
 
 ### Standard redeploy
 

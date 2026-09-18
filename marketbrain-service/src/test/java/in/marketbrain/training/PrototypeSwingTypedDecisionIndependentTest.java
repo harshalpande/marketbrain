@@ -175,10 +175,54 @@ class PrototypeSwingTypedDecisionIndependentTest {
             assertThat(c.independentPrompt()).doesNotContain(c.symbol(), "diagnosticExpected");
         });
         assertThat(result.candidates().get(3).hardExclusionReason()).isEqualTo("MISSING_OR_INVALID_REQUIRED_FEATURES");
+        var missing = result.candidates().get(3);
+        assertThat(missing.javaDecision()).isEqualTo("REJECT");
+        assertThat(missing.javaRiskBucket()).isEqualTo("BLOCKED");
+        assertThat(missing.javaScoreBand()).isEqualTo("VERY_LOW");
+        assertThat(missing.javaTrapDetected()).isEqualTo("NO");
+        assertThat(missing.javaPrimaryReasonCode()).isEqualTo("BLOCKED_BY_RISK");
+        assertThat(missing.javaTopPickEligibility()).isEqualTo("BLOCKED");
+        assertThat(missing.javaScoreCapHint()).isEqualTo("HARD_CAP_54");
+        var highVol = result.candidates().get(2);
+        assertThat(highVol.javaRiskBucket()).isEqualTo("HIGH");
+        assertThat(highVol.javaTrapDetected()).isEqualTo("NO");
+        assertThat(missing.independentPrompt()).contains("topPickEligibility=BLOCKED", "scoreCapHint=HARD_CAP_54");
+        assertThat(result.candidates()).allSatisfy(c -> {
+            assertThat(c.independentPrompt()).doesNotContain("{", "}", "diagnosticExpectedDecisions");
+            assertThat(c.independentPrompt().length()).isLessThan(3000);
+            assertThat(c.independentPrompt()).contains("Policy=TYPED_POLICY_V3");
+            assertThat(c.javaPrimaryReasonCode()).isNotEqualTo("RELATIVE_STRENGTH");
+        });
         assertThat(result.databaseWritesPerformed()).isFalse();
         verifyNoInteractions(jdbc, model);
         String json = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(result).toString();
         assertThat(json).contains("featureEvidence", "diagnosticExpectedDecisions", "TYPED_FACTS_V1");
+    }
+
+    @Test
+    void completeInputsWithTopPickRestrictionAreNotHardBlockedInBaseline() {
+        UUID id=UUID.randomUUID();
+        var dataset=mock(PrototypeSwingTrainingDatasetAudit.class);
+        when(audit.audit(id)).thenReturn(dataset);
+        when(dataset.status()).thenReturn("REVIEW_REQUIRED");
+        when(dataset.datasetRunId()).thenReturn(id);
+        when(dataset.prototypeTrainingEligible()).thenReturn(true);
+        when(dataset.pointInTimeSafe()).thenReturn(true);
+        when(dataset.futureLabelsSeparated()).thenReturn(true);
+        when(dataset.auditReadyForOllamaRanking()).thenReturn(true);
+        when(dataset.failedCheckpoints()).thenReturn(List.of());
+        var c=candidate("RISK_RESTRICTED");
+        when(guided.candidates(id,0,1,"FIXED_SYMBOL")).thenReturn(List.of(c));
+        when(guided.qualityAnchorRanks(List.of(c))).thenReturn(java.util.Map.of(c.symbol(),1));
+        when(guided.qualityAnchorScore(c)).thenReturn(80);
+        when(guided.topPickEligibility(c)).thenReturn("BLOCKED");
+        when(guided.scoreCapHint(c)).thenReturn("HARD_CAP_54");
+        var row=service.preview(new PrototypeSwingTypedDecisionPrimitiveRequest(id,"FIXED_SYMBOL",0,1,20)).candidates().getFirst();
+        assertThat(row.hardExclusionReason()).isEqualTo("NONE");
+        assertThat(row.javaRiskBucket()).isEqualTo("HIGH");
+        assertThat(row.javaDecision()).isEqualTo("REJECT");
+        assertThat(row.javaScoreBand()).isEqualTo("LOW");
+        assertThat(row.javaTrapDetected()).isEqualTo("NO");
     }
 
     @Test

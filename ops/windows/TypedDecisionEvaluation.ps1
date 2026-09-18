@@ -1,4 +1,122 @@
 # Pure evaluation helpers. Importing this file does not contact services or run a model.
+function Get-TypedResponseObject {
+    param([string]$Text, [string]$Prompt)
+    $result = [pscustomobject]@{ version='TYPED_RESPONSE_EXTRACTOR_V2'; json=$null; error=$null; echoRemoved=$false; objectCount=0 }
+    if ($Text.Length -gt 1048576) { $result.error='RESPONSE_TOO_LARGE'; return $result }
+    $clean = [regex]::Replace($Text, '\x1b\[[0-?]*[ -/]*[@-~]', '').Replace("`r`n", "`n").TrimStart([char]0xfeff)
+    $normalizedPrompt = $Prompt.Replace("`r`n", "`n").Trim()
+    $echo = [regex]::Match($clean, '(?m)^> ')
+    if ($echo.Success) {
+        $tail = $clean.Substring($echo.Index + $echo.Length)
+        if ($normalizedPrompt.Length -gt 0 -and $tail.StartsWith($normalizedPrompt, [StringComparison]::Ordinal)) {
+            $clean = $tail.Substring($normalizedPrompt.Length)
+        } else {
+            $truncated = $tail.IndexOf(' ... (truncated)', [StringComparison]::Ordinal)
+            if ($truncated -le 0 -or -not $normalizedPrompt.StartsWith($tail.Substring(0,$truncated), [StringComparison]::Ordinal)) {
+                $result.error='UNRECOGNIZED_PROMPT_ECHO'; return $result
+            }
+            $clean = $tail.Substring($truncated + ' ... (truncated)'.Length)
+        }
+        $result.echoRemoved=$true
+    }
+    # Restart at each plausible object opening: an unmatched brace in a log must not hide a later answer.
+    # Never choose by expected decision, candidate ID, or business validity; multiple objects fail closed.
+    $objects = @()
+    if ($clean -match '(?m)^\s*\[\s*\{') { $result.error='JSON_ARRAY_NOT_OBJECT'; return $result }
+    $starts = [regex]::Matches($clean, '\{\s*(?=["}])')
+    if ($starts.Count -gt 128) { $result.error='TOO_MANY_OBJECT_STARTS'; return $result }
+    $consumedThrough=-1
+    foreach ($start in $starts) {
+        if ($start.Index -le $consumedThrough) { continue }
+        $depth=0; $quoted=$false; $escaped=$false
+        $endLimit=[Math]::Min($clean.Length, $start.Index + 65536)
+        for ($i=$start.Index; $i -lt $endLimit; $i++) {
+            $ch=$clean[$i]
+            if ($quoted) {
+                if ($escaped) { $escaped=$false }
+                elseif ($ch -eq '\') { $escaped=$true }
+                elseif ($ch -eq '"') { $quoted=$false }
+                continue
+            }
+            if ($ch -eq '"') { $quoted=$true }
+            elseif ($ch -eq '{') { $depth++ }
+            elseif ($ch -eq '}') {
+                $depth--
+                if ($depth -eq 0) {
+                    $json=$clean.Substring($start.Index,$i-$start.Index+1)
+                    try {
+                        $value=ConvertFrom-Json -InputObject $json -ErrorAction Stop
+                        if ($value -is [pscustomobject]) { $objects += $json; $consumedThrough=$i }
+                    } catch { }
+                    break
+                }
+            }
+        }
+    }
+    $result.objectCount=$objects.Count
+    if ($objects.Count -eq 0) { $result.error='NO_JSON_OBJECT_FOUND' }
+    elseif ($objects.Count -ne 1) { $result.error='AMBIGUOUS_JSON_OBJECTS' }
+    else { $result.json=$objects[0] }
+    return $result
+}
+
+function Test-TypedDecisionResponse {
+    param([string]$Text, [string]$Prompt, [object]$Candidate, [int]$ExitCode, [bool]$TimedOut,
+        [string]$EvaluationMode='INDEPENDENT')
+    $extraction=Get-TypedResponseObject -Text $Text -Prompt $Prompt
+    $failures=@(); $warnings=@(); $decision=$null; $parseable=$false; $schema=$false
+    $allowed=[ordered]@{
+        candidateId=@([string]$Candidate.candidateId)
+        decision=@('REJECT','WATCHLIST','SHORTLIST','TOP_PICK')
+        riskBucket=@('LOW','MEDIUM','HIGH','BLOCKED'); trapDetected=@('YES','NO')
+        scoreBand=@('VERY_LOW','LOW','MEDIUM','HIGH','VERY_HIGH'); confidenceBand=@('LOW','MEDIUM','HIGH')
+        primaryReasonCode=@('WEAK_TREND','STRONG_MOMENTUM','TRAP_RISK','RELATIVE_STRENGTH','RISK_ADJUSTED_LEADER','JAVA_BASELINE_ALIGNED','BLOCKED_BY_RISK','RECOVERY_SETUP','OVEREXTENSION_RISK','MIXED_EVIDENCE')
+    }
+    if ($extraction.error) { $failures += $extraction.error }
+    else {
+        $decision=ConvertFrom-Json -InputObject $extraction.json
+        $parseable=$true
+        $keys=@($decision.PSObject.Properties.Name)
+        # The contract is flat and string-only. Preserve duplicate-key evidence before ConvertFrom-Json collapses it.
+        $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+        foreach ($keyMatch in [regex]::Matches($extraction.json, '(?:\{|,)\s*"(?<key>(?:\\.|[^"\\])*)"\s*:')) {
+            $key=ConvertFrom-Json -InputObject ('"' + $keyMatch.Groups['key'].Value + '"')
+            if (-not $seen.Add($key)) { $failures += "DUPLICATE_KEY_$key" }
+        }
+        foreach ($key in $allowed.Keys) {
+            if ($keys -cnotcontains $key) {
+                $failures += "MISSING_KEY_$key"
+                $decision | Add-Member -NotePropertyName $key -NotePropertyValue $null -Force
+            }
+            if ($decision.$key -isnot [string] -or $allowed[$key] -cnotcontains $decision.$key) { $failures += "INVALID_FIELD_$key" }
+        }
+        foreach ($key in $keys) { if ($allowed.Keys -cnotcontains $key) { $failures += "UNEXPECTED_KEY_$key" } }
+        $schema=$failures.Count -eq 0
+    }
+    if ($schema) { $failures += @(Get-DecisionPolicyFailures $Candidate $decision $EvaluationMode) }
+    if ($ExitCode -ne 0) { $failures += "LLAMA_EXIT_CODE_$ExitCode" }
+    if ($TimedOut) { $failures += 'LLAMA_PROCESS_TIMEOUT' }
+    $business=$schema -and $failures.Count -eq 0
+    $reasonWarnings=@(if ($schema -and $EvaluationMode -eq 'INDEPENDENT') { Get-DecisionEvidenceWarnings $Candidate $decision })
+    if ($schema) {
+        if ($decision.decision -cne $Candidate.javaDecision) { $warnings += 'DECISION_DIVERGED_FROM_JAVA_GUARDRAIL' }
+        if ($decision.riskBucket -cne $Candidate.javaRiskBucket) { $warnings += 'RISK_BUCKET_DIVERGED_FROM_JAVA_GUARDRAIL' }
+        if ($decision.scoreBand -cne $Candidate.javaScoreBand) { $warnings += 'SCORE_BAND_DIVERGED_FROM_JAVA_GUARDRAIL' }
+    }
+    $warnings += $reasonWarnings
+    $diagnosticFailures=@(Get-TypedDiagnosticFailures $Candidate $decision $business $reasonWarnings)
+    $expected=@(if ($Candidate.PSObject.Properties['diagnosticExpectedDecisions']) { $Candidate.diagnosticExpectedDecisions | Where-Object { $_ } })
+    [pscustomobject]@{
+        extraction=$extraction; decision=$decision; parseableJson=$parseable; schemaValid=$schema; businessValid=$business
+        failureStage=$(if ($extraction.error) { 'EXTRACTION' } elseif (-not $schema) { 'SCHEMA' }
+            elseif ($ExitCode -ne 0 -or $TimedOut) { 'PROCESS' } elseif (-not $business) { 'POLICY' } else { 'NONE' })
+        aligned=($business -and $decision.decision -ceq $Candidate.javaDecision -and $decision.riskBucket -ceq $Candidate.javaRiskBucket -and $decision.scoreBand -ceq $Candidate.javaScoreBand)
+        failures=$failures; warnings=$warnings; reasonEvidenceWarnings=$reasonWarnings
+        diagnosticExpectedDecisions=$expected; diagnosticFailures=$diagnosticFailures
+        diagnosticPassed=$(if ($expected.Count) { $diagnosticFailures.Count -eq 0 } else { $null })
+    }
+}
+
 function New-IndependentDecisionGrammar {
     param([object]$Candidate, [string]$Grammar)
     if ([string]$Candidate.candidateId -cnotmatch '^CANDIDATE_[0-9]{3}$') {
@@ -67,7 +185,7 @@ function Get-DecisionEvidenceWarnings {
 function Get-TypedDiagnosticFailures {
     param([object]$Candidate, [object]$Decision, [bool]$BusinessValid, [object[]]$ReasonWarnings)
     if (-not $Candidate.PSObject.Properties['diagnosticExpectedDecisions'] -or
-        @($Candidate.diagnosticExpectedDecisions).Count -eq 0) { return }
+        @($Candidate.diagnosticExpectedDecisions | Where-Object { $_ }).Count -eq 0) { return }
     if (-not $BusinessValid) { 'DIAGNOSTIC_INVALID_RESPONSE'; return }
     if (@($Candidate.diagnosticExpectedDecisions) -cnotcontains $Decision.decision) { 'DIAGNOSTIC_DECISION_MISMATCH' }
     if ($ReasonWarnings.Count -gt 0) { 'DIAGNOSTIC_UNSUPPORTED_REASON' }
@@ -98,6 +216,8 @@ function Get-TypedDecisionEvaluation {
     $javaLabelled = @($javaSelected | Where-Object {
         $null -ne $_.targetNetReturnPercent -and $null -ne $_.targetBenchmarkExcessReturnPercent
     })
+    $modelDrawdown = @($modelSelected | Where-Object { $null -ne $_.targetMaximumDrawdownPercent })
+    $javaDrawdown = @($javaSelected | Where-Object { $null -ne $_.targetMaximumDrawdownPercent })
     $categories = @('OPPORTUNITY', 'CAUTION', 'AVOID')
     $coverage = @($categories | ForEach-Object {
         $category = $_
@@ -121,7 +241,7 @@ function Get-TypedDecisionEvaluation {
     }
     if ($labelled.Count -lt $Attempts.Count) { $warnings += 'INCOMPLETE_OUTCOME_LABELS' }
     [pscustomobject][ordered]@{
-        metricVersion = 'INDEPENDENT_DECISION_EVALUATION_V2'
+        metricVersion = 'INDEPENDENT_DECISION_EVALUATION_V3'
         diagnosticCaseCount = $diagnostic.Count
         diagnosticPassedCount = $diagnosticPassed.Count
         diagnosticPassPercent = if ($diagnostic.Count) { [math]::Round(100.0 * $diagnosticPassed.Count / $diagnostic.Count, 2) } else { $null }
@@ -142,8 +262,10 @@ function Get-TypedDecisionEvaluation {
         javaSelectedPositiveOutcomePercent = if ($javaLabelled.Count) { [math]::Round(100.0 * $javaHits.Count / $javaLabelled.Count, 2) } else { $null }
         modelSelectedMeanNetReturnPercent = if ($modelLabelled.Count) { ($modelLabelled | Measure-Object targetNetReturnPercent -Average).Average } else { $null }
         javaSelectedMeanNetReturnPercent = if ($javaLabelled.Count) { ($javaLabelled | Measure-Object targetNetReturnPercent -Average).Average } else { $null }
-        modelSelectedMeanMaximumDrawdownPercent = if ($modelSelected.Count) { ($modelSelected | Measure-Object targetMaximumDrawdownPercent -Average).Average } else { $null }
-        javaSelectedMeanMaximumDrawdownPercent = if ($javaSelected.Count) { ($javaSelected | Measure-Object targetMaximumDrawdownPercent -Average).Average } else { $null }
+        modelSelectedDrawdownLabelCount = $modelDrawdown.Count
+        javaSelectedDrawdownLabelCount = $javaDrawdown.Count
+        modelSelectedMeanMaximumDrawdownPercent = if ($modelDrawdown.Count) { ($modelDrawdown | Measure-Object targetMaximumDrawdownPercent -Average).Average } else { $null }
+        javaSelectedMeanMaximumDrawdownPercent = if ($javaDrawdown.Count) { ($javaDrawdown | Measure-Object targetMaximumDrawdownPercent -Average).Average } else { $null }
         meanCandidateElapsedMillis = if ($Attempts.Count) { ($Attempts | Measure-Object elapsedMillis -Average).Average } else { $null }
         warnings = $warnings
         interpretation = 'Java alignment is agreement, not accuracy. Compare policies on identical candidates; stratified samples are not representative portfolio backtests. Unseen dates are still required.'

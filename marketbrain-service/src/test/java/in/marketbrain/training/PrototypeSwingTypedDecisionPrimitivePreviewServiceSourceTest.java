@@ -20,7 +20,7 @@ class PrototypeSwingTypedDecisionPrimitivePreviewServiceSourceTest {
         assertThat(source).doesNotContain("INSERT INTO");
         assertThat(source).doesNotContain("market_signal");
         assertThat(source).doesNotContain("paper_order");
-        assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4");
+        assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V5");
         assertThat(source).contains("MARKETBRAIN_TYPED_DECISION_GBNF_V1");
         assertThat(source).contains("Semantic consistency contract");
         assertThat(source).contains("Never output REJECT with HIGH or VERY_HIGH");
@@ -52,8 +52,9 @@ class PrototypeSwingTypedDecisionPrimitivePreviewServiceSourceTest {
         assertThat(source).contains("COMPACT_EMBEDDED");
         assertThat(source).contains("CANDIDATE_SPECIFIC_SEMANTIC_GBNF");
         assertThat(source).contains("generatedFileCount");
-        assertThat(source).contains("NO_JSON_OBJECT_FOUND");
-        assertThat(source).contains("Get-DecisionPolicyFailures");
+        String helper = java.nio.file.Files.readString(java.nio.file.Path.of("../ops/windows/TypedDecisionEvaluation.ps1"));
+        assertThat(helper).contains("NO_JSON_OBJECT_FOUND", "AMBIGUOUS_JSON_OBJECTS", "UNRECOGNIZED_PROMPT_ECHO");
+        assertThat(source).contains("Test-TypedDecisionResponse");
         assertThat(source).contains("No database write, Ollama call, signal, paper fill, order, broker action");
     }
 }

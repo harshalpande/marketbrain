@@ -420,7 +420,7 @@ grammar. All four responses were valid, but the grammar permitted exactly one co
 only two for each other candidate. Validity was therefore not evidence of independent intelligence. Agreement
 with Java is also not investment accuracy. Prompt/grammar changes do not update model weights.
 
-The runner defaults to `-EvaluationMode INDEPENDENT` (introduced in V3, now requiring the V4 service); an old server fails
+The runner defaults to `-EvaluationMode INDEPENDENT` (introduced in V3, now requiring the V5 service); an old server fails
 preflight before inference. `BASELINE_CONSTRAINED` preserves the earlier mode for explicit regression checks.
 
 - The independent prompt contains raw as-of technical features, identity and policy restrictions. It excludes the
@@ -489,6 +489,45 @@ Next experiment: Qwen2.5 1.5B only, four contrast cases, then the same six balan
 Compare business validity, grounded reasons, nonconstant decisions, accepted selection/outcome metrics and latency
 against the saved baseline. Do not count a synthetic pass as market accuracy or relax rejection rules to improve a
 percentage. Only then proceed to untouched dates/stocks. No percentage improvement or completion forecast is promised.
+
+## Typed decision V5: captured-response regression and replay
+
+The subsequent V4 contrast run (2026-09-18 13:16) reported NO_JSON_OBJECT_FOUND on all four rows. Saved stdout
+contained complete JSON: the new brace-delimited feature map appeared in a truncated echoed prompt before the answer,
+and the first-brace extractor never recovered. This was an integration regression missed by the previous plain-JSON
+mocks. All four processes exited normally. Reassessment of the saved answers found 4/4 schema-valid, 1/4 business-valid
+and 0/4 diagnostic passes. Strong/missing-input answers combined REJECT/BLOCKED with VERY_HIGH; the weak case invented
+a hard block; high volatility was classified LOW risk with an unsupported WEAK_TREND reason. Do not claim improved
+intelligence from recovered schema counts, or compare synthetic results directly with the previous stock sample.
+
+V5 changes:
+
+- Live evaluation and offline replay share `Test-TypedDecisionResponse`. Its bounded extractor strips ANSI control
+  sequences, recognizes exact or verified-prefix truncated prompt echo, and excludes that echo before reading JSON.
+  Unknown echo formats and multiple candidate objects fail closed; the evaluator never chooses the answer that
+  happens to pass. Wrong IDs, duplicate/unexpected/missing keys, wrong types/case/enums, truncated output, nonzero
+  exits and timeouts remain invalid. Raw stdout/stderr remain unchanged in evidence. Failure stage is explicit.
+- The old captured console responses are committed as an offline regression fixture. Full-runner mocks now include
+  an unfinished brace inside truncated prompt echo rather than emitting plain JSON only. Offline tests additionally
+  cover echoed example answers, ambiguity, escaped strings, process failures and evidence preservation.
+- `TYPED_POLICY_V3` removes brace-map rendering and the long illustrative section. An ordered, shorter policy explains
+  exclusion first, risk second, then opportunity/score/reason consistency. The same seven-field schema and unrestricted
+  assessment choices remain: this is not copying Java's answer, automatically repairing predictions, or weight training.
+- The typed-preview Java baseline now gives hard exclusions REJECT/BLOCKED/VERY_LOW/BLOCKED_BY_RISK and forbids TOP_PICK.
+  Missing data alone is not a price trap. Complete-input top-pick restrictions become caution/high risk, not a hard
+  exclusion. HIGH risk alone is not a trap. Existing live broker/approval/risk code and SQL queries are untouched.
+- Drawdown means exclude absent labels and show null with a zero label count when unavailable, rather than reporting
+  zero drawdown. A single-model scenario does not claim cross-model input comparability (null, zero compared pairs).
+  Comparison records completed/skipped stages explicitly; a stopped diagnostic gate is not a successful validation.
+- `ReplayPrototypeSwingTypedDecisions.ps1` accepts saved comparison JSON or a single-run JSON. It creates a new
+  two-file replay directory, retains historical candidate rules and original reported validation per row, saves the
+  source/evaluator SHA256, and checkpoints results. It never contacts Java, a database, broker or model, never overwrites
+  source evidence, and does not count replay as new model evidence. It requires captured stdout, prompt and process state.
+
+Next gate remains four contrast cases, then the same six balanced stocks only if all diagnostics pass. Untouched
+dates/stocks and risk-adjusted performance beyond Java remain required before considering an AI-dependent module ready.
+No live inference was run on the development laptop. Parser recovery is measured; the shorter prompt's effect awaits
+the spare-laptop test. Existing V4 results remain historical evidence, not a V5 model benchmark.
 
 ## Daily fresh-data feedback loop (governed)
 
