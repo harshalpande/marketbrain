@@ -90,7 +90,7 @@ After evidence/contract approval, the proposed first build is the prediction-gra
 ### G02 — Prediction-grade dataset
 
 - G02.1 `PARTIAL`: prototype immutable runs and 5/20/60-session outcome labels exist; E04.
-- G02.2 `PARTIAL`: machine-readable draft, bounded history diagnostic runtime verified (E30), and pure next-open/20-session research label arithmetic offline verified (E32). Existing historical validation is partly recovered (E33); V2 collector correction (E34) retrieves skipped final reports without rerunning validation. Real exchange-calendar/price-policy binding, availability evidence, membership, export integration and contract freeze remain pending. No training authorization.
+- G02.2 `PARTIAL`: machine-readable draft, bounded history diagnostic runtime verified (E30), and pure next-open/20-session research label arithmetic offline verified (E32). Final saved-report review carried forward in E35; do not repeat acquisition. E36 adds a four-instrument/three-date feature-only snapshot with source evidence and explicit blocked rows; runtime verification pending. Real exchange-calendar/price-policy binding, validation-job membership, availability evidence, labelled export and contract freeze remain pending. No training authorization; no checkpoint/percentage increased solely for this preparatory slice.
 - G02.3 `PENDING`: multi-date export; identify survivorship limitations when historical constituents are unavailable; separate adjusted features from tradable prices.
 - G02.4 `PENDING`: chronological train/tune/final partitions, overlap purging, future-field exclusion, duplicate/vintage checks and reproducible hashes.
 - G02.5 `PENDING`: tests for suspended stocks, missing bars, insufficient warm-up, holidays, delisting and stale news.

@@ -2,6 +2,15 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-18 — Multi-date numerical feature preparation authorized
+
+- Owner said to move forward after saved validation review. E35 carries forward that review without inventing a fresh attachment hash; the named Downloads file is not currently available. Existing final provider PASS evidence supports reuse, not reacquisition. The first 50-stock expansion is not the original ten-stock pilot; original-pilot final evidence and individual job membership remain explicit gaps.
+- Implemented a read-only, repeatable-read feature snapshot for at most four existing-run instruments at three dates fixed by calendar-week offsets. Up to 12 feature rows, 730-day query window, per-instrument 2,001-row sentinel, explicit blocked reasons, canonical OHLCV/ingestion/exclusion evidence and server payload hash. No provider/model calls, database writes, new labels, fitting, signals or orders.
+- Existing calculator reused, not silently changed: volume ratio uses the previous 20 bars; 252-range uses close extrema. Versioned exact 252-bar seed/window definitions now documented. This is observed-bar retrospective research, not certified exchange-session completeness or as-known replay. Calendar/price/cost policies still prevent training approval.
+- One unique report checkpoints collection, timing, row counts and failures. No expensive-query retries; no old artifacts overwritten. Collection uses one health GET and one bounded snapshot GET. Deployment is on the spare laptop only when jobs are idle; unrelated startup/scheduled tasks are not certified by this diagnostic.
+- Verification E36: full offline Java suite 276 passed, zero failures/errors/skips; 40 PS5.1 mock assertions passed. No local model, live DB, provider or deployment exercised. Actual PostgreSQL plan/latency and spare PS7 execution are pending. Documentation and single current SVG updated. G02/N3 preparatory slice, not completed labelled export; project percentage unchanged.
+- Next: deploy service, capture one `numerical-features-*.json`, inspect values/blocked rows/timing; then independently bind calendar and price policy plus historical quality scope before adding labels and chronological splits. Do not rerun the LLM sweep or historical acquisition.
+
 ## 2026-09-18 — Cleanup accepted; numerical data-readiness work started
 
 - Owner asked to mark scoped cleanup complete and proceed. E26 report reviewed and hash recorded: Granite absent afterward, Qwen 0.5B quarantine verified, Qwen 1.5B hash unchanged, health UP, no error. 125.02 seconds overall includes operator confirmation; actual first snapshot-to-final interval about 26.56 seconds. Quarantine is retained; no cleanup rerun.

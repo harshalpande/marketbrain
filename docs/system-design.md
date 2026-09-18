@@ -203,6 +203,8 @@ No real order adapter is wired into this release. A separate future release must
 
 ## Trial entry and exit
 
+Numerical dataset preparation currently includes a bounded, read-only multi-date feature snapshot (`NumericalFeatureSnapshotService`, E36). It reuses stored candles and the existing technical calculator, with source evidence and explicit cutoff/blocked-row checks. It is retrospective observed-bar research, not exchange-calendar-certified, not an as-known replay, and contains no labels or training authorization. See [the numerical work package](numerical-baseline-plan.md) for exact definitions, limits and remaining gates. Its source evidence envelope is not a model input DTO.
+
 Enter only after the advertised data feeds, horizons, paper lifecycle, approval and recovery gates pass. A limited-mode trial may start earlier only with explicit owner approval and disabled/unvalidated modes clearly excluded; it does not complete the full G11 goal.
 
 Run at least 30 elapsed calendar days and 20 actual trading sessions, with sufficient observations and complete outcome maturation. The operational month milestone does not complete 60-session prediction validation: final predictions require their full 60-trading-session window from the defined entry. A restricted earlier pilot must explicitly exclude unvalidated horizons and incomplete history/fundamental/learning scope; it cannot claim full PG2 acceptance.

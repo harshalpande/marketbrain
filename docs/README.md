@@ -56,13 +56,13 @@ Close G00's remaining source-review coverage gap, verify the existing Upstox/dat
 
 ### Current next action: reuse existing data-validation evidence
 
-The N2 history diagnostic completed successfully on the spare laptop: 500 instruments, 6.18 seconds, no truncation/errors (E30). Owner reports extensive prior Upstox/history-event validation; source review confirms the prior quality machinery (E31). Do not rerun data collection or provider checks. Pull, then run:
+The N2 history diagnostic completed successfully on the spare laptop: 500 instruments, 6.18 seconds, no truncation/errors (E30). Owner reports extensive prior Upstox/history-event validation; source review confirms the prior quality machinery (E31). Do not rerun data collection or provider checks. Pull, rebuild/deploy the Java service with jobs idle, wait for health UP, then run:
 
 ```powershell
-& '.\ops\windows\GetExistingDataValidationEvidence.ps1'
+& '.\ops\windows\GetNumericalFeatureSnapshot.ps1' -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917'
 ```
 
-Share one `existing-data-validation-<timestamp>-<id>.json`. V1 returned partial evidence because its size limits skipped the large final Batch 3/4 reports and its budget was consumed by intermediate reports. V2 defaults to final outcomes only with 16 MiB/file and 96 MiB total limits; the 11 known final files fit those bounds. This only re-reads saved files, with no API/DB/model calls. No Docker rebuild or restart is needed. Daily enrichment and Batch 2 final PASS plus completed Batch 3/4 remediation are captured; full final-history acceptance remains pending the skipped final metrics. New research-label arithmetic is offline verified but not wired into the service. [Details and remaining gates](numerical-baseline-plan.md#reuse-validated-history-distinguish-research-availability-from-live-availability).
+Current handoff E36 requires a **Java service rebuild/deployment first, with jobs idle**. Share one `numerical-features-<timestamp>-<id>.json`. This reads existing candles for four instruments and computes features at three dates; no model/provider calls, database writes, labels or training. Prior saved final-report review is carried forward in E35, with original-pilot/job-membership gaps explicit. No acquisition or blanket validation rerun. Calendar, price-adjustment and labelled-export gates remain open. [Exact scope and remaining gates](numerical-baseline-plan.md#e36-current-handoff-bounded-feature-only-multi-date-snapshot).
 
 ### Previous N2 history handoff (completed; do not rerun)
 
