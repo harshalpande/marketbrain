@@ -32,11 +32,13 @@ Paths below are repository-relative. Existing source can be reused without claim
 | E11 | Test source is substantial, but some checks assert contracts/source strings; service Docker build uses Maven with tests skipped | SOURCE_VERIFIED; current execution UNKNOWN | Run actual clean-revision tests and integration checks before earning V/R. Earlier reported test counts do not certify this revision or dirty drafts |
 | E12 | Official Upstox feed/analytics docs and Marketaux docs reviewed; Paytm public developer portal identified | EXTERNAL DOCUMENTATION, checked 2026-09-18 | Current account-specific entitlements/contracts; public product capability is not project integration evidence |
 | E13 | V1 documentation reset: 25 active relative links, valid XML, eight preserved originals, weights 100 and then-baseline 13% | HISTORICAL DOCUMENTATION VERIFIED | V1 checks passed as recorded in the daily log; V2 progress/verification supersedes these counts, without changing the archived originals |
-| E14 | Earlier typed-decision records described 64 schema-valid responses but only 7 business-valid and no diagnostic successes in that reported run; separate all-REJECT diagnostics were discussed | HISTORICAL_REPORT_ONLY | Do not reuse these as a current benchmark without matching run ID, artifacts and revision. The newest diagnostic outcome is not established by this reset |
+| E14 | Earlier typed-decision records described 64 schema-valid responses but only 7 business-valid and no diagnostic successes in that reported run; separate all-REJECT diagnostics were discussed | HISTORICAL_REPORT_ONLY | Do not reuse these as a current benchmark without matching run ID, artifacts and revision. Newly supplied paired diagnostic evidence is separately recorded as E19, not a directly comparable improvement percentage |
 | E15 | `PrototypeSwingOllamaGuidedRankingPreviewService.java` can draw labelled examples from the same dataset run; independent typed-decision prompts are a separate path | SOURCE_VERIFIED risk | Audit timestamp/symbol exclusion and future-outcome leakage per prompt version; success in guided historical ranking cannot be counted as unseen predictive skill |
 | E16 | Owner accepted PG1/PG2 alignment corrections: dedicated 15+ year coverage, fundamentals and controlled-learning goals; 5/20/60 sessions; ACCEPT/REJECT; isolated research simulation and shared paper/live contracts | OWNER SCOPE DECISION / DOCUMENTED_ONLY capabilities | G13–G15 implementation/runtime evidence absent from this documentation review; acceptance of scope is not feature acceptance |
 | E17 | V2 coverage/forecast contract separates daily versus intraday/news/fundamental history, listing dates, historical membership, lookback versus forecast, and 60-session label maturity | DOCUMENTED_ONLY | Actual licensed depth, source samples, row-level availability/revisions and sufficient mature outcomes; no claim all 500 companies have 15 years of every data type |
 | E18 | V2: 14 paper-first goals weighted to 100, baseline 12.4%; 74 unique subitems with defined references, 24 active relative links and valid SVG XML; documentation-only diff, archive untouched | DOCUMENTATION VERIFIED | G12 excluded/deferred. V1 13% -> V2 12.4% is scope rebaselining, not a model regression; former overall schedule withdrawn pending D5 evidence-based estimates. No application tests or runtime proof implied |
+| E19 | User-supplied `typed-diagnostics-20260918-175424-560053`: 20/20 paired calls completed; four synthetic cases across five arms; 0 process failures; all answers contain REJECT; 0/12 seven-field responses business-valid | SUPPLIED RUNTIME ARTIFACTS REVIEWED / POLICY FAIL | Approximately 4m30s; no production qualification or market-prediction evidence. See detailed record below; no Java service request or model rerun performed in this review |
+| E20 | User pasted spare-laptop Git fast-forward `142f3bd..9536ad0`, followed by `Documentation updated. No Docker rebuild or model rerun needed.` | USER-SUPPLIED DOCUMENTATION SYNC CONFIRMATION | Records repository/docs sync to 9536ad0 only, not a rebuilt/running service revision, provider health, database coverage or runtime acceptance |
 
 E10 describes the V1 reset's historical working-tree observation. At the V2 documentation update the working tree started clean and the `news/watch` directory was absent; this review neither removed those drafts nor infers their disposition. Check the actual source state before future builds instead of treating the historical note as current inventory.
 
@@ -49,6 +51,48 @@ Package-relative pointers in E03–E09 start at `marketbrain-service/src/main/ja
 - Source-level safeguards and experiment logs are not live-system certification. Runtime completeness, current database coverage and newest model-comparison performance are unknown until matched evidence is supplied.
 - JSON/grammar conformity demonstrates communication reliability for the tested inputs. Java agreement demonstrates rule agreement. Neither proves market opportunity prediction or profitability.
 - The previous project scan mapped major paths; it was **not an exhaustive file-by-file, line-by-line review**. G00 retains that limitation rather than asserting an audit that did not happen.
+
+## E19 — Completed paired communication diagnostic, received 2026-09-18
+
+Provenance: `C:\MarketBrainData\Review\typed-diagnostics-20260918-175424-560053` on the spare laptop. Shared files are `C:\Users\hpande\Downloads\diagnostics.json`, `diagnostics.log.txt`, and the pasted console attachment `f33fb84e-4f50-43e8-a1f9-4c51d888d5a9/pasted-text.txt`. These are local evidence locations, not repository files or durable shared URLs; retain the originals. This note persists the findings and hashes without duplicating the full raw reports in Git.
+
+- Report version/status: `TYPED_COMMUNICATION_DIAGNOSTIC_V1` / `COMPLETED_DIAGNOSTIC_REVIEW_REQUIRED`.
+- Model: `Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M`; 4 synthetic inputs, 5 paired configurations, 20 planned/completed calls, 20 invocations used from a safety cap of 24. Those are not 20 independent market samples.
+- Created: `2026-09-18T12:24:24.3270374Z`; updated/completed: `2026-09-18T12:28:54.0655617Z`. Report elapsed: 269.92 seconds; console outer stopwatch: 270.1869009 seconds (about 4m30s). Mean process duration 12.82s, range 10.39–16.05s; includes process overhead, not pure token generation.
+- Console links the diagnostic checkout to `142f3bd`. All four report script hashes match this repository's corresponding contents when encoded UTF-8 with CRLF; local raw-byte hashes differ because of line endings. This corroborates script content, not Java deployment state.
+- Requested settings: context 4096, output cap 160 tokens, temperature 0, seed 1729, timeout 120 seconds, model concurrency 1. Captured runtime lines for all 20 calls report `n_ctx_slot = 4096`, `truncated = 0`, and 724–755 prompt-evaluation tokens. Full input echo is verified in all 20; echo alone does not establish model attention, and requested settings are not all independently verified effective settings.
+- All processes exited 0; no timeout or report-level error. Report flags: no database writes, signals or orders; action execution disabled. Runner/log explicitly identify no Java requests. This is not an end-to-end service test.
+
+| Arm | Cases completed | Schema accepted | Expected decision matched | Full business / diagnostic pass | JSON-only | Mean process time |
+|---|---:|---:|---:|---|---:|---:|
+| SEVEN_GBNF_AUTO | 4 | 4/4 | 2/4 | 0/4; 0/4 | 4/4 | 14.53s |
+| SEVEN_FREE_AUTO | 4 | 4/4 | 2/4 | 0/4; 0/4 | 0/4 | 14.28s |
+| ONE_GBNF_AUTO | 4 | 4/4 | 2/4 | Not evaluated: one field only | 4/4 | 10.76s |
+| ONE_FREE_AUTO | 4 | 0/4 | 0/4 recorded | Not evaluated: one field only | 0/4 | 10.87s |
+| SEVEN_GBNF_CHATML | 4 | 4/4 | 2/4 | 0/4; 0/4 | 4/4 | 13.67s |
+
+Interpretation and limitations:
+
+1. All 16 extracted decisions are REJECT; all four remaining one-field free-form raw answers also contain REJECT inside Markdown fences. Strong and high-volatility-but-not-excluded cases were rejected instead of the accepted positive/watchlist labels. The two cases expecting REJECT explain 2/4 matches in each parseable arm; a constant-REJECT response achieves that result without discrimination.
+2. Every seven-field answer violates `REJECT_WITH_HIGH_SCORE_BAND` (12/12). Additional overlapping failures: `HARD_CAP_69_SCORE_BAND_VIOLATION` 3, `HARD_CAP_54_SCORE_BAND_VIOLATION` 3, `HARD_EXCLUSION_NOT_RESPECTED` 3. Do not sum overlapping failures as distinct failed calls.
+3. Parsing is asymmetric: the seven-field evaluator extracts JSON from fences, while the one-field evaluator requires an exact bare object. Thus ONE_FREE_AUTO's 0/4 schema/decision score includes formatting rejection, not proof that the model emitted no decision. Its raw content still rejects every case. Preserve strict wire compliance and normalised semantic assessment as separate metrics in any future authorized evaluator change; do not silently revise this run's original scores.
+4. Removing GBNF, reducing to one field and requesting ChatML did not eliminate the all-REJECT behaviour in these paired cases. Grammar is therefore not supported as the sole explanation. These results do not establish the ultimate cause, validate every runtime setting, or prove that all small models fail. No candidate is production-qualified.
+5. This run narrows communication/semantic failure hypotheses, not market predictive skill, profitability, training improvement or G03/G07 acceptance. Keep the numerical-engine roadmap separate. No new expensive sweep is needed merely to preserve or analyse this evidence.
+
+Deferred follow-up, not implemented: audit parser-comparison fairness and saved prompt/runtime/template evidence before proposing another bounded model experiment. Do not weaken business gates to manufacture a pass. Retain these cases as regression fixtures; their outcome does not block independently authorized data/ledger/portal work.
+
+SHA-256 evidence identifiers:
+
+```text
+diagnostics.json: 51AF980BBF5DFCF84B72138F2B10F37F75D086837EFA01373B876D679B7AFD81
+diagnostics.log.txt: 33F11FF2DC9FB1F855C63DF225922A7388C4FA8EF298D43C91C8AE659B635ADE
+pasted diagnostic console: E9646EFEC5AC5B9EE559D0D668C9E2502AA3379ECC1F2C42301BCAF98B1AF1A8
+model: 6A1A2EB6D15622BF3C96857206351BA97E1AF16C30D7A74EE38970E434E9407E
+llama executable: BC2360E42BD975DD0C569D949FA5835C8A6EFE3929A767AE5D0FA36F6333E6A7
+source sweep: 1DA4CA4D26F02AF7D65AF5FD2808A2B8AA89556F7835B720A370ED27557913F1
+```
+
+File hashes were computed from the supplied attachments; model/executable/source-sweep hashes are recorded values from the diagnostic report, not a fresh read of those binaries on the spare laptop. E20's later documentation pull is separate pasted evidence and has no diagnostic-run timestamp attached.
 
 ## Evidence-first sequence
 

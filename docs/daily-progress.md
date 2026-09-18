@@ -51,6 +51,16 @@ Current percentages live in [the roadmap](roadmap.md). Evidence definitions and 
 - Next: obtain current coverage/entitlement/fundamental-source evidence and approve a bounded implementation slice. No expensive model rerun, Docker rebuild or broker call is required for this documentation update.
 - Verification passed: 24 active relative links resolve; SVG parses as XML; 14 weighted goals sum to 100 and calculate to 12.4%; all 74 subitem IDs are unique and referenced subitems exist. No stale required 5/10-session wording remains in active design/index/diagram. Git whitespace and documentation-only scope checks pass; archive untouched. Application tests were not run for this documentation-only change.
 
+## 2026-09-18 — Supplied diagnostic reviewed and spare documentation sync noted
+
+- Owner supplied `diagnostics.json`, `diagnostics.log.txt`, the diagnostic console attachment and a separate documentation-pull transcript; requested that the update be noted. Review/persistence only: no implementation, deployment or inference authorized/performed.
+- E19 records run `typed-diagnostics-20260918-175424-560053`, Qwen2.5-1.5B Q4_K_M, 20 paired calls across four synthetic cases/five configurations. Completed in approximately 4m30s; all 20 processes exited successfully, no timeouts; full input echo verified and runtime lines report no truncation.
+- Quality finding: all 16 extracted decisions are REJECT, as are the four fenced raw one-field answers. All 12 full seven-field outputs fail business checks; positive cases remain missed. One-field free-form schema failures include Markdown fences, with stricter parsing than the seven-field evaluator. Detailed counts, failure overlap, timings, provenance and SHA-256 hashes are persisted in the evidence register.
+- E20: supplied spare-machine output confirms a documentation Git fast-forward from `142f3bd` to `9536ad0`, with success text and no rebuild/model rerun. This proves the reported checkout update only, not running-container revision or service/provider readiness. Diagnostic execution preceded that documentation update.
+- Progress: additional evidence, **no delivery checkpoint earned**. G00 remains 80%; weighted paper-first baseline remains 12.4%; predictive readiness is unproven. The paired synthetic diagnostic is not directly comparable to earlier real-candidate runs or a market accuracy percentage.
+- Next: retain original evidence and use it for the deferred parser/runtime review if model diagnostics resume; do not repeat this completed run or launch a new sweep automatically. Continue the agreed evidence-first numerical/data/portal plan when separately authorized.
+- Change scope: evidence register and this daily log only; no architecture or safety-policy change. Source/log cross-checks and documentation validation recorded with this note; no application tests or runtime requests performed.
+
 ## Daily entry template
 
 Copy this section for the next worked day; keep empty fields explicitly unknown rather than filling with guesses.
