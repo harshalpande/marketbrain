@@ -20,7 +20,7 @@ $mocks = @{
 function Invoke-LlamaCliProcess {
     param($ExecutablePath,$Arguments,$StandardOutputPath,$StandardErrorPath,$ProcessTimeoutSeconds,$StandardInputText)
     if ($Arguments[0] -eq '--help') {
-        $stdout = '--single-turn --grammar-file --no-display-prompt'
+        $stdout = '--single-turn --grammar-file --no-display-prompt --seed'
         $exitCode=0; $timedOut=$false
     } else {
         $env:MARKETBRAIN_OFFLINE_TEST_CALLS = [string](1 + [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS)
@@ -132,6 +132,24 @@ try {
     }
     if ($passedGate.results[0].evaluation.diagnosticPassedCount -ne 4 -or $null -ne $passedGate.comparableInputs -or $passedGate.comparedRunPairCount -ne 0) { throw 'Incorrect diagnostic metrics or cross-scenario comparison.' }
     if ($gate.skippedStageCount -ne 1 -or $passedGate.skippedStageCount -ne 0) { throw 'Skipped stages not explicit.' }
+    Write-Host '[95%] Checking frozen snapshot, local model path and sampling arguments...'
+    $snapshot=Invoke-RestMethod -Body '{"selectionMode":"CONTRAST_VALIDATION"}'
+    $snapshot | Add-Member selectionMode 'CONTRAST_VALIDATION'
+    $snapshot | Add-Member rankingHorizonSessions 20
+    $snapshot.candidates=@($snapshot.candidates[0]);$snapshot.candidateCount=1
+    $snapshotPath=Join-Path $testDirectory 'snapshot.json'
+    $snapshot | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $snapshotPath -Encoding UTF8
+    $localModel=Join-Path $testDirectory 'model.gguf'
+    'offline model placeholder' | Set-Content -LiteralPath $localModel
+    $env:MARKETBRAIN_OFFLINE_TEST_CALLS='0'
+    # Fail HTTP if the snapshot path accidentally contacts the service.
+    $env:MARKETBRAIN_OFFLINE_TEST_OLD_SERVER='1'
+    $snapshotOutput=Join-Path $testDirectory 'snapshot-output'
+    & $fixturePath -DatasetRunId offline -SelectionMode CONTRAST_VALIDATION -CandidateLimit 1 -SnapshotPath $snapshotPath -ModelPath $localModel -Temperature 0.2 -Seed 1729 -OutputDirectory $snapshotOutput
+    $snapshotResult=Get-ChildItem -LiteralPath $snapshotOutput -Filter '*.json' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json }
+    $a=$snapshotResult.attempts[0]
+    if ($a.temperature -ne 0.2 -or $a.seed -ne 1729 -or $a.invocationArguments[0] -ne '-m' -or
+        $a.invocationArguments -notcontains '--seed' -or $snapshotResult.llamaCppCallCount -ne 1) { throw 'Snapshot sampling/local model invocation incorrect.' }
     Write-Host '[100%] Offline runner tests passed; no external services or models were invoked.'
 }
 finally {

@@ -30,6 +30,12 @@ param(
     [Parameter()]
     [string]$LlamaCliPath,
 
+    [string]$ModelPath,
+    [string]$SnapshotPath,
+    [ValidateRange(0, 1)][double]$Temperature = 0,
+    [ValidateRange(-1, 2147483646)][int]$Seed = -1,
+    [scriptblock]$Heartbeat,
+
     [Parameter()]
     [ValidateRange(32, 512)]
     [int]$MaxTokens = 160,
@@ -137,6 +143,7 @@ function Invoke-LlamaCliProcess {
 
     $process = [System.Diagnostics.Process]::new()
     $process.StartInfo = $processInfo
+    try {
     $started = $process.Start()
     if (-not $started) {
         throw "Failed to start llama-cli process: $ExecutablePath"
@@ -154,6 +161,7 @@ function Invoke-LlamaCliProcess {
         if ($process.WaitForExit(1000)) { $completed = $true; break }
         if ([int]$clock.Elapsed.TotalSeconds % 15 -eq 0) {
             Write-Host ('Model process active: elapsed={0:N0}s; timeout={1}s' -f $clock.Elapsed.TotalSeconds, $ProcessTimeoutSeconds)
+            if ($Heartbeat) { & $Heartbeat }
         }
     }
     $timedOut = -not $completed
@@ -179,6 +187,12 @@ function Invoke-LlamaCliProcess {
         timedOut = $timedOut
         stdout = $stdout
         stderr = $stderr
+    }
+    }
+    finally {
+        # Also release the child on Ctrl+C or checkpoint errors; never leave an orphan inference.
+        try { if (-not $process.HasExited) { $process.Kill($true); [void]$process.WaitForExit(5000) } } catch { }
+        $process.Dispose()
     }
 }
 
@@ -361,7 +375,7 @@ try {
     $transcriptStarted = $true
 
     Write-StepProgress 0 'Validating MarketBrain service health...'
-    Wait-MarketBrainHealth -ServiceBaseUrl $BaseUrl
+    if (-not $SnapshotPath) { Wait-MarketBrainHealth -ServiceBaseUrl $BaseUrl }
 
     Write-StepProgress 10 'Resolving llama-cli...'
     $llamaCli = Resolve-LlamaCli -RequestedPath $LlamaCliPath
@@ -379,6 +393,8 @@ try {
     if (-not $llamaCapabilities.supportsGrammarFile -or -not $llamaCapabilities.supportsSingleTurn -or $llamaCapabilities.helpExitCode -ne 0) {
         throw 'This evaluation requires working --grammar-file and --single-turn support. See embedded help evidence.'
     }
+    if ($Seed -ge 0 -and $llamaCapabilities.helpText -notmatch '--seed') { throw 'This evaluation requires --seed support.' }
+    if ($ModelPath -and -not (Test-Path -LiteralPath $ModelPath -PathType Leaf)) { throw 'Local model file not found.' }
 
     Write-StepProgress 15 'Requesting Java-owned typed decision primitive candidates...'
     $body = [ordered]@{
@@ -390,12 +406,21 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($DatasetRunId)) {
         $body['datasetRunId'] = $DatasetRunId
     }
+    if ($SnapshotPath) {
+        if ($EvaluationMode -ne 'INDEPENDENT') { throw 'Snapshot evaluation must remain independent.' }
+        $preview = Get-Content -LiteralPath $SnapshotPath -Raw | ConvertFrom-Json
+        if ($preview.datasetRunId -ne $DatasetRunId -or $preview.selectionMode -ne $SelectionMode -or
+            $preview.rankingHorizonSessions -ne $RankingHorizonSessions -or $preview.candidates.Count -ne $CandidateLimit) {
+            throw 'Snapshot identity does not match requested evaluation.'
+        }
+    } else {
     $preview = Invoke-RestMethod `
         -Method Post `
         -Uri "$BaseUrl/api/v1/training/prototype-swing-typed-decision-primitives" `
         -ContentType 'application/json' `
         -Body ($body | ConvertTo-Json -Depth 8) `
         -TimeoutSec $TimeoutSeconds
+    }
     if ($EvaluationMode -eq 'INDEPENDENT' -and $preview.decisionContractVersion -ne 'MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V5') {
         throw 'Independent evaluation requires the V5 Java service. Rebuild/redeploy marketbrain-service first.'
     }
@@ -436,13 +461,14 @@ try {
         $fallbackStderrPath = Join-Path $scratchDirectory "$shortCandidateStem-fallback-stderr.txt"
         $startedAt = Get-Date
         $llamaExitCommand = if ($llamaCapabilities.supportsSingleTurn) { '' } else { "/exit`n" }
-        $llamaArguments = @(
-            '-hf', $ModelRef,
+        $modelArguments = if ($ModelPath) { @('-m', $ModelPath) } else { @('-hf', $ModelRef) }
+        $llamaArguments = $modelArguments + @(
             '--grammar-file', $grammarPath,
             '-f', $promptPath,
             '-n', ([string]$MaxTokens),
-            '--temp', '0'
+            '--temp', $Temperature.ToString([Globalization.CultureInfo]::InvariantCulture)
         )
+        if ($Seed -ge 0) { $llamaArguments += @('--seed', [string]$Seed) }
         if ($llamaCapabilities.supportsSingleTurn) {
             $llamaArguments += '-st'
         }
@@ -461,13 +487,13 @@ try {
         $primaryProcess = $process
         if ($process.exitCode -ne 0 -and $EvaluationMode -eq 'BASELINE_CONSTRAINED') {
             Write-Host ("llama-cli primary invocation failed for {0} with exit code {1}; retrying with minimal stdin-exit arguments." -f $candidate.symbol, $process.exitCode) -ForegroundColor Yellow
-            $fallbackArguments = @(
-                '-hf', $ModelRef,
+            $fallbackArguments = $modelArguments + @(
                 '--grammar-file', $grammarPath,
                 '-f', $promptPath,
                 '-n', ([string]$MaxTokens),
-                '--temp', '0'
+                '--temp', $Temperature.ToString([Globalization.CultureInfo]::InvariantCulture)
             )
+            if ($Seed -ge 0) { $fallbackArguments += @('--seed', [string]$Seed) }
             if ($llamaCapabilities.supportsSingleTurn) {
                 $fallbackArguments += '-st'
             }
@@ -514,6 +540,9 @@ try {
             hardExclusionReason                    = if ($candidate.PSObject.Properties['hardExclusionReason']) { $candidate.hardExclusionReason } else { 'UNAVAILABLE' }
             grammar                                = $candidateGrammar
             prompt                                 = $candidatePrompt
+            promptCharacterCount                   = $candidatePrompt.Length
+            promptFileSha256                       = (Get-FileHash -LiteralPath $promptPath -Algorithm SHA256).Hash
+            grammarFileSha256                      = (Get-FileHash -LiteralPath $grammarPath -Algorithm SHA256).Hash
             offlineCandidateEvidence               = $candidate
             diagnosticExpectedDecisions            = $expectedDecisions
             diagnosticPassed                       = $diagnosticPassed
@@ -528,7 +557,9 @@ try {
             primaryStderr                          = $primaryProcess.stderr
             primaryStdout                          = $primaryProcess.stdout
             invocationArguments                    = $llamaArguments
-            temperature                            = 0
+            temperature                            = $Temperature
+            seed                                   = $Seed
+            modelPath                              = $ModelPath
             maxTokens                              = $MaxTokens
             invocationTimeoutSeconds               = $TimeoutSeconds
             responseJson                           = $responseText

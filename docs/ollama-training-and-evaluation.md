@@ -529,6 +529,51 @@ dates/stocks and risk-adjusted performance beyond Java remain required before co
 No live inference was run on the development laptop. Parser recovery is measured; the shorter prompt's effect awaits
 the spare-laptop test. Existing V4 results remain historical evidence, not a V5 model benchmark.
 
+## Bounded typed-decision configuration sweeps
+
+The 2026-09-18 14:11 V5 contrast run fixed extraction (4/4 schema-valid) but returned REJECT/HIGH/VERY_HIGH for all
+four scenarios. Business validity was 0/4 and diagnostic validity 0/4. Historical V4 replay was 4/4 schema-valid,
+1/4 business-valid, 0/4 diagnostic-valid. The 98.3-second comparison was 7.4% shorter than 106.1 seconds, not evidence
+of improved intelligence. Do not reclassify parsing recovery as model learning.
+
+`RunTypedDecisionConfigurationSweep.ps1` executes a finite Cartesian product, sequentially, with no repair retries.
+Defaults: POLICY_FIRST/FACTS_FIRST x NONE/CONSISTENCY examples x temperatures 0/0.2 x 160 token limit. Eight configurations,
+two predefined seeds/repetitions, four contrast cases = 64 calls. Sampling seeds are repetition inputs, not additional
+configurations selected after seeing answers. Temperature-zero repeats measure consistency, not independent sample size.
+All configurations run despite diagnostic failures. Alternating configuration order limits systematic warmup bias.
+
+Inputs are fetched once from the read-only V5 preview, then frozen. The inference prompt never receives expected
+answers, Java aggregate answers or future labels. The examples illustrate consistency of field combinations; they
+are not copies of screening cases. The grammar still permits all independent choices. This is prompt/configuration
+selection, not weight training. Policy/diagnostic tests do not measure investment accuracy.
+
+The local GGUF and llama executable are SHA256-pinned, avoiding mutable remote model downloads during a sweep. Scripts,
+settings, task plan and input snapshot also have hashes. Resume refuses changed identities. A per-user sweep lock and
+existing llama process check prevent overlapping sweep runs; keep other legacy model/Ollama jobs idle too.
+
+Each call gets a checkpoint; raw response, prompt, grammar, process exit/timeout, rule failures, seed and elapsed time
+are retained. A heartbeat updates progress while inference waits. Records include invalid calls and errors, never
+only successful predictions. Wall-clock session budgets pause between calls (one active call may finish beyond the
+budget); cumulative invocation budget also includes interrupted starts. Completed child checkpoints are recovered
+on resume. A power loss before any response checkpoint can require replaying that one call, not the completed sweep.
+
+Share `sweep.json` and `sweep.log` only. Internal `_work` evidence is retained for crash recovery; it need not be shared.
+The separate status script shows completion fraction, active task and heartbeat freshness; a stale checkpoint is not
+reported as an actively running job. These are local PowerShell jobs, not durable Java job endpoints. Keep the terminal
+and laptop powered; resume explicitly after interruption.
+
+Leaderboard: qualified/complete first, unsafe promotions next, diagnostic correctness, policy validity, evidence
+warnings, repeat consistency, then latency. Full four-case diagnostic coverage, all repetitions passing, no policy
+errors/unsupported reasons/unsafe promotions are mandatory for qualification. Up to three (optionally five) qualifiers
+are retained. `COMPLETED_NO_QUALIFIER` is valid and must not manufacture a winner. Non-qualified rows remain visible.
+Use `-FinalistsFromDirectory` to reuse the exact qualified configurations and model weights on other chunks. That phase
+reports `COMPLETED_VALIDATION_REVIEW_REQUIRED`, not a trading-readiness verdict. Outcome metrics are retrospective and
+repeated observations are not independent samples. Future untouched dates remain necessary; test-set tuning is not allowed.
+
+Offline coverage includes matrix deduplication/budget checks, no-qualifier handling, pinned identity rejection,
+checkpoint recovery without repeating completed calls, finalist reuse, and real runner snapshot/sampling argument plumbing.
+Flags are checked against installed llama help; upstream reference: https://github.com/ggml-org/llama.cpp/tree/master/tools/cli
+
 ## Daily fresh-data feedback loop (governed)
 
 Post-market collection and Telegram/WhatsApp process notifications prove that fresh data is arriving. That fresh data

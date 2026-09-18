@@ -4083,6 +4083,63 @@ If Telegram polling repeatedly fails, confirm the spare laptop has internet acce
 
 If Upstox returns `PROVIDER_ERROR`, confirm that `MARKETBRAIN_UPSTOX_ENABLED=true` and that the complete current Analytics Token is present in the local `.env`. Recreate the backend after changing `.env`. Do not print the token. An expired or replaced Analytics Token must be regenerated in Upstox and updated locally.
 
+## Typed-decision configuration sweep (spare laptop only)
+
+Use PowerShell 7. Keep power connected, other inference/evaluation jobs stopped, and the already-deployed V5 Java service
+running. This script-only milestone does not require recreating the Docker service. No SQL/schema changes or trading
+actions are introduced. The runner validates the preview contract before inference. Choose the existing Qwen 1.5B Q4_K_M
+GGUF file with `-ModelPath`; no model downloads/deletions are performed. All paths below are local to the spare laptop.
+
+```powershell
+$ProgressPreference = 'Continue'
+$parameters = @{
+    DatasetRunId = '5bdbfcc1-d990-48d8-9e98-d4927596d917'
+    ModelPath = 'C:\path-to-existing-model\qwen2.5-1.5b-instruct-q4_k_m.gguf' # replace with actual cached file
+    LlamaCliPath = 'C:\MarketBrainTools\llama.cpp\llama-cli.exe'
+    Repeats = 2
+    TopCount = 3
+    MaxRunMinutes = 120
+    TimeoutSeconds = 120
+}
+& '.\ops\windows\RunTypedDecisionConfigurationSweep.ps1' @parameters
+```
+
+Defaults cover eight configurations x four cases x two repetitions (64 calls), one model call at a time. At the previous
+24 seconds per candidate, 64 calls alone would be about 26 minutes, but changed prompts, startup and checkpoint overhead
+can change this substantially. The time budget is a limit, not an ETA. Progress represents recorded tasks including failed
+responses, not successful decisions. Screening continues across failures so every declared configuration is measured.
+
+Use the printed run directory in another terminal:
+
+```powershell
+& '.\ops\windows\GetTypedDecisionSweepStatus.ps1' -RunDirectory 'C:\MarketBrainData\Review\typed-sweep-REPLACE' -Watch
+```
+
+Resume with identical code/model after interruption or `PAUSED_BUDGET`:
+
+```powershell
+& '.\ops\windows\RunTypedDecisionConfigurationSweep.ps1' -ResumeDirectory 'C:\MarketBrainData\Review\typed-sweep-REPLACE' -MaxRunMinutes 120
+```
+
+Do not edit a saved sweep to change settings. Resume uses its frozen parameters. `PAUSED_CALL_BUDGET` requires investigation
+before starting a new sweep; it must not become an unbounded retry loop. A stale heartbeat in the monitor means check the
+original terminal/process; do not assume completion or automatically launch another model.
+
+Share only `sweep.json` and `sweep.log` from that directory. Raw evidence and leaderboard metrics are embedded; `_work`
+is retained locally for recovery. If no configuration qualifies, do not run additional stock chunks. After reviewing a
+successful screening, freeze its qualifiers on another chunk using the same parameters plus:
+
+```powershell
+$parameters.FinalistsFromDirectory = 'C:\MarketBrainData\Review\typed-sweep-REPLACE'
+$parameters.SelectionMode = 'FIXED_SYMBOL'
+$parameters.StartOffset = 8
+$parameters.CandidateLimit = 4
+& '.\ops\windows\RunTypedDecisionConfigurationSweep.ps1' @parameters
+```
+
+Run `TestTypedDecisionSweep.ps1` and the existing response/evaluation/replay/offline-runner suites before publishing changes.
+Real inference remains a spare-laptop acceptance test; offline mocks do not prove model improvement.
+
 ## Runbook maintenance rule
 
 For every future MarketBrain change that affects building, configuration, Docker deployment, verification, or safe operation, this document will be updated in the same code change.
