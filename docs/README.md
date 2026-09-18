@@ -62,7 +62,7 @@ The N2 history diagnostic completed successfully on the spare laptop: 500 instru
 & '.\ops\windows\GetExistingDataValidationEvidence.ps1'
 ```
 
-Share one `existing-data-validation-<timestamp>-<id>.json`. It packages selected metrics/hashes from saved reports only, with bounded filesystem reads and no API/DB/model calls. No Docker rebuild or restart is needed. New research-label arithmetic is offline verified but not wired into the service; it will be integrated after the data contract is frozen. [Details and remaining gates](numerical-baseline-plan.md#reuse-validated-history-distinguish-research-availability-from-live-availability).
+Share one `existing-data-validation-<timestamp>-<id>.json`. V1 returned partial evidence because its size limits skipped the large final Batch 3/4 reports and its budget was consumed by intermediate reports. V2 defaults to final outcomes only with 16 MiB/file and 96 MiB total limits; the 11 known final files fit those bounds. This only re-reads saved files, with no API/DB/model calls. No Docker rebuild or restart is needed. Daily enrichment and Batch 2 final PASS plus completed Batch 3/4 remediation are captured; full final-history acceptance remains pending the skipped final metrics. New research-label arithmetic is offline verified but not wired into the service. [Details and remaining gates](numerical-baseline-plan.md#reuse-validated-history-distinguish-research-availability-from-live-availability).
 
 ### Previous N2 history handoff (completed; do not rerun)
 

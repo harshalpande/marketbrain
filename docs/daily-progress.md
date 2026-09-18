@@ -151,7 +151,15 @@ Owner acceptance, if any:
 - Verification E32: 268 Java tests passed (seven new label cases); nine PS5.1 assertions passed using temporary files/mocked forbidden HTTP. Runtime saved-evidence collection remains for the spare laptop. Existing-history integration, policy freeze, multi-date export and chronological evaluation remain pending; weighted baseline unchanged at 12.4%, no predictive percentage claimed.
 - Handoff: scoped commit/push; pull and run GetExistingDataValidationEvidence on spare laptop. No Docker rebuild/restart. Review saved scope references, freeze retrospective research versus as-known policy, then integrate the tested arithmetic into a versioned multi-date export. Only novel discrepancies justify targeted revalidation/backfill, with separate bounded scope.
 
-### Progress update rules
+## 2026-09-18 - Review saved validation and correct final-report capture
+
+- User supplied E33 and authorized the next step if evidence is satisfactory. It confirms prior successful daily/Batch 2 provider checks and completed Batch 3/4 remediation, but does not capture all final historical metrics. Therefore full export/data acceptance is not declared; no training begins.
+- Found a collector limitation, not a new market-data failure: ten files skipped by the 10 MiB individual/50 MiB aggregate limits. Large Batch 3/4 final reports exceed 12 MiB; older intermediate reports consumed the total budget before the pilot final could be read. Retain old missing-data reports as pre-remediation evidence, not current failure counts.
+- Corrected collector default to final outcomes only, increased bounded limits to 16/96 MiB based on actual inventory (11 final files, 52.81 MiB total, 12.70 MiB maximum). Added precise skip reasons, explicit limits/selection mode and final-checkpoint failure indicators. Optional intermediate collection orders final reports first. One compact JSON output remains.
+- E34 verification: 14 offline PowerShell assertions pass, including real 12 MiB fixture parsing and oversized rejection. Java arithmetic/export state unchanged; prior 268-test result belongs to E32, not a new Java run. Documentation, roadmap and current diagram updated; no predictive or full-goal completion percentage added.
+- Handoff: commit/push, pull and rerun only GetExistingDataValidationEvidence. No Docker rebuild, service restart, API/provider/database calls, inference or repeat backfill. After final artifacts are captured, review them and progress the data-contract/export gate. Overall engineering baseline remains 12.4%.
+
+### Progress update rules (continued)
 
 - Change the roadmap dashboard only after linking evidence to the exact checkpoint; then append the delta here.
 - Use percentage points for absolute changes and explicitly name the denominator for relative improvements. Do not blend schema success, alignment, financial outcomes and engineering completion.

@@ -21,7 +21,7 @@
   <rect x="30" y="94" width="350" height="110" rx="9" class="existing"/>
   <text x="48" y="121" class="label">Upstox REST / historical data</text>
   <text x="48" y="148" class="body">Existing source: instruments, quotes, candles</text>
-  <text x="48" y="173" class="body">Reuse quality evidence; research labels tested</text>
+  <text x="48" y="173" class="body">Final evidence review; research labels tested</text>
   <rect x="425" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="443" y="121" class="label">Upstox + Paytm live feeds</text>
   <text x="443" y="148" class="body">Planned streaming / read-only integration</text>
