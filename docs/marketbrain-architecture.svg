@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="940" viewBox="0 0 1200 940" role="img" aria-labelledby="title desc">
-  <title id="title">MarketBrain paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">Existing Upstox REST, data and notification foundations feed planned numerical prediction and a human-approved INR 100000 paper portal. Paytm live data is planned. Real broker execution is deferred and disconnected. Dashed boxes are planned or incomplete.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1060" viewBox="0 0 1200 1060" role="img" aria-labelledby="title desc">
+  <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
+  <desc id="desc">PG1 full intelligence uses a planned 15-year history target, fundamentals, news, 5/20/60-session and separate intraday forecasts with controlled learning. PG2 is its shared-workflow INR 100000 paper deployment with ACCEPT/REJECT. Research simulation has separate accounting. Paytm real execution is deferred and disconnected. Dashed boxes are planned or incomplete.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -15,9 +15,9 @@
       .line { fill: none; stroke: #405870; stroke-width: 2; marker-end: url(#arrow); }
     </style>
   </defs>
-  <rect width="1200" height="940" fill="#fafcff"/>
+  <rect width="1200" height="1060" fill="#fafcff"/>
   <text x="30" y="40" class="heading">MarketBrain: data → forecast → approval → PAPER execution</text>
-  <text x="30" y="68" class="body">Design baseline • 18 Sep 2026 • Source presence ≠ tested readiness ≠ predictive value</text>
+  <text x="30" y="68" class="body">V2 • PG1: full intelligence + eventual live execution • PG2: mandatory paper-first deployment</text>
   <rect x="30" y="94" width="350" height="110" rx="9" class="existing"/>
   <text x="48" y="121" class="label">Upstox REST / historical data</text>
   <text x="48" y="148" class="body">Existing source: instruments, quotes, candles</text>
@@ -34,30 +34,35 @@
   <path d="M600 204 V258" class="line"/>
   <path d="M995 204 V238 H600" fill="none" stroke="#405870" stroke-width="2"/>
   <rect x="180" y="260" width="840" height="96" rx="9" class="planned"/>
-  <text x="200" y="288" class="label">Java data quality + point-in-time feature snapshots</text>
-  <text x="200" y="315" class="body">Existing indicators/snapshots • Planned availability-time, vintage, membership and news controls</text>
+  <text x="200" y="288" class="label">Java: 15+ year coverage target, fundamentals + point-in-time features</text>
+  <text x="200" y="315" class="body">Existing snapshots; planned membership, financial publication/revision and coverage controls</text>
   <text x="200" y="339" class="body">Versioned historical labels → chronological training/tuning/untouched evaluation; no future leakage</text>
   <path d="M600 356 V388" class="line"/>
   <rect x="180" y="390" width="840" height="98" rx="9" class="planned"/>
   <text x="200" y="418" class="label">Numerical prediction engine — planned, predictive value not yet established</text>
-  <text x="200" y="446" class="body">20-session swing first → separate 5/10-session swing and 30/60-minute intraday validation</text>
+  <text x="200" y="446" class="body">20-session first → required 5/60-session models; separate 30/60-minute intraday validation</text>
   <text x="200" y="470" class="body">Baselines, costs, uncertainty, calibrated outputs where justified; abstain on invalid inputs</text>
   <path d="M600 488 V520" class="line"/>
   <rect x="180" y="522" width="840" height="92" rx="9" class="planned"/>
-  <text x="200" y="550" class="label">Java proposal + risk policy → portal / private Telegram → human approval</text>
+  <text x="200" y="550" class="label">Java proposal + risk → portal / private Telegram → ACCEPT / REJECT</text>
   <text x="200" y="578" class="body">Existing notification/risk foundations • Planned end-to-end wiring, expiry and price-zone checks</text>
   <text x="200" y="601" class="body">One-time idempotent approval; fresh quote, holdings and risk revalidation before acceptance</text>
   <path d="M600 614 V646" class="line"/>
   <rect x="180" y="648" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="676" class="label">PAPER portal + execution + one INR 100,000 ledger — planned workflow</text>
   <text x="200" y="704" class="body">Shared intraday/swing capital; conservative fills, fees, reservations, positions and reconciliation</text>
-  <text x="200" y="727" class="body">Durable evidence and recovery • SQL seed/tables exist; complete simulator not yet established</text>
+  <text x="200" y="727" class="body">Isolated research simulation; shared future-live contracts, NOT identical fills or a LIVE switch</text>
   <rect x="30" y="776" width="735" height="84" rx="9" class="planned"/>
   <text x="48" y="804" class="label">Release gate: ≥30 elapsed days AND ≥20 trading sessions</text>
-  <text x="48" y="832" class="body">Sufficient opportunities, matured labels, audit and risk review; not proof of profit</text>
+  <text x="48" y="832" class="body">60-session forecasts need full label maturation beyond the operational month</text>
   <rect x="800" y="776" width="370" height="84" rx="9" class="blocked"/>
   <text x="818" y="804" class="label">Real Paytm orders: DEFERRED</text>
   <text x="818" y="832" class="body">No execution connection in this release</text>
-  <text x="30" y="895" class="small">Solid green: existing source foundation • Dashed blue: planned / incomplete • Red: excluded current execution scope</text>
-  <text x="30" y="919" class="small">Canonical authority: docs/README.md • Goal percentages: docs/roadmap.md • Runtime evidence required independently</text>
+  <path d="M180 700 H14 V926 H28" class="line"/>
+  <rect x="30" y="882" width="1140" height="96" rx="9" class="planned"/>
+  <text x="48" y="910" class="label">Governed learning — planned: feedback ≠ correctness; model replacement requires evaluation</text>
+  <text x="48" y="938" class="body">Separate user choices, market outcomes, paper fills and research results → mature labels → challenger tests</text>
+  <text x="48" y="962" class="body">Explicit promotion / rollback; frozen trial cohorts; no guaranteed improvement or silent active-model changes</text>
+  <text x="30" y="1010" class="small">Solid green: existing source foundation • Dashed blue: planned / incomplete • Red: excluded current execution scope</text>
+  <text x="30" y="1036" class="small">Canonical: docs/README.md • Progress: docs/roadmap.md • Source presence ≠ tested readiness ≠ predictive value</text>
 </svg>

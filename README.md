@@ -2,6 +2,8 @@
 
 Personal Indian-equity research and a planned **INR 100,000 paper-trading portal**. Live market data is allowed under reviewed provider access; real broker order execution is outside the current release.
 
+The two parent goals are a full trading-intelligence platform and its mandatory paper-first deployment: 15+ year history target, technical/fundamental/quantitative/news analysis, required 5/20/60-session forecasts plus separate intraday horizons, Telegram ACCEPT/REJECT, controlled feedback learning and eventually separately authorized Paytm execution. These are target capabilities, not a claim of implementation. See the canonical V2 baseline below.
+
 ## Start here
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.

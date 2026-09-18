@@ -1,6 +1,6 @@
 # Roadmap and completion dashboard
 
-Baseline: 2026-09-18. Authority: [documentation index](README.md). Evidence: [register](evidence-register.md). Daily changes: [progress log](daily-progress.md).
+Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Evidence: [register](evidence-register.md). Daily changes: [progress log](daily-progress.md). PG1 is the complete intelligence/eventual live product; PG2 is its mandatory paper-first deployment. Goal IDs remain stable when scope is corrected.
 
 ## How percentages work
 
@@ -20,28 +20,49 @@ No credit for anticipated results, expired evidence, undocumented assumptions or
 
 ## Current dashboard
 
-The weighted baseline is **13% engineering delivery**: `(10 × 40 + 90 × 10) / 100`. Ten percent of each goal is the design now recorded. G01 receives an additional implementation-presence checkpoint for its narrowly scoped existing REST/daily pipeline. No current V/R/A checkpoints are claimed. **Live-order readiness is not approved; numerical predictive performance is unmeasured.**
+The revised paper-first baseline is **12.4% engineering delivery**: `(8 × 40 + 92 × 10) / 100`. This replaces V1's 13% because history, fundamentals and governed learning now have explicit weights; **the -0.6 percentage-point change is scope rebaselining, not lost implementation or worse model performance**. Weights are declared planning weights, not measured effort or accuracy. G01 retains its narrowly scoped implementation-presence checkpoint; the other included goals have design credit only. No V/R/A delivery checkpoints are claimed. Owner agreement with the scope is not acceptance of an implemented feature.
+
+This denominator covers the full paper-first target, including shared PG1 foundations, not the future live release. G12 remains separately tracked at 0%; do not call 100% of this dashboard 100% of PG1. **Live-order readiness is not approved; numerical predictive performance is unmeasured.**
 
 | Goal | Scope | Weight | Checkpoints | Completion | Area status / pending work |
 |---|---|---:|---|---:|---|
-| G01 | Verify existing Upstox REST and historical/daily pipeline | 10 | D, I | 40% | Implemented foundation; refresh tests, runtime and data-coverage evidence |
-| G02 | Point-in-time, multi-date prediction dataset | 10 | D | 10% | Prototype datasets exist; executable labels, vintage data and leakage controls pending |
-| G03 | Numerical 20-session swing predictor | 15 | D | 10% | Design only; no fitted/calibrated predictor established |
-| G04 | Upstox streaming and live aggregation | 10 | D | 10% | REST is not streaming; streaming implementation pending |
+| G01 | Verify existing Upstox REST and historical/daily pipeline | 8 | D, I | 40% | Implemented foundation; refresh tests, runtime and data-coverage evidence |
+| G02 | Point-in-time, multi-date prediction dataset | 8 | D | 10% | Prototype datasets exist; executable labels, vintage data and leakage controls pending |
+| G03 | Numerical 20-session swing predictor | 12 | D | 10% | Design only; no fitted/calibrated predictor established |
+| G04 | Upstox streaming and live aggregation | 7 | D | 10% | REST is not streaming; streaming implementation pending |
 | G05 | Paytm live market data, read-only | 5 | D | 10% | Historical client exists; current live API/auth/entitlement verification and integration pending |
 | G06 | Governed Marketaux ingestion and news features | 5 | D | 10% | Ingestion foundations exist; reliable entity/event pipeline pending |
-| G07 | 5/10-session swing and 30/60-minute intraday prediction | 10 | D | 10% | Design only; horizon-specific datasets and validation pending |
-| G08 | INR 100,000 paper account, orders and fills | 10 | D | 10% | SQL foundations exist; complete accounting/execution simulator pending |
-| G09 | Functional portal, approval and notifications | 10 | D | 10% | Static UI and notification foundations; end-to-end paper workflow pending |
+| G07 | Required 5/60-session swing and separate intraday prediction | 8 | D | 10% | With G03 covers 5/20/60 sessions; 10 sessions optional, intraday initially 30/60 minutes |
+| G08 | INR 100,000 paper account, orders and fills | 9 | D | 10% | SQL foundations exist; complete accounting/execution simulator pending |
+| G09 | Functional portal, approval and notifications | 8 | D | 10% | Static UI and notification foundations; end-to-end paper workflow pending |
 | G10 | Integrated security, operations and recovery | 5 | D | 10% | Existing safeguards to reuse; full release verification pending |
-| G11 | Prospective month-plus paper validation | 10 | D | 10% | Trial protocol designed; no qualifying trial claimed |
+| G11 | Prospective month-plus paper validation | 8 | D | 10% | Trial protocol designed; final 60-session outcomes need additional maturation |
 | G12 | Paytm real order execution | Excluded | None | 0% | Deferred; separate authorization and release decision required |
+| G13 | 15+ year history target and frequency-specific coverage | 7 | D | 10% | Dedicated acquisition/licensing/membership/retention plan; actual coverage unverified |
+| G14 | Point-in-time fundamental intelligence | 5 | D | 10% | Financial-statement, valuation and earnings features designed; implementation not established |
+| G15 | Feedback, outcome learning and controlled retraining | 5 | D | 10% | Preference/outcome separation, challenger evaluation and promotion/rollback designed |
 
-G00, the documentation/evidence-reset task, is tracked separately from product delivery: **3/5 checkpoints (60%)** — inventory mapped, canonical plan written, evidence/uncertainty register written; exhaustive source-review coverage and owner acceptance remain pending. A broad repository scan is not a certified line-by-line audit. This explicitly preserves the outstanding depth of the earlier audit request.
+G00, the documentation/evidence-reset task, is tracked separately: **4/5 checkpoints (80%)** — inventory mapped, canonical plan written, evidence/uncertainty register written, and owner acceptance of the parent scope/clarifications recorded. Exhaustive source-review coverage remains pending. This does not approve detailed risk defaults, implementation or live trading. A broad repository scan is not a certified line-by-line audit.
+
+## Parent-goal traceability
+
+| Accepted requirement | Owning subgoals | Acceptance evidence |
+|---|---|---|
+| PG1: 15+ years, all eligible Nifty 500 companies | G13.1–G13.5, G01, G02 | Frequency-specific licensed coverage matrix; listing/membership history and explicit gaps |
+| PG1: technical, quantitative, fundamental and news analysis | G02/G03, G06, G14.1–G14.5 | Point-in-time features, numerical validation and source-specific ablation |
+| PG1: 5/20/60-session research/forecasts plus intraday | G03, G07.1–G07.5 | Separate lookback/forecast fields; independently validated horizons |
+| PG1: autonomous analysis with Telegram ACCEPT/REJECT | G04/G05, G09.4, G09.6 | Scheduled/event-driven proposals; acceptance cannot bypass fresh risk/price checks |
+| PG1: feedback and outcome learning | G15.1–G15.5 | Auditable feedback/outcomes, versioned challenger tests, governed promotion and rollback |
+| PG1: eventually execute approved Paytm trades | G12.1–G12.5 | Separately approved live adapter, reconciliation, position monitoring and kill-switch tests |
+| PG2: one INR 100,000 realistic paper account | G08.1–G08.6 | Cash/holdings reconciliation; conservative costs/fills; no double-spending |
+| PG2: preserve production data/prediction/approval workflow | G08.5, G09.6, G10.5 | Shared contracts and adapter conformance; no broker order calls in paper mode |
+| PG2: experimentation and comprehensive simulation | G08.6, G11, G15 | Isolated research simulation, frozen prospective cohorts and matured outcomes |
 
 ## Work items and acceptance gates
 
 Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for this goal, `DESIGNED` = specified here, `PENDING` = no accepted implementation/evidence. These labels are not additional numerical checkpoints.
+
+The V1 working-day windows below are retained only as **prior core-work sequencing estimates**, not current delivery dates for the expanded V2 scope. The revised evidence-first scheduling gate at the end of this document supersedes the former overall estimate.
 
 ### G01 — Existing Upstox REST and daily foundation
 
@@ -102,10 +123,11 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 
 ### G07 — Additional horizons and intraday
 
-- G07.1 `DESIGNED`: separate 5/10-session and 30/60-minute labels, calibration and decision policies; 20-session model is not reused as an intraday predictor without validation.
-- G07.2 `PENDING`: obtain sufficient point-in-time intraday history with spread/volume/session constraints; new 10-session label support.
+- G07.1 `DESIGNED`: required 5/60-session models alongside G03's 20-session model, plus separate 30/60-minute intraday labels, calibration and policies. Ten-session forecasting is optional, not a substitute for 60 sessions.
+- G07.2 `PENDING`: validate executable 5/60-session labels and obtain sufficient point-in-time intraday history with spread/volume/session constraints; existing prototype labels do not establish valid forecasting models.
 - G07.3 `PENDING`: horizon-specific chronological validation and no-news versus news-feature ablation.
 - G07.4 `PENDING`: session-close handling, position-horizon conflicts and bounded inference scheduling.
+- G07.5 `DESIGNED`: distinguish historical lookback (including 5/20/60-session diagnostics) from forward forecast horizon; test each combination without future information. HOLD produces no order; unreliable evidence permits NO_TRADE/ABSTAIN.
 - Acceptance: each advertised horizon independently meets G03-style evidence requirements. Insufficient intraday history blocks that mode. Disabled modes must be visibly disabled in the portal.
 - Dependencies: G02/G03 validation framework; G04, G06 for full live/news-enabled scope. Window: D26–D45, possibly contingency. Owner: numerical-model/implementation role.
 
@@ -115,6 +137,8 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 - G08.2 `DESIGNED`: one shared cash ledger, reservations, positions, fees, realised/unrealised P&L and audit trail; intraday/swing cannot each spend the same capital.
 - G08.3 `PENDING`: lifecycle, idempotency, fresh-price revalidation, partial fills, cancellation/expiry and conservative fill assumptions.
 - G08.4 `PENDING`: corporate actions, settlement assumptions, restart/reconciliation, property tests and concurrent-approval tests.
+- G08.5 `DESIGNED`: share data, prediction, proposal, risk, approval and order-intent contracts with the future production workflow; a separately authorized broker adapter will differ from the paper adapter. Require contract conformance, not identical fill outcomes.
+- G08.6 `DESIGNED`: isolate the approved INR 100,000 portfolio from research simulation of rejected/unapproved proposals. Never reserve/spend approved-account cash for hypothetical trades; preserve distinct IDs, costs and assumptions.
 - Acceptance: paise-level ledger reconciliation, no negative available cash/overselling, one approval cannot create duplicate fills, crash replay preserves balances. Real broker order placement remains absent/disabled by construction.
 - Dependencies: approved risk/fill contracts; G01 for fixtures, G04/G05 for final runtime tests. Window: D6–D25. Owner: backend/implementation role.
 
@@ -123,8 +147,9 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 - G09.1 `PARTIAL`: static React dashboard and Telegram/WhatsApp foundations exist; E08.
 - G09.2 `DESIGNED`: screens in [system design](system-design.md), clear PAPER badge and INR 100,000 initial account.
 - G09.3 `PENDING`: authenticated APIs/UI, evidence view, approvals, order/position history and integration health.
-- G09.4 `PENDING`: Java-templated alerts; one-time expiring approvals shared across portal/Telegram; WhatsApp optional and non-blocking.
+- G09.4 `PENDING`: Java-templated alerts with user-facing ACCEPT / REJECT; one-time expiring approvals shared across portal/Telegram; WhatsApp optional and non-blocking. ACCEPT maps to an approval event, not a guaranteed fill.
 - G09.5 `PENDING`: accessible error states, stale-price expiry, duplicate-click tests, no accidental live controls and compact report export.
+- G09.6 `DESIGNED`: preserve identical proposal/risk/approval semantics for paper and eventual live workflows; explicitly label PAPER versus RESEARCH SIMULATION results. HOLD records an assessment without order execution; accepting a BUY/SELL still allows risk rejection or order expiry.
 - Acceptance: end-to-end proposal → human approval → price/risk revalidation → paper fill → ledger → report passes; expired/out-of-zone approval cannot buy. UI never presents a score as a guaranteed outcome.
 - Dependencies: G08 contract; real predictions require G03/G07. Window: design D1–D5; implementation D11–D35. Owner: frontend/backend role; owner acceptance.
 
@@ -134,8 +159,9 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 - G10.2 `PENDING`: tests for source outages, stale data, bad model output, approval races, disk full, power loss and restart.
 - G10.3 `PENDING`: deployment revision/config evidence, dependency/security checks, health/readiness distinction and bounded load test.
 - G10.4 `PENDING`: record response-time distributions, capacity and rejected/dropped work; rollback and runbook drill.
+- G10.5 `DESIGNED`: shared-contract test suite and denied broker-order-call assertions for the paper release; future live-adapter tests cover partial fills, duplicate acknowledgements, unknown order states and reconciliation separately.
 - Acceptance: no unresolved critical safety/security defect; restore test passes; one compact daily evidence bundle; all advertised workflows meet a written measured latency/capacity budget. Hardware capacity is measured, not assumed.
-- Dependencies: G01–G09 integrated scope. Window: D36–D45, with tests added throughout. Owner: implementation/operator role.
+- Dependencies: G01–G09 plus G13–G15 for the full advertised paper scope. Prior core window: D36–D45, with tests throughout; revised dates follow the V2 scheduling gate. Owner: implementation/operator role.
 
 ### G11 — Prospective paper validation
 
@@ -143,16 +169,48 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 - G11.2 `PENDING`: at least **30 elapsed calendar days AND 20 actual exchange trading sessions**, whichever takes longer, with daily completeness checks.
 - G11.3 `PENDING`: record all eligible proposals, approvals/rejections, abstentions, fills, costs, incidents and matched baseline outcomes—not just winners.
 - G11.4 `PENDING`: obtain sufficient opportunities across declared modes; suggested operational floor of 20 decision dates per horizon and 10 closed paper trades overall requires owner approval and is **not** statistical proof. Extend observation if evidence is sparse; never manufacture trades to meet a quota.
-- G11.5 `PENDING`: wait for the final predictions' horizon labels to mature; review uncertainty, risk, accounting and operating reliability; owner accepts, extends or rejects.
+- G11.5 `PENDING`: wait for every advertised horizon's final labels to mature, including the full 60-session forecast window; review uncertainty, risk, accounting and operating reliability; owner accepts, extends or rejects. A month of operation does not complete 60-session validation.
 - Acceptance: data/audit continuity and reconciliation pass; no critical safety violation; predeclared model criteria pass on prospective evidence. A model with uncertain benefit remains advisory/disabled. Real money is still a separate decision under G12.
-- Dependencies: accepted, advertised G01–G10 scope and owner trial-start approval. Material changes open a new cohort and restart affected stability measurements; preserve old failures.
+- Dependencies: accepted, advertised G01–G10 and G13–G15 scope, plus owner trial-start approval. An explicitly restricted pilot is possible but is not full G11 acceptance. Material changes open a new cohort and restart affected stability measurements; preserve old failures.
 
 ### G12 — Future Paytm execution, deliberately deferred
 
 - G12.1 `PENDING`: separate feasibility, account permissions, policy/compliance and operational review.
 - G12.2 `PENDING`: separately authorized design for create/modify/cancel orders, broker reconciliation, protective actions and kill switches.
 - G12.3 `PENDING`: staged limits and independent go/no-go review after G11; passing a paper month is necessary evidence, not sufficient proof of live performance.
+- G12.4 `PENDING`: broker acknowledgement/partial-fill/timeout/unknown-state reconciliation, idempotency, cancellation and manual recovery; never resend an uncertain order blindly.
+- G12.5 `PENDING`: monitor actual positions and holdings after fills; refresh risk/exits, reconcile broker state and audit protective actions. Human approval or an explicitly preapproved protective rule remains authoritative, not model autonomy.
 - No implementation date, current release weight or permission to place real orders. The portal must not gain live execution through a simple configuration toggle.
+
+### G13 — 15+ year historical-data target
+
+- G13.1 `DESIGNED`: inventory each required series by instrument, date range, frequency, provider, licence, publication/vintage availability and missing intervals. Separate daily, minute/tick, fundamentals and news coverage; do not assume one entitlement supplies all four.
+- G13.2 `PENDING`: verify/acquire at least 15 years of daily price/volume history where the instrument existed and licensed sources permit, or since listing for newer companies. Exceptions require visible owner acceptance; unavailable data is not fabricated.
+- G13.3 `PENDING`: version Nifty 500 membership over time, symbol/ISIN changes, delistings and corporate actions. Distinguish today's 500-company backfill from historical-universe evaluation.
+- G13.4 `PENDING`: resumable bounded ingestion, reconciled gaps and revised data, immutable provenance, storage/retention and backup capacity; preserve raw versus adjusted values.
+- G13.5 `PENDING`: publish frequency-specific coverage and quality dashboards, including intraday/news/fundamental limitations. Freeze required depth and tolerable gaps per mode before accepting it.
+- Acceptance: audited coverage matrix and recovery test; missing or unlicensed series prevent full-coverage claims. A limited dataset may support an explicitly limited pilot, not completion of this goal.
+- Dependencies: G01, source access and approved storage/licence budgets; informs G02/G07/G14. Owner: data engineer plus owner for entitlements. Timeline: feasibility during the first five authorized working days; acquisition ETA only after volume/rate-limit evidence.
+
+### G14 — Point-in-time fundamental intelligence
+
+- G14.1 `DESIGNED`: select authorized sources for financial statements, earnings, balance-sheet/cash-flow quality, valuation inputs and share counts; record separate historical depth/rights.
+- G14.2 `PENDING`: normalize standalone/consolidated statements, reporting periods, currencies/units and company identifiers with provenance.
+- G14.3 `PENDING`: preserve original publication/first-seen times, amendments and restatements; calculations use only the version available at prediction time.
+- G14.4 `PENDING`: calculate versioned growth, profitability, leverage, cash-flow and valuation features; explicit stale/missing/sector-specific applicability rules.
+- G14.5 `PENDING`: test ratio arithmetic and temporal joins, then compare numerical models with/without fundamentals on the same held-out dates and costs.
+- Acceptance: no restatement leakage, validated calculations and coverage; inclusion in active prediction requires evidence of value, not merely successful ingestion. Report unsupported sectors/fields explicitly.
+- Dependencies: G13 source feasibility, G02 identity/time contracts and G03 validation framework. Owner: data/numerical-model role. Timeline: source decision at the first scheduling gate; implementation estimate after sample-data review.
+
+### G15 — Feedback, outcomes and controlled learning
+
+- G15.1 `DESIGNED`: persist ACCEPT/REJECT/expiry and optional reasons separately from market outcome labels, forecast quality and execution quality. User preference is not proof of predictive correctness.
+- G15.2 `PENDING`: attribute outcomes at each forecast horizon; track approved paper trades, hypothetical research trades and eventual real trades as distinct populations; include rejected/abstained opportunities where evaluation is defined.
+- G15.3 `PENDING`: monitor drift, calibration, coverage and cost-adjusted performance; predefine cadence/triggers and minimum data before retraining. Never retrain on immature future labels.
+- G15.4 `PENDING`: produce versioned challengers through bounded training/validation; predeclared improvement and risk gates, explicit promotion, frozen trial cohorts and rollback. An inconclusive challenger retains the incumbent.
+- G15.5 `PENDING`: test corrupt feedback, duplicate outcomes, source corrections, regime shifts and rollback; audit why every model version was accepted or rejected.
+- Acceptance: reproducible end-to-end feedback-to-challenger workflow, no preference/outcome conflation or active-model mutation during a frozen trial; no promise that every retraining cycle improves results.
+- Dependencies: G03/G07 forecast contracts and mature outcomes, G08/G09 audit records; collect feedback early, promote only after validation. Owner: numerical-model/implementation role with owner promotion authority. Timeline: instrumentation alongside portal work, first retraining gate after sufficient mature data; no fixed improvement date.
 
 ## Parallel work and sequential gates
 
@@ -162,26 +220,29 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 | G08 simulator using fixtures and G02 historical dataset | No paper fill integration before accounting/risk contracts |
 | G04 feed adapter and G03 offline modelling | No live inference claim before feed freshness/recovery tests |
 | G06 news pipeline and G09 portal against versioned contracts | No full multi-horizon acceptance before G07 validation |
+| G13 coverage/licensing and G14 source samples alongside G08/G09 fixture work | No 15-year/fundamental completeness claim before audited coverage |
+| G15 feedback instrumentation alongside portal implementation | No challenger promotion before mature outcomes and untouched validation |
 | Daily documentation and tests alongside all authorized work | No G11 clock before integrated trial-entry gate; no G12 from paper results alone |
 
 Roles are work lanes, **not an assumption of multiple developers**. With one engineer, parallel-ready tasks are interleaved; provider waiting and data collection can overlap. Model inference stays concurrency 1. No uncontrolled permutation loop or unbounded experiment search.
 
 ## Conditional timeline and daily cadence
 
-Planning estimate: **45–60 engineering working days**, then the observation window and label maturation. This is a scope forecast, not a completion guarantee. It assumes one sustained implementation lane, accessible historical/intraday data, timely owner decisions and provider access. Establish measured velocity after the first five days and revise the forecast transparently.
+**The former 45–60-working-day estimate and illustrative calendar dates are withdrawn for the expanded V2 scope.** Adding 15-year acquisition, fundamentals, 60-session validation and controlled learning requires data/access and capacity evidence before a credible replacement estimate. This is a scheduling reassessment, not an assertion that the work is impossible or already underway.
 
-If implementation is authorized for Monday **2026-09-21**:
+After explicit implementation authorization, use this first-five-working-day planning timebox (one engineering lane, no assumed extra staffing):
 
-| Working-day window | Illustrative weekdays, before local holidays | Deliverable/review |
+| Day | Bounded output | Owner/dependency |
 |---|---|---|
-| D1–D5 | Sep 21–25 | Evidence, source-review inventory, contracts, risk proposals and test fixtures |
-| D6–D15 | Sep 28–Oct 9 | Dataset and paper-account foundations; portal contracts |
-| D16–D25 | Oct 12–23 | Numerical baseline validation, live-feed work, paper lifecycle |
-| D26–D35 | Oct 26–Nov 6 | Paytm data, news, portal integration and additional horizons |
-| D36–D45 | Nov 9–20 | Integrated recovery/security/performance and trial-entry decision |
-| D46–D60, if needed | Nov 23–Dec 11 | Explicit contingency for defects, data or integration gaps |
+| D1 | Deployed/source revision evidence, review-coverage inventory and current data reports | Engineer; owner supplies existing redacted reports |
+| D2 | G13 coverage/licensing/storage matrix and data-acquisition questions | Engineer; owner/provider for entitlement answers |
+| D3 | G14 sample/source assessment; required 5/20/60-session and intraday contracts | Engineer; source samples/access may remain blocked |
+| D4 | G08/G09/G15 shared order, approval, research-account and learning contracts | Engineer; owner reviews unresolved business rules |
+| D5 | Publish revised goal-by-goal estimates, parallel dependencies, contingency and trial-entry forecast | Engineer and owner; unresolved external gaps remain explicit |
 
-These are sequential total-capacity windows, not a promise to finish every overlapping goal independently in that time. Weekends, holidays, provider delays and limited work hours change dates. A best-case Nov 23 trial start reaches 30 elapsed days on Dec 23; exchange-session requirements may push it later. Final 20-session predictions need a further 20 trading sessions to mature, potentially into January 2027. No live-trading launch date is promised.
+D5 is the deadline to **publish what is known and blocked**, not a guarantee that providers answered or the exhaustive audit finished. On D10 review actual velocity and update the forecast again. Unanswered external dependencies get owner/next-review dates, not invented completion dates. Detailed risk defaults and the implementation slice still require approval.
+
+After the trial-entry gate, observation lasts at least 30 elapsed calendar days and 20 actual exchange sessions, whichever is longer. Each final prediction still needs its own outcome window: a final 60-session prediction needs 60 trading sessions from its defined entry, not 60 calendar days. Operational trial completion and complete multi-horizon validation are separate milestones. No live launch or guaranteed model-improvement date is promised.
 
 Daily routine on days worked:
 
@@ -191,4 +252,4 @@ Daily routine on days worked:
 4. Commit/push verified scoped work with relevant docs and the current diagram when changed; give a safe spare-laptop script for that milestone.
 5. Re-estimate weekly from completed subitems and unresolved dependencies. Do not turn a deadline into permission to lower quality gates.
 
-Next decision: approve this baseline, proposed risk/fill rules and the initial G00/G01/G02/G08/G09 work slice. **Documentation approval does not silently authorize all future implementation or any broker transaction.**
+Next decision: approve detailed risk/fill rules and the initial evidence/implementation work slice including G13/G14 feasibility. The owner has accepted the parent goals and alignment clarifications. **That documentation approval does not silently authorize application implementation or any broker transaction.**

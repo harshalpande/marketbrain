@@ -1,8 +1,22 @@
 # MarketBrain: canonical project baseline
 
-Version: **MB-PLAN-2026-09-18-V1**. Owner/acceptance authority: Harshal. Status: documentation and design baseline; implementation sequencing and proposed risk thresholds require owner review.
+Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.
 
-## Agreed product goal
+## Agreed parent goals
+
+### PG1 — AI-powered trading intelligence and eventual approved execution
+
+Maintain a 15+ year historical-data target and live data for Nifty 500 research, with technical, fundamental, quantitative and news-driven analysis. Use validated numerical forecasts and controlled learning from feedback and market outcomes to produce BUY/SELL/HOLD recommendations. Required multi-session forecasts and historical evaluations are **5/20/60 trading sessions**; intraday has separate within-session horizons. Telegram offers **ACCEPT / REJECT**. Ultimately, an accepted proposal may be executed through Paytm Money only after fresh risk/price validation and a separately authorized live release. Autonomous analysis does not mean unapproved trading; improvement is measured, never guaranteed.
+
+The history target is subject to listing dates, historical constituent membership, source licensing and actual coverage at each data frequency. Missing history is reported, not fabricated. Detailed scope and acceptance are in G13–G15 and the system design.
+
+### PG2 — Paper trading and simulation as the first deployment
+
+Build a comprehensive portal with **one INR 100,000 virtual account**, sharing the intended production data, prediction, alert, human-approval and order contracts. Accepted and revalidated BUY/SELL proposals execute only in the paper engine. HOLD is recorded without an order. A separate research simulation evaluates unapproved/rejected proposals without touching the approved account. Exercise strategy validation, feature experiments, reporting, feedback and controlled model refinement here before considering any Paytm live execution.
+
+PG2 is PG1's mandatory first deployment and validation environment, not a simplified independent application. The execution adapter differs; human approval, risk and audit requirements do not.
+
+### Shared scope and constraints
 
 Combine historical data, current/live prices and Marketaux news for Nifty 500 research. Java prepares facts and enforces risk; a numerical model estimates future outcomes; a small language model may extract news facts. Separate intraday and swing assessments become understandable proposals. The owner approves or rejects them. **Initially every accepted order and fill stays inside our paper portal, backed by one INR 100,000 virtual account. No order is posted to Paytm Money.**
 
@@ -31,8 +45,9 @@ Use the roadmap as the only progress ledger and system-design safety rules as th
 6. Single local LLM inference concurrency remains 1. Async Java work must not cause unbounded model queues or stale decisions.
 7. Authorized implementation handoffs include offline verification, scoped commit/push and a complete spare-laptop PowerShell script. Never stage unrelated changes or secrets. Documentation-only changes require no build.
 8. At each worked day's end update goal/subtask evidence and the daily log. No unattended daily updating or background implementation is implied; days not worked record no progress when next reviewed.
-9. Code changes are not authorized by this documentation reset. The six untracked `news/watch` draft files are excluded from the delivered baseline and must be explicitly disposed of or reviewed before a development-machine build.
+9. Code changes are not authorized by this documentation update. Inspect the working tree before each build; historical unaccepted drafts are not accepted features (see E10).
+10. User ACCEPT/REJECT feedback and realised market outcomes are separate evidence. Retraining creates a challenger; evaluation and explicit promotion precede active-model replacement. Paper and live account outcomes must remain distinguishable.
 
 ## First action, not another model sweep
 
-Close G00's evidence and owner-review gaps, verify the existing Upstox/data foundation, then create the versioned multi-date dataset for the first 20-session numerical predictor. Portal design and provider-access evidence can progress in parallel. Keep existing diagnostic evidence, but do not confuse prompt optimization with model fitting.
+Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.

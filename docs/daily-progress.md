@@ -38,6 +38,19 @@ Current percentages live in [the roadmap](roadmap.md). Evidence definitions and 
 3. G08/G09: approve ledger/fill/approval contracts and portal wireframes; these can progress independently of model training using fixtures.
 4. G05/G06 access/licensing questions can progress while local data/accounting work proceeds. No infrastructure changes implied.
 
+## 2026-09-18 — V2 parent-goal alignment approved and documented
+
+- Authorization: owner accepted the recommendations/clarifications and asked to add them to documentation. This entry records scope acceptance, not application implementation or live-order authorization.
+- Source baseline for this update: `f58d4f1`; documentation revision: the commit containing this entry. Starting working tree was clean; the historically recorded `news/watch` drafts were absent. No source files were added, removed or edited in this update.
+- Added PG1 (full intelligence/eventual approved execution) and PG2 (mandatory shared-workflow paper deployment) to the canonical index, with requirement-to-subgoal traceability.
+- Added G13 for 15+ year, frequency-specific historical coverage and membership; G14 for point-in-time fundamental data/analysis; G15 for separate feedback/outcomes and controlled retraining/promotion/rollback. Corrected G07 to required 5/60-session models alongside G03's 20-session baseline; 10 sessions are optional, intraday horizons separate.
+- Added explicit ACCEPT/REJECT display semantics, HOLD-without-order and NO_TRADE/ABSTAIN; autonomous analysis never bypasses approval/risk. Approved INR 100,000 account and research simulation use isolated accounting. Paper and future live workflows share contracts, not assumed-identical fills or an unrestricted LIVE switch.
+- Progress: G00 60% -> 80% for owner acceptance of the parent scope; exhaustive source-review coverage remains outstanding. Detailed risk defaults still need separate approval. No implementation V/R/A checkpoints earned.
+- Paper-first scope baseline: V1 13% -> **V2 12.4%**, a **-0.6 percentage-point scope/weight change**, not lost work or worse prediction. Fourteen included goals have weights totalling 100; G01 weight 8 at 40%, remaining weight 92 at 10%. Deferred G12 stays 0%, outside this denominator. Full PG1 has no claimed overall completion percentage.
+- Timeline: withdrew V1's 45–60-day overall estimate/calendar dates for this expanded scope. The first five authorized working days now culminate in a published evidence-based estimate/blocker review; D10 revisits velocity. This is not a start-date commitment. A month of operation and full 60-session outcome maturation are separate acceptance milestones.
+- Next: obtain current coverage/entitlement/fundamental-source evidence and approve a bounded implementation slice. No expensive model rerun, Docker rebuild or broker call is required for this documentation update.
+- Verification passed: 24 active relative links resolve; SVG parses as XML; 14 weighted goals sum to 100 and calculate to 12.4%; all 74 subitem IDs are unique and referenced subitems exist. No stale required 5/10-session wording remains in active design/index/diagram. Git whitespace and documentation-only scope checks pass; archive untouched. Application tests were not run for this documentation-only change.
+
 ## Daily entry template
 
 Copy this section for the next worked day; keep empty fields explicitly unknown rather than filling with guesses.
