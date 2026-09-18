@@ -2,6 +2,16 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-18 — Cleanup accepted; numerical data-readiness work started
+
+- Owner asked to mark scoped cleanup complete and proceed. E26 report reviewed and hash recorded: Granite absent afterward, Qwen 0.5B quarantine verified, Qwen 1.5B hash unchanged, health UP, no error. 125.02 seconds overall includes operator confirmation; actual first snapshot-to-final interval about 26.56 seconds. Quarantine is retained; no cleanup rerun.
+- G10.6 closed for the agreed scoped cleanup; its five stages have evidence/owner acceptance. Unknown executable provenance/VRAM/full job/config inventory remain G10.3 operational gaps, not silently marked verified. Full G10 remains 10%; overall weighted engineering baseline remains 12.4%.
+- Started G01/G13 evidence -> G02 -> G03 sequence with a compact numerical-data-readiness collector. Reuses existing raw audit when supplied, otherwise one explicit-run aggregate audit after health check. No model call, provider request, dataset recreation, database write, broad history scan or training. No Java/Docker build needed.
+- Inspected source query scope and V25 indexes before API handoff. Stored flags are not independent leakage proof; one as-of date is not a temporal train/test dataset. New report checks counts/classifications/horizons and records training blockers rather than promising accuracy. Full raw-history coverage remains unmeasured.
+- Added numerical work-package document with milestone gates, conditional working-day estimates, draft feature/label/split contract and paper-first constraints. Runtime results/data sufficiency must guide next implementation; do not optimize the old LLM samples again.
+- Offline tests: 32 assertions passed on local Windows PowerShell 5.1 with fixtures/mock HTTP only. Initial test-counter scoping across invoked scripts was corrected in the harness; no production runtime claim. Changed PowerShell syntax, doc links and SVG are checked at handoff. Temporary test evidence retained.
+- Handoff: pull and run `GetNumericalPredictionDataReadiness.ps1` against existing run 5bdbfcc1-d990-48d8-9e98-d4927596d917, then share one JSON. Do not train or recreate data if the report is blocked; review it first.
+
 ## 2026-09-18 — Guarded cleanup preparation after dependency report
 
 - E24 reviewed: 11.92-second spare PS7 run, health UP, Granite unloaded, no llama processes. Saved RUNNING status is not proof of a live worker; task hints and partial scan require operator review. No process termination, service changes or status rewriting performed.

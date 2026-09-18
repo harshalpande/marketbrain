@@ -50,9 +50,19 @@ Use the roadmap as the only progress ledger and system-design safety rules as th
 
 ## First action, not another model sweep
 
-Begin with G10.6: read-only inventory of the spare laptop's LLMs/runtimes, dependency review and an owner-approved cleanup list. Cleanup is pending, not performed; preserve evidence and active jobs, and do not delete shared caches or uninstall engines blindly. This is a prerequisite for new model/runtime work, not a reason to block independent source/data review or portal design.
+G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was removed, Qwen 0.5B quarantined and Qwen 1.5B retained with unchanged SHA256; health stayed UP. Do not rerun removal or purge quarantine. Historical inventory/cleanup instructions below remain for traceability, not the next action. Broader runtime/job/config verification remains G10.3 work.
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
+
+### Current next action: numerical data readiness
+
+The [numerical baseline work package](numerical-baseline-plan.md) defines the sequence, evidence gates, draft data contract and conditional effort estimates. Pull the current scripts on the spare laptop, with no Docker rebuild, then run:
+
+```powershell
+& '.\ops\windows\GetNumericalPredictionDataReadiness.ps1' -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917'
+```
+
+Share the single printed `numerical-data-readiness-<timestamp>-<id>.json`. This reads the aggregate audit of the existing run: no inference, numerical training, dataset writes, provider calls or backfill. `-ExistingAuditPath <path>` can instead reuse a saved **raw dataset audit**, with no network calls. It does not accept the prior cleanup/LLM ranking JSON as a dataset audit. Successful aggregate checks still report `PROTOTYPE_AUDIT_CONSISTENT_NOT_TRAINING_READY`: one decision date cannot support chronological training/test validation. No data-quality/prediction percentage is assumed before this result arrives.
 
 ### G10.6 read-only spare-laptop inventory
 
