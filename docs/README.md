@@ -50,4 +50,6 @@ Use the roadmap as the only progress ledger and system-design safety rules as th
 
 ## First action, not another model sweep
 
+Begin with G10.6: read-only inventory of the spare laptop's LLMs/runtimes, dependency review and an owner-approved cleanup list. Cleanup is pending, not performed; preserve evidence and active jobs, and do not delete shared caches or uninstall engines blindly. This is a prerequisite for new model/runtime work, not a reason to block independent source/data review or portal design.
+
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.

@@ -61,6 +61,14 @@ Current percentages live in [the roadmap](roadmap.md). Evidence definitions and 
 - Next: retain original evidence and use it for the deferred parser/runtime review if model diagnostics resume; do not repeat this completed run or launch a new sweep automatically. Continue the agreed evidence-first numerical/data/portal plan when separately authorized.
 - Change scope: evidence register and this daily log only; no architecture or safety-policy change. Source/log cross-checks and documentation validation recorded with this note; no application tests or runtime requests performed.
 
+## 2026-09-18 — Restart priorities and spare-machine cleanup reminder
+
+- Owner asked where to restart from the baselined goals and explicitly reminded us that several LLMs are installed on the spare machine and need cleanup. Recorded as G10.6 with five evidence-gated checklist items: inventory, dependency review, exact owner-approved plan, scoped cleanup, verification.
+- Current installed tags/files and active processes remain unknown. Previous Granite/0.5B/1.5B discussions are historical context, not a current inventory. Qwen2.5-1.5B is a possible retained diagnostic reference, not a production-qualified decision engine.
+- Immediate priority: read-only environment inventory and existing data-readiness evidence. Proposed first build after approval: G02 prediction-grade 20-session dataset and G08 paper-account foundation; G09 portal contracts/wireframes alongside these. No new LLM sweep is required to begin the numerical/data work.
+- Scope of this turn: documentation reminder and next-work recommendation only. No spare-machine command, model deletion/download, process termination, code change, provider request or deployment performed. Cleanup remains 0/5; G00 remains 80%; weighted product baseline remains 12.4%.
+- Preserve all prior experiment evidence, databases, configuration, shared model-cache dependencies and any running jobs. Removal targets and recoverability must be reviewed before cleanup. Independent source/data/design work can proceed without waiting for file deletion once its scope is authorized.
+
 ## Daily entry template
 
 Copy this section for the next worked day; keep empty fields explicitly unknown rather than filling with guesses.

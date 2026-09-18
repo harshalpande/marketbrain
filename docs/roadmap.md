@@ -64,6 +64,20 @@ Legend: `DONE-SOURCE` = found in source, `PARTIAL` = reusable but incomplete for
 
 The V1 working-day windows below are retained only as **prior core-work sequencing estimates**, not current delivery dates for the expanded V2 scope. The revised evidence-first scheduling gate at the end of this document supersedes the former overall estimate.
 
+### Immediate start package — evidence and environment preflight
+
+Owner reminder recorded 2026-09-18: multiple LLMs remain on the spare machine and cleanup is required before proceeding with new model/runtime work. Exact current model tags, files and active processes have not been inventoried. Historical installs/deletions do not establish current state.
+
+Start with G10.6 below, then G01/G13 evidence collection. No new model sweep or model download is required. In parallel where capacity permits, continue G00 source-review coverage and prepare G02/G08/G09 data/ledger/UI contracts; these offline/design activities need not wait for model-file deletion.
+
+| First work lane | Bounded output | Boundary |
+|---|---|---|
+| Environment preflight: G10.6 | Read-only spare inventory, retain/remove proposal, then approved cleanup and verification | Do not delete or stop services from a generic cleanup request |
+| Data readiness: G01/G13/G14 | Current revision, provider access and coverage matrix; identify usable historical data and fundamental-source gaps | Reuse saved reports first; bounded queries only after review; no broad backfill yet |
+| First implementation design: G02/G08/G09 | 20-session feature/label contract plus INR 100,000 ledger/approval contract and portal wireframes | No application implementation until the owner approves the bounded slice; no live orders |
+
+After evidence/contract approval, the proposed first build is the prediction-grade 20-session dataset and deterministic paper-account foundation. These are independent work lanes with a shared contract. Numerical baseline training follows dataset validation; required 5/60-session and intraday expansion follows separate evidence gates. LLM prompt tuning is not the critical path for this numerical engine.
+
 ### G01 — Existing Upstox REST and daily foundation
 
 - G01.1 `DONE-SOURCE`: instrument import, quotes, historical/intraday candle import and corporate-action access; evidence E02.
@@ -160,6 +174,13 @@ The V1 working-day windows below are retained only as **prior core-work sequenci
 - G10.3 `PENDING`: deployment revision/config evidence, dependency/security checks, health/readiness distinction and bounded load test.
 - G10.4 `PENDING`: record response-time distributions, capacity and rejected/dropped work; rollback and runbook drill.
 - G10.5 `DESIGNED`: shared-contract test suite and denied broker-order-call assertions for the paper release; future live-adapter tests cover partial fills, duplicate acknowledgements, unknown order states and reconciliation separately.
+- G10.6 `PENDING`: spare-machine LLM/runtime inventory and approved cleanup, followed by dependency/health verification. Preflight checklist is 0/5 complete; it is tracked inside G10, not a new weighted product goal:
+  - C1 `PENDING`: read-only inventory of Ollama model tags/digests/sizes, local GGUF paths/sizes (hash only selected candidates if needed), executable versions, active processes/jobs, available RAM/disk/VRAM where exposed. Do not log tokens, full environment or process command lines containing secrets. Inventory must distinguish missing/stopped services from absent models.
+  - C2 `PENDING`: map each model/runtime to repository configuration, running service/job and pending experiment dependencies; preserve all completed evidence and identify any active job before changes. An engine (Ollama/llama.cpp) is not the same thing as an installed model.
+  - C3 `PENDING`: owner approves an exact retain/remove list, release/stop actions if any, and recovery plan. Qwen2.5-1.5B Q4_K_M is a candidate to retain temporarily for diagnostic reproducibility, not an approved predictor or validated news model. Granite, 0.5B and duplicate models are removal candidates only if actually present and unused; prior conversation is not proof they remain installed.
+  - C4 `PENDING`: perform only approved scoped cleanup on the spare laptop. Prefer recoverable quarantine for standalone files or supported model/cache removal methods; validate exact targets first. Never recursively delete shared Hugging Face/Ollama cache roots, model blobs, review evidence, PostgreSQL data, Docker volumes, or credential configuration. Shared cache references/hardlinks/symlinks need dependency review; record whether removal is recoverable locally or requires download.
+  - C5 `PENDING`: compare before/after inventories and actual freed space; verify intended retained files, service health/dependencies and absence of unintended job interruption. File presence alone does not verify model inference; any smoke inference is separately scoped and not a lengthy sweep.
+- Cleanup completion requires all five C-items and owner-reviewed results. Cleanup alone does not earn G10's complete implementation/runtime checkpoint or change the weighted project percentage. No deletion, uninstall, process termination, download or service rebuild is authorized by documenting this prerequisite.
 - Acceptance: no unresolved critical safety/security defect; restore test passes; one compact daily evidence bundle; all advertised workflows meet a written measured latency/capacity budget. Hardware capacity is measured, not assumed.
 - Dependencies: G01–G09 plus G13–G15 for the full advertised paper scope. Prior core window: D36–D45, with tests throughout; revised dates follow the V2 scheduling gate. Owner: implementation/operator role.
 
@@ -234,7 +255,7 @@ After explicit implementation authorization, use this first-five-working-day pla
 
 | Day | Bounded output | Owner/dependency |
 |---|---|---|
-| D1 | Deployed/source revision evidence, review-coverage inventory and current data reports | Engineer; owner supplies existing redacted reports |
+| D1 | G10.6 read-only LLM/runtime inventory and dependency/cleanup proposal; deployed/source revision, review-coverage inventory and existing data reports | Engineer; owner runs bounded spare checks and approves exact cleanup targets before changes |
 | D2 | G13 coverage/licensing/storage matrix and data-acquisition questions | Engineer; owner/provider for entitlement answers |
 | D3 | G14 sample/source assessment; required 5/20/60-session and intraday contracts | Engineer; source samples/access may remain blocked |
 | D4 | G08/G09/G15 shared order, approval, research-account and learning contracts | Engineer; owner reviews unresolved business rules |
