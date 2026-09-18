@@ -1,4 +1,6 @@
-# Product boundaries
+# Archived product boundaries
+
+Superseded 2026-09-18. Historical evidence only. Start at [the current documentation](../../README.md).
 
 ## Personal use and execution safety
 

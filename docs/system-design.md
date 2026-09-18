@@ -1,0 +1,164 @@
+# System and INR 100,000 paper-portal design
+
+Design baseline 2026-09-18. Scope and progress: [roadmap](roadmap.md). Implementation evidence: [register](evidence-register.md). **This document specifies future work; it does not claim the portal or numerical predictor is already built.**
+
+## Responsibility and execution boundary
+
+| Component | Owns | Must not do |
+|---|---|---|
+| Provider adapters | Authorized data retrieval, timestamps, instrument identity, provenance and feed health | Silently invent missing prices, mix sources or place orders |
+| Java data layer | Calculated indicators, point-in-time features, quality checks and reproducible snapshots | Pass future outcomes to inference |
+| Numerical prediction engine | Horizon-specific expected outcomes, risk estimates and validated probabilities where available | Treat a language-model score as calibrated probability |
+| Optional small language model | Evidence-grounded news/entity/event extraction and compact typed interpretation | Override risk, execute arbitrary tools or act as an unvalidated price predictor |
+| Java decision/risk policy | Turn forecasts into BUY/SELL/HOLD/NO_TRADE proposals subject to position, cost, liquidity and risk rules | Convert a forecast directly into a broker transaction |
+| Human approval | Accept or reject eligible, expiring proposals | Bypass fresh quote/risk validation through late approval |
+| Paper execution and ledger | Simulated order/fill lifecycle, shared cash and positions, charges, reconciliation | Send create/modify/cancel orders to Paytm or Upstox |
+| Portal and notifications | Explainable evidence, Java-templated alerts, approval and audit views | Present paper results as guaranteed live returns |
+
+`HOLD` applies to an existing position. `NO_TRADE`/`ABSTAIN` covers no eligible new action, unavailable inputs or insufficient confidence. Existing research labels such as REJECT/WATCHLIST/SHORTLIST/TOP_PICK are not broker order instructions.
+
+## Target flow
+
+![Current and planned components](marketbrain-architecture.svg)
+
+1. Upstox and, when authorized/implemented, Paytm supply market data. Marketaux supplies news under its subscription rights.
+2. Java persists source events and availability times, resolves identities and updates versioned snapshots/bars.
+3. A scheduled interval or a relevant new story triggers a bounded reassessment. News is matched to eligible Nifty 500 companies; ambiguous matches enter review, not automatic decisioning.
+4. The numerical model estimates each supported horizon; Java checks input quality, risk, costs and current positions, then persists a proposal or abstention.
+5. The portal/private Telegram receives a Java-templated proposal with timestamp, reference price, permitted zone, quantity/risk, expiry and concise reason codes.
+6. Approval causes fresh quote, position and risk revalidation. Only then may the paper engine accept and simulate an order. Every state change is auditable and idempotent.
+
+Live data can arrive frequently without running a language model on every tick for all 500 stocks. Proposed scheduling is minute-bar numerical reassessment, bounded news-triggered reassessment and end-of-day swing updates. Tune these intervals against measured capacity and the intended horizon. Random sampling is useful for evaluation coverage, not as the sole mechanism for risk monitoring. Local language-model concurrency remains 1.
+
+## Provider contracts
+
+### Upstox: existing foundation plus a separate streaming goal
+
+Source already includes instrument import, full quotes, historical/intraday candles and corporate actions. Daily enrichment is a scheduled post-market pipeline. Neither proves that an intraday WebSocket pipeline exists.
+
+The official [V3 market-feed documentation](https://upstox.com/developer/api-documentation/v3/get-market-data-feed/) describes the streaming/protobuf interface; account-specific subscription limits and permissions must be verified before implementation. [Analytics-token documentation](https://upstox.com/developer/api-documentation/analytics-token/) describes a read-only access option; verify its actual availability and coverage for this account. Do not infer current deployment configuration from these product capabilities.
+
+### Paytm: read-only market data now, execution later
+
+The existing client fetches historical price charts. G05 adds live data; G12 alone covers future real orders. Consult the [official developer portal](https://developer.paytmmoney.com/) and current account-specific documentation/support for endpoint contracts, authentication, rate limits, instruments and feed permissions. Public landing pages are not sufficient to implement authentication safely.
+
+Earlier project correspondence recorded a public static outbound/egress-IP prerequisite. Treat that as a prerequisite to reconfirm against the actual enabled API product. A LAN or Tailscale address is not a public static egress address. Do not provision infrastructure or change network routing merely because this design names it.
+
+### Shared live-data envelope
+
+Required fields: provider, exchange/instrument identifier, canonical ISIN where available, symbol mapping version, event time, received time, exchange session, price/quantity units, bid/ask when available, sequence identifier when available and quality flags. Preserve raw provenance and corrected/revised event relationships.
+
+Define a primary source and explicit freshness/quality-based failover. Never silently average conflicting quotes. Divergence beyond a predeclared tolerance raises an alarm and may stop the affected decisions. Reconnection requires gap assessment and safe bar backfill. Rate limits, entitlement, trading halts, price bands and unavailable depth remain visible limitations.
+
+### Marketaux and optional language-model extraction
+
+The [official documentation](https://www.marketaux.com/documentation) describes news and entity fields. Entitlement to obtain a response is not automatically permission to retain full articles indefinitely. Record subscription rights, retention and attribution requirements first.
+
+Persist publication and first-seen timestamps separately, provider IDs, permitted text, entity-match evidence, event categories, correction links and duplicate clusters. Treat article text as untrusted data, never operational instructions. Reject unsupported extraction claims; store evidence spans and uncertainty. Language-model outages or schema failures must not create arbitrary replacement values. Test namesakes, subsidiaries, multiple companies, rumours, repeated stories, stale stories and prompt-injection content.
+
+## Numerical prediction engine: build order and contract
+
+The existing indicator/ranking heuristics and language-model sweeps are evaluation infrastructure, not a fitted numerical predictor. Java alignment measures agreement with a rule baseline, not future market correctness. Repeated prompting does not train model weights.
+
+### First target: 20-session swing research
+
+- Form an end-of-day snapshot using only information available at that decision timestamp.
+- First research label convention: next eligible session's open as entry, that entry session counts as session 1, exit at the close of session 20. Missing/invalid executable prices invalidate or explicitly censor the label; they are not replaced with a future convenient price.
+- Include versioned estimated round-trip costs/slippage. This research label is distinct from an actual paper fill, which occurs only after approval at an eligible subsequent price.
+- Predict net forward return initially; add separately validated downside/event probabilities if they improve the declared objective. Do not advertise an uncalibrated model score as a probability.
+- Candidate inputs: point-in-time price/volume changes over 5/10/20 sessions, trend, volatility, liquidity, sector/benchmark context and permitted news features. Existing feature calculators provide some, not all, of these.
+- Preserve corporate-action treatment, market calendar, historical constituent membership and data vintage. If historical membership is unavailable, disclose survivorship bias and limit conclusions.
+
+### Training and validation workflow
+
+1. Build reproducible multi-date feature/label manifests. Fit transformations on training data only.
+2. Compare a deterministic baseline, a simple linear learner and a bounded small tree-model candidate. Offline Python training is a proposed implementation choice, not an installed capability.
+3. Use chronological train/tuning/untouched-final partitions. Purge observations whose outcome windows overlap the next partition; group evaluation by decision date to avoid treating correlated stocks as independent trials.
+4. Freeze feature definitions, costs, search budget and the primary metric before final evaluation. Preserve failed configurations. Do not repeatedly reuse the final holdout as a tuning set.
+5. Evaluate net return, downside, drawdown, turnover, opportunity coverage, calibration if relevant, and consistency across dates/sectors/regimes. Compare paired predictions under identical execution/risk assumptions. Estimate uncertainty using time-aware/date-block methods; do not infer confidence from four examples.
+6. Choose a deployable inference format only after numerical parity, feature ordering and missing-value tests pass. Java inference through a validated export is preferred; the exact runtime is an implementation decision, not a dependency already present.
+7. Version model artifact, feature schema, training span, dataset hash, metrics, limitations and rollback target. A failed or inconclusive challenger does not replace the baseline.
+
+Add 5/10-session swing and 30/60-minute intraday models as separate validated targets. Intraday needs adequate point-in-time bars/quotes, session boundaries and realistic spread/liquidity assumptions. Twenty-session performance cannot establish intraday performance. News-feature ablation must show whether news adds value beyond prices/volume.
+
+### Proposed internal forecast contract
+
+At minimum: prediction ID, instrument, decision/availability timestamps, horizon, feature version, model version, data-quality status, predicted net return, risk estimate, calibration version if applicable, reason codes and abstention reason. Future outcome labels exist only in the evaluation store. A forecast must not contain executable credentials or an unchecked tool name.
+
+The Java policy consumes this contract plus actual account state. Changes in forecast do not silently alter a held position; proposed changes are governed by approval/protective rules defined before use.
+
+## Paper portal design
+
+Initial instrument scope: proposed **long-only NSE cash equities**. Short selling, leverage, derivatives and automatic averaging are outside the initial design and require explicit expansion.
+
+### Screens and user actions
+
+| Screen | Required content/actions |
+|---|---|
+| Overview | Prominent PAPER badge; INR 100,000 initial equity; available/reserved cash; holdings value; realised/unrealised P&L; fees; drawdown; last reconciliation |
+| Universe and feed health | Nifty 500 membership version, source coverage/freshness, stale/gapped symbols, provider health and last successful update |
+| Opportunities | Separate intraday/swing tabs; BUY/SELL/HOLD/NO_TRADE; forecast horizon, input age, expected outcome/risk, expiry and reason codes |
+| Decision evidence | Indicator snapshot, news provenance, model/policy versions, baseline comparison and why a proposal passed or failed risk |
+| Approval queue | Approve/reject, quantity and permitted price zone; expiry and fresh-revalidation result; no live-order button |
+| Orders and fills | Proposed/accepted/pending/partial/filled/cancelled/expired states, simulated fill assumptions, idempotency/audit references |
+| Positions | Held/reserved quantity, average price, valuation source/time, horizon, stop/exit proposals and realised/unrealised costs |
+| Evaluation and reports | Frozen cohort metrics, all failures/abstentions, baseline comparison, timing and downloadable compact evidence |
+| Integrations and operations | Redacted provider status, queue lag, backup/restore status, active model/policy and operator pause; secrets never displayed |
+
+The existing static dashboard is a starting point, not this completed portal. Daily goal completion initially lives in Markdown; a portal roadmap screen is optional later, not a second independent source of truth.
+
+### Account and ledger invariants
+
+- One virtual account starts at **INR 100,000**, shared across intraday and swing. Separate allocations cannot double-spend the same cash.
+- Use integer paise or explicitly rounded decimal money, not binary floating-point ledger balances. Append auditable postings for funding, reservations, fills, charges, sales and corporate actions.
+- Available cash = ledger cash minus outstanding reservations. Reserve atomically; reconcile positions and cash against fills. A SELL requires sufficient unreserved holdings.
+- No silent cash reset or top-up during a trial. A reset opens a new identifiable trial/account. Benchmark portfolios are separate analytical accounts, not extra capital for the main account.
+- Position valuations carry source and time. Stale prices are labelled and cannot make new risk checks appear current.
+
+### Proposal and order lifecycle
+
+Proposals: `PROPOSED → APPROVED / REJECTED / EXPIRED`.
+
+Approved proposals: `REVALIDATING → PAPER_ORDER_ACCEPTED / RISK_BLOCKED`.
+
+Paper orders: `PENDING → PARTIALLY_FILLED → FILLED`, with cancellation/expiry paths and auditable terminal reasons. Exact persistence migrations and transition constraints must be designed/tested before implementation; current SQL tables do not imply all these states exist.
+
+Approvals should support approximately two minutes of human reading time **only where the horizon and permitted price zone make that safe**. Each proposal states its own timestamp, expiry, reference price, maximum slippage and acceptable zone. Revalidate the current quote, market session, cash, holdings, data freshness and risk after approval. An expired/out-of-zone BUY is rejected, not chased. Intraday may need a shorter validity window, determined by validation.
+
+Approval tokens are opaque, single-use, expiring and bound to the specific proposal/policy. Portal and Telegram share one transaction/idempotency boundary. Duplicate delivery or clicks must not create multiple orders. Java templates provide readable alerts without relying on model prose.
+
+### Conservative simulation, not optimistic fills
+
+Use eligible post-approval market observations, bid/ask where available and explicit adverse slippage/cost assumptions. Last traded price alone is not a guaranteed fill. Limit-price touch does not guarantee quantity execution. Respect price bands, market hours, volume/participation limits and configured liquidity constraints; support partial fills and expiry.
+
+If required quote/depth evidence is unavailable, either reject simulation or mark a preapproved conservative approximation clearly. Version charge/fee estimates and settlement/corporate-action assumptions. Intraday square-off and overnight handling are predeclared policies, not opportunistic decisions after observing outcomes.
+
+### Proposed risk defaults — owner approval required
+
+These are engineering test limits, not financial advice or promises of safety:
+
+- Maximum planned loss per new position: 1% of current paper equity.
+- Maximum single-company notional exposure: 20% of current paper equity.
+- Aggregate planned open-position risk: 3%; no leverage or negative available cash.
+- Daily loss threshold: 2% pauses new entries; portfolio drawdown threshold: 8% pauses the strategy for review.
+- A stop-based planned loss is not a guaranteed maximum loss; gaps/illiquidity can exceed it. Simulate that risk honestly.
+
+All limits must be approved/versioned before the trial; runtime switches cannot silently loosen them. Protective actions in the paper engine must follow a preapproved policy and remain audited.
+
+## Operations, security and evidence
+
+Private access and operator identity must be verified before exposing approval endpoints. Tailscale/private access is the starting access boundary to review; it does not replace application authorization, session protection or TLS where required. Do not open public ports as a side effect of this documentation.
+
+Telegram is the intended durable unattended approval channel. WhatsApp sandbox capability is not production readiness; production setup/template permissions require separate evidence. WhatsApp failure must not block or duplicate Telegram. Secrets stay outside Git, responses, screenshots and exported evidence.
+
+Persist input references, decision/approval/order state transitions, raw permitted model outputs, validation failures, timings and revision/config hashes incrementally. Unique run IDs prevent file collisions. Recovery must distinguish completed, interrupted and resumable work; never label an old result as a new success. Proposed user handoff: **one compact summary JSON and one readable log**, with an optional single ZIP containing full redacted evidence. Internal durability must not be reduced to achieve fewer shared files.
+
+Measure ingestion lag, queue depth, data age, feature/inference/approval/fill latency, p50/p95/max durations, retry causes, cache effectiveness, invalid/abstained decisions and restart recovery. Missing outputs and denominator changes remain visible. A health endpoint being UP does not prove feed or model readiness.
+
+No real order adapter is wired into this release. A separate future release must explicitly authorize broker execution, permissions, order reconciliation, failure handling and protective controls; it cannot be enabled just by changing PAPER to LIVE.
+
+## Trial entry and exit
+
+Enter only after the advertised data feeds, horizons, paper lifecycle, approval and recovery gates pass. A limited-mode trial may start earlier only with explicit owner approval and disabled/unvalidated modes clearly excluded; it does not complete the full G11 goal.
+
+Run at least 30 elapsed calendar days and 20 actual trading sessions, with sufficient observations and complete outcome maturation. Freeze model/policy cohorts; retain failed runs. Review numerical value separately from uptime, formatting and accounting correctness. Paper simulation cannot establish actual market impact, broker execution reliability or future profitability. G12 remains a distinct decision even after a successful paper trial.

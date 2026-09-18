@@ -1,4 +1,6 @@
-# Ollama training, rubric and evaluation design
+# Archived Ollama training, rubric and evaluation design
+
+Superseded 2026-09-18. Historical evidence only; prompt success is not numerical training or investment accuracy. Start at [the current documentation](../../README.md).
 
 Status: Step 84 preserves the best valid Granite attempt and tolerates audited one-point score-cap misses.
 

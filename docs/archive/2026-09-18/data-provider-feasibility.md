@@ -1,4 +1,6 @@
-# Market data provider feasibility
+# Archived market data provider feasibility
+
+Superseded 2026-09-18. Historical verification claims have not been refreshed. Start at [the current documentation](../../README.md).
 
 MarketBrain does not scrape exchange or broker websites. Every collected market value will retain its provider, retrieval time, and provider timestamp. A stale, missing, or contradictory feed blocks an actionable signal.
 

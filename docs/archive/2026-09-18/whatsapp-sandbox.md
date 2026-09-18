@@ -1,4 +1,6 @@
-# WhatsApp Cloud API sandbox boundary
+# Archived WhatsApp Cloud API sandbox boundary
+
+Superseded 2026-09-18. Historical setup reference only. Start at [the current documentation](../../README.md).
 
 ## Purpose
 

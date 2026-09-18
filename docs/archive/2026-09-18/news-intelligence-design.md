@@ -1,4 +1,6 @@
-# News and event intelligence design
+# Archived news and event intelligence design
+
+Superseded 2026-09-18. Historical target design, not proof of implemented capability. Start at [the current documentation](../../README.md).
 
 Status: approved target design; permission register and disabled connector foundation are implemented.
 

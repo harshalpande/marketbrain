@@ -1,4 +1,6 @@
-# MarketBrain daily runbook
+# Archived MarketBrain daily runbook
+
+Superseded 2026-09-18. Historical evidence only; do not execute these commands without a current, reviewed handoff. Start at [the current documentation](../../README.md).
 
 This is the single operational guide for building, running, checking, and stopping MarketBrain. It is maintained with every deployable change.
 
