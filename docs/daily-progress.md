@@ -2,6 +2,16 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-18 — Guarded cleanup preparation after dependency report
+
+- E24 reviewed: 11.92-second spare PS7 run, health UP, Granite unloaded, no llama processes. Saved RUNNING status is not proof of a live worker; task hints and partial scan require operator review. No process termination, service changes or status rewriting performed.
+- Owner said to move forward. Implemented a preview-by-default cleanup script with explicit local confirmation of idle/dependency conditions and exact targets before `-Apply` can mutate anything. Granite uses digest-locked official API deletion; 0.5B uses a single-file recoverable same-volume quarantine; 1.5B hash verified before/after. Ollama/llama.cpp engines, reports and all market/database data preserved. No downloads, recursive deletion, inference or Java/Docker rebuild.
+- Intent checkpoint before each mutation; unique single JSON with timings/progress/action states, before/after lists, model hashes, observed C: space delta and recovery limitations. API failures may leave an action completed or unknown; no automatic rollback/deletion retry. Actual cleanup still runs only on spare laptop.
+- Fixed dependency parser vocabulary: DIAGNOSTIC_GATE_BLOCKED and INCOMPARABLE_INPUTS are terminal diagnostic results, not UNKNOWN/running jobs. Earlier files are not rewritten and no failing model result is reclassified as passing.
+- Offline PS5.1 verification: 104 assertions (32 cleanup, 31 dependency, 41 inventory), all passing; DELETE mocked, tiny fixture moves only, temporary fixtures retained. Initial rerun test used the same quarantine destination; corrected fixture to match production unique-run behavior, retaining collision protection.
+- C1/C2/C3 PARTIAL; C4/C5 pending actual run/review. No full G10 checkpoint or prediction score increase; weighted delivery remains 12.4%. Architecture unchanged: optional Qwen 1.5B candidate, numerical engine still pending.
+- Handoff: pull, run cleanup script with `-Apply`, read exact targets, confirm only if idle/consumer conditions are true, share one cleanup JSON. No cleanup was executed against either machine's real models during development.
+
 ## 2026-09-18 — Spare inventory evidence and bounded dependency follow-up
 
 - Authorization: owner asked to proceed with dependency check and cleanup preparation. No approval for actual deletion, service stops, downloads or model inference was inferred.

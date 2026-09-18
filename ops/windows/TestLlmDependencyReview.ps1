@@ -19,6 +19,11 @@ Assert-Dependency ((Get-FileHash $statusPath).Hash -eq $before) 'Saved job modif
 [IO.File]::WriteAllText($statusPath,'{"status":"COMPLETED"}')
 $scan=Get-LlmDependencyEvidence $testRoot
 Assert-Dependency (-not $scan.records[0].requiresReview) 'Terminal status misread.'
+foreach ($terminalStatus in @('DIAGNOSTIC_GATE_BLOCKED','INCOMPARABLE_INPUTS')) {
+    [IO.File]::WriteAllText($statusPath,('{"status":"'+$terminalStatus+'"}'))
+    $scan=Get-LlmDependencyEvidence $testRoot
+    Assert-Dependency ($scan.records[0].status -eq $terminalStatus -and -not $scan.records[0].requiresReview) 'Completed diagnostic mislabeled UNKNOWN.'
+}
 [IO.File]::WriteAllText($statusPath,'{"status":"SECRET_MARKER"}')
 $scan=Get-LlmDependencyEvidence $testRoot
 Assert-Dependency ($scan.records[0].status -eq 'UNKNOWN' -and $scan.records[0].requiresReview) 'Unknown state trusted.'

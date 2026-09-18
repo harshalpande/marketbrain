@@ -61,8 +61,8 @@ function Get-LlmDependencyEvidence([string]$ReviewDirectory,[int]$MaxEntries=200
                     if ($item.Length -gt 2MB) {$partial=$true;continue}
                     $json=[IO.File]::ReadAllText($item.FullName) | ConvertFrom-Json -ErrorAction Stop
                     $state=[string](Get-LlmInventoryField $json 'status')
-                    $known=$state -in @('COMPLETED','FAILED','LOST_AFTER_RESTART','RUNNING','QUEUED','PENDING','INTERRUPTED','PAUSED_BUDGET','PAUSED_CALL_BUDGET','COMPLETED_SCREENING','COMPLETED_VALIDATION_REVIEW_REQUIRED','COMPLETED_REVIEW_REQUIRED','REVIEW_REQUIRED','REVIEW_WITH_WARNINGS')
-                    $terminal=$state -in @('COMPLETED','FAILED','COMPLETED_SCREENING','COMPLETED_VALIDATION_REVIEW_REQUIRED','COMPLETED_REVIEW_REQUIRED','REVIEW_REQUIRED','REVIEW_WITH_WARNINGS')
+                    $known=$state -in @('COMPLETED','FAILED','LOST_AFTER_RESTART','RUNNING','QUEUED','PENDING','INTERRUPTED','PAUSED_BUDGET','PAUSED_CALL_BUDGET','COMPLETED_SCREENING','COMPLETED_VALIDATION_REVIEW_REQUIRED','COMPLETED_REVIEW_REQUIRED','REVIEW_REQUIRED','REVIEW_WITH_WARNINGS','DIAGNOSTIC_GATE_BLOCKED','INCOMPARABLE_INPUTS')
+                    $terminal=$state -in @('COMPLETED','FAILED','COMPLETED_SCREENING','COMPLETED_VALIDATION_REVIEW_REQUIRED','COMPLETED_REVIEW_REQUIRED','REVIEW_REQUIRED','REVIEW_WITH_WARNINGS','DIAGNOSTIC_GATE_BLOCKED','INCOMPARABLE_INPUTS')
                     $jobId=[guid]::Empty
                     $validId=[guid]::TryParse([string](Get-LlmInventoryField $json 'jobId'),[ref]$jobId)
                     $records.Add([pscustomobject]@{file=$item.FullName;modifiedAtUtc=$item.LastWriteTimeUtc.ToString('o');status=if($known){$state}else{'UNKNOWN'};jobId=if($validId){$jobId.ToString()}else{$null};requiresReview=(-not $terminal);modelTokens=@(Get-LlmDependencyTokens ([string](Get-LlmInventoryField $json 'model')))})

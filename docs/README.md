@@ -85,3 +85,26 @@ Task metadata uses Microsoft's [MSFT_ScheduledTask CIM class](https://github.com
 Important source finding: the Java GET job-status handler may persist `LOST_AFTER_RESTART`. The tool therefore never calls job-status endpoints. Saved RUNNING/QUEUED states require review, not automatic stopping; even terminal evidence does not establish no new jobs. No global read-only Java job-list API exists. Actual container configuration, Windows services, indirect wrappers and external schedulers remain outside this check. The report always says NOT CLEARED until operator/dependency review and exact removal approval. Confirm that no model-run terminals/jobs or planned experiments need the proposed removals; do not share credentials or full process arguments.
 
 Typed preview and comparison defaults now select only `Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M`. Explicit `-ModelRef`/`-ModelRefs` overrides preserve historical experiments; using a retired reference can fetch it again. Legacy Granite scripts are retained for evidence reproduction, not part of this handoff. This default change is not model validation or retraining. Retain llama.cpp and Qwen 1.5B provisionally. Granite and 0.5B are removal candidates only after dependency review/approval; do not delete shared cache roots. No architectural runtime or Java change is deployed by this step.
+
+### Guarded cleanup handoff (spare laptop only)
+
+Owner authorized proceeding after E24 dependency review. `InvokeSpareApprovedLlmCleanup.ps1` previews by default; `-Apply` additionally requires typing `CLEANUP GRANITE AND QWEN05` at an interactive prompt. That confirms all model jobs/terminals are idle, scheduled/service consumers have been reviewed, no model jobs will be started during cleanup, and the exact removal/quarantine and recovery limitations are accepted. If these conditions are not known, cancel; do not bypass the prompt. No assertion that the stale saved RUNNING job is dead is made, and no status files are rewritten.
+
+```powershell
+# Optional non-mutating preview (writes only evidence; does read/hash selected model files):
+& '.\ops\windows\InvokeSpareApprovedLlmCleanup.ps1'
+# Apply only after reviewing the displayed targets and confirming idle/dependency conditions:
+& '.\ops\windows\InvokeSpareApprovedLlmCleanup.ps1' -Apply
+```
+
+Scope is deliberately fixed to the reviewed installation:
+
+- Delete only Ollama tag `ibm/granite4.1:8b`, only if its digest is still `444af1c4b2fedd6b54041aca558e7300b0b3d5c0468c44619126240323ba2852`, using the official [DELETE /api/delete](https://github.com/ollama/ollama/blob/main/docs/api.md#delete-a-model). HTTP timeout 120 seconds, no redirects, no automatic retry or download. Absence is verified afterward. A timeout may mean the deletion happened: the report records intent before the request; never assume rollback.
+- Move exactly the existing 491,400,032-byte Qwen 0.5B GGUF from the current user's Hugging Face snapshot `9217f5db79a29953eb74d5343926648285ec7e67` into `C:\MarketBrainData\ModelQuarantine\<run-id>\qwen2.5-0.5b-instruct-q4_k_m.gguf`. The full paths and SHA256 are recorded before movement and verified afterward. No recursive directory moves/deletes, shared blobs/refs edits or cache-root removal. Linked paths/ancestors, cross-volume moves and overwrite destinations are refused.
+- Retain the 1,117,320,736-byte Qwen 1.5B snapshot `91cad51170dc346986eccefdc2dd33a9da36ead9`; compare its SHA256 before/after. Preserve llama-cli/server, Ollama runtime, all existing reports, datasets, PostgreSQL data, Docker volumes and config. No inference, service/process stops or Docker rebuild.
+
+Fresh preflight/step checks require Ollama lists to be available, no loaded model, no llama-cli/server process, and service health UP. These are not an atomic job lock: operator coordination is still mandatory. A changed target, missing retained model, unavailable API or failed checkpoint blocks further actions. Earlier successful actions are not automatically undone if a later action fails. Inspect `quarantineState` and `graniteState` in the single `llm-cleanup-<timestamp>-<id>.json` report. Checkpoint intents permit inspection after interruption; a uniquely named rerun skips targets already absent, without claiming it removed them or validating an earlier quarantine.
+
+Recovery: same-volume Qwen quarantine is reversible by checking the recorded hash and moving that one file back to the recorded original path if it is absent; do not overwrite a newly downloaded file. Quarantine frees **no disk space**; retained cache refs may cause a future explicit 0.5B request to fetch the model again. Granite removal is not locally undoable; restoration needs a separately authorized re-download and tag content may have changed. C: free-space delta is observed, not attributed solely to cleanup. Keep the report/quarantined file until review, and do not purge quarantine as part of this step.
+
+Allow a few minutes for selected-file hashing and API checks; no inference workload is involved. Share just the printed cleanup JSON. A successful run verifies this narrow removal/retention/health scope, not predictor quality or all G10 readiness. After owner review, proceed to the data-quality baseline and numerical prediction engine contract rather than another LLM sweep.
