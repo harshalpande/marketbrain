@@ -35,7 +35,7 @@
   <path d="M995 204 V238 H600" fill="none" stroke="#405870" stroke-width="2"/>
   <rect x="180" y="260" width="840" height="96" rx="9" class="planned"/>
   <text x="200" y="288" class="label">Java: 15+ year coverage target, fundamentals + point-in-time features</text>
-  <text x="200" y="315" class="body">Bounded multi-date features: runtime pending; calendar, adjustment and label gates still open</text>
+  <text x="200" y="315" class="body">12 feature windows verified + bounded calendar match; adjustment and label gates still open</text>
   <text x="200" y="339" class="body">Versioned historical labels → chronological training/tuning/untouched evaluation; no future leakage</text>
   <path d="M600 356 V388" class="line"/>
   <rect x="180" y="390" width="840" height="98" rx="9" class="planned"/>

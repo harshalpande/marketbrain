@@ -56,13 +56,13 @@ Close G00's remaining source-review coverage gap, verify the existing Upstox/dat
 
 ### Current next action: reuse existing data-validation evidence
 
-The N2 history diagnostic completed successfully on the spare laptop: 500 instruments, 6.18 seconds, no truncation/errors (E30). Owner reports extensive prior Upstox/history-event validation; source review confirms the prior quality machinery (E31). Do not rerun data collection or provider checks. Pull, rebuild/deploy the Java service with jobs idle, wait for health UP, then run:
+The bounded feature snapshot is now runtime verified (E37): four stocks, three dates, 12/12 computed rows in 2.21 seconds. E38 adds an offline calendar review of that saved file. Do not rerun acquisition, the snapshot endpoint or model tests. Pull, then run (use the exact existing file path):
 
 ```powershell
-& '.\ops\windows\GetNumericalFeatureSnapshot.ps1' -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917'
+& '.\ops\windows\ReviewNumericalFeatureCalendar.ps1' -EvidencePath 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
 ```
 
-Current handoff E36 requires a **Java service rebuild/deployment first, with jobs idle**. Share one `numerical-features-<timestamp>-<id>.json`. This reads existing candles for four instruments and computes features at three dates; no model/provider calls, database writes, labels or training. Prior saved final-report review is carried forward in E35, with original-pilot/job-membership gaps explicit. No acquisition or blanket validation rerun. Calendar, price-adjustment and labelled-export gates remain open. [Exact scope and remaining gates](numerical-baseline-plan.md#e36-current-handoff-bounded-feature-only-multi-date-snapshot).
+**No Docker rebuild, service restart, API, database or model call is needed for E38.** Share one `numerical-calendar-<timestamp>-<id>.json`. Offline review of the supplied E37 file already matches all 12 windows against the bounded circular-backed calendar. Spare execution confirms the same tool in that environment; it does not repeat market-data validation. Price-adjustment, quality-job membership and labelled-export gates remain open. [Exact scope and remaining gates](numerical-baseline-plan.md#e38-current-handoff-offline-session-calendar-binding).
 
 ### Previous N2 history handoff (completed; do not rerun)
 

@@ -2,6 +2,14 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-18 — Saved feature evidence accepted; independent calendar check implemented
+
+- Owner authorized next step. E37 runtime snapshot: 2.21s, four stocks/three dates, 12 computed rows, no blocked/capped sources or reported side effects. Original input hash verified; no need to repeat the feature query or earlier acquisition.
+- Existing SQL special-session table explicitly is not a full holiday calendar. Read official NSE capital-market holiday circulars for 2025/2026 plus Muhurat, January 15 closure and February 1 Budget-session amendments. Added a bounded versioned reference for 2025-04-01..2026-06-05; no guessed peer calendar or weekend-only simplification.
+- Implemented offline input-ID/session-window binding, with missing/extra/duplicate/future/reordered/excluded/capped/input-contract failures. Calendar matches are separate evidence; original features are not overwritten or promoted to training-ready. Prices/corporate actions, quality-job scope, source availability, labels/costs and temporal splits remain open.
+- E38: 37 PS5.1 assertions passed. Actual saved E37 replay matches 12/12 windows with no missing/extra dates. One unique compact calendar JSON persists sources, hashes, timing, discrepancies and remaining gates. No network, DB, model, provider, Java build, dataset mutation or Docker restart. Temporary test/replay evidence retained locally; no sensitive source data added to Git.
+- Updated canonical docs and current SVG. G02 remains partial; no prediction accuracy or overall completion percentage increase claimed. Commit/push and exact saved-file spare command accompany handoff. Next bounded task is quality-resolution/adjustment scope linkage before label generation.
+
 ## 2026-09-18 — Multi-date numerical feature preparation authorized
 
 - Owner said to move forward after saved validation review. E35 carries forward that review without inventing a fresh attachment hash; the named Downloads file is not currently available. Existing final provider PASS evidence supports reuse, not reacquisition. The first 50-stock expansion is not the original ten-stock pilot; original-pilot final evidence and individual job membership remain explicit gaps.

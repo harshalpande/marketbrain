@@ -1,0 +1,45 @@
+{
+  "version": "NSE_CM_RESEARCH_CALENDAR_20250401_20260605_V1",
+  "exchange": "NSE",
+  "segment": "CM",
+  "timezone": "Asia/Kolkata",
+  "coverageFrom": "2025-04-01",
+  "coverageThrough": "2026-06-05",
+  "reviewedOn": "2026-09-18",
+  "rule": "MONDAY_FRIDAY_EXCEPT_CLOSURES_PLUS_SPECIAL_SESSIONS",
+  "specialSessionOverridesClosure": true,
+  "sources": [
+    {"id": "CMTR65587", "publishedOn": "2024-12-13", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR65587.pdf", "purpose": "2025 capital-market trading holidays"},
+    {"id": "CMTR70319", "publishedOn": "2025-09-22", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR70319.pdf", "purpose": "2025-10-21 live Muhurat session"},
+    {"id": "CMTR71775", "publishedOn": "2025-12-12", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf", "purpose": "2026 capital-market trading holidays"},
+    {"id": "CMTR72260", "publishedOn": "2026-01-12", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR72260.pdf", "purpose": "Additional 2026-01-15 municipal-election trading closure"},
+    {"id": "CMTR72349", "publishedOn": "2026-01-16", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR72349.pdf", "purpose": "2026-02-01 Sunday live Budget trading session"}
+  ],
+  "closures": [
+    {"date": "2025-04-10", "sourceId": "CMTR65587"},
+    {"date": "2025-04-14", "sourceId": "CMTR65587"},
+    {"date": "2025-04-18", "sourceId": "CMTR65587"},
+    {"date": "2025-05-01", "sourceId": "CMTR65587"},
+    {"date": "2025-08-15", "sourceId": "CMTR65587"},
+    {"date": "2025-08-27", "sourceId": "CMTR65587"},
+    {"date": "2025-10-02", "sourceId": "CMTR65587"},
+    {"date": "2025-10-21", "sourceId": "CMTR65587"},
+    {"date": "2025-10-22", "sourceId": "CMTR65587"},
+    {"date": "2025-11-05", "sourceId": "CMTR65587"},
+    {"date": "2025-12-25", "sourceId": "CMTR65587"},
+    {"date": "2026-01-15", "sourceId": "CMTR72260"},
+    {"date": "2026-01-26", "sourceId": "CMTR71775"},
+    {"date": "2026-03-03", "sourceId": "CMTR71775"},
+    {"date": "2026-03-26", "sourceId": "CMTR71775"},
+    {"date": "2026-03-31", "sourceId": "CMTR71775"},
+    {"date": "2026-04-03", "sourceId": "CMTR71775"},
+    {"date": "2026-04-14", "sourceId": "CMTR71775"},
+    {"date": "2026-05-01", "sourceId": "CMTR71775"},
+    {"date": "2026-05-28", "sourceId": "CMTR71775"}
+  ],
+  "specialSessions": [
+    {"date": "2025-10-21", "type": "MUHURAT", "sourceId": "CMTR70319"},
+    {"date": "2026-02-01", "type": "BUDGET", "sourceId": "CMTR72349"}
+  ],
+  "limitations": "Retrospective bounded session-date calendar transcribed from cited NSE capital-market circulars, not a live exchange calendar feed or intraday schedule. Normal and special live sessions each count once. Dates outside coverage are unknown, never inferred. Matching dates do not certify tradability of an instrument, price adjustments, corporate actions, historical availability, or source rights. Future amendments require a reviewed new version. No training authorization."
+}
