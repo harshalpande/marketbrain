@@ -211,11 +211,13 @@ try {
         [string]$candidate.prompt | Set-Content -LiteralPath $promptPath -Encoding UTF8
 
         $stderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
+        $fallbackRawPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-raw.txt" -f $candidate.candidateId, $candidate.symbol)
+        $fallbackStderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
         $startedAt = Get-Date
         $llamaArguments = @(
             '-hf', $ModelRef,
             '--grammar-file', $grammarPath,
-            '--no-conversation',
+            '-no-cnv',
             '--no-display-prompt',
             '-f', $promptPath,
             '-n', ([string]$MaxTokens),
@@ -229,9 +231,31 @@ try {
             -PassThru `
             -RedirectStandardOutput $rawPath `
             -RedirectStandardError $stderrPath
+        $usedFallbackInvocation = $false
+        if ($process.ExitCode -ne 0) {
+            Write-Host ("llama-cli primary invocation failed for {0} with exit code {1}; retrying with minimal arguments." -f $candidate.symbol, $process.ExitCode) -ForegroundColor Yellow
+            $fallbackArguments = @(
+                '-hf', $ModelRef,
+                '--grammar-file', $grammarPath,
+                '-f', $promptPath,
+                '-n', ([string]$MaxTokens),
+                '--temp', '0'
+            )
+            $process = Start-Process `
+                -FilePath $llamaCli `
+                -ArgumentList $fallbackArguments `
+                -NoNewWindow `
+                -Wait `
+                -PassThru `
+                -RedirectStandardOutput $fallbackRawPath `
+                -RedirectStandardError $fallbackStderrPath
+            $usedFallbackInvocation = $true
+        }
         $elapsedMillis = [int](((Get-Date) - $startedAt).TotalMilliseconds)
-        $stdoutText = if (Test-Path -LiteralPath $rawPath) { Get-Content -LiteralPath $rawPath -Raw } else { '' }
-        $stderrText = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { '' }
+        $effectiveRawPath = if ($usedFallbackInvocation) { $fallbackRawPath } else { $rawPath }
+        $effectiveStderrPath = if ($usedFallbackInvocation) { $fallbackStderrPath } else { $stderrPath }
+        $stdoutText = if (Test-Path -LiteralPath $effectiveRawPath) { Get-Content -LiteralPath $effectiveRawPath -Raw } else { '' }
+        $stderrText = if (Test-Path -LiteralPath $effectiveStderrPath) { Get-Content -LiteralPath $effectiveStderrPath -Raw } else { '' }
         $rawOutput = ($stdoutText + "`n" + $stderrText).Trim()
         $rawOutput | Set-Content -LiteralPath $rawPath -Encoding UTF8
 
@@ -327,6 +351,9 @@ try {
             promptPath                             = $promptPath
             rawOutputPath                          = $rawPath
             stderrPath                             = $stderrPath
+            fallbackRawOutputPath                  = if ($usedFallbackInvocation) { $fallbackRawPath } else { $null }
+            fallbackStderrPath                     = if ($usedFallbackInvocation) { $fallbackStderrPath } else { $null }
+            usedFallbackInvocation                 = $usedFallbackInvocation
             llamaExitCode                          = $process.ExitCode
             responsePath                           = if (Test-Path -LiteralPath $responsePath) { $responsePath } else { $null }
             elapsedMillis                          = $elapsedMillis
