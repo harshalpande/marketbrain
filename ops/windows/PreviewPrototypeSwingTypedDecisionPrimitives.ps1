@@ -247,8 +247,8 @@ $safeSelectionMode = $SelectionMode -replace '[^A-Za-z0-9._-]', '_'
 $stem = "prototype-swing-typed-decision-primitives-$suffix-$safeModel-$safeSelectionMode-h$RankingHorizonSessions-offset$StartOffset-total$CandidateLimit"
 $resultPath = Join-Path $OutputDirectory "$stem.json"
 $logPath = Join-Path $OutputDirectory "$stem.log"
-$scratchDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("marketbrain-step89-" + [guid]::NewGuid().ToString('N'))
-$grammarPath = Join-Path $scratchDirectory "$stem.gbnf"
+$scratchDirectory = Join-Path $OutputDirectory ("_step89_tmp_" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+$grammarPath = Join-Path $scratchDirectory "grammar.gbnf"
 
 $transcriptStarted = $false
 try {
@@ -305,14 +305,15 @@ try {
         $percent = [Math]::Min(95, [Math]::Floor(20 + (($candidateNumber - 1) * 70.0 / [Math]::Max(1, $total))))
         Write-StepProgress $percent ("Decisioning candidate {0}/{1}: {2}" -f $candidateNumber, $total, $candidate.symbol)
 
-        $promptPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-prompt.txt" -f $candidate.candidateId, $candidate.symbol)
-        $rawPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-raw.txt" -f $candidate.candidateId, $candidate.symbol)
-        $responsePath = Join-Path $scratchDirectory ("$stem-{0}-{1}-decision.json" -f $candidate.candidateId, $candidate.symbol)
+        $shortCandidateStem = "{0}-{1}" -f $candidate.candidateId, $candidate.symbol
+        $promptPath = Join-Path $scratchDirectory "$shortCandidateStem-prompt.txt"
+        $rawPath = Join-Path $scratchDirectory "$shortCandidateStem-raw.txt"
+        $responsePath = Join-Path $scratchDirectory "$shortCandidateStem-decision.json"
         [string]$candidate.prompt | Set-Content -LiteralPath $promptPath -Encoding UTF8
 
-        $stderrPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
-        $fallbackRawPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-fallback-raw.txt" -f $candidate.candidateId, $candidate.symbol)
-        $fallbackStderrPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-fallback-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
+        $stderrPath = Join-Path $scratchDirectory "$shortCandidateStem-stderr.txt"
+        $fallbackRawPath = Join-Path $scratchDirectory "$shortCandidateStem-fallback-raw.txt"
+        $fallbackStderrPath = Join-Path $scratchDirectory "$shortCandidateStem-fallback-stderr.txt"
         $startedAt = Get-Date
         $llamaExitCommand = if ($llamaCapabilities.supportsSingleTurn) { '' } else { "/exit`n" }
         $llamaArguments = @(
