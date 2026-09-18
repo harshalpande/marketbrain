@@ -52,6 +52,31 @@ function Write-StepProgress {
     Write-Host ("[{0}%] {1}" -f $Percent, $Message)
 }
 
+function Wait-MarketBrainHealth {
+    param(
+        [string]$ServiceBaseUrl,
+        [int]$Attempts = 18,
+        [int]$DelaySeconds = 5
+    )
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        try {
+            $health = Invoke-RestMethod "$ServiceBaseUrl/actuator/health" -TimeoutSec 30
+            if ($health.status -eq 'UP') {
+                Write-Host "MarketBrain health is UP on attempt $attempt/$Attempts." -ForegroundColor Green
+                return
+            }
+            Write-Host "MarketBrain health attempt $attempt/$Attempts returned status: $($health.status)" -ForegroundColor Yellow
+        }
+        catch {
+            Write-Host "MarketBrain health attempt $attempt/$Attempts failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+        if ($attempt -lt $Attempts) {
+            Start-Sleep -Seconds $DelaySeconds
+        }
+    }
+    throw "MarketBrain service did not become healthy after $Attempts attempts."
+}
+
 function Resolve-LlamaCli {
     param([string]$RequestedPath)
     if (-not [string]::IsNullOrWhiteSpace($RequestedPath)) {
@@ -142,10 +167,7 @@ try {
     $transcriptStarted = $true
 
     Write-StepProgress 0 'Validating MarketBrain service health...'
-    $health = Invoke-RestMethod "$BaseUrl/actuator/health" -TimeoutSec 60
-    if ($health.status -ne 'UP') {
-        throw "MarketBrain health is $($health.status), not UP."
-    }
+    Wait-MarketBrainHealth -ServiceBaseUrl $BaseUrl
 
     Write-StepProgress 10 'Resolving llama-cli...'
     $llamaCli = Resolve-LlamaCli -RequestedPath $LlamaCliPath
