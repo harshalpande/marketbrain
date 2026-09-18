@@ -2,6 +2,14 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-18–19 — Combined quality/price evidence linkage implemented
+
+- Owner authorized the combined next step. E39 spare report verified: 0.693s, 12/12 calendar windows, no discrepancies. No repeat acquisition, feature endpoint run or model sweep required.
+- Added read-only bounded Java endpoint and one-file collector linked to the exact saved feature run/manifest/instrument identities. Feature union for E37 is 2025-04-03..2026-06-05. Reads overlapping job metadata, selected-instrument scheduling intervals, stored corporate actions and resolution/revocation events; no raw candle query/mutation or provider call.
+- Latest-event selection precedes resolution/date filtering; revocations supersede prior approvals, including PostgreSQL-compatible UUID ordering for timestamp ties. Global exclusions require captured job membership. Capped/unknown evidence remains partial/unverified. E35 job references establish linkage to prior report review, not fresh quality PASS; no actions found is not price-policy clearance.
+- Full offline Java suite 284 tests passed, zero failures/errors/skips; 41 mocked PS5.1 assertions passed. Initial lambda capture compile issue fixed before verification. No live DB/provider/model or deployment run locally. SQL performance/PS7 collection pending spare evidence. Three-second statement/45-second transaction timeouts and explicit row caps; no migration or new startup configuration.
+- Updated canonical docs/current SVG; no training accuracy or project percentage increase. Commit/push and safe spare rebuild/health/collector handoff follow. Share only `numerical-price-evidence-*.json`. Next work depends on actual linked policy/provenance gaps, before labels/splits/fitting.
+
 ## 2026-09-18 — Saved feature evidence accepted; independent calendar check implemented
 
 - Owner authorized next step. E37 runtime snapshot: 2.21s, four stocks/three dates, 12 computed rows, no blocked/capped sources or reported side effects. Original input hash verified; no need to repeat the feature query or earlier acquisition.

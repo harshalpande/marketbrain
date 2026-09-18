@@ -54,15 +54,15 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: reuse existing data-validation evidence
+### Current next action: link stored quality and price evidence
 
-The bounded feature snapshot is now runtime verified (E37): four stocks, three dates, 12/12 computed rows in 2.21 seconds. E38 adds an offline calendar review of that saved file. Do not rerun acquisition, the snapshot endpoint or model tests. Pull, then run (use the exact existing file path):
+The feature snapshot (E37) and saved calendar review (E39: 12/12 windows, 0.693s) passed their bounded checks. E40 adds a read-only Java endpoint to link those instruments to stored backfill jobs, corporate actions and resolution/revocation evidence. Do not rerun acquisition, feature generation or model tests. Pull, rebuild/deploy the service with jobs idle, wait for health UP, then run:
 
 ```powershell
-& '.\ops\windows\ReviewNumericalFeatureCalendar.ps1' -EvidencePath 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
+& '.\ops\windows\GetNumericalPriceEvidence.ps1' -FeatureEvidencePath 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
 ```
 
-**No Docker rebuild, service restart, API, database or model call is needed for E38.** Share one `numerical-calendar-<timestamp>-<id>.json`. Offline review of the supplied E37 file already matches all 12 windows against the bounded circular-backed calendar. Spare execution confirms the same tool in that environment; it does not repeat market-data validation. Price-adjustment, quality-job membership and labelled-export gates remain open. [Exact scope and remaining gates](numerical-baseline-plan.md#e38-current-handoff-offline-session-calendar-binding).
+Share one `numerical-price-evidence-<timestamp>-<id>.json`. This reads stored evidence only: no provider/model calls, price changes, database writes, labels or orders. Completed job membership is not a new quality PASS; no stored actions is not proof of an adjustment-free price series. [Exact scope and remaining gates](numerical-baseline-plan.md#e40-current-handoff-stored-quality-and-price-evidence).
 
 ### Previous N2 history handoff (completed; do not rerun)
 

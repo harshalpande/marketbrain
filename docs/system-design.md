@@ -203,6 +203,8 @@ No real order adapter is wired into this release. A separate future release must
 
 ## Trial entry and exit
 
+E40 adds a read-only quality/price evidence endpoint scoped to selected immutable-run instruments and the saved feature period. It links stored job/chunk membership, corporate-action facts and latest resolution/revocation state; it never adjusts candles or grants training permission. Completed scheduling coverage and prior saved-report references are distinct from fresh quality certification, and absence of corporate-action records remains UNKNOWN. Caps, current-ledger limitations and missing provenance are explicit. Price-policy approval and label-period coverage require subsequent evidence review.
+
 Numerical dataset preparation includes a bounded, read-only multi-date feature snapshot (`NumericalFeatureSnapshotService`, E36/E37). It reuses stored candles and the existing technical calculator, with source evidence and explicit cutoff/blocked-row checks. E38's offline reviewer independently matches the saved 12 feature windows to a bounded NSE circular-backed session calendar; it does not alter the original observed-bar output or establish broad calendar/price certification. Research remains retrospective, not as-known replay, and contains no labels or training authorization. See [the numerical work package](numerical-baseline-plan.md) for exact definitions, limits and remaining gates. Its source evidence envelope is not a model input DTO.
 
 Enter only after the advertised data feeds, horizons, paper lifecycle, approval and recovery gates pass. A limited-mode trial may start earlier only with explicit owner approval and disabled/unvalidated modes clearly excluded; it does not complete the full G11 goal.
