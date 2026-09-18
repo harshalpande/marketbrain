@@ -49,7 +49,8 @@ class PrototypeSwingTypedDecisionPrimitivePreviewServiceSourceTest {
         assertThat(source).contains("Start-Transcript");
         assertThat(source).contains("prototype-swing-typed-decision-primitives");
         assertThat(source).contains("grammarPath");
-        assertThat(source).contains("attemptPath");
+        assertThat(source).contains("COMPACT_EMBEDDED");
+        assertThat(source).contains("generatedFileCount");
         assertThat(source).contains("NO_JSON_OBJECT_FOUND");
         assertThat(source).contains("BLOCKED_CANDIDATE_PROMOTED_TO_TOP_PICK");
         assertThat(source).contains("No database write, Ollama call, signal, paper fill, order, broker action");

@@ -229,8 +229,8 @@ function Get-LlamaCliCapabilities {
         -StandardInputText ''
     $helpText = (($helpProcess.stdout + "`n" + $helpProcess.stderr) -join '').Trim()
     [pscustomobject][ordered]@{
-        helpPath          = $helpOutPath
-        helpStderrPath    = $helpErrPath
+        helpText          = $helpText
+        helpStderr        = $helpProcess.stderr
         helpExitCode      = $helpProcess.exitCode
         helpTimedOut      = $helpProcess.timedOut
         supportsSingleTurn = ($helpText -match '(^|\s)(-st|--single-turn)(\s|,|$)')
@@ -246,12 +246,13 @@ $safeModel = $ModelRef -replace '[^A-Za-z0-9._-]', '_'
 $safeSelectionMode = $SelectionMode -replace '[^A-Za-z0-9._-]', '_'
 $stem = "prototype-swing-typed-decision-primitives-$suffix-$safeModel-$safeSelectionMode-h$RankingHorizonSessions-offset$StartOffset-total$CandidateLimit"
 $resultPath = Join-Path $OutputDirectory "$stem.json"
-$attemptPath = Join-Path $OutputDirectory "$stem-attempts.json"
-$grammarPath = Join-Path $OutputDirectory "$stem.gbnf"
 $logPath = Join-Path $OutputDirectory "$stem.log"
+$scratchDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("marketbrain-step89-" + [guid]::NewGuid().ToString('N'))
+$grammarPath = Join-Path $scratchDirectory "$stem.gbnf"
 
 $transcriptStarted = $false
 try {
+    New-Item -ItemType Directory -Path $scratchDirectory -Force | Out-Null
     Start-Transcript -Path $logPath -Force | Out-Null
     $transcriptStarted = $true
 
@@ -264,7 +265,7 @@ try {
     $llamaCapabilities = Get-LlamaCliCapabilities `
         -ExecutablePath $llamaCli `
         -ProcessTimeoutSeconds 30 `
-        -OutputDirectory $OutputDirectory `
+        -OutputDirectory $scratchDirectory `
         -Stem $stem
     Write-Host ("llama-cli capabilities: singleTurn={0}; grammarFile={1}; noDisplayPrompt={2}; helpExitCode={3}" -f `
             $llamaCapabilities.supportsSingleTurn, `
@@ -304,14 +305,14 @@ try {
         $percent = [Math]::Min(95, [Math]::Floor(20 + (($candidateNumber - 1) * 70.0 / [Math]::Max(1, $total))))
         Write-StepProgress $percent ("Decisioning candidate {0}/{1}: {2}" -f $candidateNumber, $total, $candidate.symbol)
 
-        $promptPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-prompt.txt" -f $candidate.candidateId, $candidate.symbol)
-        $rawPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-raw.txt" -f $candidate.candidateId, $candidate.symbol)
-        $responsePath = Join-Path $OutputDirectory ("$stem-{0}-{1}-decision.json" -f $candidate.candidateId, $candidate.symbol)
+        $promptPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-prompt.txt" -f $candidate.candidateId, $candidate.symbol)
+        $rawPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-raw.txt" -f $candidate.candidateId, $candidate.symbol)
+        $responsePath = Join-Path $scratchDirectory ("$stem-{0}-{1}-decision.json" -f $candidate.candidateId, $candidate.symbol)
         [string]$candidate.prompt | Set-Content -LiteralPath $promptPath -Encoding UTF8
 
-        $stderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
-        $fallbackRawPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-raw.txt" -f $candidate.candidateId, $candidate.symbol)
-        $fallbackStderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
+        $stderrPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
+        $fallbackRawPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-fallback-raw.txt" -f $candidate.candidateId, $candidate.symbol)
+        $fallbackStderrPath = Join-Path $scratchDirectory ("$stem-{0}-{1}-llama-fallback-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
         $startedAt = Get-Date
         $llamaExitCommand = if ($llamaCapabilities.supportsSingleTurn) { '' } else { "/exit`n" }
         $llamaArguments = @(
@@ -464,23 +465,21 @@ try {
 
         $warningArray = @($warnings | ForEach-Object { [string]$_ })
         $failureArray = @($failures | ForEach-Object { [string]$_ })
+        $responseText = if (Test-Path -LiteralPath $responsePath) { Get-Content -LiteralPath $responsePath -Raw } else { $null }
         $attemptRecord = [pscustomobject][ordered]@{
             candidateId                            = $candidate.candidateId
             symbol                                 = $candidate.symbol
-            promptPath                             = $promptPath
-            rawOutputPath                          = $rawPath
-            stderrPath                             = $stderrPath
-            llamaHelpPath                          = $llamaCapabilities.helpPath
-            llamaHelpStderrPath                    = $llamaCapabilities.helpStderrPath
+            prompt                                 = [string]$candidate.prompt
+            rawOutput                              = $rawOutput
+            stdout                                 = $stdoutText
+            stderr                                 = $stderrText
+            responseJson                           = $responseText
             llamaSupportsSingleTurn                = $llamaCapabilities.supportsSingleTurn
             llamaSupportsGrammarFile               = $llamaCapabilities.supportsGrammarFile
             llamaSupportsNoDisplayPrompt           = $llamaCapabilities.supportsNoDisplayPrompt
-            fallbackRawOutputPath                  = if ($usedFallbackInvocation) { $fallbackRawPath } else { $null }
-            fallbackStderrPath                     = if ($usedFallbackInvocation) { $fallbackStderrPath } else { $null }
             usedFallbackInvocation                 = $usedFallbackInvocation
             llamaExitCode                          = $process.exitCode
             llamaTimedOut                          = $process.timedOut
-            responsePath                           = if (Test-Path -LiteralPath $responsePath) { $responsePath } else { $null }
             elapsedMillis                          = $elapsedMillis
             parseableJson                          = $parseable
             schemaValid                            = $schemaValid
@@ -510,9 +509,40 @@ try {
             failures                               = $failureArray
         }
         $attempts += $attemptRecord
-        @($attempts) |
-            ConvertTo-Json -Depth 80 |
-            Set-Content -LiteralPath $attemptPath -Encoding UTF8
+        [pscustomobject][ordered]@{
+            status                       = 'RUNNING'
+            datasetRunId                 = $preview.datasetRunId
+            selectionMode                = $SelectionMode
+            modelRef                     = $ModelRef
+            startOffset                  = $StartOffset
+            candidateLimit               = $CandidateLimit
+            completedCandidateCount      = @($attempts).Count
+            candidateCount               = $total
+            rankingHorizonSessions       = $RankingHorizonSessions
+            decisionContractVersion      = $preview.decisionContractVersion
+            grammarVersion               = $preview.grammarVersion
+            evidenceMode                 = 'COMPACT_EMBEDDED'
+            generatedFileCount           = 2
+            generatedFiles               = @($resultPath, $logPath)
+            grammar                      = [string]$preview.grammar
+            llamaHelp                    = $llamaCapabilities.helpText
+            llamaHelpStderr              = $llamaCapabilities.helpStderr
+            llamaHelpExitCode            = $llamaCapabilities.helpExitCode
+            llamaHelpTimedOut            = $llamaCapabilities.helpTimedOut
+            llamaSupportsSingleTurn      = $llamaCapabilities.supportsSingleTurn
+            llamaSupportsGrammarFile     = $llamaCapabilities.supportsGrammarFile
+            llamaSupportsNoDisplayPrompt = $llamaCapabilities.supportsNoDisplayPrompt
+            databaseWritesPerformed      = $false
+            ollamaCallCount              = 0
+            llamaCppCallCount            = @($attempts).Count
+            signalsCreated               = 0
+            ordersCreated                = 0
+            actionExecutionEnabled       = $false
+            attempts                     = @($attempts)
+            detail                       = 'Partial Step 89 compact evidence checkpoint. The run is still in progress or was interrupted before final summary.'
+        } |
+            ConvertTo-Json -Depth 100 |
+            Set-Content -LiteralPath $resultPath -Encoding UTF8
     }
 
     Write-StepProgress 92 'Summarizing typed decision primitive results...'
@@ -542,8 +572,17 @@ try {
         schemaValidPercent             = if ($total -eq 0) { 0 } else { [math]::Round($schemaValidCount * 100.0 / $total, 2) }
         businessValidPercent           = if ($total -eq 0) { 0 } else { [math]::Round($businessValidCount * 100.0 / $total, 2) }
         javaAlignmentPercent           = if ($total -eq 0) { 0 } else { [math]::Round($alignedCount * 100.0 / $total, 2) }
-        grammarPath                    = $grammarPath
-        attemptPath                    = $attemptPath
+        evidenceMode                   = 'COMPACT_EMBEDDED'
+        generatedFileCount             = 2
+        generatedFiles                 = @($resultPath, $logPath)
+        grammar                        = [string]$preview.grammar
+        llamaHelp                      = $llamaCapabilities.helpText
+        llamaHelpStderr                = $llamaCapabilities.helpStderr
+        llamaHelpExitCode              = $llamaCapabilities.helpExitCode
+        llamaHelpTimedOut              = $llamaCapabilities.helpTimedOut
+        llamaSupportsSingleTurn        = $llamaCapabilities.supportsSingleTurn
+        llamaSupportsGrammarFile       = $llamaCapabilities.supportsGrammarFile
+        llamaSupportsNoDisplayPrompt   = $llamaCapabilities.supportsNoDisplayPrompt
         databaseWritesPerformed        = $false
         ollamaCallCount                = 0
         llamaCppCallCount              = $total
@@ -554,7 +593,6 @@ try {
         detail                         = 'Step 89 used local llama.cpp with GBNF to produce enum/band typed decision primitives. Java guardrails remained authoritative. No trading action was created.'
     }
 
-    $attemptArray | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $attemptPath -Encoding UTF8
     $summary | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $resultPath -Encoding UTF8
 
     Write-StepProgress 100 'Typed decision primitive preview complete.'
@@ -575,14 +613,16 @@ try {
     Write-Host ''
     Write-Host 'STEP 89 COMPLETE: local typed decision primitive preview finished.'
     Write-Host 'This is not a trading signal and did not create any order, paper fill, broker action, or live trading action.'
+    Write-Host 'Compact evidence mode: result JSON embeds attempts, prompts, grammar, llama help, raw output, stderr, and parsed responses.'
     Write-Host "Result: $resultPath"
-    Write-Host "Attempts: $attemptPath"
-    Write-Host "Grammar: $grammarPath"
     Write-Host "Log: $logPath"
 }
 finally {
     Write-Progress -Activity 'Step 89 llama.cpp typed decision primitive preview' -Completed
     if ($transcriptStarted) {
         Stop-Transcript | Out-Null
+    }
+    if (Test-Path -LiteralPath $scratchDirectory) {
+        Remove-Item -LiteralPath $scratchDirectory -Recurse -Force -ErrorAction SilentlyContinue
     }
 }

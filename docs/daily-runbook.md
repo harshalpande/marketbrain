@@ -3911,9 +3911,10 @@ Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 ```
 
 Start with `CandidateLimit 4`. If schema/business validity is strong, repeat with `RANDOM_VALIDATION` and then a larger
-candidate limit. The script writes a result JSON, attempt telemetry JSON, GBNF grammar, one prompt file per candidate,
-one raw llama.cpp output file per candidate, parsed decision JSON files and a transcript log under
-`C:\MarketBrainData\Review`.
+candidate limit. Step 89 now writes compact evidence by default: one result JSON and one transcript log under
+`C:\MarketBrainData\Review`. The result JSON embeds the attempts, candidate prompts, GBNF grammar, `llama-cli --help`
+capability evidence, raw llama.cpp output, stderr and parsed decision JSON so the spare machine does not need to share
+dozens of per-candidate files.
 
 ## Spare runtime laptop: normal update and redeploy
 

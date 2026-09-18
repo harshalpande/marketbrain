@@ -366,6 +366,11 @@ valid JSON but occasional invalid decision/score pairings such as `REJECT + HIGH
 that `REJECT` cannot use `HIGH` or `VERY_HIGH`, `BLOCKED` candidates must stay `REJECT` with `VERY_LOW` or `LOW`, and
 `HARD_CAP_69` candidates must not use `VERY_HIGH` or `TOP_PICK`.
 
+The Step 89 runner now defaults to compact embedded evidence. It writes only the result JSON and transcript log under
+`C:\MarketBrainData\Review`; the result JSON embeds attempts, prompts, grammar, `llama-cli --help` output, raw stdout,
+stderr and parsed decision JSON. Temporary prompt/grammar/stdout files needed by `llama-cli` are created under the
+Windows temp directory and deleted at the end of the run.
+
 This changes the target architecture:
 
 - llama.cpp/GBNF is the strict decision primitive for machine-readable decisions;
