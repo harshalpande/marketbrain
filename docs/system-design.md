@@ -82,6 +82,8 @@ Intraday forecasts initially target 30/60 minutes within a trading session and r
 
 ### First target: 20-session swing research
 
+Implementation boundary (E28/E29): the existing aggregate audit is reviewed, not a prediction-grade dataset. `NumericalDataContract.draft()` exposes a versioned, non-training-authorized contract. The new read-only history endpoint/collector provides paged window coverage and persisted exclusion reasons, not model predictions or regenerated labels. Its [N2 work package](numerical-baseline-plan.md#n2-implementation-and-spare-laptop-handoff) defines the proposed 16:00 cutoff, feature formulas, remaining policy gates and query limits. Runtime evidence and contract freeze precede multi-date export. Pages are not an atomic cross-page data snapshot; late ingestion alone cannot establish historical data unavailability.
+
 - Form an end-of-day snapshot using only information available at that decision timestamp.
 - First research label convention: next eligible session's open as entry, that entry session counts as session 1, exit at the close of session 20. Missing/invalid executable prices invalidate or explicitly censor the label; they are not replaced with a future convenient price.
 - Include versioned estimated round-trip costs/slippage. This research label is distinct from an actual paper fill, which occurs only after approval at an eligible subsequent price.

@@ -68,7 +68,7 @@ The V1 working-day windows below are retained only as **prior core-work sequenci
 
 G10.6 scoped LLM cleanup is **completed and owner-accepted on 2026-09-18**, evidence E26. Granite removed, Qwen 0.5B quarantined, Qwen 1.5B retained with matching hashes, service health UP. Ollama and llama.cpp retained. Broader runtime/job inventory limitations remain under G10.3; no predictive-performance credit follows from cleanup.
 
-Next: G01/G13 evidence collection and G02's [numerical baseline work package](numerical-baseline-plan.md). The one-run readiness collector is offline verified; actual spare results are pending. No new model sweep or model download is required. In parallel where capacity permits, continue G00 source-review coverage and prepare G02/G08/G09 data/ledger/UI contracts.
+Next: G01/G13 evidence collection and G02's [numerical baseline work package](numerical-baseline-plan.md). N1 aggregate audit reviewed (E28): 476/500 eligible, 24 insufficient-history, one decision date. N2 draft contract and bounded historical coverage diagnostic are offline verified (E29); spare history result and contract freeze pending. No new model sweep/download or training is required. In parallel where capacity permits, continue G00 source-review coverage and prepare G02/G08/G09 data/ledger/UI contracts. Supporting diagnostics do not earn completion of the full prediction-grade dataset: weighted baseline remains 12.4%.
 
 | First work lane | Bounded output | Boundary |
 |---|---|---|
@@ -90,7 +90,7 @@ After evidence/contract approval, the proposed first build is the prediction-gra
 ### G02 — Prediction-grade dataset
 
 - G02.1 `PARTIAL`: prototype immutable runs and 5/20/60-session outcome labels exist; E04.
-- G02.2 `DESIGNED`: introduce versioned feature/label contracts, exchange calendar, next-executable-price convention, actual availability times, corporate-action handling and membership history.
+- G02.2 `PARTIAL`: machine-readable draft `NUMERICAL_SWING_20_V1_DRAFT` and bounded read-only history diagnostic offline verified (E29). Exchange calendar, availability evidence, corporate actions, membership, executable label implementation and contract freeze remain pending. No training authorization.
 - G02.3 `PENDING`: multi-date export; identify survivorship limitations when historical constituents are unavailable; separate adjusted features from tradable prices.
 - G02.4 `PENDING`: chronological train/tune/final partitions, overlap purging, future-field exclusion, duplicate/vintage checks and reproducible hashes.
 - G02.5 `PENDING`: tests for suspended stocks, missing bars, insufficient warm-up, holidays, delisting and stale news.

@@ -103,6 +103,15 @@ File hashes were computed from the supplied attachments; model/executable/source
 
 ## Evidence-first sequence
 
+### Numerical baseline evidence received and next implementation
+
+| ID | Finding and source pointers | Evidence class | What remains to establish |
+|---|---|---|---|
+| E28 | User-supplied `numerical-data-readiness-20260918-210144-5ffaed843a29.json`; SHA256 `F270475263350859FA54715FF772362A2B21FDE5E5C52BA56EB61081A8EE9B68` | SPARE AGGREGATE AUDIT RECEIVED AND REVIEWED | 2026-09-18 15:31:44.664 to 15:31:46.162 UTC, 1.5 seconds; status PROTOTYPE_AUDIT_CONSISTENT_NOT_TRAINING_READY, no failed checks. Run `5bdbfcc1-d990-48d8-9e98-d4927596d917`, manifest `aeec05bbd6b98238d6f13c4a5cc82de1cdfd94f8142370fc989b4dce00eee44f`; asOf 2026-06-05, labelThrough 2026-09-08. 500 items, 476 eligible/fully labelled (95.2%), 24 insufficient-history (4.8%), 1,428 labels (476 each 5/20/60). Zero stale/no-data/right-censored counts. Single decision date and current-membership bias remain; aggregate consistency is not row-level point-in-time or executable-label proof. N1 scoped review complete, training not authorized |
+| E29 | `NumericalDataContract`, `NumericalHistoryCoverageService/Controller`, `NumericalHistoryCoverageTest`; `GetNumericalHistoryEvidence.ps1`, validator and offline test; companion plan/diagram | IMPLEMENTED / OFFLINE VERIFIED; SPARE HISTORY QUERY PENDING | Seven focused Java tests cover bounds/bindings, UTC boundaries, row cap, draft prohibition, controller and bean wiring; full offline Java suite 261 tests passed. 56 PS5.1 assertions cover two-page collection, caps, malformed scope/counts/windows, failed requests, duplicate pages, partial preservation, redaction and bounded sharing-lock checkpoint retries. No real PostgreSQL query, EXPLAIN/index verification, inference, providers or spare deployment performed locally. Draft features/labels are not implemented as an export; calendar, corporate actions, price availability, membership and costs remain gates. Actual deployment revision and timings require returned report. This is a supporting slice, not full G02 completion |
+
+### Verification procedure
+
 1. Freeze the revision and scope. Record tracked/untracked status; do not include or delete the six drafts without an explicit decision. Separate source defects, environment defects and missing business capability.
 2. Maintain a source-review coverage manifest for the requested deep audit: path, revision/hash, complete/partial/not-reviewed, reviewer/date, findings and test links. Review all maintained source/configuration/docs; classify binary/generated/vendor assets explicitly. Mark G00 audit complete only when coverage is actually complete.
 3. Collect existing spare-laptop run artifacts first. Use run IDs, timestamps, model hashes and deployed Git revision to associate results. Do not rerun expensive inference simply because console progress was lost.

@@ -132,7 +132,17 @@ Verification, commit/push and spare-machine handoff:
 Owner acceptance, if any:
 ```
 
-## Updating rules
+## 2026-09-18 - N1 evidence reviewed; N2 bounded contract/history slice
+
+- Owner authorized the next numerical-baseline step after E28. N1 inspection is complete only for the selected aggregate audit: 476/500 eligible (95.2%), 24 insufficient-history, one as-of date, 476 labels per required horizon. Collection took 1.5 seconds; no inference or training occurred. Evidence file SHA256 is recorded in E28.
+- Added the draft 20-session feature/label contract and a GET-only Java history endpoint, plus a single-report PowerShell collector. Default window is 730 calendar days ending at dataset as-of, up to ten pages of 50 instruments, 2,001-row sentinel per instrument and read-only SQL timeouts. Existing immutable prototype data and label convention are untouched. The purpose is to inspect the 24 exclusion reasons and available window before proposing multi-date export.
+- Verified seven focused Java tests and the full 261-test offline Java suite; 56 PS5.1 assertions exercise mocked HTTP and temporary files only. Actual PostgreSQL syntax/plan/index performance and spare PowerShell runtime remain unverified. No local server, model or provider run was started. Tests retain small isolated temporary fixtures, not model files.
+- An intermittent Windows file-sharing violation was reproduced during checkpoint replacement. New collector retries only sharing/lock errors for six bounded save attempts, retaining the old JSON and pending snapshot on persistent failure. No retry loop for HTTP/database collection; failure evidence is retained. Deterministic simulated-lock tests cover recovery and exhaustion.
+- Updated the canonical plan, roadmap, evidence register, system design, README and one current architecture diagram. N2 remains draft/not frozen; N3 export, N4 leakage-aware splits and N5 numerical fitting remain pending. Full weighted engineering baseline stays 12.4%; no numerical-accuracy improvement percentage is earned from diagnostic tooling.
+- Handoff: commit/push scoped files, rebuild only marketbrain-service on the spare laptop while jobs are idle, wait for health, run GetNumericalHistoryEvidence with explicit dataset UUID. Share one JSON (plus pending checkpoint only if saving failed). No cleanup rerun, model download, inference, backfill or trading requested. Deployment may restart pre-existing configured jobs/automation; this diagnostic does not govern those independent settings.
+- Next review: distinguish limited warm-up, exclusions and backfill timing without inventing listing-age explanations. Agree actual calendar/adjustment/cost/availability policies and usable multi-date scope before freezing N2 or implementing export. Provider rights or missing data can block only the affected next stage, not justify bypassing leakage checks.
+
+### Daily updating rules
 
 - Change the roadmap dashboard only after linking evidence to the exact checkpoint; then append the delta here.
 - Use percentage points for absolute changes and explicitly name the denominator for relative improvements. Do not blend schema success, alignment, financial outcomes and engineering completion.

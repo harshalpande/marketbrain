@@ -54,15 +54,15 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: numerical data readiness
+### Current next action: N2 bounded history and contract evidence
 
-The [numerical baseline work package](numerical-baseline-plan.md) defines the sequence, evidence gates, draft data contract and conditional effort estimates. Pull the current scripts on the spare laptop, with no Docker rebuild, then run:
+The [numerical baseline work package](numerical-baseline-plan.md) records N1's accepted aggregate inspection: 476/500 eligible, 24 insufficient-history, one decision date. N2 adds a read-only Java diagnostic and machine-readable draft contract. Pull and rebuild/redeploy **marketbrain-service only**, after checking jobs are idle; wait for health UP, then run:
 
 ```powershell
-& '.\ops\windows\GetNumericalPredictionDataReadiness.ps1' -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917'
+& '.\ops\windows\GetNumericalHistoryEvidence.ps1' -DatasetRunId '5bdbfcc1-d990-48d8-9e98-d4927596d917' -LookbackDays 730
 ```
 
-Share the single printed `numerical-data-readiness-<timestamp>-<id>.json`. This reads the aggregate audit of the existing run: no inference, numerical training, dataset writes, provider calls or backfill. `-ExistingAuditPath <path>` can instead reuse a saved **raw dataset audit**, with no network calls. It does not accept the prior cleanup/LLM ranking JSON as a dataset audit. Successful aggregate checks still report `PROTOTYPE_AUDIT_CONSISTENT_NOT_TRAINING_READY`: one decision date cannot support chronological training/test validation. No data-quality/prediction percentage is assumed before this result arrives.
+Share the single printed `numerical-history-<timestamp>-<id>.json`. It records 50-instrument pages (at most ten), within a 730-calendar-day window ending at the existing run's as-of date, plus persisted exclusion reasons and the draft contract. Progress/timing and partial results survive collection failures; persistent file locks may leave an additional recovery checkpoint. No inference, numerical training, dataset writes, provider calls, backfill or trades are initiated by the diagnostic. `WINDOW_COVERAGE_REVIEW_REQUIRED` is not training approval. Runtime SQL compatibility/performance and remaining point-in-time policies still need review; do not rerun the cleanup or old model sweeps.
 
 ### G10.6 read-only spare-laptop inventory
 
