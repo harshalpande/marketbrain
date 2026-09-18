@@ -4155,6 +4155,52 @@ $parameters.CandidateLimit = 4
 Run `TestTypedDecisionEvidencePersistence.ps1`, `TestTypedDecisionSweep.ps1` and the existing response/evaluation/replay/offline-runner suites before publishing changes.
 Real inference remains a spare-laptop acceptance test; offline mocks do not prove model improvement.
 
+## Controlled decision communication diagnostics (spare laptop only)
+
+Use this after the 64-call contrast sweep completed with no qualifier. This is a new, bounded diagnostic run,
+not another optimization sweep and not weight training. It reads the original saved snapshot without modifying
+it, fetching Java data, rebuilding Docker, or downloading a model.
+
+```powershell
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+$parameters = @{
+    SourceSweepPath = 'C:\MarketBrainData\Review\typed-sweep-20260918-160624-20dbad\sweep.json'
+    OutputDirectory = 'C:\MarketBrainData\Review'
+    TimeoutSeconds = 120
+}
+& '.\ops\windows\RunTypedDecisionCommunicationDiagnostics.ps1' @parameters
+```
+
+Requires PowerShell 7 and the exact source sweep's GGUF/executable hashes. Keep all other model tests stopped.
+The five arms are seven fields with/without GBNF, one decision field with/without GBNF, and seven fields with
+GBNF plus explicit ChatML instead of the metadata-default template. Each runs all four contrast cases once:
+20 planned calls, one model at a time, no automatic model retries. Context 4096, token limit 160, temperature
+zero and seed 1729 are requested identically in all arms. Sampling/context overrides via `LLAMA_ARG_*` are
+removed in the child process only; their names, not values, are recorded. Do not compare timings directly with
+the old sweep: diagnostics add logging and explicitly set context. Twenty calls at the previous approximately
+18-second candidate time suggest roughly six minutes plus overhead, but each call permits up to 120 seconds.
+
+The full CLI conversation file verifies input echo and separates assistant content from UI logs. Backend
+prompt artifacts, stdout/stderr, requested arguments, available template/context/timing log lines and
+per-case failures are embedded in `diagnostics.json`; `diagnostics.log` records progress and case outcomes.
+An input echo proves CLI file ingestion, not model attention or complete token processing. Missing effective
+settings telemetry is unknown, not silently assumed. One-field matches do not count as full business validity.
+All outcomes, including malformed output and process failures, remain in the denominator. There is no automatic
+winner selection, production promotion, notification or trading action.
+
+Share ONLY the new `diagnostics.json` and `diagnostics.log`. Preserve internal `_work` and backup files locally.
+To resume after the original terminal has stopped, use the printed NEW diagnostics directory:
+
+```powershell
+& '.\ops\windows\RunTypedDecisionCommunicationDiagnostics.ps1' -ResumeDirectory 'C:\MarketBrainData\Review\typed-diagnostics-REPLACE'
+```
+
+Resume reuses completed records/child checkpoints, verifies frozen code/plan/model/executable, and may repeat
+only an interrupted call without a child record. Total invocation starts are capped at 24, including interrupted
+starts; `PAUSED_INVOCATION_BUDGET` requires review, not repeated restarts. Progress/heartbeat can also be inspected
+in a second terminal with `Get-Content '<printed directory>\diagnostics.log' -Tail 12` (no inference).
+Run `TestTypedDecisionDiagnostics.ps1` for offline paired-prompt, validation, orchestration and recovery checks.
+
 ## Runbook maintenance rule
 
 For every future MarketBrain change that affects building, configuration, Docker deployment, verification, or safe operation, this document will be updated in the same code change.

@@ -582,6 +582,45 @@ with a rolling `.bak` for the sweep checkpoint (other compact reports do not add
 source: [Microsoft File.Replace documentation](https://learn.microsoft.com/en-us/dotnet/api/system.io.file.replace).
 Flags are checked against installed llama help; upstream reference: https://github.com/ggml-org/llama.cpp/tree/master/tools/cli
 
+## Communication diagnostic after the no-qualifier sweep
+
+The completed 2026-09-18 sweep recorded 64/64 schema-valid outputs, 7/64 basic business-valid outputs and
+0/64 full diagnostic passes. All outputs were REJECT. This is evidence of a failed decision configuration,
+not proof that the model size alone is the cause. The checkpoint repair completed the remaining 20 tasks
+after preserving 44; it did not change prompts or scoring. No shortlisted configuration should be manufactured.
+
+`RunTypedDecisionCommunicationDiagnostics.ps1` isolates three factors over the same four frozen cases:
+
+| Arm | Output fields | Grammar | Template |
+| --- | --- | --- | --- |
+| SEVEN_GBNF_AUTO | Original seven | GBNF | Model metadata default |
+| SEVEN_FREE_AUTO | Original seven | None | Model metadata default |
+| ONE_GBNF_AUTO | decision only | GBNF | Model metadata default |
+| ONE_FREE_AUTO | decision only | None | Model metadata default |
+| SEVEN_GBNF_CHATML | Original seven | GBNF | Explicit ChatML |
+
+The constrained/free pairs use byte-identical prompt text. One-field prompts retain the policy/facts but change
+only the output instructions. ChatML is an experimental override, not an assumed fix. No expected label or Java
+baseline is appended to the inference prompt. Single-field choice correctness is reported separately from the
+existing seven-field schema, business and full diagnostic gates. Runtime logging and context are controlled
+across arms, so these results are diagnostic comparisons, not direct speed comparisons with the older sweep.
+
+Twenty bounded model calls, one at a time, with durable checkpoints and no automatic model repair retries.
+Frozen source evidence, model/executable hashes, CLI help, input-file digest, exact requested arguments, full
+conversation, runtime artifacts, elapsed time, process errors and assessments are retained. A separate CLI
+conversation artifact verifies full user-input echo; actual backend token/context/template evidence must be
+read from runtime logs, and unavailable values must remain unknown. Large (>1 MiB) individual backend artifacts
+are retained on disk with an explicit size/digest omission record in the shared JSON, not silently truncated.
+Source sweep is unchanged; normal sharing is only `diagnostics.json` and `diagnostics.log`. Offline tests use
+mock process results and do not prove the model improved. Four cases and one repetition are localization tests,
+not generalization evidence, stock ranking accuracy or permission to weaken a failed quality gate.
+
+CLI options were checked against the installed build's
+[official documentation](https://github.com/ggml-org/llama.cpp/blob/f172be756/tools/cli/README.md) and
+[conversation output implementation](https://github.com/ggml-org/llama.cpp/blob/f172be756/tools/cli/cli-context.cpp).
+The CLI's `--output-file` includes both User and Assistant turns; the diagnostic verifies/removes the exact User
+prefix before evaluating the assistant. It does not treat a shortened terminal echo as a truncated model prompt.
+
 ## Daily fresh-data feedback loop (governed)
 
 Post-market collection and Telegram/WhatsApp process notifications prove that fresh data is arriving. That fresh data
