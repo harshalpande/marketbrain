@@ -46,6 +46,37 @@ function Get-DecisionPolicyFailures {
     }
 }
 
+function Get-DecisionEvidenceWarnings {
+    param([object]$Candidate, [object]$Decision)
+    if (-not $Candidate.PSObject.Properties['featureEvidence']) { return }
+    $facts = $Candidate.featureEvidence
+    if ($Decision.primaryReasonCode -ceq 'WEAK_TREND' -and
+        $facts.priceVsAverages -ceq 'ABOVE_ALL' -and $facts.emaDirection -ceq 'POSITIVE') {
+        'WEAK_TREND_CONTRADICTS_ALIGNED_TREND_FACTS'
+    }
+    if ($Decision.primaryReasonCode -ceq 'STRONG_MOMENTUM' -and
+        $facts.priceVsAverages -ceq 'BELOW_ALL' -and $facts.emaDirection -ceq 'NEGATIVE') {
+        'STRONG_MOMENTUM_CONTRADICTS_BEARISH_FACTS'
+    }
+    if ($Decision.primaryReasonCode -ceq 'BLOCKED_BY_RISK' -and $Candidate.hardExclusionReason -ceq 'NONE') {
+        'BLOCKED_REASON_WITHOUT_HARD_EXCLUSION'
+    }
+    if ($Decision.primaryReasonCode -ceq 'RELATIVE_STRENGTH') { 'RELATIVE_STRENGTH_BENCHMARK_NOT_SUPPLIED' }
+}
+
+function Get-TypedDiagnosticFailures {
+    param([object]$Candidate, [object]$Decision, [bool]$BusinessValid, [object[]]$ReasonWarnings)
+    if (-not $Candidate.PSObject.Properties['diagnosticExpectedDecisions'] -or
+        @($Candidate.diagnosticExpectedDecisions).Count -eq 0) { return }
+    if (-not $BusinessValid) { 'DIAGNOSTIC_INVALID_RESPONSE'; return }
+    if (@($Candidate.diagnosticExpectedDecisions) -cnotcontains $Decision.decision) { 'DIAGNOSTIC_DECISION_MISMATCH' }
+    if ($ReasonWarnings.Count -gt 0) { 'DIAGNOSTIC_UNSUPPORTED_REASON' }
+    if ($Candidate.symbol -eq 'SYNTHETIC_HIGH_VOL' -and $Decision.riskBucket -cne 'HIGH') { 'DIAGNOSTIC_HIGH_VOL_RISK_MISSED' }
+    if ($Candidate.symbol -eq 'SYNTHETIC_MISSING_VOLUME' -and $Decision.primaryReasonCode -cne 'BLOCKED_BY_RISK') {
+        'DIAGNOSTIC_MISSING_INPUT_REASON_MISSED'
+    }
+}
+
 function Get-TypedDecisionEvaluation {
     param([object[]]$Attempts)
     $valid = @($Attempts | Where-Object { $_.businessValid })
@@ -73,6 +104,16 @@ function Get-TypedDecisionEvaluation {
         [pscustomobject]@{ category = $category; count = @($Attempts | Where-Object { $_.evidenceCategory -eq $category }).Count }
     })
     $warnings = @()
+    $diagnostic = @($Attempts | Where-Object {
+        $_.PSObject.Properties['diagnosticExpectedDecisions'] -and @($_.diagnosticExpectedDecisions).Count -gt 0
+    })
+    $diagnosticPassed = @($diagnostic | Where-Object { $_.diagnosticPassed -eq $true })
+    $reasonWarnings = @($Attempts | Where-Object {
+        $_.PSObject.Properties['reasonEvidenceWarnings'] -and @($_.reasonEvidenceWarnings).Count -gt 0
+    })
+    if ($diagnostic.Count -gt 0) { $warnings += 'SYNTHETIC_POLICY_TEST_NOT_INVESTMENT_ACCURACY' }
+    if ($diagnosticPassed.Count -lt $diagnostic.Count) { $warnings += 'CONTRAST_DIAGNOSTIC_FAILED' }
+    if ($reasonWarnings.Count -gt 0) { $warnings += 'REASONS_REQUIRE_EVIDENCE_REVIEW' }
     if (@($coverage | Where-Object { $_.count -eq 0 }).Count -gt 0) { $warnings += 'INCOMPLETE_SCENARIO_COVERAGE' }
     if ($Attempts.Count -lt 30) { $warnings += 'SMALL_SAMPLE_NOT_GENERALIZATION_EVIDENCE' }
     if ($valid.Count -gt 0 -and @($valid | Where-Object { $_.modelDecision -ne 'REJECT' }).Count -eq 0) {
@@ -80,7 +121,14 @@ function Get-TypedDecisionEvaluation {
     }
     if ($labelled.Count -lt $Attempts.Count) { $warnings += 'INCOMPLETE_OUTCOME_LABELS' }
     [pscustomobject][ordered]@{
-        metricVersion = 'INDEPENDENT_DECISION_EVALUATION_V1'
+        metricVersion = 'INDEPENDENT_DECISION_EVALUATION_V2'
+        diagnosticCaseCount = $diagnostic.Count
+        diagnosticPassedCount = $diagnosticPassed.Count
+        diagnosticPassPercent = if ($diagnostic.Count) { [math]::Round(100.0 * $diagnosticPassed.Count / $diagnostic.Count, 2) } else { $null }
+        reasonEvidenceWarningCount = $reasonWarnings.Count
+        rawDecisionDistribution = @($Attempts | Group-Object modelDecision | ForEach-Object {
+            [pscustomobject]@{decision=$_.Name; count=$_.Count}
+        })
         outcomeDefinition = 'Positive net return AND positive benchmark excess over the configured horizon; retrospective diagnostic, not a trading ground truth.'
         categoryCoverage = $coverage
         validModelDecisionCount = $valid.Count

@@ -5,7 +5,7 @@ param(
     [string]$DatasetRunId,
 
     [Parameter()]
-    [ValidateSet('FIXED_SYMBOL', 'RANDOM_VALIDATION', 'DIFFICULT_TRAPS', 'RECOVERY_OVEREXTENSION', 'BALANCED_VALIDATION')]
+    [ValidateSet('FIXED_SYMBOL', 'RANDOM_VALIDATION', 'DIFFICULT_TRAPS', 'RECOVERY_OVEREXTENSION', 'BALANCED_VALIDATION', 'CONTRAST_VALIDATION')]
     [string]$SelectionMode = 'FIXED_SYMBOL',
 
     [Parameter()]
@@ -437,8 +437,8 @@ try {
         -ContentType 'application/json' `
         -Body ($body | ConvertTo-Json -Depth 8) `
         -TimeoutSec $TimeoutSeconds
-    if ($EvaluationMode -eq 'INDEPENDENT' -and $preview.decisionContractVersion -ne 'MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V3') {
-        throw 'Independent evaluation requires the V3 Java service. Rebuild/redeploy marketbrain-service first.'
+    if ($EvaluationMode -eq 'INDEPENDENT' -and $preview.decisionContractVersion -ne 'MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4') {
+        throw 'Independent evaluation requires the V4 Java service. Rebuild/redeploy marketbrain-service first.'
     }
     Write-Host 'Step 89: running local llama.cpp + GBNF typed decision primitive preview...'
     Write-Host "Selection mode: $SelectionMode; start offset: $StartOffset; candidates: $($preview.candidateCount)"
@@ -627,6 +627,17 @@ try {
                 -and ([string]$decision.scoreBand -eq [string]$candidate.javaScoreBand)
         }
 
+        $reasonWarnings = @(if ($schemaValid -and $EvaluationMode -eq 'INDEPENDENT') {
+            @(Get-DecisionEvidenceWarnings -Candidate $candidate -Decision $decision)
+        })
+        $expectedDecisions = @(if ($candidate.PSObject.Properties['diagnosticExpectedDecisions']) {
+            @($candidate.diagnosticExpectedDecisions)
+        })
+        $diagnosticFailures = @(Get-TypedDiagnosticFailures -Candidate $candidate -Decision $decision -BusinessValid $businessValid -ReasonWarnings $reasonWarnings)
+        $diagnosticPassed = if ($expectedDecisions.Count -gt 0) {
+            $diagnosticFailures.Count -eq 0
+        } else { $null }
+        $warnings += $reasonWarnings
         $warningArray = @($warnings | ForEach-Object { [string]$_ })
         $failureArray = @($failures | ForEach-Object { [string]$_ })
         $responseText = if (Test-Path -LiteralPath $responsePath) { [System.IO.File]::ReadAllText($responsePath) } else { $null }
@@ -639,6 +650,10 @@ try {
             grammar                                = $candidateGrammar
             prompt                                 = $candidatePrompt
             offlineCandidateEvidence               = $candidate
+            diagnosticExpectedDecisions            = $expectedDecisions
+            diagnosticPassed                       = $diagnosticPassed
+            diagnosticFailures                     = $diagnosticFailures
+            reasonEvidenceWarnings                 = $reasonWarnings
             rawOutput                              = $rawOutput
             stdout                                 = $stdoutText
             stderr                                 = $stderrText
@@ -783,6 +798,7 @@ try {
         detail                         = 'Step 89 used local llama.cpp with GBNF to produce enum/band typed decision primitives. Java guardrails remained authoritative. No trading action was created.'
     }
 
+    if (@($summary.evaluation.warnings).Count -gt 0) { $summary.status = 'REVIEW_WITH_WARNINGS' }
     Save-TypedDecisionEvidence -Evidence $summary -Path $resultPath
 
     Write-StepProgress 100 'Typed decision primitive preview complete.'

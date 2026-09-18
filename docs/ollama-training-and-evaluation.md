@@ -420,7 +420,7 @@ grammar. All four responses were valid, but the grammar permitted exactly one co
 only two for each other candidate. Validity was therefore not evidence of independent intelligence. Agreement
 with Java is also not investment accuracy. Prompt/grammar changes do not update model weights.
 
-The runner now defaults to `-EvaluationMode INDEPENDENT`. This requires the V3 Java service; an old server fails
+The runner defaults to `-EvaluationMode INDEPENDENT` (introduced in V3, now requiring the V4 service); an old server fails
 preflight before inference. `BASELINE_CONSTRAINED` preserves the earlier mode for explicit regression checks.
 
 - The independent prompt contains raw as-of technical features, identity and policy restrictions. It excludes the
@@ -453,6 +453,42 @@ Initial acceptance: both models finish, every row's schema/policy status is expl
 or a coverage warning explains why, and the report exposes reject-all behavior. Model promotion requires repeated
 outcome improvement over Java alone on unseen dates with comparable risk and acceptable latency. Six examples cannot
 establish that requirement or support a numerical confidence promise.
+
+## Typed decision optimization V4: facts and contrast gate
+
+The 2026-09-18 independent six-candidate comparison completed in 232.8 seconds. Both models produced 100%
+schema-valid output, but 0.5B had 0/6 business-valid answers and 1.5B had 5/6. Neither selected an opportunity.
+0.5B combined WATCHLIST with BLOCKED; 1.5B rejected all six, including a WEAK_TREND reason on an above-all-averages,
+positive-EMA candidate. This is evidence of a policy/evidence interpretation problem, not proof that model size alone
+caused it. This is the measured baseline; improvement from the following changes is not yet measured.
+
+- V4 adds `TYPED_FACTS_V1`: percentage distances from SMA20/50/200, percentage EMA12-versus-EMA26 spread,
+  strict above/below-average comparisons, and explicit numeric RSI/volume/volatility/range bands. Distances are
+  `(value-reference)*100/reference`, rounded half-up to two decimals; missing/nonpositive denominators are UNKNOWN.
+  Bands are descriptive, not probabilities, trade thresholds or replacements for the existing risk engine.
+- `TYPED_POLICY_V2` places facts first, distinguishes HIGH risk from hard exclusion, and gives synthetic illustrative
+  patterns. No symbol, expected answer, aggregate Java quality score, selection stratum or future label reaches the
+  independent prompt. This is prompt conditioning, not weight training. No existing broker/risk enforcement is relaxed.
+- Invalid required input domains (nonpositive averages, out-of-range RSI/range, negative volume/volatility) are hard
+  exclusions. Missing inputs must not masquerade as zero-valued evidence.
+- `CONTRAST_VALIDATION` generates four versioned synthetic cases: aligned strength, broad weakness, the strong case
+  with only volatility raised, and the strong case with only volume removed. It retains dataset audit gating but
+  performs no candidate query. Future returns and actual ranks are null. Diagnostic expected decisions remain in
+  offline evidence, never in the inference prompt/grammar. These tests check policy understanding, not generalization.
+- `-IncludeContrastChecks` on the comparison runner requires all four diagnostic checks before starting the balanced
+  stock test. A failure produces `DIAGNOSTIC_GATE_BLOCKED` and skips remaining calls without retrying or repairing
+  answers. With one model this means four calls on failure, ten on a complete four-plus-six run. Concurrency remains 1.
+  High-volatility diagnostics also require HIGH risk; missing-input diagnostics require BLOCKED_BY_RISK.
+- Evidence V2 adds raw decision distribution, per-row diagnostic failures, diagnostic pass rate and contradictory or
+  unsupported reason warnings. Reason diagnostics are distinct from schema and business-rule validation. A matching
+  Java decision is still not accuracy; agreement currently also requires matching risk/score and business validity.
+- Existing two-file sharing is retained: comparison.json embeds all stages and comparison.log contains their logs.
+  Input parity is checked within each selection mode, not between synthetic cases and different real stocks.
+
+Next experiment: Qwen2.5 1.5B only, four contrast cases, then the same six balanced candidates if the gate passes.
+Compare business validity, grounded reasons, nonconstant decisions, accepted selection/outcome metrics and latency
+against the saved baseline. Do not count a synthetic pass as market accuracy or relax rejection rules to improve a
+percentage. Only then proceed to untouched dates/stocks. No percentage improvement or completion forecast is promised.
 
 ## Daily fresh-data feedback loop (governed)
 

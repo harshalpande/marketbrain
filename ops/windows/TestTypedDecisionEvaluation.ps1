@@ -52,5 +52,28 @@ Assert-Check ($metrics.warnings -contains 'INCOMPLETE_OUTCOME_LABELS') 'Missing 
 Assert-Check ($metrics.warnings -contains 'ALL_VALID_DECISIONS_REJECTED') 'Reject-all not flagged'
 $empty = Get-TypedDecisionEvaluation @()
 Assert-Check ($null -eq $empty.modelPositiveOutcomeRecallPercent) 'No positives must have undefined recall'
+$factCandidate = [pscustomobject]@{
+    featureEvidence=[pscustomobject]@{priceVsAverages='ABOVE_ALL'; emaDirection='POSITIVE'}
+    hardExclusionReason='NONE'
+}
+$reasonDecision = [pscustomobject]@{primaryReasonCode='WEAK_TREND'}
+Assert-Check (@(Get-DecisionEvidenceWarnings $factCandidate $reasonDecision) -contains 'WEAK_TREND_CONTRADICTS_ALIGNED_TREND_FACTS') 'Unsupported weak trend missed'
+$reasonDecision.primaryReasonCode = 'STRONG_MOMENTUM'
+Assert-Check (@(Get-DecisionEvidenceWarnings $factCandidate $reasonDecision).Count -eq 0) 'Supported momentum flagged'
+$factCandidate.featureEvidence.priceVsAverages='BELOW_ALL'; $factCandidate.featureEvidence.emaDirection='NEGATIVE'
+Assert-Check (@(Get-DecisionEvidenceWarnings $factCandidate $reasonDecision) -contains 'STRONG_MOMENTUM_CONTRADICTS_BEARISH_FACTS') 'Unsupported momentum missed'
+$attempts[0] | Add-Member diagnosticExpectedDecisions @('SHORTLIST','TOP_PICK')
+$attempts[0] | Add-Member diagnosticPassed $false
+$attempts[0] | Add-Member reasonEvidenceWarnings @('WEAK_TREND_CONTRADICTS_ALIGNED_TREND_FACTS')
+$diagnosticMetrics = Get-TypedDecisionEvaluation $attempts
+Assert-Check ($diagnosticMetrics.diagnosticCaseCount -eq 1 -and $diagnosticMetrics.diagnosticPassPercent -eq 0) 'Reject-all passed contrast test'
+Assert-Check ($diagnosticMetrics.reasonEvidenceWarningCount -eq 1) 'Reason warnings not counted'
+Assert-Check ($diagnosticMetrics.warnings -contains 'SYNTHETIC_POLICY_TEST_NOT_INVESTMENT_ACCURACY') 'Synthetic caveat missing'
+$highVolCandidate = [pscustomobject]@{ symbol='SYNTHETIC_HIGH_VOL'; diagnosticExpectedDecisions=@('WATCHLIST','SHORTLIST') }
+$highVolDecision = [pscustomobject]@{ decision='SHORTLIST'; riskBucket='LOW'; primaryReasonCode='STRONG_MOMENTUM' }
+Assert-Check (@(Get-TypedDiagnosticFailures $highVolCandidate $highVolDecision $true @()) -contains 'DIAGNOSTIC_HIGH_VOL_RISK_MISSED') 'Contrast ignored high volatility risk'
+$highVolDecision.riskBucket='HIGH'
+Assert-Check (@(Get-TypedDiagnosticFailures $highVolCandidate $highVolDecision $true @()).Count -eq 0) 'Valid high-volatility research caution failed'
+Assert-Check (@(Get-TypedDiagnosticFailures $highVolCandidate $null $false @()) -contains 'DIAGNOSTIC_INVALID_RESPONSE') 'Invalid diagnostic response not guarded'
 Write-Progress -Activity 'Offline decision evaluation tests' -Completed
 Write-Host '[100%] Offline decision evaluation checks passed.'

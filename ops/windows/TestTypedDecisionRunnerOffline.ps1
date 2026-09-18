@@ -3,6 +3,8 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $priorCalls = $env:MARKETBRAIN_OFFLINE_TEST_CALLS
 $priorOldServer = $env:MARKETBRAIN_OFFLINE_TEST_OLD_SERVER
+$priorContrastPass = $env:MARKETBRAIN_OFFLINE_CONTRAST_PASS
+$env:MARKETBRAIN_OFFLINE_CONTRAST_PASS = '0'
 $env:MARKETBRAIN_OFFLINE_TEST_OLD_SERVER = '0'
 $testDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ('marketbrain-runner-test-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testDirectory | Out-Null
@@ -26,9 +28,11 @@ function Invoke-LlamaCliProcess {
         $exitCode=0; $timedOut=$false
         $id = 'CANDIDATE_{0:D3}' -f $mockCall
         $payload = [ordered]@{candidateId=$id;decision='SHORTLIST';riskBucket='HIGH';trapDetected='NO';scoreBand='HIGH';confidenceBand='MEDIUM';primaryReasonCode='RECOVERY_SETUP'}
-        if ($mockCall -eq 2) { $payload.Remove('riskBucket') }
-        if ($mockCall -eq 3) { $exitCode=1 }
-        if ($mockCall -eq 4) { $timedOut=$true; $exitCode=-999 }
+        if ($env:MARKETBRAIN_OFFLINE_CONTRAST_PASS -ne '1' -or [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS -gt 4) {
+            if ($mockCall -eq 2) { $payload.Remove('riskBucket') }
+            if ($mockCall -eq 3) { $exitCode=1 }
+            if ($mockCall -eq 4) { $timedOut=$true; $exitCode=-999 }
+        }
         $stdout = $payload | ConvertTo-Json -Compress
     }
     $stdout | Set-Content -LiteralPath $StandardOutputPath -Encoding UTF8
@@ -47,6 +51,7 @@ $source = $source.Replace('#Requires -Version 7.0', '# Offline mocked test')
 function Invoke-RestMethod {
     param($Method,$Uri,$ContentType,$Body,$TimeoutSec)
     if ($env:MARKETBRAIN_OFFLINE_TEST_OLD_SERVER -eq '1') { return [pscustomobject]@{decisionContractVersion='OLD'} }
+    $contrast = ($Body | ConvertFrom-Json).selectionMode -eq 'CONTRAST_VALIDATION'
     $candidates = @(1..4 | ForEach-Object {
         [pscustomobject]@{
             candidateId=('CANDIDATE_{0:D3}' -f $_); symbol="SYNTHETIC_$_"; independentPrompt="As-of fixture $_"
@@ -56,10 +61,11 @@ function Invoke-RestMethod {
             javaQualityAnchorScore=59; javaQualityAnchorRank=$_; javaScoreCapHint='HARD_CAP_69'
             javaTopPickEligibility='CAUTION'; actualRank=$_; targetNetReturnPercent=10
             targetBenchmarkExcessReturnPercent=5; targetMaximumDrawdownPercent=3
+            diagnosticExpectedDecisions=$(if ($contrast) { @('SHORTLIST') } else { @() })
         }
     })
     [pscustomobject]@{
-        decisionContractVersion='MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V3'; grammarVersion='GBNF_V1'
+        decisionContractVersion='MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4'; grammarVersion='GBNF_V1'
         datasetRunId='offline'; asOf='2026-06-05'; labelThrough='2026-09-08'; candidateCount=4; candidates=$candidates
         grammar="root ::= candidate-id`ncandidate-id ::= digit`ndigit ::= [0-9]"
         allowedDecisions=@('REJECT','WATCHLIST','SHORTLIST','TOP_PICK'); allowedRiskBuckets=@('LOW','MEDIUM','HIGH','BLOCKED')
@@ -85,7 +91,7 @@ try {
     $oldDirectory = Join-Path $testDirectory 'old-server'
     $blocked=$false
     try { & $fixturePath -DatasetRunId 'offline' -OutputDirectory $oldDirectory }
-    catch { $blocked = $_.Exception.Message -like '*V3 Java service*' }
+    catch { $blocked = $_.Exception.Message -like '*V4 Java service*' }
     if (-not $blocked -or [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS -ne 4) { throw 'Old deployment was not blocked before inference.' }
     $failed = Get-ChildItem -LiteralPath $oldDirectory -Filter '*.json' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json }
     if ($failed.status -ne 'FAILED' -or $failed.llamaCppCallCount -ne 0) { throw 'Failure evidence missing.' }
@@ -104,10 +110,28 @@ try {
     if (@(Get-ChildItem -LiteralPath $comparisonOutput -Recurse -File).Count -ne 2) {
         throw 'Comparison failed to consolidate evidence into two files.'
     }
+    $env:MARKETBRAIN_OFFLINE_TEST_CALLS='0'
+    $gateOutput = Join-Path $testDirectory 'gate-blocked'
+    & $comparisonPath -DatasetRunId 'offline' -CandidateLimit 4 -ModelRefs @('test/model-a') -IncludeContrastChecks -OutputDirectory $gateOutput
+    $gate = Get-ChildItem -LiteralPath $gateOutput -Filter comparison.json -Recurse | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json }
+    if ($gate.status -ne 'DIAGNOSTIC_GATE_BLOCKED' -or $gate.results.Count -ne 1 -or [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS -ne 4) {
+        throw 'Diagnostic failure did not stop subsequent inference.'
+    }
+    if (@(Get-ChildItem -LiteralPath $gateOutput -Recurse -File).Count -ne 2) { throw 'Gate failure lost compact evidence.' }
+    $env:MARKETBRAIN_OFFLINE_TEST_CALLS='0'
+    $env:MARKETBRAIN_OFFLINE_CONTRAST_PASS='1'
+    $passOutput = Join-Path $testDirectory 'gate-passed'
+    & $comparisonPath -DatasetRunId 'offline' -CandidateLimit 4 -ModelRefs @('test/model-a') -IncludeContrastChecks -OutputDirectory $passOutput
+    $passedGate = Get-ChildItem -LiteralPath $passOutput -Filter comparison.json -Recurse | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json }
+    if ($passedGate.contrastGateBlocked -or $passedGate.results.Count -ne 2 -or [int]$env:MARKETBRAIN_OFFLINE_TEST_CALLS -ne 8) {
+        throw 'Successful contrast gate did not proceed to balanced validation.'
+    }
+    if ($passedGate.results[0].evaluation.diagnosticPassedCount -ne 4 -or -not $passedGate.comparableInputs) { throw 'Incorrect diagnostic metrics or cross-scenario comparison.' }
     Write-Host '[100%] Offline runner tests passed; no external services or models were invoked.'
 }
 finally {
     $env:MARKETBRAIN_OFFLINE_TEST_OLD_SERVER = $priorOldServer
+    $env:MARKETBRAIN_OFFLINE_CONTRAST_PASS = $priorContrastPass
     $env:MARKETBRAIN_OFFLINE_TEST_CALLS = $priorCalls
     $resolved = (Resolve-Path -LiteralPath $testDirectory).Path
     if ((Split-Path -Leaf $resolved) -like 'marketbrain-runner-test-*' -and

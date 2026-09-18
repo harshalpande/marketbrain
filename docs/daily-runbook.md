@@ -3920,11 +3920,11 @@ the Java baseline output plus only safe downgrade alternatives, preventing inval
 
 ## Spare runtime laptop: normal update and redeploy
 
-### Step 89 independent model comparison (V3)
+### Step 89 independent model comparison (V4)
 
-Deploy the V3 service and updated scripts together before running independent mode. No model installation, inference,
+Deploy the V4 service and updated scripts together before running independent mode. No model installation, inference,
 or production database operation is required on the development laptop. On the spare laptop, use PowerShell 7 and
-keep both Qwen2.5 0.5B and 1.5B Q4_K_M cached. A previously running long job must finish before service recreation.
+keep Qwen2.5 1.5B Q4_K_M cached. A previously running long job must finish before service recreation.
 
 After transferring/pulling the reviewed code and rebuilding `marketbrain-service`, run:
 
@@ -3932,6 +3932,8 @@ After transferring/pulling the reviewed code and rebuilding `marketbrain-service
 $parameters = @{
     DatasetRunId = '5bdbfcc1-d990-48d8-9e98-d4927596d917'
     SelectionMode = 'BALANCED_VALIDATION'
+    ModelRefs = @('Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M')
+    IncludeContrastChecks = $true
     CandidateLimit = 6
     RankingHorizonSessions = 20
     LlamaCliPath = 'C:\MarketBrainTools\llama.cpp\llama-cli.exe'
@@ -3940,7 +3942,11 @@ $parameters = @{
 & '.\ops\windows\ComparePrototypeSwingTypedDecisions.ps1' @parameters
 ```
 
-This makes 12 sequential model calls, six per model, and keeps concurrency at one. There are no repair retries in
+This first makes four synthetic contrast calls. Only if all four diagnostics pass does it make six balanced-stock
+calls (ten calls maximum). `DIAGNOSTIC_GATE_BLOCKED` means the remaining stage was deliberately skipped; share the
+two evidence files rather than rerunning unchanged. The synthetic expected outputs are not investment ground truth.
+The comparison runner still supports the explicit two-model comparison; omit IncludeContrastChecks and ModelRefs
+to reproduce six candidates per model. All calls keep concurrency at one. There are no repair retries in
 independent mode. Expect several minutes with already cached models, but use the measured run timings rather than a
 completion guarantee. The per-invocation timeout is not a whole-run deadline. The runner displays stage percentages,
 candidate timings and a heartbeat during long subprocess calls. Unique run names preserve earlier experiments.
@@ -3957,7 +3963,8 @@ unique names. Preserve `BASELINE_CONSTRAINED` only for reproducing earlier restr
 Offline development checks: `mvn -q "-Dtest=PrototypeSwingTypedDecision*Test" package` in `marketbrain-service`,
 `ops/windows/TestTypedDecisionEvaluation.ps1`, and `ops/windows/TestTypedDecisionRunnerOffline.ps1`. The PowerShell
 checks use synthetic fixtures and invoke no model or service. The runner test replaces HTTP/process functions before
-execution and covers missing keys, nonzero exits, timeouts, old-server rejection and two-file comparison consolidation.
+execution and covers missing keys, nonzero exits, timeouts, old-server rejection, contrast-gate stop/continue and
+two-file comparison consolidation. The V4 script rejects a V3 deployment before candidate inference.
 
 ### Standard redeploy
 

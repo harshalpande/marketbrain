@@ -13,7 +13,7 @@ import java.util.UUID;
 @Service
 public class PrototypeSwingTypedDecisionPrimitivePreviewService {
 
-    static final String DECISION_CONTRACT_VERSION = "MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V3";
+    static final String DECISION_CONTRACT_VERSION = "MARKETBRAIN_TYPED_DECISION_PRIMITIVE_V4";
     static final String GRAMMAR_VERSION = "MARKETBRAIN_TYPED_DECISION_GBNF_V1";
 
     private static final int DEFAULT_CANDIDATE_LIMIT = 12;
@@ -62,7 +62,10 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
         int candidateLimit = candidateLimit(safeRequest.candidateLimit());
         int horizon = horizon(safeRequest.rankingHorizonSessions());
         UUID runId = audit.datasetRunId();
-        List<PrototypeSwingOllamaCandidate> candidates = "BALANCED_VALIDATION".equals(selectionMode)
+        boolean diagnostic = "CONTRAST_VALIDATION".equals(selectionMode);
+        List<PrototypeSwingOllamaCandidate> candidates = diagnostic
+                ? TypedDecisionFacts.contrastCandidates().stream().skip(startOffset).limit(candidateLimit).toList()
+                : "BALANCED_VALIDATION".equals(selectionMode)
                 ? balancedCandidates(guidedRankingService.candidates(runId, 0, 500, "RANDOM_VALIDATION"),
                         startOffset, candidateLimit)
                 : guidedRankingService.candidates(runId, startOffset, candidateLimit, selectionMode);
@@ -85,7 +88,8 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
                     qualityAnchorRank,
                     qualityAnchorScore,
                     leaderQualityAnchorScore,
-                    actualRanks.get(candidate.symbol())
+                    diagnostic ? null : actualRanks.get(candidate.symbol()),
+                    diagnostic
             ));
         }
         return new PrototypeSwingTypedDecisionPrimitivePreview(
@@ -128,7 +132,8 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
             int qualityAnchorRank,
             int qualityAnchorScore,
             int leaderQualityAnchorScore,
-            int actualRank
+            Integer actualRank,
+            boolean diagnostic
     ) {
         String decision = javaDecision(candidate, candidateCount, qualityAnchorRank, qualityAnchorScore);
         String riskBucket = javaRiskBucket(candidate, qualityAnchorScore);
@@ -170,8 +175,10 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
                 targetBenchmarkExcessReturn(candidate, horizon),
                 targetMaximumDrawdown(candidate, horizon),
                 independentPrompt(candidate, index, horizon),
-                evidenceCategory(candidate),
-                hardExclusionReason(candidate)
+                diagnostic ? "SYNTHETIC" : evidenceCategory(candidate),
+                hardExclusionReason(candidate),
+                TypedDecisionFacts.of(candidate),
+                diagnostic ? TypedDecisionFacts.diagnosticExpectations(candidate.symbol()) : List.of()
         );
     }
 
@@ -209,10 +216,15 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
 
     String hardExclusionReason(PrototypeSwingOllamaCandidate c) {
         if (c.effectiveAsOf() == null || c.latestClose() == null || c.latestClose().signum() <= 0
-                || c.sma20() == null || c.sma50() == null || c.sma200() == null
-                || c.ema12() == null || c.ema26() == null || c.rsi14() == null
+                || !TypedDecisionFacts.positive(c.sma20()) || !TypedDecisionFacts.positive(c.sma50())
+                || !TypedDecisionFacts.positive(c.sma200()) || !TypedDecisionFacts.positive(c.ema12())
+                || !TypedDecisionFacts.positive(c.ema26()) || c.rsi14() == null
                 || c.annualizedVolatility20Percent() == null || c.volumeRatio20() == null
-                || c.rangePosition252Percent() == null || c.dailyReturnPercent() == null) {
+                || c.rangePosition252Percent() == null || c.dailyReturnPercent() == null
+                || c.rsi14().signum() < 0 || c.rsi14().compareTo(BigDecimal.valueOf(100)) > 0
+                || c.volumeRatio20().signum() < 0 || c.annualizedVolatility20Percent().signum() < 0
+                || c.rangePosition252Percent().signum() < 0
+                || c.rangePosition252Percent().compareTo(BigDecimal.valueOf(100)) > 0) {
             return "MISSING_OR_INVALID_REQUIRED_FEATURES";
         }
         return "NONE";
@@ -221,38 +233,42 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
     String independentPrompt(PrototypeSwingOllamaCandidate c, int index, int horizon) {
         // Intentionally excludes symbol, Java decisions/scores/ranks, strata, and future labels.
         return """
-                Return only one JSON object for candidateId=%s. This is an offline research assessment for %d sessions.
-                Assess the evidence independently; no baseline answer is supplied.
-                Required keys: candidateId, decision, riskBucket, trapDetected, scoreBand, confidenceBand, primaryReasonCode.
+                Assess this candidate for %d sessions; research only, never permission to trade. Return only JSON.
+                Prompt policy=TYPED_POLICY_V2; arithmetic facts=TYPED_FACTS_V1. No baseline answer is supplied.
+                EVIDENCE for candidateId=%s:
+                %s
+                Raw: close=%s; rsi14=%s; volumeRatio20=%s; annualizedVolatility20Percent=%s; rangePosition252Percent=%s; dailyReturnPercent=%s; date=%s.
+                Hard exclusion reason=%s. topPickEligibility=%s limits TOP_PICK only. scoreCapHint=%s.
+
+                POLICY: first read the evidence, then select research priority.
+                ABOVE_ALL plus POSITIVE EMA supports trend; BELOW_ALL plus NEGATIVE EMA supports WEAK_TREND.
+                RSI below 40 weakens confirmation; RSI at least 70 flags extension. Volume below 0.8 weakens participation.
+                SHORTLIST = supported opportunity; WATCHLIST = mixed/unconfirmed; REJECT = predominantly adverse evidence.
+                TOP_PICK needs aligned trend, momentum, participation, controlled risk and permission from the caps.
+                HIGH volatility raises risk, not automatically REJECT or trapDetected=YES.
+                BLOCKED is legal ONLY when hard exclusion is not NONE; then REJECT and VERY_LOW/LOW are mandatory.
+                Otherwise riskBucket must be LOW, MEDIUM or HIGH, even when topPickEligibility is BLOCKED.
+                HARD_CAP_54 forbids HIGH/VERY_HIGH score and TOP_PICK. HARD_CAP_69 forbids VERY_HIGH and TOP_PICK.
+                REJECT forbids HIGH/VERY_HIGH score. Score is opportunity strength; confidence is evidence clarity, not profit probability.
+                Trap YES needs adverse pattern evidence. Mixed indicators alone do not establish a trap.
+                Select a reason supported by these facts; do not invent relative strength against an absent benchmark.
+
+                Illustrative patterns, not answers for this candidate:
+                - Above averages, positive EMA, RSI 57, volume 1.5, volatility 21, range 60, no exclusion: SHORTLIST/MEDIUM/HIGH, trap NO, STRONG_MOMENTUM.
+                - Below averages, negative EMA, RSI 31, no exclusion: REJECT/HIGH/LOW, WEAK_TREND; not BLOCKED.
+                - Improving EMA but mixed averages and low volume: WATCHLIST/HIGH/MEDIUM, MIXED_EVIDENCE.
+                - Missing required input: REJECT/BLOCKED/VERY_LOW, BLOCKED_BY_RISK; missing data alone is not a price trap.
+
+                Output exactly these keys: candidateId, decision, riskBucket, trapDetected, scoreBand, confidenceBand, primaryReasonCode.
                 decision: REJECT, WATCHLIST, SHORTLIST, TOP_PICK.
                 riskBucket: LOW, MEDIUM, HIGH, BLOCKED. trapDetected: YES, NO.
                 scoreBand: VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH. confidenceBand: LOW, MEDIUM, HIGH.
                 primaryReasonCode: WEAK_TREND, STRONG_MOMENTUM, TRAP_RISK, RELATIVE_STRENGTH,
                 RISK_ADJUSTED_LEADER, BLOCKED_BY_RISK, RECOVERY_SETUP, OVEREXTENSION_RISK, MIXED_EVIDENCE.
-                Interpret decisions as research priority, not permission to trade:
-                - SHORTLIST: credible opportunity with supporting evidence; HIGH risk alone does not force rejection.
-                - WATCHLIST: plausible recovery with insufficient confirmation, or materially conflicting evidence.
-                - REJECT: weak opportunity or substantial adverse evidence; do not reject merely because risk exists.
-                - TOP_PICK: strong aligned trend, momentum and participation with controlled risk and no top-pick restriction.
-                Hard exclusion reason=%s. If not NONE, return REJECT/BLOCKED with VERY_LOW or LOW.
-                topPickEligibility=%s limits TOP_PICK only; BLOCKED here does not mean all research decisions are blocked.
-                scoreCapHint=%s. HARD_CAP_54 disallows HIGH/VERY_HIGH score bands and TOP_PICK.
-                HARD_CAP_69 disallows VERY_HIGH and TOP_PICK. SOFT_CAP_84 allows VERY_HIGH within the Java cap.
-                HIGH risk is caution; reserve riskBucket=BLOCKED for a hard exclusion.
-                A low 252-session range position alone is not a recovery. Look for improving momentum and participation.
-                A low range with bearish EMA and weak RSI may justify WATCHLIST until confirmation.
-                Strong aligned price/averages, positive EMA momentum and volume support can justify SHORTLIST.
-                Elevated RSI plus extreme range position and volatility may justify REJECT for overextension.
-                trapDetected=YES requires adverse pattern evidence, not merely HIGH risk.
-                REJECT uses VERY_LOW, LOW or MEDIUM; BLOCKED requires REJECT and VERY_LOW or LOW.
-                Confidence is strength of available evidence, not a probability of profit.
-                As-of data: date=%s; close=%s; dailyReturnPercent=%s; sma20=%s; sma50=%s; sma200=%s;
-                ema12=%s; ema26=%s; rsi14=%s; annualizedVolatility20Percent=%s; volumeRatio20=%s; rangePosition252Percent=%s.
-                """.formatted(PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index), horizon,
-                hardExclusionReason(c), guidedRankingService.topPickEligibility(c), guidedRankingService.scoreCapHint(c),
-                c.effectiveAsOf(), c.latestClose(), c.dailyReturnPercent(), c.sma20(), c.sma50(), c.sma200(),
-                c.ema12(), c.ema26(), c.rsi14(), c.annualizedVolatility20Percent(), c.volumeRatio20(),
-                c.rangePosition252Percent()).strip();
+                """.formatted(horizon, PrototypeSwingOllamaGuidedRankingPreviewService.candidateId(index),
+                TypedDecisionFacts.of(c), c.latestClose(), c.rsi14(), c.volumeRatio20(),
+                c.annualizedVolatility20Percent(), c.rangePosition252Percent(), c.dailyReturnPercent(), c.effectiveAsOf(),
+                hardExclusionReason(c), guidedRankingService.topPickEligibility(c), guidedRankingService.scoreCapHint(c)).strip();
     }
 
     private String prompt(
@@ -547,10 +563,10 @@ public class PrototypeSwingTypedDecisionPrimitivePreviewService {
             return "FIXED_SYMBOL";
         }
         String normalized = value.trim().toUpperCase(Locale.ROOT);
-        if (!List.of("FIXED_SYMBOL", "RANDOM_VALIDATION", "DIFFICULT_TRAPS", "RECOVERY_OVEREXTENSION", "BALANCED_VALIDATION")
+        if (!List.of("FIXED_SYMBOL", "RANDOM_VALIDATION", "DIFFICULT_TRAPS", "RECOVERY_OVEREXTENSION", "BALANCED_VALIDATION", "CONTRAST_VALIDATION")
                 .contains(normalized)) {
             throw new IllegalArgumentException(
-                    "selectionMode must be FIXED_SYMBOL, RANDOM_VALIDATION, DIFFICULT_TRAPS, RECOVERY_OVEREXTENSION, or BALANCED_VALIDATION.");
+                    "selectionMode must be FIXED_SYMBOL, RANDOM_VALIDATION, DIFFICULT_TRAPS, RECOVERY_OVEREXTENSION, BALANCED_VALIDATION, or CONTRAST_VALIDATION.");
         }
         return normalized;
     }

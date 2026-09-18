@@ -30,12 +30,14 @@ public record PrototypeSwingTypedDecisionPrimitiveCandidate(
         String rangeTag,
         String recoveryTag,
         String overextensionTag,
-        int actualRank,
+        Integer actualRank,
         BigDecimal targetNetReturnPercent,
         BigDecimal targetBenchmarkExcessReturnPercent,
         BigDecimal targetMaximumDrawdownPercent,
         String independentPrompt,
         String evidenceCategory,
-        String hardExclusionReason
+        String hardExclusionReason,
+        java.util.Map<String, String> featureEvidence,
+        java.util.List<String> diagnosticExpectedDecisions
 ) {
 }

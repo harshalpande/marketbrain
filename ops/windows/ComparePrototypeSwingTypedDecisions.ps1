@@ -5,6 +5,7 @@ param(
     [string[]]$ModelRefs = @('Qwen/Qwen2.5-0.5B-Instruct-GGUF:Q4_K_M', 'Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M'),
     [ValidateSet('BALANCED_VALIDATION', 'RECOVERY_OVEREXTENSION', 'RANDOM_VALIDATION', 'DIFFICULT_TRAPS', 'FIXED_SYMBOL')]
     [string]$SelectionMode = 'BALANCED_VALIDATION',
+    [switch]$IncludeContrastChecks,
     [ValidateRange(3,24)][int]$CandidateLimit = 6,
     [ValidateSet(5,20,60)][int]$RankingHorizonSessions = 20,
     [string]$LlamaCliPath = 'C:\MarketBrainTools\llama.cpp\llama-cli.exe',
@@ -26,6 +27,7 @@ $report = [pscustomobject][ordered]@{
     evaluationMode = 'INDEPENDENT'; candidateLimit = $CandidateLimit
     rankingHorizonSessions = $RankingHorizonSessions; modelConcurrency = 1
     comparableInputs = $null; results = @(); comparison = @(); failures = @()
+    contrastGateBlocked = $false
     actionExecutionEnabled = $false
 }
 function Write-ComparisonStatus([int]$Percent, [string]$Message) {
@@ -37,13 +39,20 @@ function Write-ComparisonStatus([int]$Percent, [string]$Message) {
 $clock = [System.Diagnostics.Stopwatch]::StartNew()
 try {
     Save-TypedDecisionEvidence $report $resultPath
-    for ($index = 0; $index -lt $ModelRefs.Count; $index++) {
-        $percent = [int][math]::Floor(100.0 * $index / $ModelRefs.Count)
-        Write-ComparisonStatus $percent "Starting model $($index + 1)/$($ModelRefs.Count): $($ModelRefs[$index])"
+    $tasks = @(
+        if ($IncludeContrastChecks) {
+            foreach ($model in $ModelRefs) { [pscustomobject]@{ model=$model; mode='CONTRAST_VALIDATION'; limit=4 } }
+        }
+        foreach ($model in $ModelRefs) { [pscustomobject]@{ model=$model; mode=$SelectionMode; limit=$CandidateLimit } }
+    )
+    for ($index = 0; $index -lt $tasks.Count; $index++) {
+        $task = $tasks[$index]
+        $percent = [int][math]::Floor(100.0 * $index / $tasks.Count)
+        Write-ComparisonStatus $percent "Starting stage $($index + 1)/$($tasks.Count): $($task.mode), $($task.model)"
         $childDirectory = Join-Path $workDirectory "model-$index"
         $parameters = @{
-            DatasetRunId=$DatasetRunId; ModelRef=$ModelRefs[$index]; SelectionMode=$SelectionMode
-            EvaluationMode='INDEPENDENT'; StartOffset=0; CandidateLimit=$CandidateLimit
+            DatasetRunId=$DatasetRunId; ModelRef=$task.model; SelectionMode=$task.mode
+            EvaluationMode='INDEPENDENT'; StartOffset=0; CandidateLimit=$task.limit
             RankingHorizonSessions=$RankingHorizonSessions; LlamaCliPath=$LlamaCliPath
             TimeoutSeconds=$TimeoutSeconds; OutputDirectory=$childDirectory
         }
@@ -51,7 +60,7 @@ try {
         try { & (Join-Path $PSScriptRoot 'PreviewPrototypeSwingTypedDecisionPrimitives.ps1') @parameters }
         catch { $childError = $_.Exception.Message }
         $jsonFile = Get-ChildItem -LiteralPath $childDirectory -Filter '*.json' -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($null -eq $jsonFile) { throw "No child evidence saved for $($ModelRefs[$index]): $childError" }
+        if ($null -eq $jsonFile) { throw "No child evidence saved for $($task.model): $childError" }
         $childResult = Get-Content -LiteralPath $jsonFile.FullName -Raw | ConvertFrom-Json
         $report.results += $childResult
         Get-ChildItem -LiteralPath $childDirectory -Filter '*.log' | ForEach-Object {
@@ -59,25 +68,34 @@ try {
         }
         Save-TypedDecisionEvidence $report $resultPath
         if ($null -ne $childError) { throw $childError }
+        if ($task.mode -eq 'CONTRAST_VALIDATION' -and
+            ($childResult.evaluation.diagnosticCaseCount -ne 4 -or $childResult.evaluation.diagnosticPassedCount -ne 4)) {
+            $report.contrastGateBlocked = $true
+            Write-ComparisonStatus $percent 'Diagnostic gate failed; remaining inference skipped. Review saved evidence before another run.'
+            break
+        }
     }
-    $reference = @($report.results[0].attempts | ForEach-Object {
-        [ordered]@{ symbol=$_.symbol; prompt=$_.prompt; grammar=$_.grammar; netReturn=$_.targetNetReturnPercent; benchmarkExcess=$_.targetBenchmarkExcessReturnPercent; drawdown=$_.targetMaximumDrawdownPercent }
-    }) | ConvertTo-Json -Depth 8 -Compress
+    $references = @{}
     $report.comparableInputs = $true
     foreach ($result in $report.results) {
         $signature = @($result.attempts | ForEach-Object {
             [ordered]@{ symbol=$_.symbol; prompt=$_.prompt; grammar=$_.grammar; netReturn=$_.targetNetReturnPercent; benchmarkExcess=$_.targetBenchmarkExcessReturnPercent; drawdown=$_.targetMaximumDrawdownPercent }
         }) | ConvertTo-Json -Depth 8 -Compress
-        if ($signature -cne $reference) { $report.comparableInputs = $false }
+        if ($references.ContainsKey($result.selectionMode)) {
+            if ($signature -cne $references[$result.selectionMode]) { $report.comparableInputs = $false }
+        } else { $references[$result.selectionMode] = $signature }
         $report.comparison += [pscustomobject]@{
-            model=$result.modelRef; candidates=$result.candidateCount
+            model=$result.modelRef; scenario=$result.selectionMode; candidates=$result.candidateCount
             schemaValidPercent=$result.schemaValidPercent; businessValidPercent=$result.businessValidPercent
             javaAlignmentPercent=$result.javaAlignmentPercent; selected=$result.evaluation.modelSelectedCount
             positiveOutcomeRecallPercent=$result.evaluation.modelPositiveOutcomeRecallPercent
+            diagnosticPassPercent=$result.evaluation.diagnosticPassPercent
+            reasonEvidenceWarningCount=$result.evaluation.reasonEvidenceWarningCount
             averageSeconds=[math]::Round($result.evaluation.meanCandidateElapsedMillis / 1000.0, 2)
         }
     }
-    $report.status = if (-not $report.comparableInputs) { 'INCOMPARABLE_INPUTS' }
+    $report.status = if ($report.contrastGateBlocked) { 'DIAGNOSTIC_GATE_BLOCKED' }
+        elseif (-not $report.comparableInputs) { 'INCOMPARABLE_INPUTS' }
         elseif (@($report.results | Where-Object { $_.status -ne 'REVIEW_REQUIRED' }).Count -gt 0) { 'REVIEW_WITH_WARNINGS' }
         else { 'REVIEW_REQUIRED' }
     Save-TypedDecisionEvidence $report $resultPath

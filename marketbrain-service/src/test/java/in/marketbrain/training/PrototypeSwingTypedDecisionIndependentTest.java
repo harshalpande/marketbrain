@@ -110,6 +110,88 @@ class PrototypeSwingTypedDecisionIndependentTest {
     }
 
     @Test
+    void derivedFactsHaveExplicitArithmeticAndNoLabels() {
+        var facts = TypedDecisionFacts.of(candidate("FACTS"));
+        assertThat(facts).containsEntry("distanceSma20Percent", "2.04")
+                .containsEntry("distanceSma50Percent", "5.26")
+                .containsEntry("distanceSma200Percent", "11.11")
+                .containsEntry("ema12Above26Percent", "2.06")
+                .containsEntry("priceVsAverages", "ABOVE_ALL")
+                .containsEntry("volumeBand", "AT_LEAST_1_2");
+        assertThat(TypedDecisionFacts.distance(BigDecimal.TEN, BigDecimal.ZERO)).isEqualTo("UNKNOWN");
+        assertThat(TypedDecisionFacts.distance(null, BigDecimal.TEN)).isEqualTo("UNKNOWN");
+        assertThat(TypedDecisionFacts.distance(BigDecimal.valueOf(90), BigDecimal.valueOf(100))).isEqualTo("-10.00");
+        assertThat(facts.toString()).doesNotContain("987.654321", "decision", "qualityAnchor");
+    }
+
+    @Test
+    void contrastCasesChangeEvidenceNotThePolicyOrFutureLabels() {
+        var cases = TypedDecisionFacts.contrastCandidates();
+        assertThat(cases).hasSize(4);
+        var strong = cases.get(0);
+        var weak = cases.get(1);
+        var highVol = cases.get(2);
+        var missing = cases.get(3);
+        assertThat(TypedDecisionFacts.of(strong)).containsEntry("priceVsAverages", "ABOVE_ALL");
+        assertThat(TypedDecisionFacts.of(weak)).containsEntry("priceVsAverages", "BELOW_ALL");
+        assertThat(highVol.latestClose()).isEqualTo(strong.latestClose());
+        assertThat(highVol.sma20()).isEqualTo(strong.sma20());
+        assertThat(highVol.volumeRatio20()).isEqualTo(strong.volumeRatio20());
+        assertThat(TypedDecisionFacts.of(highVol)).containsEntry("volatilityBand", "AT_LEAST_45");
+        assertThat(service.hardExclusionReason(highVol)).isEqualTo("NONE");
+        assertThat(service.hardExclusionReason(missing)).isEqualTo("MISSING_OR_INVALID_REQUIRED_FEATURES");
+        for (int i = 0; i < cases.size(); i++) {
+            var c = cases.get(i);
+            assertThat(c.netReturn20Sessions()).isNull();
+            assertThat(service.independentPrompt(c, i, 20)).doesNotContain(c.symbol(), "diagnosticExpected", "actualRank");
+        }
+        assertThat(TypedDecisionFacts.diagnosticExpectations(strong.symbol())).contains("SHORTLIST");
+        assertThat(TypedDecisionFacts.diagnosticExpectations(missing.symbol())).containsExactly("REJECT");
+    }
+
+    @Test
+    void contrastPreviewUsesRealFeatureRulesWithoutCandidateQueryOrModelCall() {
+        var jdbc = mock(org.springframework.jdbc.core.JdbcTemplate.class);
+        var model = mock(PrototypeSwingOllamaClient.class);
+        var realGuided = new PrototypeSwingOllamaGuidedRankingPreviewService(audit, model, jdbc,
+                new com.fasterxml.jackson.databind.ObjectMapper());
+        var previewService = new PrototypeSwingTypedDecisionPrimitivePreviewService(audit, realGuided);
+        UUID id = UUID.randomUUID();
+        var dataset = mock(PrototypeSwingTrainingDatasetAudit.class);
+        when(audit.audit(id)).thenReturn(dataset);
+        when(dataset.status()).thenReturn("REVIEW_REQUIRED");
+        when(dataset.datasetRunId()).thenReturn(id);
+        when(dataset.prototypeTrainingEligible()).thenReturn(true);
+        when(dataset.pointInTimeSafe()).thenReturn(true);
+        when(dataset.futureLabelsSeparated()).thenReturn(true);
+        when(dataset.auditReadyForOllamaRanking()).thenReturn(true);
+        when(dataset.failedCheckpoints()).thenReturn(List.of());
+        var result = previewService.preview(new PrototypeSwingTypedDecisionPrimitiveRequest(id, "CONTRAST_VALIDATION", 0, 4, 20));
+        assertThat(result.candidates()).hasSize(4).allSatisfy(c -> {
+            assertThat(c.actualRank()).isNull();
+            assertThat(c.targetNetReturnPercent()).isNull();
+            assertThat(c.evidenceCategory()).isEqualTo("SYNTHETIC");
+            assertThat(c.diagnosticExpectedDecisions()).isNotEmpty();
+            assertThat(c.independentPrompt()).doesNotContain(c.symbol(), "diagnosticExpected");
+        });
+        assertThat(result.candidates().get(3).hardExclusionReason()).isEqualTo("MISSING_OR_INVALID_REQUIRED_FEATURES");
+        assertThat(result.databaseWritesPerformed()).isFalse();
+        verifyNoInteractions(jdbc, model);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(result).toString();
+        assertThat(json).contains("featureEvidence", "diagnosticExpectedDecisions", "TYPED_FACTS_V1");
+    }
+
+    @Test
+    void rejectsInvalidIndicatorDomainsWithoutDividingByZero() {
+        var invalid = mock(PrototypeSwingOllamaCandidate.class);
+        when(invalid.latestClose()).thenReturn(BigDecimal.TEN);
+        when(invalid.effectiveAsOf()).thenReturn(LocalDate.of(2026, 6, 5));
+        when(invalid.sma20()).thenReturn(BigDecimal.ZERO);
+        assertThat(service.hardExclusionReason(invalid)).isEqualTo("MISSING_OR_INVALID_REQUIRED_FEATURES");
+        assertThat(TypedDecisionFacts.of(invalid)).containsEntry("distanceSma20Percent", "UNKNOWN");
+    }
+
+    @Test
     void springCanConstructPreviewServiceWithItsSingleConstructor() {
         try (var context = new AnnotationConfigApplicationContext()) {
             context.registerBean(PrototypeSwingTrainingDatasetAuditService.class, () -> audit);
