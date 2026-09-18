@@ -150,6 +150,60 @@ function Test-InSet {
     return @($Allowed) -contains ([string]$Value)
 }
 
+function Invoke-LlamaCliProcess {
+    param(
+        [string]$ExecutablePath,
+        [string[]]$Arguments,
+        [string]$StandardOutputPath,
+        [string]$StandardErrorPath,
+        [int]$ProcessTimeoutSeconds
+    )
+    $processInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $processInfo.FileName = $ExecutablePath
+    $processInfo.UseShellExecute = $false
+    $processInfo.RedirectStandardOutput = $true
+    $processInfo.RedirectStandardError = $true
+    $processInfo.CreateNoWindow = $true
+    foreach ($argument in $Arguments) {
+        [void]$processInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [System.Diagnostics.Process]::new()
+    $process.StartInfo = $processInfo
+    $started = $process.Start()
+    if (-not $started) {
+        throw "Failed to start llama-cli process: $ExecutablePath"
+    }
+
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $completed = $process.WaitForExit($ProcessTimeoutSeconds * 1000)
+    $timedOut = -not $completed
+    if ($timedOut) {
+        try {
+            $process.Kill($true)
+        }
+        catch {
+            Write-Warning "Failed to kill timed-out llama-cli process: $($_.Exception.Message)"
+        }
+    }
+    else {
+        $process.WaitForExit()
+    }
+
+    $stdout = $stdoutTask.GetAwaiter().GetResult()
+    $stderr = $stderrTask.GetAwaiter().GetResult()
+    $stdout | Set-Content -LiteralPath $StandardOutputPath -Encoding UTF8
+    $stderr | Set-Content -LiteralPath $StandardErrorPath -Encoding UTF8
+
+    [pscustomobject][ordered]@{
+        exitCode = if ($timedOut) { -999 } else { $process.ExitCode }
+        timedOut = $timedOut
+        stdout = $stdout
+        stderr = $stderr
+    }
+}
+
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 $suffix = if ([string]::IsNullOrWhiteSpace($DatasetRunId)) { 'latest' } else { $DatasetRunId }
@@ -223,32 +277,29 @@ try {
             '-n', ([string]$MaxTokens),
             '--temp', '0'
         )
-        $process = Start-Process `
-            -FilePath $llamaCli `
-            -ArgumentList $llamaArguments `
-            -NoNewWindow `
-            -Wait `
-            -PassThru `
-            -RedirectStandardOutput $rawPath `
-            -RedirectStandardError $stderrPath
+        $process = Invoke-LlamaCliProcess `
+            -ExecutablePath $llamaCli `
+            -Arguments $llamaArguments `
+            -StandardOutputPath $rawPath `
+            -StandardErrorPath $stderrPath `
+            -ProcessTimeoutSeconds $TimeoutSeconds
         $usedFallbackInvocation = $false
-        if ($process.ExitCode -ne 0) {
-            Write-Host ("llama-cli primary invocation failed for {0} with exit code {1}; retrying with minimal arguments." -f $candidate.symbol, $process.ExitCode) -ForegroundColor Yellow
+        if ($process.exitCode -ne 0) {
+            Write-Host ("llama-cli primary invocation failed for {0} with exit code {1}; retrying with minimal non-interactive arguments." -f $candidate.symbol, $process.exitCode) -ForegroundColor Yellow
             $fallbackArguments = @(
                 '-hf', $ModelRef,
                 '--grammar-file', $grammarPath,
+                '-no-cnv',
                 '-f', $promptPath,
                 '-n', ([string]$MaxTokens),
                 '--temp', '0'
             )
-            $process = Start-Process `
-                -FilePath $llamaCli `
-                -ArgumentList $fallbackArguments `
-                -NoNewWindow `
-                -Wait `
-                -PassThru `
-                -RedirectStandardOutput $fallbackRawPath `
-                -RedirectStandardError $fallbackStderrPath
+            $process = Invoke-LlamaCliProcess `
+                -ExecutablePath $llamaCli `
+                -Arguments $fallbackArguments `
+                -StandardOutputPath $fallbackRawPath `
+                -StandardErrorPath $fallbackStderrPath `
+                -ProcessTimeoutSeconds $TimeoutSeconds
             $usedFallbackInvocation = $true
         }
         $elapsedMillis = [int](((Get-Date) - $startedAt).TotalMilliseconds)
@@ -267,8 +318,11 @@ try {
         $warnings = @()
         $failures = @()
         $decision = $null
-        if ($process.ExitCode -ne 0) {
-            $failures += "LLAMA_EXIT_CODE_$($process.ExitCode)"
+        if ($process.exitCode -ne 0) {
+            $failures += "LLAMA_EXIT_CODE_$($process.exitCode)"
+        }
+        if ($process.timedOut) {
+            $failures += 'LLAMA_PROCESS_TIMEOUT'
         }
         if ([string]::IsNullOrWhiteSpace($jsonText)) {
             $failures += 'NO_JSON_OBJECT_FOUND'
@@ -354,7 +408,8 @@ try {
             fallbackRawOutputPath                  = if ($usedFallbackInvocation) { $fallbackRawPath } else { $null }
             fallbackStderrPath                     = if ($usedFallbackInvocation) { $fallbackStderrPath } else { $null }
             usedFallbackInvocation                 = $usedFallbackInvocation
-            llamaExitCode                          = $process.ExitCode
+            llamaExitCode                          = $process.exitCode
+            llamaTimedOut                          = $process.timedOut
             responsePath                           = if (Test-Path -LiteralPath $responsePath) { $responsePath } else { $null }
             elapsedMillis                          = $elapsedMillis
             parseableJson                          = $parseable
