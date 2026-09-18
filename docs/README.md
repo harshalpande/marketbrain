@@ -53,3 +53,19 @@ Use the roadmap as the only progress ledger and system-design safety rules as th
 Begin with G10.6: read-only inventory of the spare laptop's LLMs/runtimes, dependency review and an owner-approved cleanup list. Cleanup is pending, not performed; preserve evidence and active jobs, and do not delete shared caches or uninstall engines blindly. This is a prerequisite for new model/runtime work, not a reason to block independent source/data review or portal design.
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
+
+### G10.6 read-only spare-laptop inventory
+
+After pulling the inventory-tool commit on the spare laptop, run:
+
+```powershell
+& '.\ops\windows\GetSpareLlmCleanupInventory.ps1'
+```
+
+Windows PowerShell 5.1 or PowerShell 7 is supported by the script syntax; local offline verification was on 5.1, not a live spare-machine run. The tool never executes llama binaries or calls model inference, deletes models, downloads anything, stops existing processes, reads `.env`, or queries a database/broker. Its only filesystem writes are one uniquely named report and transient checkpoint files under `C:\MarketBrainData\Review`. Share the printed `llm-inventory-<timestamp>-<id>.json` only; timings, progress events and warnings are embedded. Reports contain local paths and model names: inspect them before sharing. A failed save may leave a pending checkpoint; do not rerun inference to recover it.
+
+Ollama inspection uses only loopback [GET /api/tags](https://docs.ollama.com/api/tags) and [GET /api/ps](https://docs.ollama.com/api/ps), with 10-second request timeouts and no redirects. Unavailable or malformed responses mean UNKNOWN, not no models. The tool inspects process names/IDs, executable file-version metadata and Windows hardware counters; GPU AdapterRAM is explicitly not a reliable free-VRAM measurement. It does not verify Java jobs, scheduled tasks or actual live-service configuration.
+
+Default GGUF roots are the user's Hugging Face hub cache, user/local-app-data llama.cpp caches, and `C:\MarketBrainTools\llama.cpp`. Add a specific nonstandard model directory using `-AdditionalModelDirectories @('D:\MyModelFolder')` only if that is your actual location. No whole-drive search. The scan has a cooperative 30-second / 10,000-entry / depth-10 limit, skips directory links and labels partial results. Slow filesystem/CIM operations can exceed the time budget; this is not a hard wall-clock guarantee. Model blobs are not hashed or loaded, shared/hardlinked size is not summed as recoverable space, and Ollama blob stores are not manually traversed.
+
+Fixed-token source references provide dependency hints only; actual dependency review, retain/remove approval and cleanup remain pending. Normally allow a few minutes, not a model-evaluation session. Do not stop running jobs or start Ollama merely to force a green report; unavailable components are useful evidence too.

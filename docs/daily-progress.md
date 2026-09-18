@@ -69,6 +69,14 @@ Current percentages live in [the roadmap](roadmap.md). Evidence definitions and 
 - Scope of this turn: documentation reminder and next-work recommendation only. No spare-machine command, model deletion/download, process termination, code change, provider request or deployment performed. Cleanup remains 0/5; G00 remains 80%; weighted product baseline remains 12.4%.
 - Preserve all prior experiment evidence, databases, configuration, shared model-cache dependencies and any running jobs. Removal targets and recoverability must be reviewed before cleanup. Independent source/data/design work can proceed without waiting for file deletion once its scope is authorized.
 
+## 2026-09-18 — G10.6 read-only inventory tool implemented
+
+- Owner authorized proceeding with the immediately proposed read-only spare-machine inventory. Implemented a single-report collector and offline tests, not deletion or model selection. No application/Java, architecture, deployment, provider or broker behaviour changed.
+- Tool: `ops/windows/GetSpareLlmCleanupInventory.ps1`; one unique JSON with incremental atomic checkpoints, progress events, timings, script hashes, limitations and per-section unknown states. Collects only local read-only Ollama lists, runtime file/process metadata, bounded GGUF path metadata, hardware counters and allowlisted source-reference tokens. No model inference/download, process stop, credential dump, .env access, full configuration export or cleanup.
+- Verification E21: offline tests using fake HTTP responses, dummy non-model files, an isolated directory junction and mocked integration collectors passed 41 assertions under Windows PowerShell 5.1. First atomic-save test exposed PowerShell's null-string conversion in File.Replace; fixed using NullString and verified successive checkpoints. Tests left small uniquely named fixtures in the local temporary directory, not in the repo or model caches. No live Ollama, Java, hardware collection or model inference was performed here; PowerShell 7 runtime verification remains for the spare laptop.
+- G10.6 C1–C5 remain pending (0/5) until the real inventory is returned and reviewed; overall paper-first delivery remains 12.4%. A supporting inventory script is not the complete G10 implementation checkpoint.
+- Handoff: pull this commit, run the inventory script on the spare laptop, share only the printed JSON. No Docker rebuild or model run. Use the result to propose exact retain/remove targets and dependencies; cleanup remains separately approved.
+
 ## Daily entry template
 
 Copy this section for the next worked day; keep empty fields explicitly unknown rather than filling with guesses.
