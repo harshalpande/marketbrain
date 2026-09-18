@@ -156,13 +156,15 @@ function Invoke-LlamaCliProcess {
         [string[]]$Arguments,
         [string]$StandardOutputPath,
         [string]$StandardErrorPath,
-        [int]$ProcessTimeoutSeconds
+        [int]$ProcessTimeoutSeconds,
+        [string]$StandardInputText
     )
     $processInfo = [System.Diagnostics.ProcessStartInfo]::new()
     $processInfo.FileName = $ExecutablePath
     $processInfo.UseShellExecute = $false
     $processInfo.RedirectStandardOutput = $true
     $processInfo.RedirectStandardError = $true
+    $processInfo.RedirectStandardInput = -not [string]::IsNullOrEmpty($StandardInputText)
     $processInfo.CreateNoWindow = $true
     foreach ($argument in $Arguments) {
         [void]$processInfo.ArgumentList.Add($argument)
@@ -177,6 +179,10 @@ function Invoke-LlamaCliProcess {
 
     $stdoutTask = $process.StandardOutput.ReadToEndAsync()
     $stderrTask = $process.StandardError.ReadToEndAsync()
+    if (-not [string]::IsNullOrEmpty($StandardInputText)) {
+        $process.StandardInput.Write($StandardInputText)
+        $process.StandardInput.Close()
+    }
     $completed = $process.WaitForExit($ProcessTimeoutSeconds * 1000)
     $timedOut = -not $completed
     if ($timedOut) {
@@ -268,10 +274,10 @@ try {
         $fallbackRawPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-raw.txt" -f $candidate.candidateId, $candidate.symbol)
         $fallbackStderrPath = Join-Path $OutputDirectory ("$stem-{0}-{1}-llama-fallback-stderr.txt" -f $candidate.candidateId, $candidate.symbol)
         $startedAt = Get-Date
+        $llamaExitCommand = "/exit`n"
         $llamaArguments = @(
             '-hf', $ModelRef,
             '--grammar-file', $grammarPath,
-            '-no-cnv',
             '--no-display-prompt',
             '-f', $promptPath,
             '-n', ([string]$MaxTokens),
@@ -282,14 +288,14 @@ try {
             -Arguments $llamaArguments `
             -StandardOutputPath $rawPath `
             -StandardErrorPath $stderrPath `
-            -ProcessTimeoutSeconds $TimeoutSeconds
+            -ProcessTimeoutSeconds $TimeoutSeconds `
+            -StandardInputText $llamaExitCommand
         $usedFallbackInvocation = $false
         if ($process.exitCode -ne 0) {
-            Write-Host ("llama-cli primary invocation failed for {0} with exit code {1}; retrying with minimal non-interactive arguments." -f $candidate.symbol, $process.exitCode) -ForegroundColor Yellow
+            Write-Host ("llama-cli primary invocation failed for {0} with exit code {1}; retrying with minimal stdin-exit arguments." -f $candidate.symbol, $process.exitCode) -ForegroundColor Yellow
             $fallbackArguments = @(
                 '-hf', $ModelRef,
                 '--grammar-file', $grammarPath,
-                '-no-cnv',
                 '-f', $promptPath,
                 '-n', ([string]$MaxTokens),
                 '--temp', '0'
@@ -299,7 +305,8 @@ try {
                 -Arguments $fallbackArguments `
                 -StandardOutputPath $fallbackRawPath `
                 -StandardErrorPath $fallbackStderrPath `
-                -ProcessTimeoutSeconds $TimeoutSeconds
+                -ProcessTimeoutSeconds $TimeoutSeconds `
+                -StandardInputText $llamaExitCommand
             $usedFallbackInvocation = $true
         }
         $elapsedMillis = [int](((Get-Date) - $startedAt).TotalMilliseconds)
@@ -317,14 +324,16 @@ try {
         $decisionAligned = $false
         $warnings = @()
         $failures = @()
+        $processFailures = @()
         $decision = $null
         if ($process.exitCode -ne 0) {
-            $failures += "LLAMA_EXIT_CODE_$($process.exitCode)"
+            $processFailures += "LLAMA_EXIT_CODE_$($process.exitCode)"
         }
         if ($process.timedOut) {
-            $failures += 'LLAMA_PROCESS_TIMEOUT'
+            $processFailures += 'LLAMA_PROCESS_TIMEOUT'
         }
         if ([string]::IsNullOrWhiteSpace($jsonText)) {
+            $failures += $processFailures
             $failures += 'NO_JSON_OBJECT_FOUND'
         }
         else {
@@ -334,6 +343,7 @@ try {
                 $parseable = $true
             }
             catch {
+                $failures += $processFailures
                 $failures += 'JSON_PARSE_FAILED'
             }
         }
@@ -359,6 +369,14 @@ try {
             }
             if (-not (Test-InSet $decision.primaryReasonCode $preview.allowedReasonCodes)) {
                 $failures += 'INVALID_REASON_CODE_ENUM'
+            }
+            if ($failures.Count -eq 0 -and $processFailures.Count -gt 0) {
+                foreach ($processFailure in $processFailures) {
+                    $warnings += "JSON_RECOVERED_AFTER_$processFailure"
+                }
+            }
+            elseif ($failures.Count -gt 0 -and $processFailures.Count -gt 0) {
+                $failures += $processFailures
             }
             $schemaValid = $failures.Count -eq 0
         }
