@@ -54,7 +54,17 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: N2 bounded history and contract evidence
+### Current next action: reuse existing data-validation evidence
+
+The N2 history diagnostic completed successfully on the spare laptop: 500 instruments, 6.18 seconds, no truncation/errors (E30). Owner reports extensive prior Upstox/history-event validation; source review confirms the prior quality machinery (E31). Do not rerun data collection or provider checks. Pull, then run:
+
+```powershell
+& '.\ops\windows\GetExistingDataValidationEvidence.ps1'
+```
+
+Share one `existing-data-validation-<timestamp>-<id>.json`. It packages selected metrics/hashes from saved reports only, with bounded filesystem reads and no API/DB/model calls. No Docker rebuild or restart is needed. New research-label arithmetic is offline verified but not wired into the service; it will be integrated after the data contract is frozen. [Details and remaining gates](numerical-baseline-plan.md#reuse-validated-history-distinguish-research-availability-from-live-availability).
+
+### Previous N2 history handoff (completed; do not rerun)
 
 The [numerical baseline work package](numerical-baseline-plan.md) records N1's accepted aggregate inspection: 476/500 eligible, 24 insufficient-history, one decision date. N2 adds a read-only Java diagnostic and machine-readable draft contract. Pull and rebuild/redeploy **marketbrain-service only**, after checking jobs are idle; wait for health UP, then run:
 

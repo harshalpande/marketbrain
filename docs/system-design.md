@@ -93,6 +93,8 @@ Implementation boundary (E28/E29): the existing aggregate audit is reviewed, not
 
 ### Training and validation workflow
 
+Existing Upstox quality work is a reusable foundation (E31), not invalidated by retrospective ingestion. Candle source and validation provenance are distinct. The proposed research mode must disclose backfilled/revised prices and current-membership bias; live/as-known replay needs actual availability evidence. Neither mode admits future labels/news as features. A pure next-open/session-20 outcome calculator now exists and is tested, but is not wired into export or an endpoint (E32). It does not certify caller-supplied calendar, executable prices or policy identifiers. See the [reuse policy and bounded handoff](numerical-baseline-plan.md#reuse-validated-history-distinguish-research-availability-from-live-availability).
+
 1. Build reproducible multi-date feature/label manifests. Fit transformations on training data only.
 2. Compare a deterministic baseline, a simple linear learner and a bounded small tree-model candidate. Offline Python training is a proposed implementation choice, not an installed capability.
 3. Use chronological train/tuning/untouched-final partitions. Purge observations whose outcome windows overlap the next partition; group evaluation by decision date to avoid treating correlated stocks as independent trials.

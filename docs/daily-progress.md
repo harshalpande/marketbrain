@@ -142,7 +142,16 @@ Owner acceptance, if any:
 - Handoff: commit/push scoped files, rebuild only marketbrain-service on the spare laptop while jobs are idle, wait for health, run GetNumericalHistoryEvidence with explicit dataset UUID. Share one JSON (plus pending checkpoint only if saving failed). No cleanup rerun, model download, inference, backfill or trading requested. Deployment may restart pre-existing configured jobs/automation; this diagnostic does not govern those independent settings.
 - Next review: distinguish limited warm-up, exclusions and backfill timing without inventing listing-age explanations. Agree actual calendar/adjustment/cost/availability policies and usable multi-date scope before freezing N2 or implementing export. Provider rights or missing data can block only the affected next stage, not justify bypassing leakage checks.
 
-### Daily updating rules
+## 2026-09-18 - Preserve prior Upstox validation; build research-label arithmetic
+
+- Owner approved proceeding and clarified approximately 6–8 days spent collecting/validating historical Upstox data against historical events. Inspected existing provider-check scripts, batch review gates and V10/V12 governed resolution persistence. Record E31 as owner-reported execution plus verified source capability; do not restart collection or infer the work never happened because candles are backfilled.
+- Recorded E30: latest history query completed in 6.18 seconds for 500 instruments, no errors/truncation, 476 with at least 252 dates and 24 below it; 237,200 stored rows all received after cutoff. Window is only 730 days, not the whole historical database. This verifies the diagnostic, not predictive performance or new model training readiness.
+- Added pure next-session-open/session-20-close research outcome arithmetic with explicit calendar, price and cost policy identifiers, Decimal gross/net returns and fail-closed missing/invalid/non-executable cases. No wiring, endpoint, database write or replacement of old labels. Caller-supplied policy/calendar/executability still need independent provenance.
+- Added a bounded saved-report collector: one shareable JSON of source filenames/hashes and selected prior validation metrics. No provider checks, database/API access, inference or deployment. Missing reports stay unknown rather than erasing earlier accepted work. Preserve raw original reports; this summary is not their replacement.
+- Verification E32: 268 Java tests passed (seven new label cases); nine PS5.1 assertions passed using temporary files/mocked forbidden HTTP. Runtime saved-evidence collection remains for the spare laptop. Existing-history integration, policy freeze, multi-date export and chronological evaluation remain pending; weighted baseline unchanged at 12.4%, no predictive percentage claimed.
+- Handoff: scoped commit/push; pull and run GetExistingDataValidationEvidence on spare laptop. No Docker rebuild/restart. Review saved scope references, freeze retrospective research versus as-known policy, then integrate the tested arithmetic into a versioned multi-date export. Only novel discrepancies justify targeted revalidation/backfill, with separate bounded scope.
+
+### Progress update rules
 
 - Change the roadmap dashboard only after linking evidence to the exact checkpoint; then append the delta here.
 - Use percentage points for absolute changes and explicitly name the denominator for relative improvements. Do not blend schema success, alignment, financial outcomes and engineering completion.
