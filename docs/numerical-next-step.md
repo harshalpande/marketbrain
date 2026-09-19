@@ -2,7 +2,11 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E67 engineering implemented; one spare synthetic verification
+## Current: E68 engineering accepted; both-track preparation approved
+
+[Spare acceptance](evidence/numerical-ten-feature-spare-acceptance-20260919.json) closes the bounded ten-feature engineering checkpoint: 32/32 checks, 8.900s, native Java25/PS7.6.6. No repeat bundle, mapping or export. The owner selected **prepare both tracks**. The [next-stage packet](numerical-research-scope-decision.md) and versioned JSON pin the restricted snapshot, prospective evidence-record contract and pending source/operational/evaluation release fields. Next implementation needs the bounded operational/evaluation release review; no source exception, arbitrary threshold, collection or market fit is implied. Upstox remains pending and existing point-in-time eligibility remains zero; a retrospective policy has not yet been released.
+
+## E67 implementation handoff (historical; spare verification completed by E68)
 
 The owner approved the complete engineering batch after reviewing how it will be verified. [E67](numerical-ten-feature-engineering.md) delivers ten-feature transforms/ridge, references, chronological safeguards, metric/abstention reports, synthetic uncertainty machinery and persisted artifact replay together. No application restart, data query, mapping rerun or LLM needed. Run the single bounded spare bundle and share one JSON. Once accepted, close this checkpoint and return to evidence/scope/evaluation approval; do not start repeated identical synthetic runs. Existing 600 market rows remain ineligible and Upstox remains pending.
 

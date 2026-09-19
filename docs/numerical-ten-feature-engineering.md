@@ -1,5 +1,7 @@
 # Ten-feature numerical engineering bundle (E67)
 
+**E68 current status: spare verification accepted; no repeat run.** Native Java 25.0.4.1 / PowerShell 7.6.6 completed all 32 checks in 8.900s. Source identities, raw checksum, semantic numeric parity, artifacts, metrics and safety counters independently reviewed. The Docker/Java21 path was not exercised by that report. [Acceptance evidence](evidence/numerical-ten-feature-spare-acceptance-20260919.json). Next is the [owner-approved two-track preparation](numerical-research-scope-decision.md), not another synthetic or mapping run. The E67 instructions below remain reference/recovery instructions.
+
 2026-09-19. Owner approved implementing the complete **engineering** batch following the verification discussion. This delivers executable numerical machinery and fixed synthetic tests, not a market-trained predictor or permission to fit uncertified history. E66 remains the historical proposal; its unresolved real-data approval fields are not changed to true.
 
 ## Delivered together

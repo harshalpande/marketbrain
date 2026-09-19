@@ -4,6 +4,8 @@
 
 E65 subsequently verifies mapping/recovery on spare. [E66 pre-fit contract](numerical-prefit-contract.md) supplies detailed learner/preprocessing/evaluation/artifact proposals and code-consistency tests together; it does not settle the open source facts, practical-effect criteria or final-fit approval. The original mapping-future-work wording below is historical; the ten-feature mapper is now verified, while the ten-feature learner remains unimplemented.
 
+**E68 superseding status:** the ten-feature synthetic engineering implementation is now spare-verified (32/32 checks), so the historical learner-unimplemented wording above/below no longer describes that engineering component. It still is not a market-trained predictor. Use the [current research-scope packet](numerical-research-scope-decision.md) for the remaining retrospective/prospective choice and evidence/evaluation decisions. Do not repeat accepted mapping or synthetic checks.
+
 ## Why this is the next milestone
 
 The engineering checks for fixed numerical baselines, train-only transforms, temporal guards, synthetic 5/20/60-session folds and hypothetical costs have passed on spare. They do not show that stored market labels or input vintages are fit for a real model. Repeating those checks will not resolve price adjustment semantics, publication timing, constituent history or final-test independence.
