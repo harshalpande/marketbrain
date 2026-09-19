@@ -17,13 +17,21 @@ public class NumericalResearchExportController {
     public NumericalResearchExportController(ObjectMapper mapper){this.mapper=mapper;}
     @PostMapping(value="/numerical-research-export",consumes="application/json")
     public NumericalResearchExport.Result export(HttpServletRequest request) throws IOException {
+        return export(request,false);
+    }
+    @PostMapping(value="/numerical-expanded-research-export",consumes="application/json")
+    public NumericalResearchExport.Result exportExpanded(HttpServletRequest request) throws IOException {
+        return export(request,true);
+    }
+    private NumericalResearchExport.Result export(HttpServletRequest request,boolean expanded) throws IOException {
         if(!slot.tryAcquire())throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,"Export already running; no queue.");
         try {
             // Bound bytes even when Content-Length is absent or inaccurate. No DB work or server persistence.
             byte[] bytes=request.getInputStream().readNBytes(MAX_BYTES+1);
             if(bytes.length>MAX_BYTES)throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE);
             var input=mapper.readValue(bytes,NumericalResearchExport.Input.class);
-            return new NumericalResearchExport().build(input);
+            var builder=new NumericalResearchExport();
+            return expanded?builder.buildExpanded(input):builder.build(input);
         } catch(com.fasterxml.jackson.core.JsonProcessingException|IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid bounded saved-evidence input.");
         } finally {slot.release();}

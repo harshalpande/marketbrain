@@ -1,0 +1,28 @@
+{
+  "version": "NUMERICAL_REPAIR_REVIEW_SUMMARY_V1",
+  "reviewedOn": "2026-09-19",
+  "inputFileName": "numerical-repair-evidence-20260919-132809-11524efc7e3f.json",
+  "inputSha256": "2359ED18BB9B3E0B45EAD50906B1D3A33CF25E114C362AFA8D6B8DCD0448980B",
+  "sourceResearchSha256": "37449BE9E8A330D4C7DB9790736898C6776D2D430A1337ADF1ECFE42641CD845",
+  "status": "REPAIR_CAPTURE_VERIFIED_PRICE_POLICY_UNRESOLVED",
+  "elapsedSeconds": 8.828,
+  "featureWindowMatches": 600,
+  "outcomeWindowMatches": 600,
+  "jobsObserved": 5,
+  "jobCatalogTruncated": false,
+  "instruments": [
+    {"symbol":"MARUTI","resolutionEventsInspected":12,"scopedResolutions":0,"corporateActions":0,"reviewedCompletedJobCoversScope":true},
+    {"symbol":"NATIONALUM","resolutionEventsInspected":12,"scopedResolutions":0,"corporateActions":0,"reviewedCompletedJobCoversScope":true},
+    {"symbol":"TARIL","resolutionEventsInspected":13,"scopedResolutions":0,"corporateActions":0,"reviewedCompletedJobCoversScope":true},
+    {"symbol":"LEMONTREE","resolutionEventsInspected":1,"scopedResolutions":0,"corporateActions":0,"reviewedCompletedJobCoversScope":true}
+  ],
+  "referenceCount": 0,
+  "partial": false,
+  "trainingAuthorized": false,
+  "databaseWritesPerformed": false,
+  "providerCallCount": 0,
+  "modelCallCount": 0,
+  "ordersCreated": 0,
+  "verification": "Saved original export and received repair response passed independent scope/safety review and all calendar-window checks. Byte hashes of Git-managed helpers differ across LF/CRLF checkouts; observed behavior and version/scope were replayed, not assumed from a byte-hash match.",
+  "limitations": "No in-scope source references recovered. Nonempty earlier ledger inspections do not establish scoped adjustment factors. Completed job membership is not immutable candle provenance. No conclusion that there were no corporate actions or that stored prices are unadjusted/adjusted. Do not repeat unchanged repair collection."
+}

@@ -3,11 +3,11 @@ Set-StrictMode -Version Latest
 function Invoke-HistoryAtomicReplace([string]$Temporary,[string]$Path) {
     [IO.File]::Replace($Temporary,$Path,[System.Management.Automation.Language.NullString]::Value)
 }
-function Save-NumericalHistoryReport($Report,[string]$Path) {
+function Save-NumericalHistoryReport($Report,[string]$Path,[switch]$Compact,[ValidateRange(1,20)][int]$MaxReplaceAttempts=6) {
     $Report.updatedAtUtc=[DateTime]::UtcNow.ToString('o')
     $temporary=$Path+'.pending-'+[guid]::NewGuid().ToString('N')
-    [IO.File]::WriteAllText($temporary,($Report | ConvertTo-Json -Depth 16),[Text.UTF8Encoding]::new($false))
-    for($attempt=1;$attempt -le 6;$attempt++) {
+    [IO.File]::WriteAllText($temporary,($Report | ConvertTo-Json -Depth 16 -Compress:$Compact),[Text.UTF8Encoding]::new($false))
+    for($attempt=1;$attempt -le $MaxReplaceAttempts;$attempt++) {
         try {
             if([IO.File]::Exists($Path)){Invoke-HistoryAtomicReplace $temporary $Path}
             else{[IO.File]::Move($temporary,$Path)}
@@ -16,7 +16,7 @@ function Save-NumericalHistoryReport($Report,[string]$Path) {
             $cause=$_.Exception
             while($cause.InnerException){$cause=$cause.InnerException}
             # Brief Windows sharing/lock violations only; never retry collection or delete old evidence.
-            if($cause -isnot [IO.IOException] -or ($cause.HResult -band 65535) -notin @(32,33) -or $attempt -eq 6){throw}
+            if($cause -isnot [IO.IOException] -or ($cause.HResult -band 65535) -notin @(32,33) -or $attempt -eq $MaxReplaceAttempts){throw}
             Start-Sleep -Milliseconds (100*$attempt)
         }
     }

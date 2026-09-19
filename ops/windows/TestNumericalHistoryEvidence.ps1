@@ -96,4 +96,10 @@ Assert-History ($failed -and $testState.replaceCalls -eq 6) 'Unbounded save retr
 Assert-History ((Get-Content $checkpoint -Raw | ConvertFrom-Json).value -eq 'new') 'Old checkpoint damaged.'
 $pending=@(Get-ChildItem -LiteralPath $root -Filter 'checkpoint.json.pending-*')
 Assert-History ($pending.Count -eq 1 -and (Get-Content $pending[0].FullName -Raw | ConvertFrom-Json).value -eq 'pending') 'Recovery checkpoint lost.'
+$testState.replaceCalls=0
+$failed=$false;try{Save-NumericalHistoryReport $snapshot $checkpoint -Compact -MaxReplaceAttempts 3}catch{$failed=$true}
+Assert-History ($failed -and $testState.replaceCalls -eq 3) 'Explicit checkpoint retry budget not honored.'
+$compact=Join-Path $root 'compact.json'
+Save-NumericalHistoryReport $snapshot $compact -Compact
+Assert-History ((Get-Content $compact -Raw) -notmatch "`n" -and (Get-Content $compact -Raw|ConvertFrom-Json).value -eq 'pending') 'Compact checkpoint serialization failed.'
 Write-Host "PASS: $($testState.checks) offline history assertions. Fixtures retained: $root"

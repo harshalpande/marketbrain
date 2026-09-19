@@ -2,6 +2,15 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Repair capture accepted; expanded research export prepared
+
+- E50 spare result reviewed: 8.828s, all 600 windows match, four reviewed completed backfill links, no truncation. No relevant adjustment references or corporate-action rows; no inference, provider/order calls or DB writes. Preserve existing history; no repeat empty query. Helper/calendar hash differences verified as LF/CRLF only.
+- E51 implements a separate bounded 150-date / 600-row **uncertified** research profile using saved bars and existing formulas. No price gate relaxed. Actual offline Java replay and independent PS row checks pass; 1,824 original feature values and 152 outcomes unchanged. This advances arithmetic/export engineering, not prediction accuracy.
+- Local tests exposed pretty-printed output growth and two checkpoint sharing-lock failures. Expanded reports now use compact JSON and a bounded save-only retry allowance; no automatic calculation retry or deletion of prior evidence. Persistent-lock recovery limitations remain explicit. Earlier collector defaults unchanged.
+- Final verification passed: 309 standard Java tests plus explicit real-data probe, 132 PS5.1 workflow assertions and 58 history/checkpoint assertions. No live local services/DB/provider/model calls. Package build checked; spare PS7/endpoint round-trip remains pending.
+- Official Upstox historical-candle documentation reviewed: OHLCV contract found, adjustment semantics not established on that page. Prepared precise source-policy questions; no external support message sent. Remaining source/policy, certification, untouched evaluation and fitting gates documented.
+- Service-only rebuild/one-JSON handoff; Git automatic maintenance disabled only for the pull after the prior spare pack-index failure. Canonical docs/current diagram updated. No overall percentage or confidence uplift claimed.
+
 ## 2026-09-19 — Earlier calendar verified; bounded repair recovery implemented
 
 - E49 reviews official NSE holiday, special-session and election sources for 2024-10-22..2025-03-31. Saved-export replay matches all 600 feature and 600 outcome windows across the proposed 150 dates; zero mismatches, provisional date layout unchanged. Persisted replay summary references source and tool hashes.

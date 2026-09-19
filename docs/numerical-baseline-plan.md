@@ -2,13 +2,17 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45) and 38-date research export (E47) reviewed. E48 prepares an outcome-independent 150-date development expansion plan using saved bars. E49 independently extends the earlier calendar and verifies all 600 proposed feature/outcome windows; repair-provenance collection is implemented but awaits spare evidence. Contract freeze, price provenance, expanded certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. The owner has no separate adjustment report; recover existing repair evidence before requesting new sources. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
+## E50/E51 current checkpoint
+
+Repair collection verified on spare in 8.828s; four reviewed completed job links, 600/600 calendar matches, zero scoped adjustment/action references. Do not rerun this check or equate empty evidence with action-free prices. E51 implements a separate **uncertified** 150-date / 600-row research export; offline replay passes and previous 152 rows remain numerically unchanged. Certified export, source/policy approval, frozen evaluation and fitting are still pending. [Implementation and handoff](numerical-next-step.md#e50e51-repair-capture-reviewed-expanded-research-arithmetic-implemented), [source questions](numerical-price-policy-open-questions.md).
+
 ## Sequence and gates
 
 | Milestone | Output and acceptance | State | Effort estimate after prerequisites |
 |---|---|---|---|
 | N1: inspect existing run | One compact report; exact UUID/hash/date; reconcile classifications and 5/20/60 horizon counts, expose exclusions and source limitations | Completed within aggregate-audit scope, E28; not training readiness | Evidence reviewed |
 | N2: freeze prediction-grade data contract | Review feature availability, entry/exit convention, calendar, corporate actions, membership and source rights; no future columns in inference | Runtime window evidence reviewed; reusable label arithmetic offline verified; policy freeze pending | 1–2 working days after existing evidence linkage and policy decisions |
-| N3: immutable multi-date export | Versioned rows/manifests; leakage/duplicate/gap tests; actual usable dates; no alteration of prototype run | 38-date uncertified research export runtime verified E47; 150-date expansion planned E48. Certified labelled export pending | 3–5 working days after N2/source feasibility |
+| N3: immutable multi-date export | Versioned rows/manifests; leakage/duplicate/gap tests; actual usable dates; no alteration of prototype run | 38-date export runtime verified E47; 150-date uncertified export offline verified E51, spare pending. Certified labelled export still blocked | 3–5 working days after N2/source feasibility |
 | N4: chronological evaluation | Freeze train/tune/untouched-test date boundaries; purge overlapping label windows; deterministic fold manifests | Provisional development layout E48; proposed windows calendar-checked E49; frozen folds and genuinely untouched test pending | 1–2 working days after N3 |
 | N5: first numerical challenger | Compare simple fitted model to no-model baselines; out-of-sample error/rank/net-outcome and latency report | Not implemented | 2–3 working days after N4 |
 

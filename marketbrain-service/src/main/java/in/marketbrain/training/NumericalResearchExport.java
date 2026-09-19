@@ -12,6 +12,8 @@ import java.util.*;
 public final class NumericalResearchExport {
     public static final String VERSION = "NUMERICAL_MULTI_DATE_RESEARCH_V1";
     public static final String CALENDAR_HASH = "ea8cd016a1b03fab1d97b0cdecbdae4ff181b1b22f4a10a21f6ff6f11ca9c086";
+    public static final String EXPANDED_VERSION = "NUMERICAL_EXPANDED_RESEARCH_V1";
+    public static final String EXPANDED_CALENDAR_HASH = "edc44a9eeee945a4362756c71d5d07c83e0c50a207706f9fb32f267733a60748";
     static final LocalDate FIRST = LocalDate.parse("2026-04-10"), LAST = LocalDate.parse("2026-06-05");
     public record Input(UUID datasetRunId, String datasetManifestHash, String featureEvidenceSha256,
                         String outcomeEvidenceSha256, List<LocalDate> sessions, List<Instrument> instruments) { }
@@ -39,8 +41,16 @@ public final class NumericalResearchExport {
                          int ordersCreated, List<String> remainingGates, String limitations) { }
 
     public Result build(Input input) {
-        validate(input);
-        var dates=input.sessions().stream().filter(d->!d.isBefore(FIRST)&&!d.isAfter(LAST)).toList();
+        return build(input,false);
+    }
+    public Result buildExpanded(Input input) {
+        return build(input,true);
+    }
+    private Result build(Input input,boolean expanded) {
+        validate(input,expanded);
+        var first=expanded?LocalDate.parse("2025-10-27"):FIRST;
+        var calendarHash=expanded?EXPANDED_CALENDAR_HASH:CALENDAR_HASH;
+        var dates=input.sessions().stream().filter(d->!d.isBefore(first)&&!d.isAfter(LAST)).toList();
         var rows=new ArrayList<Row>();
         var calculator=new NumericalFeatureSnapshot();
         for(var instrument:input.instruments()) {
@@ -62,12 +72,12 @@ public final class NumericalResearchExport {
         }
         int complete=(int)rows.stream().filter(r->r.featureStatus().equals("MATCHES_REVIEWED_CALENDAR")
                 &&r.outcome().status().equals("STORED_PRICE_ARITHMETIC_ONLY")).count();
-        return new Result(VERSION,"RESEARCH_EXPORT_TRAINING_BLOCKED",input.datasetRunId(),input.datasetManifestHash(),
-                input.featureEvidenceSha256(),input.outcomeEvidenceSha256(),CALENDAR_HASH,dates.size(),rows.size(),complete,
+        return new Result(expanded?EXPANDED_VERSION:VERSION,"RESEARCH_EXPORT_TRAINING_BLOCKED",input.datasetRunId(),input.datasetManifestHash(),
+                input.featureEvidenceSha256(),input.outcomeEvidenceSha256(),calendarHash,dates.size(),rows.size(),complete,
                 rows.size()-complete,List.copyOf(rows),0,false,false,0,0,0,0,
                 List.of("PRICE_ACTION_COVERAGE_AND_ADJUSTMENT_PROVENANCE","EXECUTABLE_PRICE_COST_AND_RESEARCH_POLICY",
                         "BROADER_INDEPENDENT_DATES_AND_FROZEN_PURGED_SPLITS","SOURCE_RIGHTS_MEMBERSHIP_AND_AVAILABILITY_POLICY"),
-                "Engineering pilot: four instruments maximum, 38 decision dates, overlapping 20-session outcomes. Dates are not independent samples. "
+                "UNCERTIFIED engineering research: four instruments maximum, "+dates.size()+" decision dates, overlapping 20-session outcomes. Dates are not independent samples. "
                 +"No folds, fitted model, approved fees, certified labels or performance claims. Retrospective backfill, not as-known replay. "
                 +"Saved inputs supplied by caller, not reauthenticated against DB. SHA256 identifies bytes, not truth. "
                 +"All blocked rows retained. Price provenance unknown even when arithmetic is complete.");
@@ -86,11 +96,11 @@ public final class NumericalResearchExport {
         var costs=List.of(0,25,50,100).stream().map(bps->new CostScenario(bps,gross.subtract(BigDecimal.valueOf(bps,2)))).toList();
         return new Outcome("STORED_PRICE_ARITHMETIC_ONLY",entry,exit,null,List.copyOf(ids),gross,costs);
     }
-    private void validate(Input input) {
+    private void validate(Input input,boolean expanded) {
         if(input==null||input.datasetRunId()==null||!hash(input.datasetManifestHash())||!hash(input.featureEvidenceSha256())
                 ||!hash(input.outcomeEvidenceSha256()))throw new IllegalArgumentException("Explicit evidence identity required.");
-        if(input.sessions()==null||input.sessions().size()!=320||input.sessions().contains(null)
-                ||!digest(String.join("\n",input.sessions().stream().map(LocalDate::toString).toList())).equals(CALENDAR_HASH))
+        if(input.sessions()==null||input.sessions().size()!=(expanded?430:320)||input.sessions().contains(null)
+                ||!digest(String.join("\n",input.sessions().stream().map(LocalDate::toString).toList())).equals(expanded?EXPANDED_CALENDAR_HASH:CALENDAR_HASH))
             throw new IllegalArgumentException("Session sequence is not the reviewed pilot calendar.");
         if(input.instruments()==null||input.instruments().isEmpty()||input.instruments().size()>4)
             throw new IllegalArgumentException("One to four saved instruments required.");

@@ -54,7 +54,25 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: collect stored repair provenance (E49)
+### Current next action: expanded uncertified research export (E51)
+
+E50's spare repair capture is reviewed: **8.828s**, 600/600 calendar windows, all four stocks linked to reviewed completed backfill jobs, no capped evidence. It recovered **zero in-scope adjustment references/actions**; that does not mean no actions occurred. Do not repeat the unchanged repair query. [Recorded review](evidence/numerical-repair-review-20260919.json) and [remaining source-policy questions](numerical-price-policy-open-questions.md).
+
+E51 advances export engineering without bypassing that gate: **150 dates / 600 research rows** from existing saved bars. Labels remain uncertified; no fitting, provider/DB/model calls or orders. Offline replay produced 600/600 arithmetic rows and preserved all 1,824 feature values of the previous 152 rows. This is not an improvement in prediction accuracy. After pulling and rebuilding the service with jobs idle and health UP:
+
+```powershell
+$parameters = @{
+    ResearchExportPath = 'C:\MarketBrainData\Review\numerical-research-export-20260919-124431-2c76f7cab00a.json'
+    RepairEvidencePath = 'C:\MarketBrainData\Review\numerical-repair-evidence-20260919-132809-11524efc7e3f.json'
+}
+& '.\ops\windows\ExportNumericalExpandedResearch.ps1' @parameters
+```
+
+Share **one** printed `numerical-expanded-research-*.json`. Compact JSON retains input bars, generated rows, price gates, provisional development layout, hashes, progress/timing and failure checkpoints. Expected status is `RESEARCH_EXPORT_TRAINING_BLOCKED`. A response already captured can be rechecked with `-ExistingExpandedReportPath <report.json>` without another server call. Persistent file locks may leave an extra pending checkpoint; preserve it. Do not rerun inference/history collection. Spare export runtime is pending; policy certification, frozen independent evaluation and fitting remain separate work.
+
+Deployment recovery: the previous spare Git pull failed during automatic pack cleanup after fast-forward. Use `git -c maintenance.auto=false -c gc.auto=0 pull --ff-only origin main` to disable automatic housekeeping **for that command only**, check exit status and repository connectivity before building. Do not delete pack/lock files or disable security software. This does not fix or identify the process holding a file and does not stop separately scheduled Git maintenance.
+
+### Previous action: collect stored repair provenance (completed, E50)
 
 E47 confirms the 38-date export on spare: **152/152 rows, 3.975s**, no blocked arithmetic rows. Do not rerun export or download history. E48 has already prepared and replayed a **150-date / 600-row development expansion plan** from the saved bars, with provisional purges and boundary gaps. It is not yet a certified dataset or an untouched test. [Next work package](numerical-next-step.md) and [persisted date assignments](evidence/numerical-development-expansion-plan-20260919.json).
 

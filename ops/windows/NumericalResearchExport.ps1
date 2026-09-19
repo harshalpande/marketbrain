@@ -14,13 +14,16 @@ function New-NumericalResearchExportRequest($FeatureInput,$OutcomeInput,$Calenda
     [pscustomobject]@{datasetRunId=$p.datasetRunId;datasetManifestHash=$p.datasetManifestHash;featureEvidenceSha256=$FeatureInput.sha256
         outcomeEvidenceSha256=$OutcomeInput.sha256;sessions=@(Get-NumericalOutcomeSessions $Calendar $Extension);instruments=$items}
 }
-function Assert-NumericalResearchExportResult($Request,$Result) {
-    $dates=@($Request.sessions | Where-Object {$_ -ge '2026-04-10' -and $_ -le '2026-06-05'})
+function Assert-NumericalResearchExportResult($Request,$Result,[switch]$Expanded) {
+    $first=if($Expanded){'2025-10-27'}else{'2026-04-10'}
+    $version=if($Expanded){'NUMERICAL_EXPANDED_RESEARCH_V1'}else{'NUMERICAL_MULTI_DATE_RESEARCH_V1'}
+    $calendarHash=if($Expanded){'edc44a9eeee945a4362756c71d5d07c83e0c50a207706f9fb32f267733a60748'}else{'ea8cd016a1b03fab1d97b0cdecbdae4ff181b1b22f4a10a21f6ff6f11ca9c086'}
+    $dates=@($Request.sessions | Where-Object {$_ -ge $first -and $_ -le '2026-06-05'})
     $expected=$dates.Count*@($Request.instruments).Count
-    if($Result.version -ne 'NUMERICAL_MULTI_DATE_RESEARCH_V1' -or $Result.status -ne 'RESEARCH_EXPORT_TRAINING_BLOCKED' -or
+    if($Result.version -ne $version -or $Result.status -ne 'RESEARCH_EXPORT_TRAINING_BLOCKED' -or
        $Result.datasetRunId -ne $Request.datasetRunId -or $Result.datasetManifestHash -ne $Request.datasetManifestHash -or
        $Result.featureEvidenceSha256 -ne $Request.featureEvidenceSha256 -or $Result.outcomeEvidenceSha256 -ne $Request.outcomeEvidenceSha256 -or
-       $Result.calendarSessionSha256 -ne 'ea8cd016a1b03fab1d97b0cdecbdae4ff181b1b22f4a10a21f6ff6f11ca9c086' -or
+       $Result.calendarSessionSha256 -ne $calendarHash -or
        $Result.decisionDateCount -ne $dates.Count -or $Result.candidateRowCount -ne $expected -or @($Result.rows).Count -ne $expected){throw 'Export response identity/count mismatch.'}
     foreach($flag in @('trainingAuthorized','databaseWritesPerformed')){if($Result.$flag -isnot [bool] -or $Result.$flag){throw 'Unsafe export flag.'}}
     foreach($field in @('certifiedLabelCount','databaseQueryCount','providerCallCount','modelCallCount','ordersCreated')){
