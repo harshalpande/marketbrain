@@ -2,7 +2,11 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E66 pre-fit contract package prepared, no machine run
+## Current: E67 engineering implemented; one spare synthetic verification
+
+The owner approved the complete engineering batch after reviewing how it will be verified. [E67](numerical-ten-feature-engineering.md) delivers ten-feature transforms/ridge, references, chronological safeguards, metric/abstention reports, synthetic uncertainty machinery and persisted artifact replay together. No application restart, data query, mapping rerun or LLM needed. Run the single bounded spare bundle and share one JSON. Once accepted, close this checkpoint and return to evidence/scope/evaluation approval; do not start repeated identical synthetic runs. Existing 600 market rows remain ineligible and Upstox remains pending.
+
+## E66 pre-fit contract package (historical)
 
 Owner requested multiple associated subgoals together. [E66 specification](numerical-prefit-contract.md) now covers PF1 input/target, PF2 train-only preprocessing, PF3 comparators/ten-feature learner, PF4 purged chronological evaluation, PF5 metrics/costs/uncertainty and PF6 model artifacts/release safeguards in one versioned JSON and review document. Six local contract tests check consistency with existing Java DTO/target and E65 evidence. No endpoint, collector, learner, fit or deployment was added; this is not a new synthetic/data-processing milestone.
 

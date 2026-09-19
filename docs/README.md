@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current work package: six pre-fit contracts together (E66)
+### Current work package: ten-feature engineering implemented (E67)
 
-E65's 600-row mapping/recovery acceptance stands; **do not rerun it**. E66 delivers the [grouped pre-fit contract](numerical-prefit-contract.md) and [machine-readable specification](../ops/data/numerical-prefit-contract-v1.json): inputs/target, preprocessing, comparators/learner, temporal evaluation, metrics/uncertainty and artifacts/release. Six repository consistency tests check the existing DTO/target/evidence boundary. This is a proposed specification, not an implemented ten-feature learner, runtime configuration or fit approval. **No spare processing or rebuild needed.** Upstox remains PENDING_EXTERNAL_REPLY; 0/600 rows are training-eligible. Next implementation should group transformer/solver, evaluation and artifact tests rather than request one spare run per subgoal.
+E65's 600-row mapping/recovery acceptance stands; **do not rerun it**. E67 implements the [grouped engineering batch](numerical-ten-feature-engineering.md): ten-feature TRAIN-only transforms/ridge, references, purged chronological evaluation, metrics/abstentions, synthetic date-block uncertainty and versioned artifact replay. One short, synthetic-only spare verification returns one shareable JSON; no service build/restart, market-data export or LLM call. E66 remains the historical proposal; real acceptance settings are not approved by fixture tests. Upstox remains PENDING_EXTERNAL_REPLY; 0/600 rows are training-eligible, market fitting and trading blocked. Close engineering after spare acceptance rather than looping identical checks.
 
 ### E54 planning checkpoint
 

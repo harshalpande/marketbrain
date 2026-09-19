@@ -1,5 +1,7 @@
 # One pre-fit package: learner, validation and evidence
 
+**Current follow-up E67:** owner approved and implemented the [ten-feature engineering batch](numerical-ten-feature-engineering.md). The E66 proposal below is preserved as history; the source/market evaluation approvals remain unresolved. Synthetic implementation tests do not certify the 600 existing market rows. Use E67 for the current one-file spare verification, not the historical no-run handoff below.
+
 2026-09-19, E66. **PROPOSED_CONTRACT_NOT_EXECUTABLE**. Owner authorized progressing with multiple associated subgoals after E65 mapping acceptance. This package specifies them together; it does not approve missing source evidence, fit a market model or change any runtime gate.
 
 Machine-readable specification: [numerical-prefit-contract-v1.json](../ops/data/numerical-prefit-contract-v1.json). `NumericalPrefitContractTest` checks agreement with the actual ten-field Java DTO, existing target contract and accepted E65 evidence. The JSON is a review artifact, **not loaded by a service, fitting endpoint or inference process**. Its false approval fields document unresolved decisions; editing them would not authorize a run.

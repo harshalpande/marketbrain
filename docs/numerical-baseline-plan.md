@@ -2,7 +2,11 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45), repair capture (E50) and expanded 150-date research export (E52) reviewed within their scopes. All 600 arithmetic rows completed on spare. E53 records the remaining source-policy gap: no relevant adjustment references were recovered, and public documentation alone does not certify stored prices. Contract freeze, price provenance, certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
-## E66 current checkpoint
+## E67 current checkpoint
+
+[Ten-feature numerical engineering](numerical-ten-feature-engineering.md) now implements the grouped batch with synthetic fixtures, closed-form arithmetic checks, temporal guards, artifacts and a one-file spare verifier. Real-market fitting, criteria and evidence gates remain closed; no trained market model or gain is claimed. Run this short bundle once on spare; reuse E65 without new export/collection. E66 below remains historical.
+
+## E66 checkpoint (historical)
 
 The [six-part pre-fit package](numerical-prefit-contract.md) specifies the ten-feature learner/missingness/weighting contract, comparators, temporal validation, scoring/uncertainty and artifact/release requirements together. Machine-readable proposal and six repository consistency tests added; no fitting implementation or production configuration changed. E65 acceptance stands. No spare run/rebuild. Source evidence and explicit evaluation/fit approval still required; whole-goal percentages unchanged.
 

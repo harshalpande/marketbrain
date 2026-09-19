@@ -21,4 +21,6 @@ The Java service contains Upstox REST integration, historical/daily collection, 
 
 Development and offline verification take place here; model inference and deployment take place on the spare laptop. Credentials stay in ignored local configuration. Do not enable live execution or use archived deployment commands as current instructions.
 
+The [ten-feature numerical engineering bundle](docs/numerical-ten-feature-engineering.md) now implements isolated synthetic fitting/evaluation and artifact checks. One short spare verification is pending; this is not a trained market predictor and does not lift the source/evaluation gates. No service rebuild or LLM run is required for this bundle.
+
 The 2026-09-18 documentation reset changes documentation only. Earlier plans and experiments remain in [the explicitly superseded archive](docs/archive/2026-09-18/INDEX.md). No application build or deployment is required to receive this reset.
