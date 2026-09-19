@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - E64 spare mapping preserved; timestamp reviewer repaired
+
+- Supplied partial report SHA256 `B6BDE413069F477B8BA20E06C6725E08D753160DECBDADFBCF4511505D0BBA1C`: Java response contains 600 mapped rows/150 dates; 0.782s mapping round trip, 1.474s until the client stopped. Saved source/request binding and CRLF tool hashes match E63. The response passes the original reviewer under PS5.1; independently checked 6,000 values and all row/coverage/blocker/safety fields. No Java rerun or acquisition needed.
+- Bug owned by our client script: stringifying a typed UTC DateTime discards timezone/Kind and invokes culture/local-time-dependent reparsing. The first saved value is correct: 10:30 UTC = 16:00 IST. Fixed type-preserving UTC comparison; real one-tick deviations, invalid/timezone-free strings and Unspecified DateTime still fail. No exception suppression or forced timestamps.
+- Added recovery from the complete partial-report envelope, with source/request binding, full result revalidation, prior status/timing/hash retained, execution-mode and runtime/culture/zone/type diagnostics. Offline mode makes zero health/mapping HTTP calls. Original reports stay untouched; one new compact JSON is written.
+- Verification: 66 timestamp assertions across five cultures and string/UTC/local/offset representations; 32 workflow assertions against the actual spare artifact, including corrupt/missing envelope bindings, typed UTC vectors, real cutoff deviations, no-POST replay, timeout/no-retry, health failure and checkpoint preservation. Executed on PS5.1; new script includes additional DateKind cases when run on PS7.5+. PS7.6.6 full runtime validation remains pending: temporary official portable-runtime downloads were too slow/timed out and were not executed. No installation or system configuration changed; task-owned download stopped, partial archives retained in task-specific temp folders.
+- Java unchanged; E63's 347 Java tests/package remain historical, not rerun this script-only turn. Pull scripts and replay the supplied partial file on spare, no Docker rebuild/restart, Java/model call or data recollection. Training stays blocked by source/evaluation evidence; no forecast accuracy claim or whole-goal progress increase.
+
 ## 2026-09-19 - Owner scope approval; three real-data preparation deliverables
 
 - E62: owner confirmed the documentation commit and approved proceeding with daily 20-session price-return research on the restricted development cohort. This is not blanket approval of source facts, production features, costs, final evaluation thresholds, fitting or trading. Required intraday and 5/60-session goals remain.

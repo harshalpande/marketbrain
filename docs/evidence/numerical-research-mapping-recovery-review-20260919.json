@@ -1,0 +1,33 @@
+{
+  "evidenceId": "E64",
+  "reportFile": "numerical-research-mapping-20260919-172002-1b29d58ed442.json",
+  "reportSha256": "B6BDE413069F477B8BA20E06C6725E08D753160DECBDADFBCF4511505D0BBA1C",
+  "sourceSha256": "E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8",
+  "savedRequestMatchesAcceptedSource": true,
+  "originalCollectorAndReviewerMatchE63CrlfHashes": true,
+  "originalStatus": "FAILED_PARTIAL_REPORT",
+  "originalFailureStage": "REVIEW",
+  "originalElapsedSeconds": 1.474,
+  "originalMappingRoundTripSeconds": 0.782,
+  "originalReviewSeconds": 0.07,
+  "firstSavedCutoff": "2025-10-27T10:30:00Z",
+  "expectedEquivalentLocalCutoff": "2025-10-27T16:00:00+05:30",
+  "mappedRows": 600,
+  "dateGroups": 150,
+  "featureValuesIndependentlyReviewed": 6000,
+  "trainingEligibleRows": 0,
+  "certifiedLabels": 0,
+  "trainingAuthorized": false,
+  "cause": "Client DateTime-to-display-string conversion loses timezone and invokes culture/local-zone-dependent parsing; Java cutoff is correct.",
+  "fix": "Type-preserving UTC tick comparison, reject ambiguous input, validate/replay saved partial envelope without HTTP calls.",
+  "verification": {
+    "powerShellVersion": "5.1.26100.9444",
+    "timestampAssertions": 66,
+    "cultures": ["en-US", "en-IN", "en-GB", "de-DE", "fr-FR"],
+    "actualArtifactWorkflowAssertions": 32,
+    "powerShell766RuntimeExecutedLocally": false,
+    "correctedSpareReplayVerified": false,
+    "javaCodeChangedOrRerun": false
+  },
+  "limitations": "Spare Java response accepted, not the originally failed client workflow. Corrected PS7.6.6 replay still pending. Original evidence retained. No training, price certification, prediction-quality claim, collection, model run or trades. Portable-runtime verification download did not complete and was not executed."
+}

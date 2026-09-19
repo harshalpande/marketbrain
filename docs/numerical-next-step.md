@@ -2,7 +2,11 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E62 scope approved; E63 mapping preparation
+## Current: E64 saved-response recovery, no Java rerun
+
+The spare response is complete: 600 mapped rows/150 dates, zero eligible or certified. Its client validation failed on timestamp conversion. [E64 fix](numerical-research-mapping.md#e64-timestamp-defect-and-recovery) compares typed instants without losing timezone and replays the supplied partial envelope after source/request binding checks. Pull scripts only; no rebuild, health requirement, recollection or new mapping POST. Corrected spare replay remains pending. Source/evaluation gates and fitting approval remain open.
+
+## E62 scope approved; E63 mapping preparation (historical)
 
 Owner confirmed the documentation and first 20-session restricted-cohort price-return research scope. [E63 implementation](numerical-research-mapping.md) maps the ten real features, retains row eligibility blockers and reports date coverage using the existing E52 saved artifact. No new collection, source certification, fold freeze or fit. Local mapping replays 600/600 rows; all remain training-ineligible. Next: one spare service deployment/mapping round-trip, then review remaining source/evaluation policy evidence. The historical E61 review below is superseded only for the approved research scope, not for empirical evidence or production criteria.
 

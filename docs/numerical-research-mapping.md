@@ -1,6 +1,6 @@
 # Restricted research mapping and eligibility ledger
 
-2026-09-19: E62 owner scope approval; E63 implementation, spare verification pending.
+2026-09-19: E62 owner scope approval; E63 implementation; E64 spare response reviewed and timestamp/replay compatibility fixed. The original spare collector stopped during client validation, not Java mapping.
 
 ## Approval boundary
 
@@ -39,10 +39,18 @@ The fixed two-feature synthetic ridge learner is unchanged and cannot consume th
 
 `PrepareNumericalResearchMapping.ps1` accepts **only the previously accepted E52 file bytes**, SHA256 `E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8`. It is intentionally not a general arbitrary-dataset runner. If that file is missing or differs, stop and locate the accepted artifact; do not recollect automatically or change the pin to force acceptance. Source hashes identify evidence, not truth.
 
-The script posts once with a 90-second HTTP timeout, no automatic calculation retry. It checkpoints the response before independently comparing all 6,000 feature values against the accepted snapshot formulas, as well as identities, source windows, cutoff, receipt diagnostics, blockers, date coverage and safety counters. The saved request has the original bars so analysis survives shutdown. Output is one `numerical-research-mapping-<timestamp>-<id>.json`; partial failures preserve the prior checkpoint. Optional `SavedMappingResultPath` replays a raw mapping response offline and does not contact Java. Round-trip time includes HTTP/Java processing, not a claimed isolated Java CPU timing.
+The script posts once with a 90-second HTTP timeout, no automatic calculation retry. It checkpoints the response before independently comparing all 6,000 feature values against the accepted snapshot formulas, as well as identities, source windows, cutoff, receipt diagnostics, blockers, date coverage and safety counters. The saved request has the original bars so analysis survives shutdown. Output is one `numerical-research-mapping-<timestamp>-<id>.json`; partial failures preserve the prior checkpoint. `SavedMappingResultPath` accepts either a raw mapping response or a complete/partial collector envelope containing a full response. Envelope replay verifies pinned source hash and saved-request equality before reviewing every result; no Java/health call or automatic retry. The old file is never overwritten. Round-trip time includes HTTP/Java processing, not isolated Java CPU timing. Offline reports identify execution mode, prior status/timing/file hash, PowerShell version, culture, local zone and cutoff value type; the replay itself does not claim a new Java round trip.
+
+## E64 timestamp defect and recovery
+
+The supplied `numerical-research-mapping-20260919-172002-1b29d58ed442.json` preserves all 600 rows/150 date groups. Source/request binding and CRLF script/reviewer hashes match E63. Original run: 1.474s total, 0.782s mapping round trip, 0.070s failed reviewer. First cutoff is `2025-10-27T10:30:00Z`, exactly 16:00 IST. Independent saved-response review checks all 6,000 features; no Java recomputation or data modification is needed.
+
+The old reviewer cast the timestamp to `[string]` before parsing. PowerShell 7 can deserialize a JSON timestamp as a typed `DateTime`; display-string conversion discards `Kind`/offset and becomes culture/local-time dependent. [Microsoft's date parsing documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/convertfrom-json?view=powershell-7.5#notes) describes UTC/local/offset/string behavior. E64 compares UTC ticks using the original type: UTC/local DateTime, DateTimeOffset, or invariant ISO text with an explicit timezone. Unspecified DateTime, timezone-free text, invalid dates and real one-tick deviations fail; no timestamp is coerced to the expected answer. Original 5.1-only testing missed this compatibility fault.
+
+Recovery: pull scripts only and replay that exact partial JSON with `PrepareNumericalResearchMapping.ps1 -ExpandedResearchPath <accepted E52 file> -SavedMappingResultPath <partial E63 report>`. **No rebuild, running service, data export, model or Java call required.** Preserve the earlier file and share only the new single JSON. E64's stored evidence distinguishes accepted Java output from the originally failed client workflow and the corrected spare replay still to be confirmed.
 
 ## Expected spare result and next gate
 
-Local saved-data replay: **600/600 mapped rows, 150 date groups, 0 training-eligible rows, 0 certified labels**. `MAPPED_RESEARCH_TRAINING_BLOCKED` is the expected honest status, not a failed model. New spare endpoint/build/PowerShell 7 verification remains pending.
+Both local reconstruction and reviewed spare Java response: **600/600 mapped rows, 150 date groups, 0 training-eligible rows, 0 certified labels**. `MAPPED_RESEARCH_TRAINING_BLOCKED` is expected, not a failed model. Corrected spare client replay remains pending; do not conflate the old validation exception with bad numerical features.
 
 After spare parity, reuse this ledger; do not repeat mapping runs without a relevant change. Resolve the provider/price and historical-availability evidence, review the production feature and evaluation policies, then prepare eligible-date-driven folds and request scoped fitting approval. If historical vintages cannot be recovered, propose an explicitly limited retrospective study or prospective capture; neither is silently substituted here. No prediction accuracy or completion-date promise follows from mapping success.

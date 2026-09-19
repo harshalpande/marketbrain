@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: restricted research mapping (E62/E63)
+### Current next action: offline mapping-report recovery (E64)
 
-E60's synthetic engineering bundle is accepted; do not repeat it. Owner confirmed the documentation and approved initial daily 20-session price-return research on the restricted development cohort (E62), not fitting/trading or source certification. [E63 mapping and eligibility preparation](numerical-research-mapping.md) combines ten-feature mapping, row blockers and date coverage from the existing saved E52 export. Rebuild the service on spare and run `PrepareNumericalResearchMapping.ps1` once; share its single JSON. Local mapping: 600/600 rows, zero training-eligible rows. No recollection, LLM run, DB/provider query or orders. Upstox remains **PENDING_EXTERNAL_REPLY**; full research-contract/evaluation gates remain open.
+The spare Java response contains all 600 mapped rows; the client reviewer stopped because its timestamp string conversion lost timezone information. [E64 compatibility fix and recovery](numerical-research-mapping.md#e64-timestamp-defect-and-recovery) preserves timestamp types and accepts the existing partial report for offline replay. Pull scripts and run `PrepareNumericalResearchMapping.ps1` with both `ExpandedResearchPath` and `SavedMappingResultPath`; share its new single JSON. **No service rebuild/restart, Java rerun, data recollection or model call.** All 6,000 feature values in the saved response have been independently reviewed; zero rows are training-eligible. Upstox remains **PENDING_EXTERNAL_REPLY** and real-data fitting stays blocked. E62's restricted 20-session research scope remains unchanged.
 
 ### E54 planning checkpoint
 
