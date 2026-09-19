@@ -2,7 +2,19 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E64 saved-response recovery, no Java rerun
+## Current: E65 mapping/recovery checkpoint verified; no repeat run
+
+The corrected spare report completes the bounded mapping/recovery checkpoint: **600/600 mapped rows, 150 date groups, all 6,000 values reviewed**, PowerShell 7.6.6, 1.336s total / 0.434s reviewer. The prior Java response is unchanged; source/request/provenance and CRLF tool hashes match. [Acceptance evidence](evidence/numerical-research-mapping-spare-acceptance-20260919.json). This is 100% of the scoped mapping rows, not forecasting accuracy or whole-project completion. No further export, mapping POST, synthetic run or Docker rebuild is requested.
+
+Next associated work is a consolidated **pre-fit contract stage**, not an automatic model run:
+
+1. **Evidence track:** review the Upstox reply when received for price-adjustment/action semantics and stored-vintage applicability. Historical availability and source rights remain explicit separate questions; the reply may not settle them. Preserve existing history. No resend, provider fetch, inferred timestamps or blanket correction authorized.
+2. **Engineering/policy track:** prepare the ten-feature learner input and train-only transformation/missingness contract, chronological date-grouped/purged evaluation protocol, comparators, costs and uncertainty/minimum-effect acceptance criteria together. The current two-feature synthetic ridge is not a ten-feature learner. This stage can be specified while external evidence is pending; no production thresholds, folds or fit are silently approved by this plan.
+3. **Release gate:** once admissible scope/evidence and evaluation criteria are resolved, prepare the eligible-date-driven fold manifest and request scoped real-data fitting approval. Currently 0/600 rows are training-eligible, so no fit is started. If original vintages cannot be established, return with explicit retrospective-only versus prospective-capture options for owner decision; do not fabricate proof or recollect automatically.
+
+Mapping acceptance is recorded separately from full research-contract approval. No improvement/accuracy percentage or guaranteed number of iterations can be inferred. Intraday and 5/60-session goals remain; no live or paper order workflow is enabled.
+
+## E64 saved-response recovery, no Java rerun (historical)
 
 The spare response is complete: 600 mapped rows/150 dates, zero eligible or certified. Its client validation failed on timestamp conversion. [E64 fix](numerical-research-mapping.md#e64-timestamp-defect-and-recovery) compares typed instants without losing timezone and replays the supplied partial envelope after source/request binding checks. Pull scripts only; no rebuild, health requirement, recollection or new mapping POST. Corrected spare replay remains pending. Source/evaluation gates and fitting approval remain open.
 

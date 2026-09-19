@@ -1,6 +1,6 @@
 # Restricted research mapping and eligibility ledger
 
-2026-09-19: E62 owner scope approval; E63 implementation; E64 spare response reviewed and timestamp/replay compatibility fixed. The original spare collector stopped during client validation, not Java mapping.
+2026-09-19: E62 owner scope approval; E63 implementation; E64 timestamp/replay fix; **E65 corrected spare replay verified**. The original client failure is resolved within this scope. No further run is requested.
 
 ## Approval boundary
 
@@ -51,6 +51,6 @@ Recovery: pull scripts only and replay that exact partial JSON with `PrepareNume
 
 ## Expected spare result and next gate
 
-Both local reconstruction and reviewed spare Java response: **600/600 mapped rows, 150 date groups, 0 training-eligible rows, 0 certified labels**. `MAPPED_RESEARCH_TRAINING_BLOCKED` is expected, not a failed model. Corrected spare client replay remains pending; do not conflate the old validation exception with bad numerical features.
+E65 verifies both the saved Java response and corrected spare client replay: **600/600 mapped rows, 150 date groups, 0 training-eligible rows, 0 certified labels**. `MAPPED_RESEARCH_TRAINING_BLOCKED` is expected, not a failed model. Replay took 1.336s (reviewer 0.434s), PowerShell 7.6.6 / en-US / India Standard Time, with typed System.DateTime cutoffs. Source/request binding, unchanged prior response, every feature value, windows, blockers, coverage/safety counters and current CRLF script hashes passed independent review. [Persisted evidence](evidence/numerical-research-mapping-spare-acceptance-20260919.json). Original Java round trip was 0.782s; no new Java call occurred. Historical E64 references to pending spare confirmation above are superseded by E65.
 
 After spare parity, reuse this ledger; do not repeat mapping runs without a relevant change. Resolve the provider/price and historical-availability evidence, review the production feature and evaluation policies, then prepare eligible-date-driven folds and request scoped fitting approval. If historical vintages cannot be recovered, propose an explicitly limited retrospective study or prospective capture; neither is silently substituted here. No prediction accuracy or completion-date promise follows from mapping success.

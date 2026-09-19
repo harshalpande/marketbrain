@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-09-19 - E65 mapping/recovery checkpoint verified on spare
+
+- Reviewed `numerical-research-mapping-20260919-173811-99db869b03af.json`, SHA256 `610A71CB2932688ABF29D45F99D7E5DD86F1807B692303E63B234359D4449D08`. PS7.6.6/en-US/India Standard Time; typed System.DateTime cutoff; successful offline replay in 1.336s total / 0.434s review, no failure stage/error. Prior Java timing 0.782s retained; no new Java request.
+- Independently validated 600/600 mapped rows, 150 date groups, all 6,000 numerical values, UTC cutoffs, source windows/receipt diagnostics, blockers, coverage and safety counters. Saved source/request binding and prior report hash match; the complete Java response is unchanged. CRLF collector/reviewer hashes match commit 5a9f50e. [Acceptance](evidence/numerical-research-mapping-spare-acceptance-20260919.json).
+- Close this bounded mapping and recovery verification checkpoint. No more mapping/export/LLM/synthetic runs needed merely to reconfirm it. This is not full G02/G03 completion, forecast accuracy or model fitting; whole-goal percentages unchanged and all 600 rows still training-ineligible.
+- Next grouped pre-fit stage: source/price and historical-availability/rights evidence review alongside ten-feature learner and chronological evaluation-policy preparation. Upstox reply PENDING_EXTERNAL_REPLY; no provider call, new collection, frozen final split, fit or trading authorized. If vintage proof cannot be obtained, present explicit restricted retrospective/prospective alternatives for owner decision. Documentation/evidence update only this turn; no application changes or Java suite rerun.
+
 ## 2026-09-19 - E64 spare mapping preserved; timestamp reviewer repaired
 
 - Supplied partial report SHA256 `B6BDE413069F477B8BA20E06C6725E08D753160DECBDADFBCF4511505D0BBA1C`: Java response contains 600 mapped rows/150 dates; 0.782s mapping round trip, 1.474s until the client stopped. Saved source/request binding and CRLF tool hashes match E63. The response passes the original reviewer under PS5.1; independently checked 6,000 values and all row/coverage/blocker/safety fields. No Java rerun or acquisition needed.

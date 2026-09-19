@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: offline mapping-report recovery (E64)
+### Current checkpoint: mapping and recovery verified (E65)
 
-The spare Java response contains all 600 mapped rows; the client reviewer stopped because its timestamp string conversion lost timezone information. [E64 compatibility fix and recovery](numerical-research-mapping.md#e64-timestamp-defect-and-recovery) preserves timestamp types and accepts the existing partial report for offline replay. Pull scripts and run `PrepareNumericalResearchMapping.ps1` with both `ExpandedResearchPath` and `SavedMappingResultPath`; share its new single JSON. **No service rebuild/restart, Java rerun, data recollection or model call.** All 6,000 feature values in the saved response have been independently reviewed; zero rows are training-eligible. Upstox remains **PENDING_EXTERNAL_REPLY** and real-data fitting stays blocked. E62's restricted 20-session research scope remains unchanged.
+E65 verifies corrected replay on **PowerShell 7.6.6 in 1.336s**: 600 mapped rows/150 dates, all 6,000 feature values checked, correct typed cutoffs, unchanged prior Java response and matching source/tool hashes. [Persisted acceptance](evidence/numerical-research-mapping-spare-acceptance-20260919.json). **No further mapping run or rebuild requested.** Zero rows are training-eligible; Upstox remains PENDING_EXTERNAL_REPLY. Next is the grouped source/availability and learner/evaluation contract stage in [the next-step plan](numerical-next-step.md), not another synthetic or LLM retry. E62's restricted 20-session research scope is unchanged; training and trades are not authorized.
 
 ### E54 planning checkpoint
 

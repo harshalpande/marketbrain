@@ -2,7 +2,11 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45), repair capture (E50) and expanded 150-date research export (E52) reviewed within their scopes. All 600 arithmetic rows completed on spare. E53 records the remaining source-policy gap: no relevant adjustment references were recovered, and public documentation alone does not certify stored prices. Contract freeze, price provenance, certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
-## E64 current checkpoint
+## E65 current checkpoint
+
+Corrected spare mapping replay verified: 600/600 rows, 150 dates, 6,000 values checked, 1.336s on PS7.6.6; previous Java response unchanged. No further mapping run requested. [Grouped next-stage plan](numerical-next-step.md#current-e65-mappingrecovery-checkpoint-verified-no-repeat-run): source/availability evidence and learner/evaluation contracts, then eligible folds and separately approved fit. Zero eligible/certified rows; no numerical performance or whole-goal percentage uplift.
+
+## E64 checkpoint (historical)
 
 Spare Java mapped all 600 rows; saved response independently reviewed. The client timestamp validator failed because a typed instant was converted to timezone-free display text. [Compatibility fix and offline recovery](numerical-research-mapping.md#e64-timestamp-defect-and-recovery) reuses that report without a rebuild or Java/data/model rerun. Corrected spare replay remains pending. Mapping success is not training eligibility; source/availability/evaluation prerequisites are unchanged.
 
