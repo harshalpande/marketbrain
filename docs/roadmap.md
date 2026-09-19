@@ -28,7 +28,7 @@ This denominator covers the full paper-first target, including shared PG1 founda
 |---|---|---:|---|---:|---|
 | G01 | Verify existing Upstox REST and historical/daily pipeline | 8 | D, I | 40% | Implemented foundation; refresh tests, runtime and data-coverage evidence |
 | G02 | Point-in-time, multi-date prediction dataset | 8 | D | 10% | Prototype datasets exist; executable labels, vintage data and leakage controls pending |
-| G03 | Numerical 20-session swing predictor | 12 | D | 10% | Design only; no fitted/calibrated predictor established |
+| G03 | Numerical 20-session swing predictor | 12 | D | 10% | Synthetic learner/evaluation engineering verified; no market-fitted/calibrated predictor established |
 | G04 | Upstox streaming and live aggregation | 7 | D | 10% | REST is not streaming; streaming implementation pending |
 | G05 | Paytm live market data, read-only | 5 | D | 10% | Historical client exists; current live API/auth/entitlement verification and integration pending |
 | G06 | Governed Marketaux ingestion and news features | 5 | D | 10% | Ingestion foundations exist; reliable entity/event pipeline pending |
@@ -101,7 +101,7 @@ E54 external dependency: **PENDING_EXTERNAL_REPLY**. Owner reports the neutral U
 
 ### G03 — Numerical 20-session swing predictor
 
-Independent engineering package: E55 EV1-EV3 implemented; E56 spare smoke passed 22/22 in 15.537s. E57 groups six further [numerical engineering subgoals](numerical-baseline-bundle.md): reference baselines, fixed ridge learner, train-only preprocessing, three synthetic conditions, ranking metrics and reproducibility/evidence. Combined 35-check spare run next, no service rebuild. The E54 estimate is historical, not remaining work. This prepares G03/G02 tests without closing their real-data prerequisites or changing completion percentages. Upstox reply remains pending; real-market fitting/production split freeze remain blocked. Synthetic learner failure under a reversed relationship must remain visible; no forced winner or promotion.
+Independent engineering packages E55-E57 are spare verified through E58 (latest 35/35, 29.200s). E59 groups [robustness engineering](numerical-robustness-bundle.md): 3 expanding folds per 5/20/60-session synthetic horizon, hypothetical round-trip cost sensitivity and explicit readiness blockers, retaining all folds and previous regression checks. Combined 47-check spare run next, no service rebuild. This prepares G03/G02/G07 tests without closing real-data prerequisites or changing completion percentages. Upstox reply remains pending; real-market fitting/production split freeze remain blocked. Synthetic learner failure under a reversed relationship stays visible; no forced winner or promotion. After this bounded verification, retain evidence and address policy/data gates rather than inventing more prerequisite reruns.
 
 - G03.1 `DESIGNED`: compare no-action/current deterministic baseline with a simple linear learner and a bounded small tree-model search; no guaranteed winner.
 - G03.2 `PENDING`: fit numerical models on training data only; record parameters, feature versions, seeds, cost assumptions and rejected experiments.

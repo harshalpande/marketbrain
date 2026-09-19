@@ -2,9 +2,9 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E56 smoke accepted; E57 bundled numerical-engine testing next
+## Current: E58 baseline bundle accepted; E59 robustness bundle next
 
-EV1-EV3 passed the spare Docker smoke: 22/22 checks in 15.537s, cleanup successful. [Persisted review](evidence/numerical-evaluation-spare-review-20260919.json). The next [combined synthetic bundle](numerical-baseline-bundle.md) fits a small numerical learner and two reference predictors on synthetic inputs only, tests three conditions, adds ranking/repeatability checks and repeats the old guard checks in one invocation. Pull and run its standalone script; share one JSON. No MarketBrain rebuild, source query, inference or export repetition. Source-policy reply remains pending, and real-market training stays disabled. Synthetic passes are not a measurement of forecast quality.
+EV1-EV3 and the subsequent baseline bundle passed on spare. Latest: **35/35 checks, 29.200s**, Docker Java 21.0.9, PowerShell 7.6.6; code hashes and raw/parsed output match, cleanup successful. [Persisted review](evidence/numerical-baseline-spare-review-20260919.json). Next [combined robustness bundle](numerical-robustness-bundle.md): 3 chronological folds for each of 5/20/60 synthetic sessions, reference comparisons, hypothetical costs and readiness blockers, plus regression checks in one invocation. Pull and run its standalone script; share one JSON. No MarketBrain rebuild, source query, inference or export repetition. Source-policy reply remains pending, and real-market training stays disabled. Synthetic passes are not a measurement of forecast quality. Do not treat this as justification for indefinite synthetic testing while real-data gates wait.
 
 ## E54 awaiting Upstox; evaluation-engineering contract prepared
 

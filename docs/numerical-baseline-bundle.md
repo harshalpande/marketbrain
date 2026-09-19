@@ -1,6 +1,6 @@
 # Synthetic numerical baseline bundle
 
-2026-09-19. Owner authorized grouping associated numerical-prediction subgoals. Contract frozen before implementation; real-market training is not authorized.
+2026-09-19. E58: spare bundle accepted, **35/35 checks in 29.200s**. [Persisted review](evidence/numerical-baseline-spare-review-20260919.json). No separate rerun needed. Next is the [combined robustness bundle](numerical-robustness-bundle.md). Owner authorized grouping associated numerical-prediction subgoals. Contract frozen before implementation; real-market training is not authorized.
 
 ## Scope and acceptance
 
@@ -17,7 +17,7 @@ Upstox clarification remains PENDING_EXTERNAL_REPLY. Preserve the verified 600-r
 
 ## E57 implementation and verification
 
-All six scoped components above are implemented and offline verified. Spare verification is pending for this bundle. **331 standard Java tests (9 new), Maven package, 35 synthetic CLI checks (22 regression + 13 new), and 51 PowerShell 5.1 workflow assertions (30 existing + 21 bundle) passed.** The bundle workflow independently recomputes held-out error metrics, verifies comparator row/target identity, preserves ties and rejects corrupted evidence. Java tests additionally cover constant/collinear inputs, missingness, bounds/overflow and an actual JSON parameter round-trip. CLI checks only copy-artifact parity; do not confuse that with the separate serialization test.
+All six scoped components above are implemented and offline verified; E58 subsequently verified the spare Docker/PowerShell 7.6.6 run. **331 standard Java tests (9 new), Maven package, 35 synthetic CLI checks (22 regression + 13 new), and 51 PowerShell 5.1 workflow assertions (30 existing + 21 bundle) passed at E57 delivery.** The bundle workflow independently recomputes held-out error metrics, verifies comparator row/target identity, preserves ties and rejects corrupted evidence. Java tests additionally cover constant/collinear inputs, missingness, bounds/overflow and an actual JSON parameter round-trip. CLI checks only copy-artifact parity; do not confuse that with the separate serialization test.
 
 Local JDK execution took **4.601s**, with one **418,268-byte JSON**. This is not a spare runtime promise. Staged progress and five-second child heartbeats are visible; the 120s child timeout (max 300) plus bounded setup/cleanup waits prevent an hours-long model loop. No retries, downloads or market-data access. Runtime/PowerShell version, source/runner/helper hashes and raw process streams are captured. The wrapper delegates to the same tested process/atomic checkpoint path as E55. A persistent file lock or forced host shutdown can leave a pending checkpoint; the previous report is never deleted to recover.
 
@@ -33,7 +33,7 @@ Observed synthetic TEST equal-date MAE (percentage points):
 
 These deliberately constructed results are not stock-market accuracy or model-selection evidence. Undefined rank correlations remain null, not zero. Top-outcome means omit costs and execution and are not portfolio returns. All model/policy promotion remains disabled. No Spring wiring or deployment setting changed.
 
-## Spare handoff: one invocation, one evidence file
+## Historical spare handoff (completed E58; do not rerun separately)
 
 Pull the committed revision, then run in the spare repository:
 
@@ -45,7 +45,7 @@ Use the already cached `maven:3.9.11-eclipse-temurin-21` image verified by E56; 
 
 ## Next milestones and dependencies
 
-1. **This handoff:** verify all six engineering components in one short spare run; review its single report together. Do not schedule six separate collections or repeat completed exports.
+1. **Completed E58:** all six engineering components verified in one spare run. Next use the robustness bundle; do not schedule six separate collections or repeat completed exports.
 2. **Parallel external track:** await Upstox source-policy response and reconcile it with captured provenance. No new provider request or policy assumption is authorized here; external response time is unknown.
 3. **Before any real-market fit:** approve target/price/cost/availability/universe contracts, eligible labels and leakage-safe chronological splits. Existing inspected shadow dates stay development-only. These gates cannot be closed by a synthetic pass or by a provider reply alone.
 4. **After authorization and those gates:** use the same comparator/metric structure for a bounded real-data baseline, then genuinely out-of-time validation before paper integration. Intraday and 5/60-session targets, cost/portfolio simulation, uncertainty calibration, model registry and ongoing drift monitoring remain separate work, not claimed complete by this 20-session synthetic bundle.

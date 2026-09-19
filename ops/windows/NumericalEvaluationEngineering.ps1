@@ -84,9 +84,116 @@ function Assert-EvaluationSmoke($Result) {
 }
 
 function Assert-BaselineNumber($Value,[double]$Expected,[string]$Name) {
-    if($null -eq $Value -or $Value -is [string] -or $Value -is [bool] -or
+    if([double]::IsNaN($Expected) -or [double]::IsInfinity($Expected) -or
+        $null -eq $Value -or $Value -is [string] -or $Value -is [bool] -or
         [double]::IsNaN([double]$Value) -or [double]::IsInfinity([double]$Value) -or
         [math]::Abs([double]$Value-$Expected) -gt 1e-9){throw "Invalid baseline value: $Name"}
+}
+
+function Assert-NumericalRobustnessBundle($Result) {
+    if($Result.version -cne 'SYNTHETIC_NUMERICAL_ROBUSTNESS_V1' -or $Result.status -cne 'SYNTHETIC_CHECKS_PASSED'){throw 'Wrong robustness contract/status.'}
+    foreach($key in @('trainingAuthorized','realMarketTrainingAuthorized','databaseWritesPerformed')){
+        if($Result.$key -isnot [bool] -or $Result.$key){throw "Unsafe robustness flag: $key"}
+    }
+    foreach($key in @('syntheticOnly','syntheticTrainingPerformed')){if($Result.$key -isnot [bool] -or -not $Result.$key){throw 'Not synthetic fitting evidence.'}}
+    foreach($key in @('providerCallCount','modelCallCount','ordersCreated','failedCheckCount')){Assert-BaselineNumber $Result.$key 0 $key}
+    Assert-NumericalBaselineBundle $Result.baselineRegression
+    $names=@('nine_chronological_folds_pass','training_expands_without_future_labels','horizons_have_exact_session_label_ends',
+        'aggregate_retains_all_test_rows','duplicate_test_fold_rejected','mixed_horizon_pool_rejected','fold_order_does_not_change_pool',
+        'cost_units_threshold_and_date_weighting','no_selection_is_unavailable_not_success','invalid_costs_and_empty_inputs_rejected',
+        'reversal_losses_remain_visible','readiness_keeps_all_external_gates')
+    Assert-BaselineNumber $Result.checkCount 12 'check count'
+    if(@($Result.checks).Count -ne 12){throw 'Missing robustness checks.'}
+    $seen=@{}
+    foreach($check in $Result.checks){
+        if($names -cnotcontains $check.name -or $seen.ContainsKey($check.name) -or $check.passed -isnot [bool] -or -not $check.passed -or
+            $check.failure -or $check.fixtureSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Invalid robustness check.'}
+        Assert-BaselineNumber $check.elapsedMillis ([double]$check.elapsedMillis) 'check timing'
+        if($check.elapsedMillis -lt 0){throw 'Negative timing.'};$seen[$check.name]=$true
+    }
+    $blockers=@('PRICE_POLICY_PENDING_EXTERNAL_REPLY','POINT_IN_TIME_AVAILABILITY_AND_UNIVERSE_UNAPPROVED',
+        'REAL_TARGET_AND_COST_CONTRACT_UNAPPROVED','CERTIFIED_MARKET_LABELS_UNAVAILABLE','UNTOUCHED_MARKET_EVALUATION_PENDING')
+    if($Result.readiness.status -cne 'REAL_MARKET_TRAINING_BLOCKED' -or $Result.readiness.automaticPromotionEnabled -isnot [bool] -or
+        $Result.readiness.automaticPromotionEnabled -or ($Result.readiness.blockers -join ',') -cne ($blockers -join ',')){throw 'Readiness gate changed.'}
+    if(($Result.configuration.horizons -join ',') -ne '5,20,60' -or ($Result.configuration.roundTripCostsBps -join ',') -ne '0,25,100'){throw 'Changed fixture configuration.'}
+    Assert-BaselineNumber $Result.configuration.foldsPerHorizon 3 'fold count'
+    Assert-BaselineNumber $Result.configuration.ridgePenalty 0.01 'penalty'
+    Assert-BaselineNumber $Result.configuration.regimeReversalSession 160 'reversal session'
+    if(@($Result.horizons).Count -ne 3){throw 'Missing horizons.'};$seen=@{}
+    foreach($horizon in $Result.horizons){
+        $h=[int]$horizon.horizonSessions
+        if(@(5,20,60) -notcontains $h -or $seen.ContainsKey($h) -or @($horizon.folds).Count -ne 3){throw 'Invalid horizon/fold group.'};$seen[$h]=$true
+        $folds=@{};$testDates=@{};$expectedRows=@{ZERO=@{};TRAIN_MEAN=@{};RIDGE=@{}}
+        foreach($fold in $horizon.folds){
+            $number=[int]$fold.number
+            if(@(1,2,3) -notcontains $number -or $folds.ContainsKey($number)){throw 'Invalid/duplicate fold.'};$folds[$number]=$true
+            if($fold.fixtureSha256 -cnotmatch '^[a-f0-9]{64}$' -or $fold.modelSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing fold fingerprint.'}
+            Assert-BaselineNumber $fold.model.trainingRows (180+90*($number-1)) 'training rows'
+            if($fold.guard.status -cne 'DECLARED_METADATA_CHECKS_PASS' -or @($fold.guard.issues).Count -ne 0 -or
+                $fold.guard.rowCount -ne $fold.model.trainingRows+60 -or $fold.contract.horizonSessions -ne $h -or
+                $fold.manifest.horizonSessions -ne $h -or $fold.manifest.gapSessions -ne 5 -or @($fold.manifest.sessions).Count -ne 400){throw 'Invalid fold guard/manifest.'}
+            if(@($fold.manifest.previouslyInspectedPeriods).Count -ne $number-1){throw 'Inspection history lost.'}
+            foreach($partition in @($fold.validation,$fold.test)){
+                if(@($partition.comparisons).Count -ne 3){throw 'Missing fold comparator.'}
+                $ids=@{}
+                foreach($comparison in $partition.comparisons){
+                    $id=[string]$comparison.predictor
+                    if(@('ZERO','TRAIN_MEAN','RIDGE') -cnotcontains $id -or $ids.ContainsKey($id) -or @($comparison.predictions).Count -ne 30){throw 'Invalid fold comparator.'}
+                    $ids[$id]=$true
+                    if($comparison.errors.rowCount -ne 30 -or $comparison.errors.dateCount -ne 10){throw 'Wrong fold population.'}
+                }
+            }
+            foreach($row in $fold.test.comparisons[0].predictions){
+                $date=[string]$row.decisionDate
+                if($testDates.ContainsKey($date) -and $testDates[$date] -ne $number){throw 'Test date reused across folds.'};$testDates[$date]=$number
+            }
+            foreach($comparison in $fold.test.comparisons){foreach($row in $comparison.predictions){
+                $key=([string]$row.decisionDate)+'|'+$row.instrument
+                if($expectedRows[$comparison.predictor].ContainsKey($key)){throw 'Duplicate test row.'}
+                $expectedRows[$comparison.predictor][$key]=$row
+            }}
+        }
+        if($testDates.Count -ne 30 -or @($horizon.pooledTest).Count -ne 3 -or @($horizon.hypotheticalCosts).Count -ne 3){throw 'Incomplete aggregation.'}
+        $pooled=@{}
+        foreach($comparison in $horizon.pooledTest){
+            $id=[string]$comparison.predictor
+            if(@('ZERO','TRAIN_MEAN','RIDGE') -cnotcontains $id -or $pooled.ContainsKey($id) -or @($comparison.predictions).Count -ne 90){throw 'Invalid pooled comparator.'}
+            $pooled[$id]=$comparison.predictions;$keys=@{};$dates=@{};$ae=0.0;$se=0.0;$bias=0.0;$direction=0.0
+            foreach($row in $comparison.predictions){
+                $key=([string]$row.decisionDate)+'|'+$row.instrument
+                if($keys.ContainsKey($key) -or -not $expectedRows[$id].ContainsKey($key) -or $row.predictionId -cne $id -or
+                    $row.contract.horizonSessions -ne $h -or $row.contract.unit -cne 'PERCENTAGE_POINTS' -or $row.contract.pricePolicy -cne 'SYNTHETIC_ONLY'){throw 'Wrong pooled identity/contract.'}
+                $keys[$key]=$true;$original=$expectedRows[$id][$key]
+                Assert-BaselineNumber $row.predicted ([double]$original.predicted) 'pooled prediction'
+                Assert-BaselineNumber $row.observed ([double]$original.observed) 'pooled target'
+                $e=[double]$row.predicted-[double]$row.observed;$ae+=[math]::Abs($e);$se+=$e*$e;$bias+=$e
+                if([math]::Sign([double]$row.predicted) -eq [math]::Sign([double]$row.observed)){$direction++}
+                $date=[string]$row.decisionDate;if(-not $dates.ContainsKey($date)){$dates[$date]=0};$dates[$date]++
+            }
+            if($dates.Count -ne 30 -or @($dates.Values | Where-Object {$_ -ne 3}).Count -or $comparison.errors.rowCount -ne 90 -or $comparison.errors.dateCount -ne 30){throw 'Wrong pooled population.'}
+            $metrics=@{mae=$ae/90;rmse=[math]::Sqrt($se/90);signedBias=$bias/90;directionAgreementPercent=100*$direction/90}
+            foreach($weight in @('rowWeighted','equalDateWeighted')){foreach($metric in $metrics.Keys){Assert-BaselineNumber $comparison.errors.$weight.$metric $metrics[$metric] $metric}}
+        }
+        $costPredictors=@{}
+        foreach($stress in $horizon.hypotheticalCosts){
+            $id=[string]$stress.predictor
+            if(-not $pooled.ContainsKey($id) -or $costPredictors.ContainsKey($id) -or @($stress.costs).Count -ne 3){throw 'Invalid cost comparator.'};$costPredictors[$id]=$true
+            $costs=@{}
+            foreach($cost in $stress.costs){
+                $bps=[int]$cost.roundTripCostBps
+                if(@(0,25,100) -notcontains $bps -or $costs.ContainsKey($bps)){throw 'Unexpected/duplicate cost.'};$costs[$bps]=$true
+                $selected=0;$sum=0.0
+                foreach($row in $pooled[$id]){if([double]$row.predicted -gt $bps/100.0){$selected++;$sum+=[double]$row.observed-$bps/100.0}}
+                Assert-BaselineNumber $cost.rowCount 90 'cost rows'
+                Assert-BaselineNumber $cost.dateCount 30 'cost dates'
+                Assert-BaselineNumber $cost.selectedCount $selected 'cost selected'
+                Assert-BaselineNumber $cost.coveragePercent (100.0*$selected/90) 'coverage'
+                # Three observations on each of thirty dates; zero contribution for abstentions.
+                Assert-BaselineNumber $cost.equalDateMeanContributionPercent ($sum/90) 'net contribution'
+                if($selected){Assert-BaselineNumber $cost.meanSelectedNetPercent ($sum/$selected) 'selected net'}elseif($null -ne $cost.meanSelectedNetPercent){throw 'No selection must be unavailable.'}
+            }
+        }
+    }
 }
 
 function Assert-NumericalBaselineBundle($Result) {

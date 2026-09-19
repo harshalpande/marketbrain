@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('Evaluation','Baselines')][string]$Suite='Evaluation',
+    [ValidateSet('Evaluation','Baselines','Robustness')][string]$Suite='Evaluation',
     [ValidateSet('Auto','Java','Docker')][string]$Runtime='Auto',
     [string]$OutputDirectory='C:\MarketBrainData\Review',
     [ValidateRange(5,300)][int]$TimeoutSeconds=120
@@ -16,12 +16,14 @@ $image='maven:3.9.11-eclipse-temurin-21'
 $baseline=$Suite -eq 'Baselines'
 $cliArgument=if($baseline){'--synthetic-baselines'}else{'--synthetic-smoke'}
 $prefix=if($baseline){'numerical-prediction-bundle'}else{'numerical-evaluation-smoke'}
+if($Suite -eq 'Robustness'){$cliArgument='--synthetic-robustness';$prefix='numerical-robustness-bundle'}
 $report=[ordered]@{version='NUMERICAL_EVALUATION_SMOKE_COLLECTION_V1';status='RUNNING';createdAtUtc=[DateTime]::UtcNow.ToString('o')
     updatedAtUtc=$null;elapsedSeconds=0;runtime=$null;sourceSha256=$null;scriptSha256=$null;helperSha256=$null;javaResult=$null
     process=$null;runtimeProbe=$null;cleanup=$null;failure=$null;syntheticOnly=$true;trainingAuthorized=$false;events=@()}
 $report.suite=$Suite
 $report.powerShellVersion=$PSVersionTable.PSVersion.ToString()
 if($baseline){$report.version='NUMERICAL_PREDICTION_BUNDLE_COLLECTION_V1'}
+if($Suite -eq 'Robustness'){$report.version='NUMERICAL_ROBUSTNESS_BUNDLE_COLLECTION_V1'}
 $docker=$null; $dockerStarted=$false
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('{0}-{1}-{2}.json' -f $prefix,(Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))
@@ -68,7 +70,11 @@ try {
     if($report.process.exitCode -ne 0){throw 'Synthetic Java process failed; inspect embedded stdout/stderr.'}
     Update-EvaluationProgress 85 'Checking complete suite, safety flags and independent metric expectations.'
     $report.javaResult=$report.process.stdout | ConvertFrom-Json
-    if($baseline){Assert-NumericalBaselineBundle $report.javaResult}else{Assert-EvaluationSmoke $report.javaResult}
+    switch($Suite){
+        Baselines {Assert-NumericalBaselineBundle $report.javaResult}
+        Robustness {Assert-NumericalRobustnessBundle $report.javaResult}
+        default {Assert-EvaluationSmoke $report.javaResult}
+    }
     $report.status='SYNTHETIC_CHECKS_PASSED_TRAINING_BLOCKED'
     $report.events+=@([pscustomobject]@{atUtc=[DateTime]::UtcNow.ToString('o');percent=100;detail='Synthetic checks passed; training remains blocked.'})
 } catch {

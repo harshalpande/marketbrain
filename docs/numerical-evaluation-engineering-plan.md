@@ -66,6 +66,6 @@ Real-data model fitting/promotion, certified returns, final evaluation release, 
 
 ## Handoff when the provider replies in another session
 
-Read this file, `numerical-price-policy-open-questions.md`, `numerical-baseline-bundle.md`, the current roadmap and E52-E57 in the evidence register. Preserve the provider's redacted wording, date, reference/ticket and scope; do not assume current API behaviour proves previously stored vintages. The owner does not want project details disclosed. No automatic external message or provider fetch is authorized.
+Read this file, `numerical-price-policy-open-questions.md`, `numerical-baseline-bundle.md`, `numerical-robustness-bundle.md`, the current roadmap and E52-E59 in the evidence register. Preserve the provider's redacted wording, date, reference/ticket and scope; do not assume current API behaviour proves previously stored vintages. The owner does not want project details disclosed. No automatic external message or provider fetch is authorized.
 
 The accepted artifact is `numerical-expanded-research-20260919-140603-9785384a9616.json`, SHA256 `E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8`; its small review is in `docs/evidence/numerical-expanded-research-spare-review-20260919.json`. No need to rerun that export or the empty repair query. Review the reply as new evidence, then specify any remaining bounded acquisition before changing stored data.

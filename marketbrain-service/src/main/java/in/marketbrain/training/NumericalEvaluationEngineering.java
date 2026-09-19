@@ -327,7 +327,10 @@ public final class NumericalEvaluationEngineering {
             return ranks;
         }
         public static Ranking ranking(List<Pair> rows) {
-            metrics(CONTRACT,rows);require(!rows.isEmpty(),"No ranking observations");
+            return ranking(CONTRACT, rows);
+        }
+        public static Ranking ranking(Contract contract, List<Pair> rows) {
+            metrics(contract,rows);require(!rows.isEmpty(),"No ranking observations");
             var dates=new TreeMap<LocalDate,List<Pair>>();
             for(var row:rows)dates.computeIfAbsent(row.decisionDate(),ignored->new ArrayList<>()).add(row);
             double correlationSum=0,topSum=0;int available=0,selected=0;
@@ -367,11 +370,14 @@ public final class NumericalEvaluationEngineering {
             return List.copyOf(rows);
         }
         static PartitionComparison compare(Model model, double trainMean, List<Labeled> heldOut) {
+            return compare(model, trainMean, heldOut, CONTRACT);
+        }
+        static PartitionComparison compare(Model model, double trainMean, List<Labeled> heldOut, Contract contract) {
             var comparisons=new ArrayList<Comparison>();
             for(String id:List.of("ZERO","TRAIN_MEAN","RIDGE")){
                 List<Pair> pairs=heldOut.stream().map(row->{var x=row.metadata().inference();double predicted=switch(id){case "ZERO"->0;case "TRAIN_MEAN"->trainMean;default->predict(model,x);};
-                    return new Pair(x.instrument(),x.decisionAt().atZone(INDIA).toLocalDate(),id,predicted,row.target(),CONTRACT);}).toList();
-                comparisons.add(new Comparison(id,metrics(CONTRACT,pairs),ranking(pairs),pairs));
+                    return new Pair(x.instrument(),x.decisionAt().atZone(INDIA).toLocalDate(),id,predicted,row.target(),contract);}).toList();
+                comparisons.add(new Comparison(id,metrics(contract,pairs),ranking(contract,pairs),pairs));
             }
             double best=comparisons.stream().mapToDouble(c->c.errors().equalDateWeighted().mae()).min().orElseThrow();
             return new PartitionComparison(List.copyOf(comparisons),comparisons.stream().filter(c->Math.abs(c.errors().equalDateWeighted().mae()-best)<=1e-9).map(Comparison::predictor).toList());
@@ -430,6 +436,152 @@ public final class NumericalEvaluationEngineering {
         }
     }
 
+    /** Fixed, isolated walk-forward fixtures; never a production training endpoint. */
+    public static final class Robustness {
+        public static final String VERSION = "SYNTHETIC_NUMERICAL_ROBUSTNESS_V1";
+        public record CostStress(int roundTripCostBps, int rowCount, int dateCount, int selectedCount,
+                                 double coveragePercent, Double meanSelectedNetPercent,
+                                 double equalDateMeanContributionPercent) { }
+        public record PredictorStress(String predictor, List<CostStress> costs) { }
+        public record Fold(int number, Contract contract, Manifest manifest, String fixtureSha256,
+                           GuardResult guard, Baselines.Model model, String modelSha256,
+                           Baselines.PartitionComparison validation, Baselines.PartitionComparison test,
+                           double elapsedMillis) { }
+        public record Horizon(int horizonSessions, List<Fold> folds, List<Baselines.Comparison> pooledTest,
+                              List<PredictorStress> hypotheticalCosts) { }
+
+        static Manifest manifest(int horizon, int fold) {
+            require(Set.of(5,20,60).contains(horizon) && fold>=0 && fold<3,"Unsupported fixed fold/horizon");
+            var dates=new ArrayList<LocalDate>();
+            for(int i=0;i<400;i++)dates.add(LocalDate.of(2020,1,1).plusDays(2L*i));
+            int trainingDates=60+30*fold, validationStart=trainingDates+horizon+5;
+            int testStart=validationStart+10+horizon+5;
+            var inspected=new ArrayList<Window>();
+            for(int prior=0;prior<fold;prior++){
+                int first=60+30*prior+2*horizon+20;
+                inspected.add(new Window(dates.get(first),dates.get(first+9)));
+            }
+            return new Manifest(List.copyOf(dates),Map.of(
+                    Partition.TRAIN,new Window(dates.get(0),dates.get(trainingDates-1)),
+                    Partition.VALIDATION,new Window(dates.get(validationStart),dates.get(validationStart+9)),
+                    Partition.TEST,new Window(dates.get(testStart),dates.get(testStart+9))),
+                    horizon,5,"SYNTHETIC_KNOWN_AVAILABILITY",List.copyOf(inspected));
+        }
+        static List<Baselines.Labeled> data(Manifest manifest) {
+            var rows=new ArrayList<Baselines.Labeled>();
+            for(var partition:Partition.values())for(int index=0;index<manifest.sessions().size();index++){
+                if(!inside(manifest.sessions().get(index),manifest.windows().get(partition)))continue;
+                for(int instrument=0;instrument<3;instrument++){
+                    double x=index%9-4+instrument*0.15, z=1+((index+instrument)%5)*0.25;
+                    var features=new LinkedHashMap<String,Double>();features.put("return5",x);
+                    if(!(index%7==0 && instrument==1))features.put("volumeRatio20",z);
+                    var base=fixtureRow(manifest,index,partition);
+                    var input=new InferenceInput("SYNTH_"+instrument,base.inference().decisionAt(),base.inference().featuresAvailableAt(),features);
+                    double target=(index<160?1:-1)*(1.25+1.8*x-1.2*(z-1));
+                    rows.add(new Baselines.Labeled(new EvaluationRow(input,base.labelEndAt(),partition,Inspection.UNINSPECTED),target));
+                }
+            }
+            return List.copyOf(rows);
+        }
+        static Fold fold(int horizon,int number) {
+            long start=System.nanoTime();var m=manifest(horizon,number);var rows=data(m);
+            var checked=guard(m,rows.stream().map(Baselines.Labeled::metadata).toList());
+            require(checked.issues().isEmpty(),"Invalid chronological fixture");
+            var train=rows.stream().filter(r->r.metadata().partition()==Partition.TRAIN).toList();
+            var model=Baselines.fit(train,m.windows().get(Partition.VALIDATION).first().atStartOfDay(INDIA).toInstant());
+            var contract=new Contract(horizon,"PERCENTAGE_POINTS","SYNTHETIC_ONLY");
+            return new Fold(number+1,contract,m,sha256(json(rows)),checked,model,sha256(json(model)),
+                    Baselines.compare(model,model.intercept(),rows.stream().filter(r->r.metadata().partition()==Partition.VALIDATION).toList(),contract),
+                    Baselines.compare(model,model.intercept(),rows.stream().filter(r->r.metadata().partition()==Partition.TEST).toList(),contract),
+                    (System.nanoTime()-start)/1_000_000.0);
+        }
+        /** Hypothetical independent observations, not a trading strategy or portfolio simulator. */
+        public static CostStress costs(Contract contract,List<Pair> rows,int roundTripBps) {
+            require(roundTripBps>=0 && roundTripBps<=10_000,"Invalid hypothetical cost");
+            var validated=metrics(contract,rows);require(!rows.isEmpty(),"Empty cost observations");
+            double cost=roundTripBps/100.0, netSum=0;int selected=0;
+            var ordered=new ArrayList<>(rows);ordered.sort(Comparator.comparing(Pair::decisionDate).thenComparing(Pair::instrument));
+            var dailySum=new TreeMap<LocalDate,Double>();var dailyCount=new HashMap<LocalDate,Integer>();
+            for(var row:ordered){
+                double net=0;
+                if(row.predicted()>cost){net=finite(row.observed()-cost);netSum=finite(netSum+net);selected++;}
+                dailySum.merge(row.decisionDate(),net,(a,b)->finite(a+b));dailyCount.merge(row.decisionDate(),1,Integer::sum);
+            }
+            double contribution=0;for(var date:dailySum.keySet())contribution=finite(contribution+dailySum.get(date)/dailyCount.get(date));
+            return new CostStress(roundTripBps,rows.size(),validated.dateCount(),selected,100.0*selected/rows.size(),
+                    selected==0?null:netSum/selected,contribution/dailySum.size());
+        }
+        static List<Baselines.Comparison> aggregate(Contract contract,List<Fold> folds) {
+            require(folds!=null && folds.size()==3,"Exactly three folds required");
+            var ids=new HashSet<Integer>();var testDates=new HashSet<LocalDate>();
+            for(var fold:folds){
+                require(fold!=null && contract.equals(fold.contract()) && ids.add(fold.number()),"Mixed/duplicate fold contract");
+                var dates=fold.test().comparisons().getFirst().predictions().stream().map(Pair::decisionDate).distinct().toList();
+                for(var date:dates)require(testDates.add(date),"Test decision date reused across folds");
+            }
+            var result=new ArrayList<Baselines.Comparison>();
+            for(String predictor:List.of("ZERO","TRAIN_MEAN","RIDGE")){
+                var rows=folds.stream().flatMap(f->f.test().comparisons().stream()).filter(c->predictor.equals(c.predictor()))
+                        .flatMap(c->c.predictions().stream()).sorted(Comparator.comparing(Pair::decisionDate).thenComparing(Pair::instrument)).toList();
+                result.add(new Baselines.Comparison(predictor,metrics(contract,rows),Baselines.ranking(contract,rows),rows));
+            }
+            return List.copyOf(result);
+        }
+        static Horizon horizon(int horizon) {
+            var folds=new ArrayList<Fold>();for(int f=0;f<3;f++)folds.add(fold(horizon,f));
+            var contract=folds.getFirst().contract();var pooled=aggregate(contract,folds);
+            var stress=pooled.stream().map(c->new PredictorStress(c.predictor(),List.of(costs(contract,c.predictions(),0),
+                    costs(contract,c.predictions(),25),costs(contract,c.predictions(),100)))).toList();
+            return new Horizon(horizon,List.copyOf(folds),pooled,stress);
+        }
+        static List<String> blockers() {
+            return List.of("PRICE_POLICY_PENDING_EXTERNAL_REPLY","POINT_IN_TIME_AVAILABILITY_AND_UNIVERSE_UNAPPROVED",
+                    "REAL_TARGET_AND_COST_CONTRACT_UNAPPROVED","CERTIFIED_MARKET_LABELS_UNAVAILABLE","UNTOUCHED_MARKET_EVALUATION_PENDING");
+        }
+        static Map<String,Object> smokeBundle() {
+            long start=System.nanoTime();var baseline=Baselines.smokeBundle();var horizons=new ArrayList<Horizon>();var checks=new ArrayList<Check>();
+            for(int h:List.of(5,20,60))horizons.add(horizon(h));
+            check(checks,"nine_chronological_folds_pass",horizons.stream().map(Horizon::horizonSessions).toList(),()->{
+                require(horizons.size()==3 && horizons.stream().allMatch(h->h.folds().size()==3 && h.folds().stream().allMatch(f->f.guard().issues().isEmpty())),"Missing/rejected folds");});
+            check(checks,"training_expands_without_future_labels","180_270_360",()->{
+                for(var h:horizons)for(var f:h.folds()){
+                    require(f.model().trainingRows()==180+90*(f.number()-1),"Unexpected training count");
+                    for(var r:data(f.manifest()))if(r.metadata().partition()==Partition.TRAIN)require(r.metadata().labelEndAt().isBefore(f.model().fitCutoff()),"Immature label fitted");
+                }});
+            check(checks,"horizons_have_exact_session_label_ends","5_20_60",()->{
+                for(var h:horizons)for(var f:h.folds())for(var r:data(f.manifest())){
+                    int i=f.manifest().sessions().indexOf(r.metadata().inference().decisionAt().atZone(INDIA).toLocalDate());
+                    require(r.metadata().labelEndAt().atZone(INDIA).toLocalDate().equals(f.manifest().sessions().get(i+h.horizonSessions())),"Wrong horizon end");}});
+            check(checks,"aggregate_retains_all_test_rows","90_ROWS_30_DATES_PER_HORIZON_PREDICTOR",()->{
+                for(var h:horizons)for(var c:h.pooledTest())require(c.errors().rowCount()==90 && c.errors().dateCount()==30,"Pooled rows lost");});
+            var first=horizons.getFirst();var fold=first.folds().getFirst();
+            check(checks,"duplicate_test_fold_rejected",fold.fixtureSha256(),()->rejects(()->aggregate(fold.contract(),List.of(fold,fold,first.folds().getLast()))));
+            check(checks,"mixed_horizon_pool_rejected","5_VS_20",()->rejects(()->aggregate(fold.contract(),horizons.get(1).folds())));
+            check(checks,"fold_order_does_not_change_pool",fold.fixtureSha256(),()->{var reversed=new ArrayList<>(first.folds());Collections.reverse(reversed);require(first.pooledTest().equals(aggregate(fold.contract(),reversed)),"Order affected pool");});
+            var date=LocalDate.of(2020,1,1);var contract=fold.contract();
+            var rows=List.of(new Pair("A",date,"COST",2,1,contract),new Pair("B",date,"COST",0.25,-2,contract),new Pair("A",date.plusDays(1),"COST",3,4,contract));
+            check(checks,"cost_units_threshold_and_date_weighting",rows,()->{
+                var c=costs(contract,rows,25);require(c.selectedCount()==2,"Threshold must be strictly greater");equal(c.meanSelectedNetPercent(),2.25);equal(c.equalDateMeanContributionPercent(),2.0625);});
+            var none=List.of(new Pair("A",date,"NONE",0,5,contract));
+            check(checks,"no_selection_is_unavailable_not_success",none,()->{var c=costs(contract,none,0);require(c.selectedCount()==0 && c.meanSelectedNetPercent()==null,"Empty selection fabricated");equal(c.equalDateMeanContributionPercent(),0);});
+            check(checks,"invalid_costs_and_empty_inputs_rejected",rows,()->{rejects(()->costs(contract,rows,-1));rejects(()->costs(contract,rows,10_001));rejects(()->costs(contract,List.of(),0));});
+            check(checks,"reversal_losses_remain_visible","HORIZON_60",()->{
+                var h=horizons.getLast();double ridge=h.pooledTest().get(2).errors().equalDateWeighted().mae(),zero=h.pooledTest().getFirst().errors().equalDateWeighted().mae();require(ridge>zero,"Loss hidden by aggregation");});
+            check(checks,"readiness_keeps_all_external_gates",blockers(),()->require(blockers().size()==5 && blockers().contains("PRICE_POLICY_PENDING_EXTERNAL_REPLY"),"Gate removed"));
+            var result=new LinkedHashMap<String,Object>();long failed=checks.stream().filter(c->!c.passed()).count();
+            result.put("version",VERSION);result.put("baselineRegression",baseline);result.put("horizons",horizons);result.put("checks",checks);
+            result.put("checkCount",checks.size());result.put("failedCheckCount",failed);
+            result.put("status",failed==0 && "SYNTHETIC_CHECKS_PASSED".equals(baseline.get("status"))?"SYNTHETIC_CHECKS_PASSED":"SYNTHETIC_CHECKS_FAILED");
+            result.put("readiness",Map.of("status","REAL_MARKET_TRAINING_BLOCKED","blockers",blockers(),"automaticPromotionEnabled",false));
+            result.put("syntheticOnly",true);result.put("syntheticTrainingPerformed",true);result.put("trainingAuthorized",false);
+            result.put("realMarketTrainingAuthorized",false);result.put("databaseWritesPerformed",false);result.put("providerCallCount",0);result.put("modelCallCount",0);result.put("ordersCreated",0);
+            result.put("configuration",Map.of("horizons",List.of(5,20,60),"foldsPerHorizon",3,"ridgePenalty",0.01,"roundTripCostsBps",List.of(0,25,100),"regimeReversalSession",160));
+            result.put("elapsedMillis",(System.nanoTime()-start)/1_000_000.0);result.put("javaVersion",System.getProperty("java.version"));
+            result.put("limitations",List.of("Synthetic algebraic targets only; no market prediction skill measured","Cost sensitivity is independent-observation arithmetic, not portfolio PnL or broker fee modelling","Overlapping labels are dependent; no significance, confidence or automatic promotion"));
+            return result;
+        }
+    }
+
     static String sha256(String text) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8))); }
         catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
@@ -459,8 +611,9 @@ public final class NumericalEvaluationEngineering {
         return out.append('"').toString();
     }
     public static void main(String[] args) {
-        if (args.length != 1 || !Set.of("--synthetic-smoke","--synthetic-baselines").contains(args[0])) throw new IllegalArgumentException("Only fixed synthetic suites are supported; no market-data input");
-        Map<String, Object> result = "--synthetic-baselines".equals(args[0]) ? Baselines.smokeBundle() : smoke(); System.out.println(json(result));
+        if (args.length != 1 || !Set.of("--synthetic-smoke","--synthetic-baselines","--synthetic-robustness").contains(args[0])) throw new IllegalArgumentException("Only fixed synthetic suites are supported; no market-data input");
+        Map<String, Object> result = switch(args[0]) {case "--synthetic-baselines" -> Baselines.smokeBundle(); case "--synthetic-robustness" -> Robustness.smokeBundle(); default -> smoke();};
+        System.out.println(json(result));
         if (!"SYNTHETIC_CHECKS_PASSED".equals(result.get("status"))) System.exit(2);
     }
 }

@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - Baseline spare report accepted; walk-forward/horizon/cost bundle
+
+- E58: accepted `numerical-prediction-bundle-20260919-161713-717317c0266a.json`, SHA256 `BD1330B3C4244CED79086D8B176EB92536BFF66628D40DDFFC1EF779242FDC44`. 35/35 checks, 29.200s total; Java suite 4.898s, remaining time includes source compilation/startup/reporting. Docker Java 21.0.9, PowerShell 7.6.6, child and cleanup exit 0. Independent validator and raw/parsed equality pass; CRLF-normalized code hashes match E57 revision. No market prediction-quality claim or repeated acquisition.
+- Owner authorized another combined numerical package. E59 implements chronological walk-forward, 5/20/60-session synthetic contracts, hypothetical costs and explicit readiness blockers in one fixed CLI. Nine folds, three comparators, three cost levels; all observations retained, no best-fold selection or automatic promotion. Previous 35 checks are regression checks within the same invocation.
+- Verification: 340 standard Java tests (9 new), Maven package, 47 CLI checks and 77 PowerShell 5.1 assertions. Numeric validation additionally rejects a non-finite expected value. Older workflow negative-path failures are intentional assertions, not ignored production errors. No saved-market-data probes, local Docker/service, DB/provider/LLM or order activity.
+- One approximately 1.7 MiB JSON contains the complete output. No service rebuild or model download on spare; pull and run TestNumericalRobustnessBundle.ps1. New spare success awaits the supplied report, not inferred from E58.
+- Upstox remains PENDING_EXTERNAL_REPLY. Real-data target/cost/availability/universe contracts, certified labels and untouched evaluation remain required. After this bounded engineering check, reuse the evidence and address those dependencies rather than escalating synthetic retries. Overall project percentages unchanged; canonical docs and current diagram updated.
+
 ## 2026-09-19 - Spare evaluator accepted; six numerical subgoals bundled
 
 - E56 accepts the owner's spare evaluation report: 22/22 checks, 15.537s, Docker Java 21.0.9, successful cleanup. Independent validator passes; source hashes reconciled with CRLF. PowerShell version was not captured. This completes the old bounded smoke, not forecasting validation.
