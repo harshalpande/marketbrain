@@ -1,19 +1,39 @@
 # Next work package: numerical evaluation engineering
 
-2026-09-19, E54. Status: **PLANNED / CONTRACT PREPARED**, not implemented or training-ready. The owner requested parking the Upstox clarification and advancing the next stage. This package prepares independent engineering while that external reply is pending; it does not certify data or bypass N2/N3/N4.
+2026-09-19, E55. Status: **IMPLEMENTED / OFFLINE VERIFIED / SPARE SMOKE PENDING**, not training-ready. E54 prepared the contract; the owner then authorized implementation. This package advances independent engineering while the Upstox reply remains pending; it does not certify data or bypass N2/N3/N4.
 
 ## Two separate tracks
 
 | Track | Current state | Exit condition |
 |---|---|---|
 | Price-policy clarification | PENDING_EXTERNAL_REPLY; owner reports email sent; no ticket/reply supplied | Review authoritative response against captured instrument/vintage/action evidence; approve the applicable policy, or explicitly retain unresolved windows |
-| Evaluation engineering | Contract and acceptance plan prepared below | Deterministic metric and leakage tests pass on synthetic fixtures; evidence/report format verified; real-data fitting remains disabled |
+| Evaluation engineering | EV1-EV3 implemented and locally verified; spare smoke pending | Deterministic metric and leakage tests pass on synthetic fixtures; evidence/report format verified; real-data fitting remains disabled |
 
 Source: E52 accepts the saved 600-row export in 19.824s, but zero labels are certified. All 20 retained SHADOW_TEST dates were already inspected. Neither this package nor a successful Upstox answer turns that development period into an untouched final test.
 
+## E55 delivery and verification
+
+- `NumericalEvaluationEngineering.java` contains pure metric/guard methods and a fixed synthetic-only CLI. No Spring bean, new endpoint, provider/model/DB dependency, migration or configuration change. Returns use explicit percentage-point units and one horizon/policy/predictor per metric batch. Empty metrics are unavailable; overflow/non-finite inputs fail closed. Input order is normalized, with row- and equal-date-weighted metrics reported separately; equal-date RMSE is the square root of mean daily MSE, not mean daily RMSE.
+- Guard rejects (does not silently purge/drop) overlapping labels at both TRAIN/VALIDATION and VALIDATION/TEST boundaries, same-date partition mixing, duplicate identities, invalid horizon ends, insufficient **session** gaps, unknown/future feature availability and inspected/unknown final-test provenance. The five-name synthetic inference allowlist is not an approved production feature list or a mapping from existing snapshots. Declared timestamps/inspection metadata are tested, not independently certified. No production split is frozen.
+- CLI has only `--synthetic-smoke`, no market-data input or fitting flag. JDK 21+ runs it using documented [Java source-file mode](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#using-source-file-mode-to-launch-single-file-source-code-programs). Compilation stays in memory; the application is not started. Fixed fixtures and canonical per-case hashes plus source hash make results traceable.
+- `TestNumericalEvaluationEngineering.ps1` produces **one compact JSON** (about 16 KiB in local verification) with fixture configuration, baseline fixture rows, checks/hashes, source/script hashes, Java version, stdout/stderr, timing, failures and progress events. Uses the existing atomic writer; unique filenames and an upfront Windows path-length check avoid overwrite/path failures. Staged progress is not an estimate of predictor completion.
+- Auto runtime uses local Java when both `java` and `javac` are available; otherwise it uses the cached `maven:3.9.11-eclipse-temurin-21` Docker image. Docker runs a uniquely named temporary container with network disabled, read-only source/root, bounded CPU/memory/PIDs and a temporary `/tmp`; it never starts or rebuilds MarketBrain. No automatic image pull. If the image is missing, explicitly prepare it or use a local JDK. Runtime identity is recorded. No credentials or host environment file is mounted.
+- Child execution limit defaults to 120s (maximum 300); image inspection/targeted cleanup use 15s bounds, with bounded pipe drain/termination waits. A timeout is a failure, not an automatic calculation retry. Failure results preserve available evidence; persistent checkpoint locks retain the pending snapshot as defined by the existing writer. Cleanup targets only this invocation's container. Host/process termination can still prevent final reporting; last atomic checkpoint remains useful.
+- Verification: **322 standard Java tests passed**, including **13 new tests**; `mvn package` passed. Old saved-market-data evidence probes were not rerun or counted. **22 CLI synthetic checks** plus **30 PowerShell 5.1 workflow assertions** passed, including independent metric expectations, tampered reports, repeat preservation, real native-child failure/timeout and simulated Docker-probe failure. One local full smoke took **2.905s**, not a spare-laptop performance promise. Docker success path and PowerShell 7 runtime await spare confirmation; no local Docker/service/DB/provider/model run occurred.
+
+### Spare smoke (no service rebuild)
+
+After pulling the committed changes, run:
+
+```powershell
+& '.\ops\windows\TestNumericalEvaluationEngineering.ps1' -Runtime Auto
+```
+
+If no JDK is installed and the cached image is unavailable, explicitly run `docker pull maven:3.9.11-eclipse-temurin-21` (checking its exit code) once, then use `-Runtime Docker`. Image download is setup, not an offline test or market-data request. Share only the printed `numerical-evaluation-smoke-*.json`. Expected status: `SYNTHETIC_CHECKS_PASSED_TRAINING_BLOCKED`, 22 checks and zero failures. This validates engineering, not trading accuracy. Do not rerun the 600-row export or an LLM sweep.
+
 ## Implementation sequence and acceptance
 
-Estimates are active engineering effort after starting each item, not unattended execution, fixed deadlines or prediction-confidence estimates. No waiting on the provider is included.
+The table preserves the original E54 estimates, not remaining effort. All three bounded components are now offline verified; spare verification is pending. These were active engineering estimates, not deadlines or prediction-confidence estimates.
 
 | Step | Bounded deliverable | Required checks | Estimate |
 |---|---|---|---|

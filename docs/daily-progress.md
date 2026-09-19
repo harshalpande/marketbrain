@@ -2,6 +2,14 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Independent numerical evaluation engineering implemented
+
+- E55 implements pure metrics (MAE/RMSE/bias/direction; row/date weighting) and metadata guards for date grouping, both label-overlap boundaries, session gaps, availability and inspected final tests. Invalid/unknown data is rejected, not silently repaired. The synthetic feature allowlist is not the final production predictor contract.
+- Standalone JDK-only CLI and PowerShell runner require no service, DB, provider or model. Fixed 22-case synthetic suite; no market-data input or fitting switch. One compact JSON includes fixtures/hashes, outputs, timings, failures and progress; separate workflow tests exercise actual child failure/timeout and repeat preservation. Docker option isolates an already cached JDK image with network disabled and bounded resources; no automatic image download or application rebuild.
+- Tests exposed a Windows atomic-checkpoint path-length failure in a deeply nested test folder. Shortened unique filenames and early path validation fix it; failed native execution now preserves the failure JSON in that case. No report was deleted or overwritten to make a test pass.
+- Verification passed: 322 standard Java tests including 13 new, Maven package, 22 CLI checks and 30 PowerShell 5.1 workflow assertions. Older real-data evidence probes were not rerun or counted. Local full smoke 2.905s / ~16KiB, not a spare timing guarantee. No local Docker, live service, DB, provider or inference run. PS7 and Docker success path await spare smoke.
+- Next: pull and run the short standalone synthetic smoke on spare; share one JSON. Upstox source-policy reply still pending; real-data fitting, certified labels, independent evaluation and live/paper actions unchanged. Canonical docs/current diagram updated; no arbitrary progress or accuracy percentage increase.
+
 ## 2026-09-19 — Upstox email reported sent; independent next stage prepared
 
 - E54: owner reports sending the neutral technical email; no reply, delivery acknowledgement or ticket supplied. Mark source-policy step PENDING_EXTERNAL_REPLY. Respect the owner's request not to disclose project purpose; earlier stock-specific draft remains an internal checklist only.

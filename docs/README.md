@@ -54,7 +54,11 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: evaluation engineering; Upstox reply pending (E54)
+### Current next action: standalone synthetic smoke; Upstox reply pending (E55)
+
+Evaluation metrics, chronological leakage checks and compact reporting are implemented and offline verified: 322 Java tests, 22 CLI checks and 30 PowerShell workflow assertions pass. [Run the new standalone smoke](numerical-evaluation-engineering-plan.md#spare-smoke-no-service-rebuild) on spare and share its single JSON. No service rebuild, database call, model run or market-data recollection is needed. Upstox clarification remains **PENDING_EXTERNAL_REPLY**; no real-data fitting or prediction-quality claim.
+
+### E54 planning checkpoint
 
 Owner reports the neutral clarification email sent; source-policy status is **PENDING_EXTERNAL_REPLY**. No ticket/reply supplied yet. Park that external dependency without closing the data gate. [Next-stage contract and session handoff](numerical-evaluation-engineering-plan.md) define synthetic numerical metrics, leakage tests and one-file offline evidence; implementation remains planned. No new collection, model fitting or inference run is requested by this documentation checkpoint.
 

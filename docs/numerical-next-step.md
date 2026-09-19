@@ -2,7 +2,11 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E54 awaiting Upstox; next evaluation-engineering contract prepared
+## Current: E55 evaluation engineering implemented; spare smoke next
+
+EV1 metrics, EV2 synthetic chronology/leakage checks and EV3 compact offline reporting are implemented and locally verified. **322 Java tests, 22 CLI synthetic checks and 30 PowerShell workflow assertions pass; package build passes.** [Implementation, limitations and smoke command](numerical-evaluation-engineering-plan.md#e55-delivery-and-verification). Run the new standalone smoke once on spare; no MarketBrain rebuild, service call, inference or export repetition. Share one JSON. Source-policy reply remains pending, and training stays disabled. Synthetic passes are not a measurement of forecast quality.
+
+## E54 awaiting Upstox; evaluation-engineering contract prepared
 
 The owner reports sending the neutral Upstox email and will share replies in a subsequent session. Mark the source-policy step **PENDING_EXTERNAL_REPLY**, not completed. No repeat query, resend, export or rebuild is requested. Next independent work is [EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md): synthetic metric fixtures, leakage guards and compact offline evidence. This turn prepares that contract; it does not implement an evaluator or authorize real-data fitting. The linked handoff preserves context for the provider-response review.
 
