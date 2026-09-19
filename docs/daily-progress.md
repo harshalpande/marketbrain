@@ -2,6 +2,13 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Expanded spare export accepted; source-policy review recorded
+
+- E52 closes the expanded runtime check: 19.824s, 150 dates, 600/600 arithmetic rows, no blocked rows and zero certified labels. Source hash/request/result checks and unchanged prior feature/outcome regression are recorded in one compact repository summary. No repeat export requested.
+- E53 reviewed official Upstox pages and ingestion code. Existing corporate-actions integration found; its DB-writing sync is not a read-only diagnostic. Neither the public event contract nor scoped normalization proves the four stocks' adjustment policy. Publication timing and immutable vintages remain unverified.
+- Prepared precise provider clarification and an explicitly separate bounded official-evidence alternative. No support message, authenticated provider call, collection, data repair, model fitting or gate relaxation performed.
+- Documentation/current diagram updated; no percentage or predictive-confidence uplift. Documentation JSON/XML, links and diff checks accompany this change; Java/PowerShell implementation suites from E51 are historical and were not rerun for this docs-only work. Pull only on spare; no Docker rebuild or inference.
+
 ## 2026-09-19 — Repair capture accepted; expanded research export prepared
 
 - E50 spare result reviewed: 8.828s, all 600 windows match, four reviewed completed backfill links, no truncation. No relevant adjustment references or corporate-action rows; no inference, provider/order calls or DB writes. Preserve existing history; no repeat empty query. Helper/calendar hash differences verified as LF/CRLF only.

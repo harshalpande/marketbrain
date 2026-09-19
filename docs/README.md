@@ -54,7 +54,11 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: expanded uncertified research export (E51)
+### Current next action: source-policy evidence, not another export (E52/E53)
+
+The expanded spare export is verified: **600/600 arithmetic rows in 19.824s**, no blocked rows, no certified labels and no training authorization. [Review](evidence/numerical-expanded-research-spare-review-20260919.json). Do not rerun it or repeat the empty repair query. E53 checks official sources and existing ingestion: the corporate-actions connector already exists, but candle adjustment semantics and historical completeness remain unverified. [Prepared Upstox questions, code findings and bounded next steps](numerical-price-policy-open-questions.md). Documentation-only update: pull only; no Docker rebuild or model run.
+
+### Previous expanded-export handoff (E51, completed by E52; do not rerun)
 
 E50's spare repair capture is reviewed: **8.828s**, 600/600 calendar windows, all four stocks linked to reviewed completed backfill jobs, no capped evidence. It recovered **zero in-scope adjustment references/actions**; that does not mean no actions occurred. Do not repeat the unchanged repair query. [Recorded review](evidence/numerical-repair-review-20260919.json) and [remaining source-policy questions](numerical-price-policy-open-questions.md).
 

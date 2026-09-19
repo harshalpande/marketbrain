@@ -2,6 +2,12 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
+## Current: E52 spare export accepted; E53 source-policy clarification
+
+The spare report `numerical-expanded-research-20260919-140603-9785384a9616.json` completed in **19.824 seconds**, with **600/600 arithmetic rows**, zero blocked rows, zero certified labels and training disabled. Saved-input reconstruction/result validation passed; 1,824 feature values and 152 outcomes from the previous export are unchanged. [Persisted review](evidence/numerical-expanded-research-spare-review-20260919.json). This supersedes the spare-pending status in the historical E51 implementation notes below. No repeated export, rebuild or inference is needed.
+
+E53 reviewed official Upstox documentation and existing ingestion code. A corporate-actions connector already exists, but neither its existence nor the public reference proves the adjustment policy of stored candles. Its sync operation writes event metadata; it is not a read-only diagnostic. [Evidence matrix and exact next action](numerical-price-policy-open-questions.md#e53-public-source-and-ingestion-review-2026-09-19). Obtain authoritative policy/coverage evidence before any scoped acquisition, adjustment or certification. This is an external evidence gate, not another model-training retry.
+
 ## E50/E51: repair capture reviewed; expanded research arithmetic implemented
 
 The received `numerical-repair-evidence-20260919-132809-11524efc7e3f.json` (SHA256 `2359ED18BB9B3E0B45EAD50906B1D3A33CF25E114C362AFA8D6B8DCD0448980B`) completed in 8.828s. Independent replay checks input binding, calendar windows, instrument scope and safety flags. All 600 feature/outcome windows match; five jobs observed, no cap. All four stocks link to reviewed completed jobs covering the requested period. Ledger inspections were 12/12/13/1 for MARUTI/NATIONALUM/TARIL/LEMONTREE, but **none were relevant adjustment records for the scoped period**; corporate-action rows and exported references are also zero. No provider/model/order calls or DB writes reported. This closes collector runtime verification, not the price gate. CRLF-normalized hashes of the three helpers/collector and calendar match the spare hashes; files were not assumed identical from versions alone. [Persisted summary](evidence/numerical-repair-review-20260919.json).

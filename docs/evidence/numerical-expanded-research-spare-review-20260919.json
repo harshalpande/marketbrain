@@ -1,0 +1,36 @@
+{
+  "version": "NUMERICAL_EXPANDED_RESEARCH_SPARE_REVIEW_V1",
+  "reviewedOn": "2026-09-19",
+  "evidenceId": "E52",
+  "sourceFileName": "numerical-expanded-research-20260919-140603-9785384a9616.json",
+  "sourceSha256": "E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8",
+  "sourceStatus": "RESEARCH_EXPORT_TRAINING_BLOCKED",
+  "elapsedSeconds": 19.824,
+  "decisionDates": 150,
+  "researchRows": 600,
+  "completeArithmeticRows": 600,
+  "blockedRows": 0,
+  "certifiedLabels": 0,
+  "trainingAuthorized": false,
+  "reviewChecks": {
+    "savedInputContextAndRequestMatched": true,
+    "expandedResultReviewerPassed": true,
+    "previousRowsCompared": 152,
+    "previousFeatureValuesUnchanged": 1824,
+    "previousGrossOutcomesUnchanged": 152
+  },
+  "reportedOperations": {
+    "databaseQueries": 0,
+    "databaseWritesPerformed": false,
+    "providerCalls": 0,
+    "modelCalls": 0,
+    "orders": 0
+  },
+  "limitations": [
+    "Stored-price arithmetic, not certified executable returns or measured predictive skill",
+    "Overlapping outcomes are not 600 independent observations",
+    "All 20 retained shadow dates were already inspected and are development-only",
+    "Price/action policy, availability, universe, costs and independent evaluation remain unresolved"
+  ],
+  "nextAction": "Resolve source-policy evidence; do not repeat unchanged export or empty repair query"
+}
