@@ -2,6 +2,15 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Research export accepted within scope; expansion prepared
+
+- E47 spare export reviewed/replayed: 3.975s, 152/152 arithmetic rows across 38 dates, zero blocked rows. No accuracy claim; price provenance and training gates remain open.
+- E48 prepares a persisted date-only development layout from saved bars: 150 dates/600 proposed rows, 400 provisionally retained after 40 purged dates and 10 boundary-gap dates. Four stocks already contain the 421 observed source dates required; 110 earlier dates lack independent calendar coverage. No new bars downloaded or model run.
+- All 20 retained SHADOW_TEST dates were already inspected in the current pilot. They are development evaluation, not a genuinely untouched final test. Numeric size targets are engineering choices, not confidence/accuracy guarantees.
+- Owner clarified no separate provider-adjustment report is available and recalls AI-assisted gap repairs. Source/Git inspection found explicit named repair references (BEML/LALPATHLAB/SUZLON) and V10 resolution-ledger evidence fields. This supports scoped provenance recovery, not blanket price certification for MARUTI/NATIONALUM/TARIL/LEMONTREE. Do not request manual reconstruction or repeat acquisition.
+- 99 PS5.1 assertions passed, including upstream suites; initial fixture writer import omission corrected. Planner actual-artifact replay completed, outputs persisted in docs/evidence. Java unchanged, no service/DB/provider/model work; existing Java test counts are historical, not rerun this turn. Documentation/current diagram updated; overall roadmap percentages unchanged.
+- Next: recover scoped repair provenance and independently extend calendar, then widen export and freeze valid evaluation design before fitting. No additional spare run is needed to discover this already prepared plan; optional offline reproduction is available after pull, with no rebuild.
+
 ## 2026-09-19 — Outcomes reviewed; saved-data multi-date export implemented
 
 - E45 spare report reviewed and replayed: 2.131s, 12/12 arithmetic paths, zero blocked/partial. Outcome availability rose from 4/12 to 12/12 (+66.7 percentage points), not prediction accuracy. Eight old diagnostic split rows now correctly purge for label overlap. Price/action provenance remains unknown.

@@ -54,7 +54,13 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: export the saved-data multi-date research pilot
+### Current next action: recover repair provenance and extend calendar coverage
+
+E47 confirms the 38-date export on spare: **152/152 rows, 3.975s**, no blocked arithmetic rows. Do not rerun export or download history. E48 has already prepared and replayed a **150-date / 600-row development expansion plan** from the saved bars, with provisional purges and boundary gaps. It is not yet a certified dataset or an untouched test. [Next work package](numerical-next-step.md) and [persisted date assignments](evidence/numerical-development-expansion-plan-20260919.json).
+
+The owner has no separate adjustment report available. Recover existing repair/source evidence from saved artifacts and the resolution ledger first; some instrument-specific repair references are confirmed in code, but they do not certify the four selected stocks. Extend the independent calendar back to the actual feature start, 2024-10-22; approve price/availability conventions before broader training export. No additional spare run is necessary to reproduce the already reviewed plan. Optional offline reproduction after pulling uses `PrepareNumericalExpansionPlan.ps1 -ResearchExportPath <saved-export.json>` and needs no Docker rebuild.
+
+### Previous action: export the saved-data multi-date research pilot (completed)
 
 E45 confirms the missing outcome window on spare: 2.131s, **12/12 complete arithmetic paths**, zero blocked rows, but price provenance remains unknown. Do not rerun collection. E46 implements a stateless Java export from the two saved reports, expanding three decision dates to **38 dates / 152 rows** for this four-stock sample. This is dataset engineering, not model fitting or proof of predictive value.
 
