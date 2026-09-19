@@ -36,6 +36,14 @@ public class NumericalPriceEvidenceService {
 
     @Transactional(readOnly=true,timeout=45,isolation=Isolation.REPEATABLE_READ)
     public Evidence inspect(UUID runId, LocalDate from, int offset, int limit) {
+        return inspectWindow(runId,from,null,offset,limit);
+    }
+    @Transactional(readOnly=true,timeout=45,isolation=Isolation.REPEATABLE_READ)
+    public Evidence inspectThrough(UUID runId, LocalDate from, LocalDate through, int offset, int limit) {
+        if(through==null)throw new IllegalArgumentException("Explicit outcome through-date required.");
+        return inspectWindow(runId,from,through,offset,limit);
+    }
+    private Evidence inspectWindow(UUID runId, LocalDate from, LocalDate requestedThrough, int offset, int limit) {
         if(runId==null || runId.equals(new UUID(0,0)) || from==null || offset<0 || offset>499 || limit<1 || limit>4)
             throw new IllegalArgumentException("Explicit run/from required; offset 0..499, limit 1..4.");
         var runs=jdbc.query(NumericalHistoryCoverageService.RUN_SQL,s->{s.setObject(1,runId);s.setQueryTimeout(3);},
@@ -46,18 +54,21 @@ public class NumericalPriceEvidenceService {
             throw new IllegalStateException("Invalid run metadata.");
         if(from.isBefore(run.asOf().minusDays(729)) || from.isAfter(run.asOf()))
             throw new IllegalArgumentException("Feature scope must be within the run's 730-day historical window.");
+        var through=requestedThrough==null?run.asOf():requestedThrough;
+        if(through.isBefore(run.asOf()) || through.isAfter(run.asOf().plusDays(45)))
+            throw new IllegalArgumentException("Evidence through-date must be as-of through as-of + 45 days.");
         var items=jdbc.query(NumericalFeatureSnapshotService.ITEMS_SQL,s->{s.setObject(1,runId);s.setInt(2,limit);s.setInt(3,offset);s.setQueryTimeout(3);},
                 (r,n)->new NumericalFeatureSnapshotService.Item(r.getLong("instrument_id"),r.getString("symbol")));
         if(items.size()!=Math.min(limit,run.count()-offset) || items.stream().map(NumericalFeatureSnapshotService.Item::id).distinct().count()!=items.size())
             throw new IllegalStateException("Selected item scope mismatch.");
-        var jobs=jdbc.query(JOBS_SQL,s->{s.setObject(1,run.asOf());s.setObject(2,from);s.setQueryTimeout(3);},
+        var jobs=jdbc.query(JOBS_SQL,s->{s.setObject(1,through);s.setObject(2,from);s.setQueryTimeout(3);},
                 (r,n)->new Job(r.getObject("id",UUID.class),r.getString("job_type"),r.getString("status"),
                         r.getObject("requested_from",LocalDate.class),r.getObject("requested_to",LocalDate.class)));
         boolean jobsCapped=jobs.size()>20;
         var inspectedJobs=jobs.stream().limit(20).toList();
         var results=new ArrayList<Instrument>();
         for(var item:items) {
-            var actions=jdbc.query(ACTIONS_SQL,s->{s.setLong(1,item.id());s.setObject(2,from);s.setObject(3,run.asOf());s.setQueryTimeout(3);},
+            var actions=jdbc.query(ACTIONS_SQL,s->{s.setLong(1,item.id());s.setObject(2,from);s.setObject(3,through);s.setQueryTimeout(3);},
                     (r,n)->new Action(r.getLong("id"),r.getString("action_type"),r.getObject("effective_on",LocalDate.class),
                             r.getObject("announced_on",LocalDate.class),r.getBigDecimal("amount"),r.getString("ratio"),
                             instant(r.getTimestamp("received_at")),r.getString("event_fingerprint"),r.getBoolean("has_source_reference")));
@@ -86,9 +97,9 @@ public class NumericalPriceEvidenceService {
             var capturedChunks=chunks;
             var links=inspectedJobs.stream().filter(j->memberJobs.contains(j.id())).map(j->new JobLink(j,
                     REVIEWED_JOBS.contains(j.id())?"E35_PREVIOUS_SAVED_FINAL_REPORT_REVIEW":"SAVED_FINAL_REPORT_NOT_LINKED",
-                    !partial && covers(capturedChunks.stream().filter(c->c.jobId().equals(j.id())).toList(),from,run.asOf()))).toList();
-            var ledger=latestRelevant(events,item.id(),memberJobs,from,run.asOf());
-            int exclusionCount=(int)ledger.stream().filter(e->"RESOLVE".equals(e.eventAction()) && overlaps(e.exclusionFrom(),e.exclusionTo(),from,run.asOf())).count();
+                    !partial && covers(capturedChunks.stream().filter(c->c.jobId().equals(j.id())).toList(),from,through))).toList();
+            var ledger=latestRelevant(events,item.id(),memberJobs,from,through);
+            int exclusionCount=(int)ledger.stream().filter(e->"RESOLVE".equals(e.eventAction()) && overlaps(e.exclusionFrom(),e.exclusionTo(),from,through)).count();
             int revoked=(int)ledger.stream().filter(e->"REVOKE".equals(e.eventAction())).count();
             var gates=new ArrayList<String>();
             if(partial)gates.add("PARTIAL_CAPPED_EVIDENCE");
@@ -100,9 +111,9 @@ public class NumericalPriceEvidenceService {
             gates.add("NO_VERIFIED_ADJUSTMENT_FACTORS_OR_EXECUTABLE_PRICE_BINDING");
             results.add(new Instrument(item.id(),item.symbol(),partial,links,chunks,actions,events.size(),ledger,exclusionCount,revoked,List.copyOf(gates)));
         }
-        return new Evidence("NUMERICAL_PRICE_EVIDENCE_V1","PRICE_POLICY_REVIEW_REQUIRED",runId,run.manifest(),from,run.asOf(),offset,limit,
+        return new Evidence("NUMERICAL_PRICE_EVIDENCE_V1","PRICE_POLICY_REVIEW_REQUIRED",runId,run.manifest(),from,through,offset,limit,
                 jobs.size(),jobsCapped,List.copyOf(results),results.stream().anyMatch(Instrument::partial),false,false,0,0,0,
-                "Feature period only; no future label-period evidence. Links establish stored job/chunk membership, not fresh quality PASS. "
+                "Explicit bounded evidence period only; not certification of executable labels. Links establish stored job/chunk membership, not fresh quality PASS. "
                         +"E35 references prior report review, not immutable candle provenance; completed range is scheduling coverage, not per-session data validation. "
                         +"Only up to 20 overlapping jobs are inspected. Resolution ledger is current, not historical; out-of-scope jobs are not audited. "
                         +"No stored actions does not mean no actions occurred. No unresolved-finding inventory or provider adjustment factors certified. "

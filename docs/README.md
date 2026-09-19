@@ -54,19 +54,15 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: coordinated offline readiness preflight
+### Current next action: collect the missing stored outcome window
 
-E41 confirms the stored-quality diagnostic on the spare laptop: 0.847s, all four stocks linked, no capped evidence. Corporate-action/price provenance remains unverified. E42 combines price gates, outcome-window arithmetic, feature-input leakage checks and candidate split purging using **two saved files only**. Pull and run; no Docker rebuild, health request, provider or model call:
+E43 confirms the coordinated preflight on spare in 2.68s with expected training blockers. Do not rerun it. E44 reads only the missing June 6-July 17 stored bars for the same four stocks and extends quality/action inspection through that outcome period. Pull, rebuild/deploy the service with jobs idle, wait for health UP, then run:
 
 ```powershell
-$parameters = @{
-    FeatureEvidencePath = 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
-    PriceEvidencePath = 'C:\MarketBrainData\Review\numerical-price-evidence-20260919-000346-a38eae6b4c9b.json'
-}
-& '.\ops\windows\ReviewNumericalReadinessBundle.ps1' @parameters
+& '.\ops\windows\GetNumericalOutcomeEvidence.ps1' -FeatureEvidencePath 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
 ```
 
-Share one `numerical-readiness-bundle-<timestamp>-<id>.json`. Expected status for current evidence: **BLOCKED_FOR_TRAINING**, not a script failure. Local replay: 12 feature-input checks passed, four arithmetic-only outcomes, eight unavailable horizons, four overlapping training rows purged. No actual training dataset or certified labels produced. Do not rerun history collection, features, price endpoint or LLM tests. [Scope, findings and next implementation](numerical-baseline-plan.md#e42-coordinated-offline-preflight).
+Share one `numerical-outcomes-<timestamp>-<id>.json`. Completed review status is `OUTCOME_PREFLIGHT_COMPLETE_TRAINING_BLOCKED`; inspect `blockedOutcomeCount` and `partial` rather than reading COMPLETE as all rows passed. No history download, feature recalculation, provider/model calls or DB writes. The response is checkpointed before local review; `-ExistingOutcomeReportPath <saved-outcome-report.json>` can re-review it without service access. Price provenance and actual labelled training export remain pending. [Scope and remaining milestones](numerical-baseline-plan.md#e44-bounded-outcome-window-and-remaining-milestones).
 
 ### Previous N2 history handoff (completed; do not rerun)
 

@@ -2,6 +2,15 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Missing stored outcome-window export implemented
+
+- Owner authorized next work and requested a realistic endpoint/timeline. E43 spare bundle reviewed: 2.68s, expected blockers, exact input/tool/calendar hashes and replay match; no repeat diagnostic needed.
+- Added a bounded read-only outcome endpoint: same <=4 stocks, only as-of+1..as-of+45 max, capped by stored label-through. Current collector selects June 6-July 17. Same response extends existing quality/action evidence over the full feature+outcome period. No history download, old feature query, provider/model call, DB writes or migration.
+- Added a versioned NSE circular-backed outcome calendar and path review isolated from original features. Diagnostic exits May 12/June 8/July 6; a missing/excluded/capped/off-calendar source cannot become a certified label. Old split boundaries retained, revealing both TRAIN/VALIDATION overlap when future paths exist. Price provenance still open, not solved by another empty event response.
+- Saves one JSON, raw response checkpoint before local review, safe offline reuse via ExistingOutcomeReportPath, no request retries. 292 Java tests and 67 PS5.1 assertions passed; fixture date/count and mock-scope issues corrected before passing. Actual DB/PS7 runtime pending spare; no local inference/deployment.
+- Three remaining deliverables to first measured baseline: data/policy closure; immutable labelled multi-date dataset plus splits; fit/evaluate numerical comparator. Estimate 6–10 working days after prerequisites, excluding uncertain source clarification. Not the whole platform or month-long paper validation; no arbitrary accuracy/completion percentage.
+- Canonical documentation/current diagram updated; commit/push/rebuild/health/one-collector handoff. No model rerun or deletion of prior evidence.
+
 ## 2026-09-19 — Coordinated numerical preflight, not training promotion
 
 - Owner approved moving the remaining checks forward together. E41 confirms previous diagnostic runtime: 0.847s, 4/4 linkage/coverage, no cap; no stored actions, so price provenance remains open. Existing historical collection stays preserved.
