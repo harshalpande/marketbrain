@@ -2,9 +2,9 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E58 baseline bundle accepted; E59 robustness bundle next
+## Current: E60 robustness accepted; E61 grouped contract review
 
-EV1-EV3 and the subsequent baseline bundle passed on spare. Latest: **35/35 checks, 29.200s**, Docker Java 21.0.9, PowerShell 7.6.6; code hashes and raw/parsed output match, cleanup successful. [Persisted review](evidence/numerical-baseline-spare-review-20260919.json). Next [combined robustness bundle](numerical-robustness-bundle.md): 3 chronological folds for each of 5/20/60 synthetic sessions, reference comparisons, hypothetical costs and readiness blockers, plus regression checks in one invocation. Pull and run its standalone script; share one JSON. No MarketBrain rebuild, source query, inference or export repetition. Source-policy reply remains pending, and real-market training stays disabled. Synthetic passes are not a measurement of forecast quality. Do not treat this as justification for indefinite synthetic testing while real-data gates wait.
+Latest spare report: **47/47 checks, 34.368s**, nine folds, Docker Java 21.0.9 / PowerShell 7.6.6; source hashes, metric checks, semantic raw/parsed equality and cleanup verified. [Persisted review](evidence/numerical-robustness-spare-review-20260919.json). The bounded synthetic engineering phase is complete; no repeat requested. Next is the [consolidated research contract review](numerical-market-contract-review.md): six related policy/mapping/evaluation subgoals in one packet, with owner decisions and evidence gaps explicit. No service rebuild, provider query, inference, market-data fitting or export repetition. Source-policy reply remains pending. After approvals/evidence, scope real mapping/eligibility/label/fold implementation together; do not replace that gate with more synthetic checks.
 
 ## E54 awaiting Upstox; evaluation-engineering contract prepared
 

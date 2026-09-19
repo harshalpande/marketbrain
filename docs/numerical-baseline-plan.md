@@ -2,9 +2,9 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45), repair capture (E50) and expanded 150-date research export (E52) reviewed within their scopes. All 600 arithmetic rows completed on spare. E53 records the remaining source-policy gap: no relevant adjustment references were recovered, and public documentation alone does not certify stored prices. Contract freeze, price provenance, certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
-## E58/E59 current checkpoint
+## E60/E61 current checkpoint
 
-[EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md) and [numerical baseline bundle](numerical-baseline-bundle.md) are spare verified (E58: 35/35 checks, 29.200s). E59 [robustness bundle](numerical-robustness-bundle.md) groups chronological walk-forward, 5/20/60-session synthetic plumbing, hypothetical costs and readiness gates; its spare check is next. No real-market training, price certification or production model is authorized. Upstox reply remains pending. This does not close N2/N3/N4/N5 acceptance or establish prediction readiness.
+[EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md), baseline and [robustness bundle](numerical-robustness-bundle.md) are spare verified (E60: 47/47 checks, 34.368s). The next [consolidated market-contract review](numerical-market-contract-review.md) groups target/clock, prices/costs, features/availability, universe, evaluation and release decisions. No further synthetic run requested. No real-market training, price certification or production model is authorized. Upstox reply remains pending. This does not close N2/N3/N4/N5 acceptance or establish prediction readiness.
 
 ### E54 checkpoint
 

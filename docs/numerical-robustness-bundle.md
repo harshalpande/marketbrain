@@ -1,6 +1,6 @@
 # Numerical robustness bundle: frozen synthetic contract
 
-2026-09-19. E58 accepts the previous spare bundle. E59 groups the following engineering work; no real-market fitting or trading is authorized.
+2026-09-19. **E60: spare verified, 47/47 checks in 34.368s**; [persisted review](evidence/numerical-robustness-spare-review-20260919.json). The bounded engineering milestone is complete. No repeat run requested; next is [E61 grouped real-market contract review](numerical-market-contract-review.md). E59's implementation contract/results below remain for traceability; no real-market fitting or trading is authorized.
 
 1. Three expanding chronological folds for each of 5, 20 and 60 synthetic sessions. All instruments on a decision date stay together; labels must mature before the next partition. Five additional unused sessions separate label horizons from the next decision partition. Each fold has 10 validation dates and 10 test dates; previous test periods cannot reappear in later test sets. Mature past observations may enter later training, as in walk-forward evaluation. Final market-test release is not implemented.
 2. Fixed ridge penalty 0.01, ZERO and TRAIN_MEAN references; train-only imputation/scaling. No tuning, validation-driven selection, best-fold selection or automatic promotion. Each horizon is evaluated separately. Aggregate error summaries use all disjoint test predictions, retaining every fold and failures; overlapping forward labels are not independent observations.
@@ -17,9 +17,9 @@ The JDK-only `Robustness` lab reuses the train-only fitter and guarded metrics f
 
 The standalone `--synthetic-robustness` CLI contains the prior 35 checks plus 12 new checks. All fixture configurations are fixed; it cannot load external market files. The PowerShell collector reuses the bounded isolated process and checkpoint writer, records raw/parsed output, source hashes, parameters, manifests, predictions, counters, timing and readiness blockers in **one JSON**. It independently checks pooled rows against all fold outputs, recomputes error metrics and all 27 predictor/horizon/cost combinations, and rejects malformed reports. Child execution is bounded at 120 seconds by default (max 300); setup/cleanup and report validation take additional time. Staged progress/heartbeats are not a model-accuracy percentage. Persistent filesystem locks or shutdown can leave the last atomic checkpoint/pending snapshot; no automatic retraining retry or deletion.
 
-Verification: **340 standard Java tests (9 new), Maven package, 47 synthetic CLI checks and 77 PowerShell 5.1 workflow assertions**. No saved-market-data probes, local service/Docker, provider or LLM runs. The previous E58 report verifies PowerShell 7.6.6 and Docker Java 21.0.9 for the baseline package; the new bundle's spare path remains pending until its report is reviewed. Do not claim new spare success from old evidence.
+Verification at E59 delivery: **340 standard Java tests (9 new), Maven package, 47 synthetic CLI checks and 77 PowerShell 5.1 workflow assertions**. No saved-market-data probes, local service/Docker, provider or LLM runs. E60 now verifies the new bundle on PowerShell 7.6.6 and Docker Java 21.0.9, with successful cleanup. Source/runner/helper hashes match CRLF-normalized E59 code. Raw versus embedded JSON differ in equivalent numeric text representation, but all 32,266 compared leaf values and structure match semantically; this is not a numerical regression or reason to rerun.
 
-## One spare-machine run
+## Historical spare-machine handoff (completed E60; do not rerun)
 
 After pulling the committed revision in the spare repository:
 

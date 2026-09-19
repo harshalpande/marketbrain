@@ -1,6 +1,6 @@
 # Synthetic numerical baseline bundle
 
-2026-09-19. E58: spare bundle accepted, **35/35 checks in 29.200s**. [Persisted review](evidence/numerical-baseline-spare-review-20260919.json). No separate rerun needed. Next is the [combined robustness bundle](numerical-robustness-bundle.md). Owner authorized grouping associated numerical-prediction subgoals. Contract frozen before implementation; real-market training is not authorized.
+2026-09-19. E58: spare bundle accepted, **35/35 checks in 29.200s**. [Persisted review](evidence/numerical-baseline-spare-review-20260919.json). The subsequent robustness bundle is also spare verified (E60); no repeat needed. Current next step is the [consolidated market-contract review](numerical-market-contract-review.md). Owner authorized grouping associated numerical-prediction subgoals. Contract frozen before implementation; real-market training is not authorized.
 
 ## Scope and acceptance
 

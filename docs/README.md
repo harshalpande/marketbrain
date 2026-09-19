@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: combined numerical robustness bundle (E58/E59)
+### Current next action: consolidated market research contract review (E60/E61)
 
-The baseline spare bundle passed **35/35 checks in 29.200s** (E58), with matching code hashes and successful cleanup; no separate rerun. [Run the robustness bundle](numerical-robustness-bundle.md) next: chronological walk-forward, **5/20/60-session** synthetic contracts, hypothetical cost sensitivity and explicit readiness blockers. **Nine folds, 47 checks total, one JSON**, no service rebuild, database/provider/LLM call or market-data recollection. This advances numerical-engine engineering, not measured stock prediction accuracy. Upstox clarification remains **PENDING_EXTERNAL_REPLY**; real-market training stays blocked. After this engineering verification, address the named policy/data gates rather than adding speculative synthetic reruns.
+The robustness spare bundle passed **47/47 checks in 34.368s** (E60), covering nine folds and 5/20/60-session synthetic contracts. Hashes, semantic output, metrics and cleanup verified. **No further machine run requested.** Review the [E61 grouped real-market research contract](numerical-market-contract-review.md): target/clock, price/costs, feature availability, universe, evaluation and release boundary. Six subgoals prepared for review, not marked implemented or approved. The synthetic two-feature fitter is not the real ten-feature mapping. Upstox clarification remains **PENDING_EXTERNAL_REPLY**; real-market fitting stays blocked. Pull documentation only; no service rebuild, model run or data recollection.
 
 ### E54 planning checkpoint
 

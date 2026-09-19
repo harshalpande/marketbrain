@@ -1,13 +1,13 @@
 # Next work package: numerical evaluation engineering
 
-2026-09-19, E55/E56. Status: **IMPLEMENTED / OFFLINE AND SPARE SMOKE VERIFIED**, not training-ready. E56 accepted 22/22 spare checks in 15.537s; no separate repeat needed. Next is the [E57 combined synthetic baseline bundle](numerical-baseline-bundle.md). E54 prepared the original contract; the owner then authorized implementation. These packages advance independent engineering while the Upstox reply remains pending; they do not certify data or bypass N2/N3/N4.
+2026-09-19, E55-E60. Status: **IMPLEMENTED / OFFLINE AND SPARE VERIFIED**, not training-ready. Subsequent baseline and robustness bundles are also spare verified (latest E60: 47/47, 34.368s); no repeat needed. Next is the [E61 consolidated real-market contract review](numerical-market-contract-review.md). E54 prepared the original contract; the owner then authorized implementation. These packages advance independent engineering while the Upstox reply remains pending; they do not certify data or bypass N2/N3/N4.
 
 ## Two separate tracks
 
 | Track | Current state | Exit condition |
 |---|---|---|
 | Price-policy clarification | PENDING_EXTERNAL_REPLY; owner reports email sent; no ticket/reply supplied | Review authoritative response against captured instrument/vintage/action evidence; approve the applicable policy, or explicitly retain unresolved windows |
-| Evaluation engineering | EV1-EV3 implemented and spare-verified E56; next E57 bundle | Deterministic metric and leakage tests pass on synthetic fixtures; evidence/report format verified; real-data fitting remains disabled |
+| Evaluation engineering | EV1-EV3, baselines and robustness spare-verified through E60 | Synthetic metric/guard/learner/fold behaviour verified; next contract review, not more synthetic execution; real-data fitting remains disabled |
 
 Source: E52 accepts the saved 600-row export in 19.824s, but zero labels are certified. All 20 retained SHADOW_TEST dates were already inspected. Neither this package nor a successful Upstox answer turns that development period into an untouched final test.
 
@@ -66,6 +66,6 @@ Real-data model fitting/promotion, certified returns, final evaluation release, 
 
 ## Handoff when the provider replies in another session
 
-Read this file, `numerical-price-policy-open-questions.md`, `numerical-baseline-bundle.md`, `numerical-robustness-bundle.md`, the current roadmap and E52-E59 in the evidence register. Preserve the provider's redacted wording, date, reference/ticket and scope; do not assume current API behaviour proves previously stored vintages. The owner does not want project details disclosed. No automatic external message or provider fetch is authorized.
+Read this file, `numerical-price-policy-open-questions.md`, `numerical-market-contract-review.md`, the current roadmap and E52-E61 in the evidence register. Preserve the provider's redacted wording, date, reference/ticket and scope; do not assume current API behaviour proves previously stored vintages. The owner does not want project details disclosed. No automatic external message or provider fetch is authorized. Synthetic engineering is already spare verified; do not repeat it to resume the evidence review.
 
 The accepted artifact is `numerical-expanded-research-20260919-140603-9785384a9616.json`, SHA256 `E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8`; its small review is in `docs/evidence/numerical-expanded-research-spare-review-20260919.json`. No need to rerun that export or the empty repair query. Review the reply as new evidence, then specify any remaining bounded acquisition before changing stored data.

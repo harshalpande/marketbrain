@@ -1,5 +1,14 @@
 # Daily progress and decision log
 
+## 2026-09-19 - Robustness spare milestone verified; market-contract review prepared
+
+- E60 reviewed `numerical-robustness-bundle-20260919-163931-b9b7a0d78742.json` (SHA256 `4F5BB0934C5A6A801236C372F8AB41C3C665BBCF659F7A7C09954BA3EDD783B5`): 47/47 checks, all nine folds, 34.368s total / 9.881s Java suite. Docker Java 21.0.9 / PS7.6.6; child/cleanup exit 0, no timeout. Source/runner/helper hashes match E59 CRLF bytes.
+- Independent report validator passed. A text serialization comparison initially differed in equivalent floating-point representations; structured comparison of 32,266 leaves established zero semantic differences and zero differing double values. No data or reporting fix/retry was needed. Pooled synthetic MAE retained the expected reversal loss: ridge 8.2872 vs zero 4.156 at horizon 60. This is constructed behaviour, not a real-market forecast or reason to reject the evaluator.
+- The bounded synthetic-engineering milestone is complete; 100% of its 47 checks passed, not 100% predictor completion or market accuracy. Whole-goal percentages stay unchanged. Do not repeat history/export/LLM/synthetic runs to resolve policy gates.
+- E61 groups six next subgoals in one DRAFT_FOR_OWNER_REVIEW packet: target/clock, prices/costs, feature availability, universe eligibility, chronological evaluation and release boundary. Uses the existing 20-session target and ten-feature draft; explicitly distinguishes it from the two-feature synthetic fitter. No invented source availability, accepted policy, production mapping or certification.
+- Owner decisions needed on the first research target and restricted development cohort; Upstox reply remains PENDING_EXTERNAL_REPLY. Effect/uncertainty/cost/final-split criteria must be pre-registered before independent evaluation, not retrofitted to observed results. Further scoped implementation follows approvals/evidence, not assumptions.
+- Documentation/evidence-only handoff: semantic report validation, hashes, JSON/XML, links and diff checks. E59's 340 Java tests/77 PS assertions remain historical; no application code changed or suite rerun this turn. Pull documentation only; no spare processing/rebuild required.
+
 ## 2026-09-19 - Baseline spare report accepted; walk-forward/horizon/cost bundle
 
 - E58: accepted `numerical-prediction-bundle-20260919-161713-717317c0266a.json`, SHA256 `BD1330B3C4244CED79086D8B176EB92536BFF66628D40DDFFC1EF779242FDC44`. 35/35 checks, 29.200s total; Java suite 4.898s, remaining time includes source compilation/startup/reporting. Docker Java 21.0.9, PowerShell 7.6.6, child and cleanup exit 0. Independent validator and raw/parsed equality pass; CRLF-normalized code hashes match E57 revision. No market prediction-quality claim or repeated acquisition.
