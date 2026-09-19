@@ -101,7 +101,7 @@ E54 external dependency: **PENDING_EXTERNAL_REPLY**. Owner reports the neutral U
 
 ### G03 — Numerical 20-session swing predictor
 
-Independent engineering package (E55): EV1 metrics, EV2 synthetic leakage guards and EV3 compact offline evidence implemented; 322 Java tests/22 synthetic checks/30 PS workflow assertions pass. Spare standalone smoke pending; no service rebuild. The E54 estimate is historical, not remaining work. This prepares G03/G02 tests without closing their real-data prerequisites or changing completion percentages. Upstox reply remains pending; fitting/production split freeze remain blocked.
+Independent engineering package: E55 EV1-EV3 implemented; E56 spare smoke passed 22/22 in 15.537s. E57 groups six further [numerical engineering subgoals](numerical-baseline-bundle.md): reference baselines, fixed ridge learner, train-only preprocessing, three synthetic conditions, ranking metrics and reproducibility/evidence. Combined 35-check spare run next, no service rebuild. The E54 estimate is historical, not remaining work. This prepares G03/G02 tests without closing their real-data prerequisites or changing completion percentages. Upstox reply remains pending; real-market fitting/production split freeze remain blocked. Synthetic learner failure under a reversed relationship must remain visible; no forced winner or promotion.
 
 - G03.1 `DESIGNED`: compare no-action/current deterministic baseline with a simple linear learner and a bounded small tree-model search; no guaranteed winner.
 - G03.2 `PENDING`: fit numerical models on training data only; record parameters, feature versions, seeds, cost assumptions and rejected experiments.

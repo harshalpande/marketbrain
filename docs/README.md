@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: standalone synthetic smoke; Upstox reply pending (E55)
+### Current next action: combined synthetic prediction bundle (E56/E57)
 
-Evaluation metrics, chronological leakage checks and compact reporting are implemented and offline verified: 322 Java tests, 22 CLI checks and 30 PowerShell workflow assertions pass. [Run the new standalone smoke](numerical-evaluation-engineering-plan.md#spare-smoke-no-service-rebuild) on spare and share its single JSON. No service rebuild, database call, model run or market-data recollection is needed. Upstox clarification remains **PENDING_EXTERNAL_REPLY**; no real-data fitting or prediction-quality claim.
+The previous spare smoke passed **22/22 checks in 15.537s** (E56); do not rerun it separately. [Run the combined prediction bundle](numerical-baseline-bundle.md) next: two simple baselines, a fixed ridge learner, train-only preprocessing, three synthetic scenarios, ranking metrics and reproducibility checks. It includes the old checks: **35 checks total, one JSON**, no service rebuild, database/provider/LLM call or market-data recollection. This advances numerical-engine engineering, not measured stock prediction accuracy. Upstox clarification remains **PENDING_EXTERNAL_REPLY**, and real-market training remains blocked.
 
 ### E54 planning checkpoint
 

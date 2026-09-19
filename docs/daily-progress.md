@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - Spare evaluator accepted; six numerical subgoals bundled
+
+- E56 accepts the owner's spare evaluation report: 22/22 checks, 15.537s, Docker Java 21.0.9, successful cleanup. Independent validator passes; source hashes reconciled with CRLF. PowerShell version was not captured. This completes the old bounded smoke, not forecasting validation.
+- Owner authorized multiple associated numerical subgoals together. E57 implements two reference baselines, fixed ridge learner, train-only preprocessing, three synthetic scenarios, ranking metrics and reproducibility/evidence in the same standalone CLI. Includes previous regression checks; one invocation and one compact JSON, no separate six-run handoff.
+- All 331 standard Java tests (9 new), package build, 35 CLI checks and 51 PowerShell 5.1 assertions pass. Local workflow found/fixed two JSON property-name mismatches before handoff. Old negative-path tests still preserve failed reports and bounded timeout evidence. No local service, Docker, provider, DB or LLM inference run; no saved market-data probes rerun.
+- Local bundle 4.601s, 418,268-byte JSON. Constructed linear pattern is learned, constant-target tie retained, reversal deliberately worsens learner error. Neither a winner nor improvement is manufactured; source-policy/training gates and overall percentages unchanged.
+- Next: pull and run TestNumericalPredictionBundle.ps1 on spare using cached isolated JDK Docker image. No MarketBrain rebuild or model download. Share one JSON. Upstox clarification remains PENDING_EXTERNAL_REPLY; preserve existing history/export and inspected development-set status.
+
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
 ## 2026-09-19 — Independent numerical evaluation engineering implemented

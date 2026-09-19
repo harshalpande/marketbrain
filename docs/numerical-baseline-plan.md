@@ -2,9 +2,9 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45), repair capture (E50) and expanded 150-date research export (E52) reviewed within their scopes. All 600 arithmetic rows completed on spare. E53 records the remaining source-policy gap: no relevant adjustment references were recovered, and public documentation alone does not certify stored prices. Contract freeze, price provenance, certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
-## E55 current checkpoint
+## E56/E57 current checkpoint
 
-[EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md) is implemented and offline verified, with spare smoke pending. Pure metrics, synthetic leakage guards and compact report do not fit a model or certify prices. Upstox reply remains pending. This completes the bounded engineering implementation, not N2/N3/N4/N5 acceptance or prediction readiness.
+[EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md) passed its spare smoke (22/22, 15.537s). The [E57 numerical baseline bundle](numerical-baseline-bundle.md) extends engineering with synthetic-only fitting, train-only preprocessing, reference comparisons, ranking and repeatability; spare bundle verification is next. No real-market training, price certification or production model is authorized. Upstox reply remains pending. This does not close N2/N3/N4/N5 acceptance or establish prediction readiness.
 
 ### E54 checkpoint
 

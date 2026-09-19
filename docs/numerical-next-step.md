@@ -2,9 +2,9 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E55 evaluation engineering implemented; spare smoke next
+## Current: E56 smoke accepted; E57 bundled numerical-engine testing next
 
-EV1 metrics, EV2 synthetic chronology/leakage checks and EV3 compact offline reporting are implemented and locally verified. **322 Java tests, 22 CLI synthetic checks and 30 PowerShell workflow assertions pass; package build passes.** [Implementation, limitations and smoke command](numerical-evaluation-engineering-plan.md#e55-delivery-and-verification). Run the new standalone smoke once on spare; no MarketBrain rebuild, service call, inference or export repetition. Share one JSON. Source-policy reply remains pending, and training stays disabled. Synthetic passes are not a measurement of forecast quality.
+EV1-EV3 passed the spare Docker smoke: 22/22 checks in 15.537s, cleanup successful. [Persisted review](evidence/numerical-evaluation-spare-review-20260919.json). The next [combined synthetic bundle](numerical-baseline-bundle.md) fits a small numerical learner and two reference predictors on synthetic inputs only, tests three conditions, adds ranking/repeatability checks and repeats the old guard checks in one invocation. Pull and run its standalone script; share one JSON. No MarketBrain rebuild, source query, inference or export repetition. Source-policy reply remains pending, and real-market training stays disabled. Synthetic passes are not a measurement of forecast quality.
 
 ## E54 awaiting Upstox; evaluation-engineering contract prepared
 

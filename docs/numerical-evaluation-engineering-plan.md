@@ -1,17 +1,19 @@
 # Next work package: numerical evaluation engineering
 
-2026-09-19, E55. Status: **IMPLEMENTED / OFFLINE VERIFIED / SPARE SMOKE PENDING**, not training-ready. E54 prepared the contract; the owner then authorized implementation. This package advances independent engineering while the Upstox reply remains pending; it does not certify data or bypass N2/N3/N4.
+2026-09-19, E55/E56. Status: **IMPLEMENTED / OFFLINE AND SPARE SMOKE VERIFIED**, not training-ready. E56 accepted 22/22 spare checks in 15.537s; no separate repeat needed. Next is the [E57 combined synthetic baseline bundle](numerical-baseline-bundle.md). E54 prepared the original contract; the owner then authorized implementation. These packages advance independent engineering while the Upstox reply remains pending; they do not certify data or bypass N2/N3/N4.
 
 ## Two separate tracks
 
 | Track | Current state | Exit condition |
 |---|---|---|
 | Price-policy clarification | PENDING_EXTERNAL_REPLY; owner reports email sent; no ticket/reply supplied | Review authoritative response against captured instrument/vintage/action evidence; approve the applicable policy, or explicitly retain unresolved windows |
-| Evaluation engineering | EV1-EV3 implemented and locally verified; spare smoke pending | Deterministic metric and leakage tests pass on synthetic fixtures; evidence/report format verified; real-data fitting remains disabled |
+| Evaluation engineering | EV1-EV3 implemented and spare-verified E56; next E57 bundle | Deterministic metric and leakage tests pass on synthetic fixtures; evidence/report format verified; real-data fitting remains disabled |
 
 Source: E52 accepts the saved 600-row export in 19.824s, but zero labels are certified. All 20 retained SHADOW_TEST dates were already inspected. Neither this package nor a successful Upstox answer turns that development period into an untouched final test.
 
 ## E55 delivery and verification
+
+The E55 bullets below preserve delivery-time scope/results. E56 subsequently verified the Docker success path; its report does not identify PowerShell version. E57 adds `--synthetic-baselines` and a `-Suite Baselines` runner option while retaining the default 22-check smoke. No CLI market-data input exists. Historical no-fitting statements refer to E55; E57 explicitly fits synthetic fixtures only.
 
 - `NumericalEvaluationEngineering.java` contains pure metric/guard methods and a fixed synthetic-only CLI. No Spring bean, new endpoint, provider/model/DB dependency, migration or configuration change. Returns use explicit percentage-point units and one horizon/policy/predictor per metric batch. Empty metrics are unavailable; overflow/non-finite inputs fail closed. Input order is normalized, with row- and equal-date-weighted metrics reported separately; equal-date RMSE is the square root of mean daily MSE, not mean daily RMSE.
 - Guard rejects (does not silently purge/drop) overlapping labels at both TRAIN/VALIDATION and VALIDATION/TEST boundaries, same-date partition mixing, duplicate identities, invalid horizon ends, insufficient **session** gaps, unknown/future feature availability and inspected/unknown final-test provenance. The five-name synthetic inference allowlist is not an approved production feature list or a mapping from existing snapshots. Declared timestamps/inspection metadata are tested, not independently certified. No production split is frozen.
@@ -21,7 +23,7 @@ Source: E52 accepts the saved 600-row export in 19.824s, but zero labels are cer
 - Child execution limit defaults to 120s (maximum 300); image inspection/targeted cleanup use 15s bounds, with bounded pipe drain/termination waits. A timeout is a failure, not an automatic calculation retry. Failure results preserve available evidence; persistent checkpoint locks retain the pending snapshot as defined by the existing writer. Cleanup targets only this invocation's container. Host/process termination can still prevent final reporting; last atomic checkpoint remains useful.
 - Verification: **322 standard Java tests passed**, including **13 new tests**; `mvn package` passed. Old saved-market-data evidence probes were not rerun or counted. **22 CLI synthetic checks** plus **30 PowerShell 5.1 workflow assertions** passed, including independent metric expectations, tampered reports, repeat preservation, real native-child failure/timeout and simulated Docker-probe failure. One local full smoke took **2.905s**, not a spare-laptop performance promise. Docker success path and PowerShell 7 runtime await spare confirmation; no local Docker/service/DB/provider/model run occurred.
 
-### Spare smoke (no service rebuild)
+### Spare smoke (completed E56; no separate rerun)
 
 After pulling the committed changes, run:
 
@@ -33,7 +35,7 @@ If no JDK is installed and the cached image is unavailable, explicitly run `dock
 
 ## Implementation sequence and acceptance
 
-The table preserves the original E54 estimates, not remaining effort. All three bounded components are now offline verified; spare verification is pending. These were active engineering estimates, not deadlines or prediction-confidence estimates.
+The table preserves the original E54 estimates, not remaining effort. All three bounded components are now offline and spare verified. These were active engineering estimates, not deadlines or prediction-confidence estimates.
 
 | Step | Bounded deliverable | Required checks | Estimate |
 |---|---|---|---|
@@ -64,6 +66,6 @@ Real-data model fitting/promotion, certified returns, final evaluation release, 
 
 ## Handoff when the provider replies in another session
 
-Read this file, `numerical-price-policy-open-questions.md`, the current roadmap and E52-E54 in the evidence register. Preserve the provider's redacted wording, date, reference/ticket and scope; do not assume current API behaviour proves previously stored vintages. The owner does not want project details disclosed. No automatic external message or provider fetch is authorized.
+Read this file, `numerical-price-policy-open-questions.md`, `numerical-baseline-bundle.md`, the current roadmap and E52-E57 in the evidence register. Preserve the provider's redacted wording, date, reference/ticket and scope; do not assume current API behaviour proves previously stored vintages. The owner does not want project details disclosed. No automatic external message or provider fetch is authorized.
 
 The accepted artifact is `numerical-expanded-research-20260919-140603-9785384a9616.json`, SHA256 `E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8`; its small review is in `docs/evidence/numerical-expanded-research-spare-review-20260919.json`. No need to rerun that export or the empty repair query. Review the reply as new evidence, then specify any remaining bounded acquisition before changing stored data.

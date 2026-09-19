@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E56",
+  "status": "SPARE_SYNTHETIC_ENGINEERING_VERIFIED_REAL_TRAINING_BLOCKED",
+  "sourceFile": "numerical-evaluation-smoke-20260919-153350-56fb9925b7e1.json",
+  "sourceSha256": "BADF0CB0FE94F4C25412FC96991E7F258C82D5AFCD3CAC4110528DFC8DF0DB1C",
+  "checksPassed": 22,
+  "checksFailed": 0,
+  "elapsedSeconds": 15.5374573,
+  "runtime": "Docker",
+  "javaVersion": "21.0.9",
+  "powerShellVersion": "NOT_RECORDED_IN_SOURCE_REPORT",
+  "cleanupExitCode": 0,
+  "independentResultValidationPassed": true,
+  "sourceHashesMatchedWithCRLFNormalization": true,
+  "databaseWritesPerformed": false,
+  "providerCallCount": 0,
+  "modelCallCount": 0,
+  "ordersCreated": 0,
+  "trainingAuthorized": false,
+  "upstoxClarification": "PENDING_EXTERNAL_REPLY",
+  "next": "E57 combined synthetic numerical baseline bundle; no repeat export or separate E55 smoke",
+  "limitations": ["Synthetic engineering only, not forecasting accuracy", "No real-market labels certified or fitted"]
+}

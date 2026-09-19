@@ -6,8 +6,8 @@ import java.security.MessageDigest;
 import java.time.*;
 import java.util.*;
 
-/** Standalone, JDK-only evaluation engineering. No Spring bean, I/O data source or fitter.
- * main runs fixed synthetic fixtures only; pure methods also serve unit tests.
+/** Standalone JDK-only evaluation engineering, with a synthetic-only baseline lab.
+ * No Spring bean or data source. main accepts only fixed synthetic fixture suites.
  */
 public final class NumericalEvaluationEngineering {
     public static final String VERSION = "NUMERICAL_EVALUATION_ENGINEERING_V1";
@@ -242,6 +242,194 @@ public final class NumericalEvaluationEngineering {
         result.put("limitations", List.of("Synthetic calculator/metadata checks only; not forecasting accuracy", "No source-policy certification, fitting or untouched real-data evaluation", "No calibrated probabilities, ranking, portfolio returns or costs"));
         return result;
     }
+    /** No external data entry point: this lab is reached only by the fixed synthetic CLI. */
+    public static final class Baselines {
+        public static final String VERSION = "SYNTHETIC_NUMERICAL_BASELINES_V1";
+        public static final double RIDGE = 0.01;
+        public static final Contract CONTRACT = new Contract(20, "PERCENTAGE_POINTS", "SYNTHETIC_ONLY");
+        public record Labeled(EvaluationRow metadata, double target) { }
+        public record Model(String version, List<String> features, List<Double> means, List<Double> scales,
+                            List<Double> weights, double intercept, double penalty, int trainingRows,
+                            Instant fitCutoff, String trainingSha256) {
+            public Model {
+                require("SYNTHETIC_RIDGE_V1".equals(version) && List.of("return5", "volumeRatio20").equals(features), "Unknown model contract");
+                require(means != null && scales != null && weights != null && means.size() == 2 && scales.size() == 2 && weights.size() == 2, "Invalid parameter dimensions");
+                for (int i=0;i<2;i++) { finite(means.get(i)); finite(scales.get(i)); finite(weights.get(i)); require(scales.get(i)>0,"Invalid scale"); }
+                finite(intercept); require(penalty == RIDGE && trainingRows > 0 && trainingRows <= MAX_ROWS && fitCutoff != null, "Invalid fit metadata");
+                require(trainingSha256 != null && trainingSha256.matches("[a-f0-9]{64}"), "Missing training fingerprint");
+                features=List.copyOf(features); means=List.copyOf(means); scales=List.copyOf(scales); weights=List.copyOf(weights);
+            }
+        }
+        public record Ranking(int dateCount, int correlationDateCount, int unavailableCorrelationDates,
+                              Double meanSpearman, double tieInclusiveTopMeanPercent, int selectedRowCount) { }
+        public record Comparison(String predictor, Metrics errors, Ranking ranking, List<Pair> predictions) { }
+        public record PartitionComparison(List<Comparison> comparisons, List<String> lowestMaePredictors) { }
+        public record Scenario(String name, String fixtureSha256, GuardResult guard, Model model, String modelSha256,
+                               PartitionComparison validation, PartitionComparison test, double elapsedMillis) { }
+
+        static List<Labeled> orderedTraining(List<Labeled> input, Instant cutoff) {
+            require(input != null && !input.isEmpty() && input.size() <= MAX_ROWS && cutoff != null, "Training rows/cutoff required");
+            var keys=new HashSet<String>(); var ordered=new ArrayList<Labeled>();
+            for (Labeled row : input) {
+                require(row != null && row.metadata() != null && row.metadata().inference() != null, "Missing training row");
+                var m=row.metadata(); var x=m.inference();
+                require(m.partition() == Partition.TRAIN && m.labelEndAt() != null && m.labelEndAt().isAfter(x.decisionAt())
+                        && m.labelEndAt().isBefore(cutoff), "Only matured TRAIN labels before cutoff may fit");
+                finite(row.target()); require(x.features().containsKey("return5"), "Critical feature return5 missing");
+                require(Set.of("return5","volumeRatio20").containsAll(x.features().keySet()), "Unexpected learner feature");
+                String key=x.instrument()+":"+x.decisionAt().atZone(INDIA).toLocalDate();
+                require(keys.add(key),"Duplicate training row"); ordered.add(row);
+            }
+            ordered.sort(Comparator.comparing((Labeled r)->r.metadata().inference().decisionAt()).thenComparing(r->r.metadata().inference().instrument()));
+            return List.copyOf(ordered);
+        }
+        static double meanTarget(List<Labeled> train) { double sum=0;for(var r:train)sum=finite(sum+r.target());return sum/train.size(); }
+        public static Model fit(List<Labeled> input, Instant cutoff) {
+            var train=orderedTraining(input,cutoff); var names=List.of("return5","volumeRatio20");
+            double[] means=new double[2], scales=new double[2];
+            for(int j=0;j<2;j++) {
+                int count=0;
+                for(var r:train){Double v=r.metadata().inference().features().get(names.get(j)); if(v!=null){means[j]=finite(means[j]+v);count++;}}
+                require(count>0,"All training values missing for "+names.get(j)); means[j]/=count;
+                double sum=0;
+                for(var r:train){double delta=finite(r.metadata().inference().features().getOrDefault(names.get(j),means[j])-means[j]);sum=finite(sum+finite(delta*delta));}
+                scales[j]=Math.sqrt(sum/train.size()); if(scales[j]==0)scales[j]=1;
+            }
+            double yMean=meanTarget(train), a=RIDGE,b=0,d=RIDGE,u=0,v=0;
+            for(var row:train){
+                var f=row.metadata().inference().features();
+                double x=finite((f.get("return5")-means[0])/scales[0]);
+                double z=finite((f.getOrDefault("volumeRatio20",means[1])-means[1])/scales[1]);
+                double y=finite(row.target()-yMean), n=train.size();
+                a=finite(a+finite(x*x)/n);b=finite(b+finite(x*z)/n);d=finite(d+finite(z*z)/n);
+                u=finite(u+finite(x*y)/n);v=finite(v+finite(z*y)/n);
+            }
+            double determinant=finite(a*d-b*b); require(determinant>0,"Unstable ridge system");
+            double w0=finite((d*u-b*v)/determinant),w1=finite((a*v-b*u)/determinant);
+            return new Model("SYNTHETIC_RIDGE_V1",names,List.of(means[0],means[1]),List.of(scales[0],scales[1]),
+                    List.of(w0,w1),yMean,RIDGE,train.size(),cutoff,sha256(json(train)));
+        }
+        public static double predict(Model model, InferenceInput input) {
+            require(model!=null && input!=null && input.features().containsKey("return5"),"Missing predictor/critical feature");
+            require(Set.of("return5","volumeRatio20").containsAll(input.features().keySet()),"Unexpected learner feature");
+            double prediction=model.intercept();
+            for(int j=0;j<2;j++) {
+                double value=input.features().getOrDefault(model.features().get(j),model.means().get(j));
+                prediction=finite(prediction+finite(model.weights().get(j)*finite((value-model.means().get(j))/model.scales().get(j))));
+            }
+            return prediction;
+        }
+        private static double[] ranks(double[] values) {
+            Integer[] order=new Integer[values.length];for(int i=0;i<order.length;i++)order[i]=i;
+            Arrays.sort(order,Comparator.comparingDouble(i->values[i])); double[] ranks=new double[values.length];
+            for(int i=0;i<order.length;){int end=i+1;while(end<order.length && values[order[end]]==values[order[i]])end++;
+                double rank=(i+1+end)/2.0;for(int k=i;k<end;k++)ranks[order[k]]=rank;i=end;}
+            return ranks;
+        }
+        public static Ranking ranking(List<Pair> rows) {
+            metrics(CONTRACT,rows);require(!rows.isEmpty(),"No ranking observations");
+            var dates=new TreeMap<LocalDate,List<Pair>>();
+            for(var row:rows)dates.computeIfAbsent(row.decisionDate(),ignored->new ArrayList<>()).add(row);
+            double correlationSum=0,topSum=0;int available=0,selected=0;
+            for(var group:dates.values()){
+                group.sort(Comparator.comparing(Pair::instrument));
+                double[] p=ranks(group.stream().mapToDouble(Pair::predicted).toArray());
+                double[] y=ranks(group.stream().mapToDouble(Pair::observed).toArray());
+                double center=(group.size()+1)/2.0,cov=0,vp=0,vy=0;
+                for(int i=0;i<group.size();i++){double x=p[i]-center,z=y[i]-center;cov+=x*z;vp+=x*x;vy+=z*z;}
+                if(vp>0 && vy>0){correlationSum+=cov/Math.sqrt(vp*vy);available++;}
+                double top=group.stream().mapToDouble(Pair::predicted).max().orElseThrow(),sum=0;int count=0;
+                for(var row:group)if(row.predicted()==top){sum=finite(sum+row.observed());count++;}
+                topSum=finite(topSum+sum/count);selected+=count;
+            }
+            return new Ranking(dates.size(),available,dates.size()-available,available==0?null:correlationSum/available,topSum/dates.size(),selected);
+        }
+        static Manifest manifest() {
+            List<LocalDate> dates=new ArrayList<>();for(int i=0;i<150;i++)dates.add(LocalDate.of(2020,1,1).plusDays(2L*i));
+            return new Manifest(List.copyOf(dates),Map.of(Partition.TRAIN,new Window(dates.get(0),dates.get(39)),
+                    Partition.VALIDATION,new Window(dates.get(65),dates.get(79)),Partition.TEST,new Window(dates.get(105),dates.get(119))),
+                    20,5,"SYNTHETIC_KNOWN_AVAILABILITY",List.of());
+        }
+        static List<Labeled> data(String scenario) {
+            require(Set.of("LINEAR_SIGNAL","CONSTANT_TARGET","REGIME_REVERSAL").contains(scenario),"Unknown synthetic scenario");
+            var m=manifest();var rows=new ArrayList<Labeled>();
+            for(var partition:Partition.values())for(int i=0;i<m.sessions().size();i++)if(inside(m.sessions().get(i),m.windows().get(partition))) {
+                for(int stock=0;stock<3;stock++){
+                    double x=i%9-4+stock*0.15,z=1+((i+stock)%5)*0.25;
+                    var features=new LinkedHashMap<String,Double>();features.put("return5",x);
+                    if(!(i%7==0 && stock==1))features.put("volumeRatio20",z);
+                    var base=fixtureRow(m,i,partition);
+                    var input=new InferenceInput("SYNTH_"+stock,base.inference().decisionAt(),base.inference().featuresAvailableAt(),features);
+                    double y=switch(scenario){case "LINEAR_SIGNAL"->1.25+1.8*x-1.2*(z-1);case "CONSTANT_TARGET"->2;default->(partition==Partition.TRAIN?2:-2)*x;};
+                    rows.add(new Labeled(new EvaluationRow(input,base.labelEndAt(),partition,Inspection.UNINSPECTED),y));
+                }
+            }
+            return List.copyOf(rows);
+        }
+        static PartitionComparison compare(Model model, double trainMean, List<Labeled> heldOut) {
+            var comparisons=new ArrayList<Comparison>();
+            for(String id:List.of("ZERO","TRAIN_MEAN","RIDGE")){
+                List<Pair> pairs=heldOut.stream().map(row->{var x=row.metadata().inference();double predicted=switch(id){case "ZERO"->0;case "TRAIN_MEAN"->trainMean;default->predict(model,x);};
+                    return new Pair(x.instrument(),x.decisionAt().atZone(INDIA).toLocalDate(),id,predicted,row.target(),CONTRACT);}).toList();
+                comparisons.add(new Comparison(id,metrics(CONTRACT,pairs),ranking(pairs),pairs));
+            }
+            double best=comparisons.stream().mapToDouble(c->c.errors().equalDateWeighted().mae()).min().orElseThrow();
+            return new PartitionComparison(List.copyOf(comparisons),comparisons.stream().filter(c->Math.abs(c.errors().equalDateWeighted().mae()-best)<=1e-9).map(Comparison::predictor).toList());
+        }
+        static Scenario scenario(String name) {
+            long start=System.nanoTime();var data=data(name);var m=manifest();
+            var checked=guard(m,data.stream().map(Labeled::metadata).toList());require(checked.issues().isEmpty(),"Synthetic fixture leakage");
+            var train=data.stream().filter(r->r.metadata().partition()==Partition.TRAIN).toList();
+            var model=fit(train,m.windows().get(Partition.VALIDATION).first().atStartOfDay(INDIA).toInstant());
+            return new Scenario(name,sha256(json(data)),checked,model,sha256(json(model)),
+                    compare(model,meanTarget(train),data.stream().filter(r->r.metadata().partition()==Partition.VALIDATION).toList()),
+                    compare(model,meanTarget(train),data.stream().filter(r->r.metadata().partition()==Partition.TEST).toList()),(System.nanoTime()-start)/1_000_000.0);
+        }
+        static double error(PartitionComparison c,String id){return c.comparisons().stream().filter(r->r.predictor().equals(id)).findFirst().orElseThrow().errors().equalDateWeighted().mae();}
+        static Map<String,Object> smokeBundle() {
+            long started=System.nanoTime();var regression=smoke();var checks=new ArrayList<Check>();var scenarios=new ArrayList<Scenario>();
+            for(String name:List.of("LINEAR_SIGNAL","CONSTANT_TARGET","REGIME_REVERSAL"))scenarios.add(scenario(name));
+            Scenario linear=scenarios.get(0),constant=scenarios.get(1),reversal=scenarios.get(2);
+            check(checks,"linear_signal_beats_references",linear.fixtureSha256(),()->{
+                for(var c:List.of(linear.validation(),linear.test()))require(error(c,"RIDGE")<error(c,"ZERO") && error(c,"RIDGE")<error(c,"TRAIN_MEAN"),"Linear fixture not learned");});
+            check(checks,"constant_target_retains_tie",constant.fixtureSha256(),()->{
+                for(var c:List.of(constant.validation(),constant.test())){equal(error(c,"RIDGE"),0);equal(error(c,"TRAIN_MEAN"),0);require(c.lowestMaePredictors().equals(List.of("TRAIN_MEAN","RIDGE")),"Tie lost");}});
+            check(checks,"reversal_exposes_underperformance",reversal.fixtureSha256(),()->{
+                for(var c:List.of(reversal.validation(),reversal.test()))require(error(c,"RIDGE")>error(c,"ZERO"),"Underperformance hidden");});
+            var train=data("LINEAR_SIGNAL").stream().filter(r->r.metadata().partition()==Partition.TRAIN).toList();var model=linear.model();
+            check(checks,"shuffle_training_same_artifact",train,()->{var reversed=new ArrayList<>(train);Collections.reverse(reversed);require(model.equals(fit(reversed,model.fitCutoff())),"Fit depends on order");});
+            check(checks,"heldout_targets_cannot_change_fit_or_predictions",linear.fixtureSha256(),()->{
+                var changed=data("LINEAR_SIGNAL").stream().map(r->r.metadata().partition()==Partition.TRAIN?r:new Labeled(r.metadata(),r.target()+9999)).toList();
+                var refit=fit(changed.stream().filter(r->r.metadata().partition()==Partition.TRAIN).toList(),model.fitCutoff());require(model.equals(refit),"Heldout target leakage");
+                for(var r:changed)equal(predict(model,r.metadata().inference()),predict(refit,r.metadata().inference()));});
+            var held=data("LINEAR_SIGNAL").stream().filter(r->r.metadata().partition()==Partition.TEST).findFirst().orElseThrow();
+            check(checks,"heldout_rows_rejected_by_fit",held,()->rejects(()->fit(List.of(held),model.fitCutoff())));
+            check(checks,"unmatured_target_rejected",train.get(0),()->rejects(()->fit(train,train.get(0).metadata().labelEndAt())));
+            check(checks,"duplicate_training_rejected",train.get(0),()->rejects(()->fit(List.of(train.get(0),train.get(0)),model.fitCutoff())));
+            var x=held.metadata().inference();
+            check(checks,"optional_missing_uses_training_mean",model,()->{
+                var missing=new InferenceInput(x.instrument(),x.decisionAt(),x.featuresAvailableAt(),Map.of("return5",x.features().get("return5")));
+                var filled=new InferenceInput(x.instrument(),x.decisionAt(),x.featuresAvailableAt(),Map.of("return5",x.features().get("return5"),"volumeRatio20",model.means().get(1)));
+                equal(predict(model,missing),predict(model,filled));});
+            check(checks,"critical_missing_rejected",x,()->rejects(()->predict(model,new InferenceInput(x.instrument(),x.decisionAt(),x.featuresAvailableAt(),Map.of("volumeRatio20",1.0)))));
+            var date=LocalDate.of(2020,1,1);var ties=List.of(new Pair("A",date,"TIES",2,1,CONTRACT),new Pair("B",date,"TIES",2,3,CONTRACT),new Pair("C",date,"TIES",1,0,CONTRACT));
+            check(checks,"ranking_average_ties_and_top_ties",ties,()->{var r=ranking(ties);equal(r.meanSpearman(),Math.sqrt(3)/2);equal(r.tieInclusiveTopMeanPercent(),2);require(r.selectedRowCount()==2,"Top ties broken arbitrarily");});
+            var flat=List.of(new Pair("A",date,"FLAT",0,1,CONTRACT),new Pair("B",date,"FLAT",0,2,CONTRACT));
+            check(checks,"constant_ranking_unavailable",flat,()->{var r=ranking(flat);require(r.meanSpearman()==null && r.unavailableCorrelationDates()==1,"Undefined correlation fabricated");});
+            check(checks,"parameter_artifact_copy_prediction_parity",model,()->{var copy=new Model(model.version(),model.features(),model.means(),model.scales(),model.weights(),model.intercept(),model.penalty(),model.trainingRows(),model.fitCutoff(),model.trainingSha256());equal(predict(copy,x),predict(model,x));});
+            var result=new LinkedHashMap<String,Object>();
+            result.put("version",VERSION);result.put("evaluationRegression",regression);result.put("checks",checks);result.put("checkCount",checks.size());
+            long failed=checks.stream().filter(c->!c.passed()).count();result.put("failedCheckCount",failed);
+            result.put("status",failed==0 && "SYNTHETIC_CHECKS_PASSED".equals(regression.get("status"))?"SYNTHETIC_CHECKS_PASSED":"SYNTHETIC_CHECKS_FAILED");
+            result.put("scenarios",scenarios);result.put("manifest",manifest());result.put("configuration",Map.of("ridgePenalty",RIDGE,"primaryMetric","EQUAL_DATE_MAE","tieTolerance",1e-9,"horizonSessions",20,"scenarioCount",3));
+            result.put("syntheticOnly",true);result.put("syntheticTrainingPerformed",true);result.put("trainingAuthorized",false);result.put("realMarketTrainingAuthorized",false);
+            result.put("databaseWritesPerformed",false);result.put("providerCallCount",0);result.put("modelCallCount",0);result.put("ordersCreated",0);result.put("automaticPromotionEnabled",false);
+            result.put("elapsedMillis",(System.nanoTime()-started)/1_000_000.0);result.put("javaVersion",System.getProperty("java.version"));
+            result.put("limitations",List.of("Fixed synthetic scenarios; no measured stock prediction accuracy","No real data, tuning, cost/portfolio simulation or probability calibration","Parameter artifact for synthetic tests only; no production model promotion"));
+            return result;
+        }
+    }
+
     static String sha256(String text) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8))); }
         catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
@@ -271,8 +459,8 @@ public final class NumericalEvaluationEngineering {
         return out.append('"').toString();
     }
     public static void main(String[] args) {
-        if (args.length != 1 || !"--synthetic-smoke".equals(args[0])) throw new IllegalArgumentException("Only --synthetic-smoke is supported; no market-data input");
-        Map<String, Object> result = smoke(); System.out.println(json(result));
+        if (args.length != 1 || !Set.of("--synthetic-smoke","--synthetic-baselines").contains(args[0])) throw new IllegalArgumentException("Only fixed synthetic suites are supported; no market-data input");
+        Map<String, Object> result = "--synthetic-baselines".equals(args[0]) ? Baselines.smokeBundle() : smoke(); System.out.println(json(result));
         if (!"SYNTHETIC_CHECKS_PASSED".equals(result.get("status"))) System.exit(2);
     }
 }
