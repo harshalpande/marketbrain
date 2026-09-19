@@ -54,11 +54,19 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: recover repair provenance and extend calendar coverage
+### Current next action: collect stored repair provenance (E49)
 
 E47 confirms the 38-date export on spare: **152/152 rows, 3.975s**, no blocked arithmetic rows. Do not rerun export or download history. E48 has already prepared and replayed a **150-date / 600-row development expansion plan** from the saved bars, with provisional purges and boundary gaps. It is not yet a certified dataset or an untouched test. [Next work package](numerical-next-step.md) and [persisted date assignments](evidence/numerical-development-expansion-plan-20260919.json).
 
-The owner has no separate adjustment report available. Recover existing repair/source evidence from saved artifacts and the resolution ledger first; some instrument-specific repair references are confirmed in code, but they do not certify the four selected stocks. Extend the independent calendar back to the actual feature start, 2024-10-22; approve price/availability conventions before broader training export. No additional spare run is necessary to reproduce the already reviewed plan. Optional offline reproduction after pulling uses `PrepareNumericalExpansionPlan.ps1 -ResearchExportPath <saved-export.json>` and needs no Docker rebuild.
+E49 extends the independent NSE calendar back to 2024-10-22. Offline replay of the saved export matched **600/600 feature windows and 600/600 outcome windows**, with no mismatches. The [persisted review](evidence/numerical-expanded-calendar-review-20260919.json) closes this sample's earlier calendar gap, not price certification or broader dataset readiness.
+
+The owner has no separate adjustment report available. The new read-only repair endpoint recovers existing scoped resolution/revocation and corporate-action references; it does not redownload history, rewrite prices or certify missing evidence. After pulling and rebuilding **marketbrain-service only**, with jobs confirmed idle and health UP, run:
+
+```powershell
+& '.\ops\windows\GetNumericalRepairEvidence.ps1' -ResearchExportPath 'C:\MarketBrainData\Review\numerical-research-export-20260919-124431-2c76f7cab00a.json'
+```
+
+Share the single printed `numerical-repair-evidence-<timestamp>-<id>.json`. It includes calendar checks, scope, sanitized references, hashes, timing and failure checkpoints. `REPAIR_EVIDENCE_CAPTURED_TRAINING_BLOCKED` means captured for review, not that source evidence was sufficient. Empty/capped records remain unknown. No model run, provider call, DB write or order is initiated. Spare database compatibility/performance and actual contents remain unverified until that report. A saved response can be rechecked offline with `-ExistingRepairReportPath <report.json>`; no retry loop or old acquisition is needed.
 
 ### Previous action: export the saved-data multi-date research pilot (completed)
 

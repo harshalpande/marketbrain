@@ -1,0 +1,30 @@
+{
+  "version": "NUMERICAL_EXPANDED_CALENDAR_REPLAY_SUMMARY_V1",
+  "reviewedOn": "2026-09-19",
+  "inputFileName": "numerical-research-export-20260919-124431-2c76f7cab00a.json",
+  "inputSha256": "37449BE9E8A330D4C7DB9790736898C6776D2D430A1337ADF1ECFE42641CD845",
+  "earlyCalendarSha256": "A8FF469B05BAB4D9D5FC03244A7C10E41FF3A1D379B5A095DA2BEEC8A481565F",
+  "calendarHelperSha256": "8DD55023F7D4D1A6C31845106855E5862092EFA59DB35F44DE35E9F8AB33776F",
+  "scope": {
+    "datasetRunId": "5bdbfcc1-d990-48d8-9e98-d4927596d917",
+    "symbols": ["MARUTI", "NATIONALUM", "TARIL", "LEMONTREE"],
+    "featureFrom": "2024-10-22",
+    "outcomeThrough": "2026-07-06",
+    "decisionFrom": "2025-10-27",
+    "decisionThrough": "2026-06-05"
+  },
+  "review": {
+    "version": "NUMERICAL_EXPANDED_CALENDAR_REVIEW_V1",
+    "status": "EXPANDED_WINDOWS_MATCH_TRAINING_BLOCKED",
+    "decisionDateCount": 150,
+    "rowCount": 600,
+    "featureWindowMatchCount": 600,
+    "outcomeWindowMatchCount": 600,
+    "blockedRowCount": 0,
+    "qualityBlockedInstrumentCount": 0,
+    "provisionalLayoutMatchesReviewedDates": true,
+    "trainingAuthorized": false,
+    "remainingGates": ["REPAIR_AND_PRICE_PROVENANCE", "RESEARCH_POLICY_APPROVAL", "BROADER_JAVA_EXPORT", "FROZEN_FOLDS_AND_UNTOUCHED_EVALUATION"]
+  },
+  "limitations": "Offline replay of saved data, not spare-database repair evidence, price-policy certification or fitted-model validation. No runtime services used. Full date assignments remain in the development plan; collector reproduces all window checks. Hashes identify the reviewed local bytes, not provider truth."
+}

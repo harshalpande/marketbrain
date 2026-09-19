@@ -1,6 +1,20 @@
 # Next numerical work package: reuse history, recover provenance, widen dates
 
-Prepared 2026-09-19 from E47. This is an implementation plan, not permission for fitting or trading.
+Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
+
+## E49: calendar prerequisite closed within sample; repair collector ready
+
+Official NSE sources independently establish the earlier cash-market calendar: [2024 holidays](https://nsearchives.nseindia.com/content/circulars/CMTR59722.pdf), [Muhurat live session](https://nsearchives.nseindia.com/content/circulars/CMTR64628.pdf), [November 20 election closure](https://nsearchives.nseindia.com/content/circulars/CMTR64960.pdf), [2025 holidays](https://nsearchives.nseindia.com/content/circulars/CMTR65587.pdf), and [NSE Indices confirmation of the February 1 Budget session](https://www.niftyindices.com/Press_Release/ind_prs24012025_3.pdf). Budget circular CMTR65729 is cited by the last source, not claimed to have been directly retrieved. This adds 110 live dates for 2024-10-22..2025-03-31. Special live sessions override routine closures; dates outside reviewed coverage are not inferred.
+
+Actual saved-export replay: **150 dates, 600/600 feature windows and 600/600 outcome windows matched**, zero date/quality-blocked windows, provisional layout unchanged. [Replay summary](evidence/numerical-expanded-calendar-review-20260919.json). No 600-row feature/label export or fitting occurred; the existing shadow-test contamination warning still applies.
+
+`GetNumericalRepairEvidence.ps1` now checkpoints those calendar checks and reads `GET /api/v1/training/numerical-repair-evidence` once for the same four instruments and full 2024-10-22..2026-07-06 scope. It reuses the bounded price-evidence job/ledger selector, retaining current RESOLVE/REVOKE identities, then fetches at most 200 resolution references and 200 corporate-action references by primary key. Current-state evidence does not reconstruct historical policy or guarantee older/out-of-catalog jobs and later actions were covered.
+
+No raw notes, reviewer names, arbitrary source strings or private/query-bearing URLs are shared. Approved public NSE archive paths are retained; original notes/source/URL bytes are hashed, and up to eight narrowly parsed numeric factor hints per record are labelled unverified. These are recorded claims, not applied or approved factors. The collector does not fetch links or scan unrelated files. Broader before/after repair details may remain only in existing job artifacts and are not claimed captured by these hashes.
+
+Safety: <=4 stocks, existing bounded selector plus at most two primary-key queries (<=17 queries total), 3-second statement timeouts and read-only repeatable-read transaction timeout 60s; HTTP timeout 90s, no automatic DB retry. These are resource guards, not a guaranteed end-to-end runtime. Caps, missing reference rows and upstream partial results propagate `partial=true`. Report status never authorizes training, even when nothing is found. No migrations/config changes, data writes, provider/model calls or trades. Actual spare SQL execution/performance remains pending; schema/index review and mocked JDBC tests are not EXPLAIN evidence.
+
+One uniquely named JSON embeds windows, references, source/tool hashes, timing/progress and partial failure checkpoints. Offline saved-response replay is supported. **305 standard Java tests and 115 PowerShell 5.1 assertions passed**; no actual local runtime/DB/provider/model used. PowerShell 7 and live spare verification await handoff. Next: inspect recovered evidence, explicitly resolve any remaining price-policy/coverage gaps, then expand the Java export and freeze valid evaluation before fitting. No overall completion percentage increase or accuracy promise.
 
 ## Accepted result
 

@@ -2,6 +2,13 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Earlier calendar verified; bounded repair recovery implemented
+
+- E49 reviews official NSE holiday, special-session and election sources for 2024-10-22..2025-03-31. Saved-export replay matches all 600 feature and 600 outcome windows across the proposed 150 dates; zero mismatches, provisional date layout unchanged. Persisted replay summary references source and tool hashes.
+- New read-only repair endpoint/one-JSON collector recovers existing scoped ledger/action references, retains revocations, bounds reference reads, redacts private notes/URLs, and flags partial/missing evidence. No history recollection, price rewrites or inference. Existing repairs are not presumed universal adjustment certification.
+- 305 standard Java tests and 115 PS5.1 assertions passed, including HTTP/JDBC mocks, wiring, caps, source redaction, calendar gaps and checkpoint/offline-reuse behavior. Corrected a test fixture's missing checkpoint timestamp field; no production data fix. Actual spare DB/PowerShell 7 verification pending.
+- Canonical docs/current diagram updated. Service-only rebuild required after confirming jobs idle. Share one repair-evidence JSON. Next is evidence review and remaining policy resolution, then wider certified export/frozen evaluation/model fitting. Overall roadmap percentages unchanged; no training authorization or prediction-accuracy claim.
+
 ## 2026-09-19 — Research export accepted within scope; expansion prepared
 
 - E47 spare export reviewed/replayed: 3.975s, 152/152 arithmetic rows across 38 dates, zero blocked rows. No accuracy claim; price provenance and training gates remain open.

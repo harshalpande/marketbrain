@@ -1,0 +1,20 @@
+{
+  "version": "NSE_CM_EARLY_CALENDAR_20241022_20250331_V1",
+  "exchange": "NSE",
+  "segment": "CM",
+  "timezone": "Asia/Kolkata",
+  "coverageFrom": "2024-10-22",
+  "coverageThrough": "2025-03-31",
+  "reviewedOn": "2026-09-19",
+  "rule": "MONDAY_FRIDAY_EXCEPT_CLOSURES_PLUS_SPECIAL_SESSIONS",
+  "closures": ["2024-11-01", "2024-11-15", "2024-11-20", "2024-12-25", "2025-02-26", "2025-03-14", "2025-03-31"],
+  "specialSessions": ["2024-11-01", "2025-02-01"],
+  "sources": [
+    {"id": "CMTR59722", "publishedOn": "2023-12-12", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR59722.pdf", "purpose": "2024 annual closures; only in-scope dates transcribed"},
+    {"id": "CMTR64628", "publishedOn": "2024-10-19", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR64628.pdf", "purpose": "2024-11-01 live Muhurat session overrides routine closure"},
+    {"id": "CMTR64960", "publishedOn": "2024-11-08", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR64960.pdf", "purpose": "Additional 2024-11-20 election closure"},
+    {"id": "CMTR65587", "publishedOn": "2024-12-13", "url": "https://nsearchives.nseindia.com/content/circulars/CMTR65587.pdf", "purpose": "2025 first-quarter closures"},
+    {"id": "NIFTY20250124", "publishedOn": "2025-01-24", "url": "https://www.niftyindices.com/Press_Release/ind_prs24012025_3.pdf", "purpose": "Official NSE Indices confirmation of 2025-02-01 live Budget session; cites CMTR65729 dated 2024-12-23"}
+  ],
+  "limitations": "Bounded retrospective NSE cash-market session dates only, not an intraday schedule, settlement calendar, tradability or price-adjustment certification. One session for each special live day. Outside coverage remains unknown. Annual dates are supplemented with the in-scope election and special-session sources; future amendments require a reviewed revision. No training authorization."
+}
