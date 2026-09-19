@@ -54,7 +54,23 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: collect the missing stored outcome window
+### Current next action: export the saved-data multi-date research pilot
+
+E45 confirms the missing outcome window on spare: 2.131s, **12/12 complete arithmetic paths**, zero blocked rows, but price provenance remains unknown. Do not rerun collection. E46 implements a stateless Java export from the two saved reports, expanding three decision dates to **38 dates / 152 rows** for this four-stock sample. This is dataset engineering, not model fitting or proof of predictive value.
+
+After pulling and rebuilding/deploying the service **with other jobs idle**, wait for health UP and run:
+
+```powershell
+$exportParameters = @{
+    FeatureEvidencePath = 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
+    OutcomeEvidencePath = 'C:\MarketBrainData\Review\numerical-outcomes-20260919-121940-85dd7b401ee8.json'
+}
+& '.\ops\windows\ExportNumericalResearchDataset.ps1' @exportParameters
+```
+
+Share only the printed `numerical-research-export-*.json`. It embeds source bars, exact input hashes, calendars, captured price evidence, feature/outcome rows, timings and failure checkpoints. The endpoint performs **zero database/provider/model calls**; original files remain unchanged. Expected status is `RESEARCH_EXPORT_TRAINING_BLOCKED`. 152 rows are not 152 independent observations, and 38 overlapping dates cannot establish reliable out-of-time performance. Price-policy evidence, broader history/calendar export, frozen purged splits and numerical fitting remain required. See [the work package](numerical-baseline-plan.md#e46-multi-date-saved-evidence-research-export).
+
+### Previous action: collect the missing stored outcome window (completed)
 
 E43 confirms the coordinated preflight on spare in 2.68s with expected training blockers. Do not rerun it. E44 reads only the missing June 6-July 17 stored bars for the same four stocks and extends quality/action inspection through that outcome period. Pull, rebuild/deploy the service with jobs idle, wait for health UP, then run:
 

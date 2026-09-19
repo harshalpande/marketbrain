@@ -2,6 +2,14 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Outcomes reviewed; saved-data multi-date export implemented
+
+- E45 spare report reviewed and replayed: 2.131s, 12/12 arithmetic paths, zero blocked/partial. Outcome availability rose from 4/12 to 12/12 (+66.7 percentage points), not prediction accuracy. Eight old diagnostic split rows now correctly purge for label overlap. Price/action provenance remains unknown.
+- E46 reuses saved bars through a stateless bounded Java endpoint, 38 dates / 152 rows, existing 252-session feature formulas, separate uncertified outcome arithmetic and cost scenarios. No DB/provider/model calls or data download; no training. All rows retained with explicit gates.
+- Offline real-data replay reproduced all 152 arithmetic rows and original 144 feature values. Fixed probe comparisons to compare decimal values rather than JSON numeric spelling and to serialize ISO dates like Spring; neither required changing market data/formulas. One compact replayable JSON, stage progress, hashes and failure checkpoints; no retry loop.
+- 299 standard Java tests plus explicit saved-evidence probe and 81 PS5.1 assertions verified. Spare deployment remains pending. Price-policy evidence, broader date/calendar export with frozen splits, then measured baseline fitting remain the three work areas; no overall percentage increase.
+- Canonical docs and current architecture updated; commit/push and service-only rebuild handoff. Existing data collection stays preserved. Needed source evidence is adjustment semantics/action coverage, not another rerun of empty corporate-action tables.
+
 ## 2026-09-19 — Missing stored outcome-window export implemented
 
 - Owner authorized next work and requested a realistic endpoint/timeline. E43 spare bundle reviewed: 2.68s, expected blockers, exact input/tool/calendar hashes and replay match; no repeat diagnostic needed.
