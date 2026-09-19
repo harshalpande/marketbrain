@@ -1,12 +1,14 @@
 # Price-policy evidence still needed, without recollecting history
 
-2026-09-19, E50. This is a source-evidence requirement, not a model-training failure. Preserve the existing history and repair work. No message has been sent to Upstox, and no new provider download is authorized by this note.
+2026-09-19, E54 update: **PENDING_EXTERNAL_REPLY**. The owner reports sending the neutral technical clarification email to Upstox support. No reply, delivery acknowledgement or ticket number has been supplied. The assistant has not sent any message. This is a source-evidence requirement, not a model-training failure; preserve existing history and repair work. No new provider download is authorized by this note.
+
+The owner requested no disclosure of project purpose. The revised email asks general API questions only, without naming the project, stored dataset or pilot stocks. The stock-specific questions below remain internal review requirements, not a claim about the email actually sent. Do not resend automatically. [Parallel evaluation-engineering work and session handoff](numerical-evaluation-engineering-plan.md).
 
 The bounded repair report completed in 8.828s and linked all four scoped stocks to previously reviewed completed backfill jobs. It inspected ledger rows but recovered **zero relevant adjustment references and zero corporate-action rows** for 2024-10-22..2026-07-06. This is not evidence that no corporate actions occurred. Repeating the unchanged query will not resolve the missing policy.
 
 The official [Upstox Historical Candle V3 documentation](https://upstox.com/developer/api-documentation/v3/get-historical-candle-data/) was checked on 2026-09-19. It defines OHLCV and availability/request limits, but the retrieved page does not specify split/bonus/dividend adjustment semantics, factor vintages or volume rebasing. Do not infer historical-API behavior from a chart product or another broker. This is a limited page review, not proof that no provider statement exists elsewhere.
 
-## Prepared question for authoritative clarification
+## Internal clarification checklist (earlier draft; not the neutral email)
 
 For NSE cash-equity daily candles returned by Upstox Historical Candle API, please confirm:
 
@@ -43,7 +45,7 @@ These findings apply to inspected paths, not a claim that every historical impor
 
 ### Next action and stop condition
 
-1. Owner sends the prepared four questions above to Upstox support and retains the answer/reference, without sharing credentials. No support message has been sent by the assistant.
+1. **Pending:** owner has reported sending the neutral email and will share a reply/reference when available. No further send, reminder or repeated diagnostic is requested. Preserve the eventual reply with secrets removed and distinguish provider statements from our interpretation.
 2. Review the answer against stored instrument identities, collection evidence and the 2024-10-22..2026-07-06 source window; account for later actions that may restate it. A current generic policy alone is insufficient.
 3. If provider confirmation is unavailable, agree a separate bounded acquisition of official action history and exchange-price samples for only these four instruments. Reuse the existing connector where appropriate; specify permissions, coverage and preservation first. Do not invoke the DB-writing sync endpoint as a diagnostic or recollect the full history.
 4. Only evidence-backed eligible windows advance to price-policy approval and certified labels. Unsupported rows stay excluded/uncertified; never infer factors from price jumps. Freeze independent evaluation before fitting.

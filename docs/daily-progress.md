@@ -2,6 +2,13 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Upstox email reported sent; independent next stage prepared
+
+- E54: owner reports sending the neutral technical email; no reply, delivery acknowledgement or ticket supplied. Mark source-policy step PENDING_EXTERNAL_REPLY. Respect the owner's request not to disclose project purpose; earlier stock-specific draft remains an internal checklist only.
+- Prepared EV1-EV3 evaluation-engineering contract: deterministic metrics, synthetic chronological/leakage fixtures, compact offline reporting. Planned, not implemented. Estimated 2.5-3 active working days; provider wait and real-data training are separate. No repeated export, DB query or inference is requested.
+- Added durable session handoff with artifact hash, unresolved gates, evidence requirements and next actions for a future provider reply. No automatic follow-up message or monitoring promised.
+- Documentation-only change; source-policy/training gates and roadmap percentages unchanged. Verify local links, diagram XML and diff; commit/push and pull-only spare handoff. No runtime code, data or model changes.
+
 ## 2026-09-19 — Expanded spare export accepted; source-policy review recorded
 
 - E52 closes the expanded runtime check: 19.824s, 150 dates, 600/600 arithmetic rows, no blocked rows and zero certified labels. Source hash/request/result checks and unchanged prior feature/outcome regression are recorded in one compact repository summary. No repeat export requested.

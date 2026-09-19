@@ -54,7 +54,11 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: source-policy evidence, not another export (E52/E53)
+### Current next action: evaluation engineering; Upstox reply pending (E54)
+
+Owner reports the neutral clarification email sent; source-policy status is **PENDING_EXTERNAL_REPLY**. No ticket/reply supplied yet. Park that external dependency without closing the data gate. [Next-stage contract and session handoff](numerical-evaluation-engineering-plan.md) define synthetic numerical metrics, leakage tests and one-file offline evidence; implementation remains planned. No new collection, model fitting or inference run is requested by this documentation checkpoint.
+
+### E52/E53 accepted export and source-policy review
 
 The expanded spare export is verified: **600/600 arithmetic rows in 19.824s**, no blocked rows, no certified labels and no training authorization. [Review](evidence/numerical-expanded-research-spare-review-20260919.json). Do not rerun it or repeat the empty repair query. E53 checks official sources and existing ingestion: the corporate-actions connector already exists, but candle adjustment semantics and historical completeness remain unverified. [Prepared Upstox questions, code findings and bounded next steps](numerical-price-policy-open-questions.md). Documentation-only update: pull only; no Docker rebuild or model run.
 

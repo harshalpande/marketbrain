@@ -89,6 +89,8 @@ After evidence/contract approval, the proposed first build is the prediction-gra
 
 ### G02 — Prediction-grade dataset
 
+E54 external dependency: **PENDING_EXTERNAL_REPLY**. Owner reports the neutral Upstox email sent; no ticket/answer supplied. Source-policy certification remains pending, not failed or completed. Preserve the existing export; no repeat collection. [Reply handoff and independent evaluation-engineering contract](numerical-evaluation-engineering-plan.md).
+
 - G02.1 `PARTIAL`: prototype immutable runs and 5/20/60-session outcome labels exist; E04.
 - G02.2 `PARTIAL`: history/features/calendar/quality linkage and outcome paths verified within scope; E47 confirms the 38-date export on spare. E50 verifies repair capture in 8.828s with four reviewed job links but no scoped adjustment references. E52 verifies expanded **uncertified** arithmetic on spare: 150 dates/600 rows in 19.824s, previous values unchanged. E53 records source-policy findings and exact clarification needed; no repeat export/empty repair query. No new acquisition or gate relaxation. Price/availability/universe policy, certified export, valid frozen folds and a genuinely untouched evaluation set remain pending. No training authorization or overall percentage increase from preparatory slices. Conditional engineering estimate remains in the numerical plan; full platform/paper observation separate.
 - G02.3 `PENDING`: multi-date export; identify survivorship limitations when historical constituents are unavailable; separate adjusted features from tradable prices.
@@ -98,6 +100,8 @@ After evidence/contract approval, the proposed first build is the prediction-gra
 - Dependencies: G01 data evidence; source permissions. Window: D6–D20. Owner: data/implementation role.
 
 ### G03 — Numerical 20-session swing predictor
+
+Next independent engineering package (E54): EV1 metrics, EV2 synthetic leakage guards, EV3 compact offline evidence. Contract prepared; implementation not started. Estimated 2.5-3 active working days for this bounded package, excluding provider wait, real-data fitting and paper operation. This prepares G03/G02 tests without closing their real-data prerequisites or changing completion percentages.
 
 - G03.1 `DESIGNED`: compare no-action/current deterministic baseline with a simple linear learner and a bounded small tree-model search; no guaranteed winner.
 - G03.2 `PENDING`: fit numerical models on training data only; record parameters, feature versions, seeds, cost assumptions and rejected experiments.

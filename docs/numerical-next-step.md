@@ -2,7 +2,11 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E52 spare export accepted; E53 source-policy clarification
+## Current: E54 awaiting Upstox; next evaluation-engineering contract prepared
+
+The owner reports sending the neutral Upstox email and will share replies in a subsequent session. Mark the source-policy step **PENDING_EXTERNAL_REPLY**, not completed. No repeat query, resend, export or rebuild is requested. Next independent work is [EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md): synthetic metric fixtures, leakage guards and compact offline evidence. This turn prepares that contract; it does not implement an evaluator or authorize real-data fitting. The linked handoff preserves context for the provider-response review.
+
+## E52 spare export accepted; E53 source-policy clarification
 
 The spare report `numerical-expanded-research-20260919-140603-9785384a9616.json` completed in **19.824 seconds**, with **600/600 arithmetic rows**, zero blocked rows, zero certified labels and training disabled. Saved-input reconstruction/result validation passed; 1,824 feature values and 152 outcomes from the previous export are unchanged. [Persisted review](evidence/numerical-expanded-research-spare-review-20260919.json). This supersedes the spare-pending status in the historical E51 implementation notes below. No repeated export, rebuild or inference is needed.
 
