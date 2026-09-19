@@ -41,7 +41,7 @@
   <rect x="180" y="390" width="840" height="98" rx="9" class="planned"/>
   <text x="200" y="418" class="label">Numerical engine: synthetic implementation; market validation pending</text>
   <text x="200" y="446" class="body">20-session first → required 5/60-session models; separate 30/60-minute intraday validation</text>
-  <text x="200" y="470" class="body">Fitter checks accepted; evidence-store Windows fix awaits spare retry; fit blocked</text>
+  <text x="200" y="470" class="body">Evidence store spare-verified; capture/evaluation policy DRAFT; market fit blocked</text>
   <path d="M600 488 V520" class="line"/>
   <rect x="180" y="522" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="550" class="label">Java proposal + risk → portal / private Telegram → ACCEPT / REJECT</text>
@@ -50,7 +50,7 @@
   <path d="M600 614 V646" class="line"/>
   <rect x="180" y="648" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="676" class="label">PAPER portal + execution + one INR 100,000 ledger — planned workflow</text>
-  <text x="200" y="704" class="body">Shared intraday/swing capital; conservative fills, fees, reservations, positions and reconciliation</text>
+  <text x="200" y="704" class="body">Offline ledger core verified; persistence, realistic fills, P&amp;L and portal pending</text>
   <text x="200" y="727" class="body">Isolated research simulation; shared future-live contracts, NOT identical fills or a LIVE switch</text>
   <rect x="30" y="776" width="735" height="84" rx="9" class="planned"/>
   <text x="48" y="804" class="label">Release gate: ≥30 elapsed days AND ≥20 trading sessions</text>

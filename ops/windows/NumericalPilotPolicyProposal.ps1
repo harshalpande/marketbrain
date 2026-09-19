@@ -1,0 +1,68 @@
+# Definitions only. Pure offline proposal consistency checks; no configuration activation.
+Set-StrictMode -Version Latest
+
+function Test-NumericalPilotPolicyObject {
+    param([Parameter(Mandatory=$true)]$Proposal,[Parameter(Mandatory=$true)]$BaselinePlan,[Parameter(Mandatory=$true)]$PrefitContract)
+    $p=$Proposal; $c=$p.captureProposal; $e=$p.evaluationProposal; $r=$p.release
+    $checks=New-Object 'System.Collections.Generic.List[object]'
+    function Add-PolicyCheck([string]$Name,[scriptblock]$Condition) {
+        $passed=$false; $failure=$null
+        try { $passed=(& $Condition) -eq $true; if(-not $passed){$failure='Proposal invariant not satisfied.'} }
+        catch { $failure=$_.Exception.Message }
+        $checks.Add([pscustomobject]@{name=$Name;passed=[bool]$passed;failure=$failure})
+    }
+    Add-PolicyCheck 'draft_not_runtime_or_approved' { $p.version -ceq 'NUMERICAL_PILOT_POLICY_PROPOSAL_V1' -and $p.status -ceq 'DRAFT_OWNER_REVIEW' -and $p.runtimeConfiguration -is [bool] -and -not $p.runtimeConfiguration -and $p.approvedByOwner -is [bool] -and -not $p.approvedByOwner }
+    Add-PolicyCheck 'baseline_preparation_not_release' { $p.baselinePlan -ceq $BaselinePlan.version -and $BaselinePlan.status -ceq 'BOTH_TRACKS_PREPARATION_APPROVED_NOT_EXECUTION' -and $BaselinePlan.prospective.collectionAuthorized -is [bool] -and -not $BaselinePlan.prospective.collectionAuthorized -and $BaselinePlan.retrospective.marketFitAuthorized -is [bool] -and -not $BaselinePlan.retrospective.marketFitAuthorized }
+    Add-PolicyCheck 'historical_hashes_pinned' { $p.existingEvidence.mappingSha256 -ceq '610A71CB2932688ABF29D45F99D7E5DD86F1807B692303E63B234359D4449D08' -and $p.existingEvidence.sourceSha256 -ceq 'E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8' -and $p.existingEvidence.mappingSha256 -ceq $BaselinePlan.retrospective.mappingReportSha256 -and $p.existingEvidence.sourceSha256 -ceq $BaselinePlan.retrospective.sourceReportSha256 }
+    Add-PolicyCheck 'historical_eligibility_not_manufactured' { $p.existingEvidence.rows -eq 600 -and $p.existingEvidence.dateGroups -eq 150 -and $p.existingEvidence.pointInTimeEligibleRows -eq 0 -and $null -eq $p.existingEvidence.retrospectiveEligibleRows -and $p.existingEvidence.alreadyInspectedRole -ceq 'DEVELOPMENT_ONLY' }
+    Add-PolicyCheck 'source_evidence_still_pending' { $p.existingEvidence.sourceRights -ceq 'PENDING_REVIEW' -and $p.existingEvidence.priceActionEvidence -ceq 'PENDING_EXTERNAL_REPLY_AND_SNAPSHOT_REVIEW' -and $p.existingEvidence.originalAvailability -ceq 'UNKNOWN_NOT_RECONSTRUCTED_FROM_RECEIPT' }
+    Add-PolicyCheck 'four_stock_daily_not_intraday_scope' { ($c.symbols -join ',') -ceq 'MARUTI,NATIONALUM,TARIL,LEMONTREE' -and $c.scope -ceq 'DAILY_EVIDENCE_FEASIBILITY_PILOT_NOT_FORECAST_VALIDATION' -and $c.cadence -ceq 'ONE_ACCEPTED_SNAPSHOT_PER_INSTRUMENT_PER_VERIFIED_SESSION' -and $c.horizonSessions -eq 20 -and $c.initialObservationSessions -eq 20 -and $c.intraday -ceq 'SEPARATE_UNAPPROVED_FEED_QUOTE_FRESHNESS_CLOCK_AND_LOAD_CONTRACT' }
+    Add-PolicyCheck 'calendar_relative_capture_window' { $c.zone -ceq 'Asia/Kolkata' -and $c.calendar -ceq 'VERSIONED_EXCHANGE_CALENDAR_SPECIAL_SESSIONS_REQUIRE_EXPLICIT_TIMES' -and $c.firstAttemptMinutesAfterSessionClose -eq 30 -and $c.lastAttemptMinutesAfterSessionClose -eq 150 -and $c.retryIntervalMinutes -eq 15 }
+    Add-PolicyCheck 'bounded_call_budget_arithmetic' { $c.maxAttemptsPerInstrumentPerSession -eq (1+($c.lastAttemptMinutesAfterSessionClose-$c.firstAttemptMinutesAfterSessionClose)/$c.retryIntervalMinutes) -and $c.maxProviderCallsPerSession -eq ($c.symbols.Count*$c.maxAttemptsPerInstrumentPerSession) -and $c.maxProviderCallsPerSession -eq 36 -and $c.providerTimeoutSeconds -eq 15 -and $c.maxResponseBytes -eq 524288 }
+    Add-PolicyCheck 'provider_limits_not_overridden' { $c.providerRateLimitPolicy -ceq 'USE_LOWER_OF_REVIEWED_PROVIDER_ENTITLEMENT_AND_LOCAL_BUDGET_RETRY_AFTER_WITHIN_WINDOW_NO_BURST_CATCHUP' }
+    Add-PolicyCheck 'daily_session_freshness_not_seconds_age' { $null -eq $c.dailyEventAgeSeconds -and $c.sessionFreshness -ceq 'BAR_MUST_BE_FINAL_FOR_CURRENT_VERIFIED_SESSION_NO_PREVIOUS_SESSION_SUBSTITUTION' -and $c.dailyBarTimestampInterpretation -ceq 'PROVIDER_DOCUMENTED_SESSION_SEMANTICS_REQUIRED_NOT_ASSUMED_PUBLICATION_TIME' }
+    Add-PolicyCheck 'processing_latency_and_clock_separate' { $c.maxProcessingLatencySeconds -eq 60 -and $c.processingLatencyMeaning -ceq 'DECISION_AT_MINUS_LATEST_REQUIRED_INPUT_RECEIVED_AT_NOT_BAR_EVENT_AGE' -and $c.maxClockSkewMillis -eq 1000 -and $c.unknownClockHealth -ceq 'QUARANTINE' -and $c.requiredTimingOrder -ceq 'ALL_INPUTS_RECEIVED_AND_LOCAL_FEATURE_CALCULATION_COMPLETED_AT_OR_BEFORE_DECISION' }
+    Add-PolicyCheck 'unknown_publication_not_fabricated' { $c.unknownProviderPublication -ceq 'PRESERVE_UNKNOWN_PROSPECTIVE_RECEIPT_PROVES_LOCAL_POSSESSION_ONLY' -and $c.availabilityClaim -ceq 'LOCAL_OBSERVATION_AT_RECEIPT_NOT_ORIGINAL_PUBLICATION_OR_UNREVISED_HISTORY' }
+    Add-PolicyCheck 'missing_and_corrected_records_preserved' { $c.exhaustedWindow -ceq 'RECORD_MISSING_SESSION_NO_BACKFILL_AS_IF_SEEN_LIVE' -and $c.lateCorrection -ceq 'APPEND_NEW_REVISION_OR_CONFLICT_PRESERVE_ORIGINAL_DECISION_RECORD' }
+    Add-PolicyCheck 'bounded_append_storage_no_purge' { $c.storage.segmentMaxRecords -eq 4096 -and $c.storage.segmentMaxBytes -eq 16777216 -and $c.storage.totalPilotQuotaBytes -eq 536870912 -and $c.storage.segmentMaxBytes -lt $c.storage.totalPilotQuotaBytes -and $c.storage.quotaAction -ceq 'STOP_CAPTURE_PRESERVE_EXISTING_NO_AUTOMATIC_DELETE' -and $c.storage.expiry -ceq 'REVIEW_AND_MANUAL_ARCHIVE_OR_DELETE_UNDER_APPROVED_RIGHTS_POLICY_NO_AUTOMATIC_PURGE' }
+    Add-PolicyCheck 'retention_and_replay_not_assumed_rights' { $c.storage.derivedEvidenceRetentionDays -eq 400 -and $c.storage.fullProspectiveEvaluationRetentionPrerequisite -ceq 'SEPARATE_RIGHTS_APPROVED_ARCHIVE_AND_REPLAY_RETENTION_SPANNING_ALL_PARTITIONS_GAPS_WARMUP_MATURITY_AND_AUDIT_BEFORE_EXPANSION' -and $c.storage.rawPayloadRetentionEnabled -is [bool] -and -not $c.storage.rawPayloadRetentionEnabled -and $null -eq $c.storage.rawPayloadRetentionDays -and $c.storage.inputReplayRequirement -ceq 'LICENSED_IMMUTABLE_INPUT_REFERENCE_AND_HASH_OR_RECORD_NOT_REPLAY_CERTIFIED' -and $c.storage.backup -ceq 'DAILY_HASH_VERIFIED_SEPARATE_FAILURE_DOMAIN_COPY_ONLY_AFTER_RIGHTS_STORAGE_AND_ENCRYPTION_APPROVAL' }
+    Add-PolicyCheck 'adapter_not_synthetic_time_bypass' { $c.adapterPrerequisites.Count -eq 6 -and $c.adapterPrerequisites -ccontains 'DO_NOT_REUSE_SYNTHETIC_LEDGER_EVENT_AGE_AS_DAILY_BAR_FRESHNESS' -and $c.adapterPrerequisites -ccontains 'VALIDATE_SPECIAL_SESSION_AND_NEXT_OPEN_BOUNDARIES' -and $c.adapterPrerequisites -ccontains 'EXPLICIT_COLLECTION_RELEASE' }
+    Add-PolicyCheck 'learner_prefit_contract_preserved' { $e.featureContract -ceq $PrefitContract.version -and $e.featureCount -eq $PrefitContract.input.requiredFeatureCount -and $e.featureCount -eq 10 -and $e.learner -ceq $PrefitContract.learners.challenger -and $e.alpha -eq $PrefitContract.learners.proposedAlpha -and $e.hyperparameterSearch -is [bool] -and -not $e.hyperparameterSearch -and $e.allFeaturesRequired -is [bool] -and $e.allFeaturesRequired -and $e.missingFeatures -ceq 'ABSTAIN_AND_RETAIN_NO_IMPUTATION' }
+    Add-PolicyCheck 'scope_target_not_profit_claim' { $e.horizonSessions -eq $PrefitContract.target.horizonSessions -and $e.target -ceq 'PRICE_RETURN_NEXT_VERIFIED_SESSION_OPEN_TO_ENTRY_PLUS_19_SESSIONS_CLOSE' -and $e.claim -ceq 'FOUR_STOCK_RESEARCH_ONLY_NOT_NIFTY500_OR_EXECUTABLE_PROFIT' }
+    Add-PolicyCheck 'partition_minima_not_tuned_to_existing_snapshot' { $e.minimumTrainingDates -eq 252 -and $e.minimumValidationDates -eq 126 -and $e.minimumUntouchedTestDates -eq 252 -and $e.minimumDistinctInstruments -eq 4 -and $e.minimumTrainingDates -gt $p.existingEvidence.dateGroups -and $e.insufficientEligibleCoverage -ceq 'NO_FIT_OR_FINAL_TEST_RELEASE_DO_NOT_RELAX_THRESHOLDS_TO_FIT_CURRENT_600_ROWS' }
+    Add-PolicyCheck 'chronology_and_label_availability_purge' { $e.minimumGapSessionsAtEachBoundary -ge $e.horizonSessions -and $e.partitionUnit -ceq 'WHOLE_EXCHANGE_SESSION_ALL_INSTRUMENTS_TOGETHER_CHRONOLOGICAL' -and $e.boundaryRule -ceq 'EARLIER_LABEL_END_AND_LABEL_AVAILABLE_AT_BEFORE_NEXT_PARTITION_START' -and $e.warmupAndMaturity -ceq 'ADDITIONAL_VERIFIED_FEATURE_WARMUP_AND_MATURED_LABELS_REQUIRED_NOT_INCLUDED_IN_PARTITION_MINIMA' }
+    Add-PolicyCheck 'final_set_unopened_and_uninspected' { $e.finalDates.Count -eq 0 -and $e.previouslyInspectedRowsCanBeFinalTest -is [bool] -and -not $e.previouslyInspectedRowsCanBeFinalTest -and $e.finalOutcomeAccess -ceq 'SEALED_UNTIL_ELIGIBILITY_POLICY_CODE_MODEL_SELECTION_AND_TEST_MANIFEST_FROZEN' }
+    Add-PolicyCheck 'coverage_full_denominator' { $e.minimumForecastCoveragePercent -eq 95 -and $e.minimumPerInstrumentCoveragePercent -eq 90 -and $e.maximumAdditionalAbstentionVersusBaselinesPp -eq 0 -and $e.coverageDenominator -ceq 'ALL_PREREGISTERED_INSTRUMENT_SESSION_PAIRS_INCLUDE_MISSING_DATA_LABEL_CENSORING_AND_FAILURES' -and $e.metricsDenominator -ceq 'SAME_ELIGIBLE_ROWS_AND_DATES_FOR_LEARNER_AND_BOTH_BASELINES_WITH_FULL_EXCLUSION_LEDGER' }
+    Add-PolicyCheck 'both_baselines_absolute_and_relative_gain' { ($e.baselines -join ',') -ceq 'ZERO_RETURN,WEIGHTED_TRAIN_MEAN' -and $e.primaryMetric -ceq $PrefitContract.metrics.primary -and $e.minimumAbsoluteMaeGainPpVersusEachBaseline -eq 0.25 -and $e.minimumRelativeMaeGainPercentVersusEachBaseline -eq 5 -and $e.zeroBaselineError -ceq 'RELATIVE_GAIN_UNAVAILABLE_NO_PASS' }
+    Add-PolicyCheck 'paired_date_block_uncertainty' { $e.uncertainty.method -ceq 'PAIRED_MOVING_BLOCK_RESAMPLING_OF_WHOLE_DATE_GROUP_ERROR_DIFFERENCES' -and $e.uncertainty.blockLengthSessions -eq 20 -and $e.uncertainty.sensitivityBlockLengthSessions -eq 40 -and $e.uncertainty.independentRowResampling -is [bool] -and -not $e.uncertainty.independentRowResampling -and $e.uncertainty.resampleCount -eq 2000 -and $e.uncertainty.seed -eq 20260919 -and $e.uncertainty.intervalLevelPercent -eq 95 }
+    Add-PolicyCheck 'uncertainty_sensitivity_and_limits' { $e.uncertainty.requireLowerGainBoundAboveZeroAgainstBothBaselinesAtBothBlockLengths -is [bool] -and $e.uncertainty.requireLowerGainBoundAboveZeroAgainstBothBaselinesAtBothBlockLengths -and $e.uncertainty.minimumFullBlocksPerTestAtSensitivityLength -eq 6 -and [math]::Floor($e.minimumUntouchedTestDates/$e.uncertainty.sensitivityBlockLengthSessions) -ge 6 -and $e.uncertainty.interpretation -ceq 'INTERVAL_HEURISTIC_DEPENDENCE_AND_SMALL_COHORT_REMAIN_NOT_95_PERCENT_PROFIT_PROBABILITY' }
+    Add-PolicyCheck 'negative_results_and_cost_limits_retained' { $e.diagnostics -ccontains 'ALL_ABSTENTIONS_AND_NEGATIVE_RESULTS' -and ($e.hypotheticalRoundTripCostBps -join ',') -ceq '0,25,50,100' -and $e.actualExecutionCostPolicyApproved -is [bool] -and -not $e.actualExecutionCostPolicyApproved -and $e.portfolioOrProfitGate -ceq 'SEPARATE_PAPER_LEDGER_FILL_AND_RISK_VALIDATION_NOT_RETURN_MAE' -and $e.failureOutcome -ceq 'RESEARCH_NOT_ACCEPTED_PRESERVE_NEGATIVE_RESULT_NO_AUTOMATIC_TUNING_OR_RETEST_OF_FINAL_SET' }
+    Add-PolicyCheck 'two_grouped_owner_decisions' { $p.ownerDecisionGroups.Count -eq 2 -and ($p.ownerDecisionGroups.id -join ',') -ceq 'CAPTURE_SCOPE,EVALUATION_BAR' }
+    Add-PolicyCheck 'all_execution_release_flags_false' {
+        $ok=$true
+        foreach($key in @('collectionAuthorized','marketFitAuthorized','finalTestOpeningAuthorized','providerCallsAuthorized','modelPromotionAuthorized','paperExecutionAuthorized','liveExecutionAuthorized')) {
+            if($r.$key -isnot [bool] -or $r.$key){$ok=$false}
+        }
+        $ok -and @($r.PSObject.Properties).Count -eq 10
+    }
+    Add-PolicyCheck 'evidence_gates_not_overwritten' { $r.sourceEvidenceGatesUnchanged -is [bool] -and $r.sourceEvidenceGatesUnchanged -and $r.existingEligibilityRecordsUnchanged -is [bool] -and $r.existingEligibilityRecordsUnchanged -and $r.documentationApprovalDoesNotActivateRuntime -is [bool] -and $r.documentationApprovalDoesNotActivateRuntime }
+    $failed=@($checks.ToArray() | Where-Object {-not $_.passed}).Count
+    [pscustomobject]@{version='NUMERICAL_PILOT_POLICY_REVIEW_V1';status=$(if($failed -eq 0){'DRAFT_CONSISTENCY_PASSED_NOT_APPROVED'}else{'DRAFT_CONSISTENCY_FAILED'});checkCount=$checks.Count;passedCount=($checks.Count-$failed);failedCount=$failed;checks=$checks.ToArray();trainingAuthorized=$false;collectionAuthorized=$false;proposal=$p}
+}
+
+function Test-NumericalPilotPolicyProposal {
+    param([Parameter(Mandatory=$true)][string]$RepositoryRoot)
+    $root=(Get-Item -LiteralPath $RepositoryRoot -ErrorAction Stop).FullName
+    $paths=@('ops/data/numerical-pilot-policy-proposal-v1.json','ops/data/numerical-two-track-plan-v1.json','ops/data/numerical-prefit-contract-v1.json')
+    $objects=@();$hashes=@()
+    foreach($path in $paths) {
+        $file=Get-Item -LiteralPath (Join-Path $root $path) -ErrorAction Stop
+        if($file.PSIsContainer -or $file.Length -gt 128KB){throw "Invalid bounded policy document: $path"}
+        $hashes+=([pscustomobject]@{path=$path;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash})
+        $objects+=(Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json)
+    }
+    $result=Test-NumericalPilotPolicyObject -Proposal $objects[0] -BaselinePlan $objects[1] -PrefitContract $objects[2]
+    $result | Add-Member -NotePropertyName sourceFiles -NotePropertyValue $hashes
+    $result | Add-Member -NotePropertyName proposalSha256 -NotePropertyValue $hashes[0].sha256
+    $result
+}

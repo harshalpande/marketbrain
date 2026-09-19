@@ -54,7 +54,15 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current work package: two-track evidence infrastructure implemented (E69)
+### Current work package: parallel preparation (E72)
+
+E71 closes the evidence-store spare checkpoint: **22/22 checks in 4.254 seconds**, Java25/PS7, with original evidence preserved. Do not rerun E65, E68 or E69/E70. [Recorded acceptance](evidence/numerical-evidence-layer-spare-acceptance-20260919.json).
+
+The authorized parallel batch adds a [draft numerical/capture policy](numerical-pilot-policy-proposal.md), an [offline INR100,000 paper-account core](paper-account-engineering.md), and a [provider readiness review](provider-pilot-readiness-20260919.md). [Combined scope and one-file handoff](parallel-pilot-preparation.md). Policy settings remain **DRAFT_OWNER_REVIEW**. No live collector, market fit, runtime paper account, notifications or trades are activated. Overall full-goal completion remains 12.4%; bounded components do not complete their parent goals.
+
+### Historical work package: two-track evidence infrastructure implemented (E69; spare verification closed by E71)
+
+The pending/retry wording below records the earlier E70 handoff, superseded by E71 above. It is not a request for another run.
 
 **E70 correction:** first spare persistence run failed before the suite with `REDIRECTED_DIRECTORY`, not timeout. The existing snapshot was assessed successfully. Windows short-alias guard defect reproduced and corrected without allowing junction redirection; **390 Java tests/package and 35 PowerShell assertions pass**. [Fix and one-file retry](numerical-evidence-layer.md#e70-windows-path-compatibility-correction). No Docker/model/data recollection. Spare acceptance pending; no completed JVM result exists to resume from that failed report.
 

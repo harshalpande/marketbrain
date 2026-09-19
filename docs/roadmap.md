@@ -20,6 +20,8 @@ No credit for anticipated results, expired evidence, undocumented assumptions or
 
 ## Current dashboard
 
+**Current E71/E72 update (supersedes pending language below):** the evidence-store spare report passes 22/22 checks in 4.254 seconds; the bounded checkpoint is closed. The [parallel preparation batch](parallel-pilot-preparation.md) adds a draft capture/evaluation policy, an independently reconciled offline paper ledger, and a provider readiness review. G02/G03/G08 gain partial supporting components, not complete implementation/runtime/acceptance checkpoints. No collection, fitting or runtime paper account is activated. The 12.4% full-paper-first denominator remains unchanged.
+
 E69 advances G02/G10 evidence infrastructure: saved-snapshot assessment plus standalone append-only record storage with quality/revision/recovery checks. Local verification: 387 Java tests/package, 22 embedded checks, 35 PowerShell assertions; [spare verification pending](numerical-evidence-layer.md). No live collector or market fit, no whole-goal checkpoint awarded. E68 below remains the most recent **spare-accepted** numerical delivery.
 
 Latest scoped delivery E68: [ten-feature engineering spare acceptance](evidence/numerical-ten-feature-spare-acceptance-20260919.json), 32/32 checks in 8.900s on PS7.6.6/native Java25. The bounded engineering checkpoint is closed; no repeated synthetic or E65 mapping/export run. Owner approved [preparing both research tracks](numerical-research-scope-decision.md); saved snapshot hashes and prospective timestamp/record requirements are pinned in a non-runtime plan. Source facts, operational capture settings and market evaluation criteria remain open. E65's 600 rows/150 dates still have 0 point-in-time training-eligible rows; retrospective eligibility is unassessed, not approved. Dashboard percentages remain unchanged: engineering acceptance is not a validated market predictor or full G03 release.
@@ -37,7 +39,7 @@ This denominator covers the full paper-first target, including shared PG1 founda
 | G05 | Paytm live market data, read-only | 5 | D | 10% | Historical client exists; current live API/auth/entitlement verification and integration pending |
 | G06 | Governed Marketaux ingestion and news features | 5 | D | 10% | Ingestion foundations exist; reliable entity/event pipeline pending |
 | G07 | Required 5/60-session swing and separate intraday prediction | 8 | D | 10% | With G03 covers 5/20/60 sessions; 10 sessions optional, intraday initially 30/60 minutes |
-| G08 | INR 100,000 paper account, orders and fills | 9 | D | 10% | SQL foundations exist; complete accounting/execution simulator pending |
+| G08 | INR 100,000 paper account, orders and fills | 9 | D | 10% | SQL foundations and offline core verified; durable integration, realistic fills, P&L and portal pending |
 | G09 | Functional portal, approval and notifications | 8 | D | 10% | Static UI and notification foundations; end-to-end paper workflow pending |
 | G10 | Integrated security, operations and recovery | 5 | D | 10% | Existing safeguards to reuse; full release verification pending |
 | G11 | Prospective month-plus paper validation | 8 | D | 10% | Trial protocol designed; final 60-session outcomes need additional maturation |
@@ -156,9 +158,9 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 ### G08 — Paper accounting and execution
 
 - G08.1 `PARTIAL`: seed for INR 100,000 portfolio plus order/fill tables exist; no complete simulator demonstrated; E07.
-- G08.2 `DESIGNED`: one shared cash ledger, reservations, positions, fees, realised/unrealised P&L and audit trail; intraday/swing cannot each spend the same capital.
-- G08.3 `PENDING`: lifecycle, idempotency, fresh-price revalidation, partial fills, cancellation/expiry and conservative fill assumptions.
-- G08.4 `PENDING`: corporate actions, settlement assumptions, restart/reconciliation, property tests and concurrent-approval tests.
+- G08.2 `PARTIAL` E72: offline exact-paise account, reservations, holdings, supplied fees and in-memory audit verified; durable shared accounting and realised/unrealised P&L pending.
+- G08.3 `PARTIAL` E72: fixture lifecycle, idempotency, fresh-price/risk checks, partial fills and cancellation/expiry verified; authenticated integration and exchange-realistic execution policy pending.
+- G08.4 `PARTIAL` E72: independent reconciliation, overflow and concurrent-approval checks verified; corporate actions, settlement, durable restart and broader property tests pending.
 - G08.5 `DESIGNED`: share data, prediction, proposal, risk, approval and order-intent contracts with the future production workflow; a separately authorized broker adapter will differ from the paper adapter. Require contract conformance, not identical fill outcomes.
 - G08.6 `DESIGNED`: isolate the approved INR 100,000 portfolio from research simulation of rejected/unapproved proposals. Never reserve/spend approved-account cash for hypothetical trades; preserve distinct IDs, costs and assumptions.
 - Acceptance: paise-level ledger reconciliation, no negative available cash/overselling, one approval cannot create duplicate fills, crash replay preserves balances. Real broker order placement remains absent/disabled by construction.

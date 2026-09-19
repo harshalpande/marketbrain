@@ -1,5 +1,9 @@
 # Two-track evidence engineering (E69)
 
+## E71 spare checkpoint closed
+
+Latest report `numerical-evidence-layer-20260919-201035-a9cd32dd695e.json` passes **22/22**, exit 0, no timeout, in **4.2536881 seconds** on PS7.6.6/native Java25. Source hashes and embedded audit/recovery evidence were reviewed. [Acceptance record](evidence/numerical-evidence-layer-spare-acceptance-20260919.json). This supersedes every pending-spare/retry instruction below; do not repeat this suite. It proves bounded synthetic persistence/recovery, not hardware-power-loss survival or a live collector. Continue with [parallel preparation](parallel-pilot-preparation.md).
+
 2026-09-19. Owner authorized proceeding after the two-track preparation documentation. This batch implements the **evidence infrastructure**, not a live collector or market-trained predictor. It advances G02 preparation and G10 recovery support; it does not earn a whole-goal checkpoint or raise forecast accuracy.
 
 ## E70 Windows path compatibility correction

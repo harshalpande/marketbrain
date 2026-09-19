@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Latest E71/E72 records
+
+- **E71 RUNTIME_VERIFIED (bounded synthetic scope):** evidence-store spare checks 22/22, 4.2536881 seconds, PS7.6.6/Java25; source/raw/audit/recovery hashes reviewed. [Acceptance](evidence/numerical-evidence-layer-spare-acceptance-20260919.json). Supersedes E69/E70 pending-spare status; not a hardware power-loss or connected-collector claim.
+- **E72 OFFLINE_VERIFIED / SOURCE_VERIFIED:** [parallel preparation](parallel-pilot-preparation.md), 410 standard Maven tests, 26 embedded paper checks, 29 policy checks, 18 rejected policy mutations, 32 combined workflow assertions. [Local record](evidence/numerical-paper-preparation-local-20260919.json). Owner authorization covers preparation, not proposed settings or live actions. Spare combined verification pending; predictive performance remains unmeasured.
+
 - `SOURCE_VERIFIED`: relevant implementation was inspected; not proof of runtime success.
 - `HISTORICAL_REPORT_ONLY`: prior docs/logs claim a result; revision/environment and continued validity need verification.
 - `OFFLINE_VERIFIED`: reproducible test result at an identified revision.

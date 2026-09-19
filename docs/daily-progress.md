@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - E71 acceptance and E72 parallel preparation
+
+- Reviewed successful spare report `numerical-evidence-layer-20260919-201035-a9cd32dd695e.json`: 22/22, 4.2536881 seconds, Java25/PS7, hashes/audit/recovery preserved. E69/E70 spare checkpoint closed; no repeat requested. [E71 record](evidence/numerical-evidence-layer-spare-acceptance-20260919.json).
+- Owner authorized parallel work. Added draft capture/evaluation policy, offline INR100,000 paper-account core, and provider readiness review. All release flags remain false; no collection, market fitting, runtime account, service/DB/provider/model/notification/order actions.
+- E72 verification: Maven package with 410 current standard tests, no failures/errors/skips; 26 paper fixtures, 29 draft checks, 18 policy mutation rejections and 32 combined PowerShell assertions. Three stale evidence-probe XML files from prior runs are excluded from the standard test count. Local bundle 3.863 seconds; completed-output replay avoids another JVM.
+- Review corrected risk evidence older than the executable quote and missing cancellation/expiry journal events. Draft retention now explicitly requires a separately approved full-evaluation archival policy. [Scope and next grouped gates](parallel-pilot-preparation.md).
+- G02/G03/G08 components advanced; full-goal completion remains 12.4%. Source policy/rights/availability and untouched evaluation data remain blockers for affected numerical work. Paper persistence, realistic fill/risk rules, P&L and portal remain pending. E72 spare check pending; share one JSON, no Docker rebuild.
+
 ## 2026-09-19 - E70 spare directory guard failure reproduced and corrected
 
 - Report `numerical-evidence-layer-20260919-200106-b474f3461e7f.json` SHA256 `626EFD328829756D772B2EC7DD6829F76D13A9AE4E61279699AC8ED7C288F666`: 3.917s total, JVM exit 1 after 2.838s, timedOut=false, empty stdout, `REDIRECTED_DIRECTORY` at initial Store construction. Historical assessment succeeded, 600 rows/150 dates, original source unchanged. No completed synthetic result; do not mark E69 spare-accepted or resume this empty output.

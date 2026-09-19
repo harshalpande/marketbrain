@@ -1,5 +1,11 @@
 # System and INR 100,000 paper-portal design
 
+## E72 bounded implementation update
+
+The [offline paper-account core](paper-account-engineering.md) now verifies exact-paise cash/holdings, reservations, partial fills, terminal lifecycle and in-memory audit under fixed synthetic inputs. It is not wired to Spring, the database, notifications or any execution adapter. Durable transactions/restart recovery, realistic fees/liquidity/settlement, risk authorization, P&L and portal remain pending. Existing one-fill-per-order storage cannot be connected unchanged; freeze a reviewed migration/integration contract first.
+
+The [capture/evaluation proposal](numerical-pilot-policy-proposal.md) is DRAFT_OWNER_REVIEW. A future daily capture adapter must distinguish session freshness from receipt-to-decision latency and cannot repurpose the generic event-age guard or fabricate publication timestamps. Provider rights and source semantics are independent gates. E71 closes the synthetic evidence-store spare checkpoint; it does not connect that store to this paper account or activate capture.
+
 Design baseline MB-PLAN-2026-09-18-V2, aligned to the accepted parent goals. Scope and progress: [roadmap](roadmap.md). Implementation evidence: [register](evidence-register.md). **This document specifies future work; it does not claim the portal or numerical predictor is already built.**
 
 PG1 is the full intelligence/eventual approved-execution platform. PG2 is its mandatory paper-first deployment, using shared contracts rather than a simplified parallel product. Autonomous collection/analysis is permitted only within authorized operations; autonomous unapproved trading is not part of these goals. Owner acceptance of this documentation does not enable code changes or real orders.

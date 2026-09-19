@@ -1,6 +1,6 @@
 # Next stage: choose research scope, then preregister market evaluation
 
-**Subsequent implementation E69:** after owner approval to proceed, the [evidence-layer batch](numerical-evidence-layer.md) implements read-only snapshot assessment and standalone record-store infrastructure. The preparation decisions below remain the baseline, not a claim that no later engineering occurred. Actual capture/fit remains unreleased; the next spare action is E69's new persistence verification, not repeating E65/E68.
+**Subsequent implementation E69/E71/E72:** the [evidence-layer batch](numerical-evidence-layer.md) implements read-only snapshot assessment and standalone record-store infrastructure; E71 closes its 22/22 spare verification. The preparation decisions below remain the baseline. Actual capture/fit remains unreleased. Next is the [parallel preparation handoff](parallel-pilot-preparation.md), not repeating E65/E68/E69.
 
 2026-09-19, following E68. **BOTH-TRACK PREPARATION OWNER-APPROVED / NO MARKET FIT OR COLLECTION RELEASED.** The owner answered: "Prepare both tracks (recommended)". [Versioned preparation plan](../ops/data/numerical-two-track-plan-v1.json), a document rather than runtime configuration.
 
