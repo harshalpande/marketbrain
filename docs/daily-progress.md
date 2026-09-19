@@ -2,6 +2,15 @@
 
 Current percentages live in [the roadmap](roadmap.md). Evidence definitions and limitations live in [the register](evidence-register.md). Entries are appended on days worked; no autonomous daily updating is implied. Do not rewrite an old failure as a success—append a correction or subsequent result.
 
+## 2026-09-19 — Coordinated numerical preflight, not training promotion
+
+- Owner approved moving the remaining checks forward together. E41 confirms previous diagnostic runtime: 0.847s, 4/4 linkage/coverage, no cap; no stored actions, so price provenance remains open. Existing historical collection stays preserved.
+- Implemented a pure offline one-file combined review: exact input hashes/scope; price gates; current numeric feature allowlist and trailing IDs; availability/backfill counts; full-path next-open/20-session arithmetic with four explicit cost scenarios; date-grouped split assignments with overlap purge and unknown-end exclusion. No new production endpoint, queries, migration, model or data download.
+- Actual saved reports replay in 1.459s locally: 12 feature checks pass; four arithmetic-only outcomes; eight unavailable horizons. April 10 -> April 13 entry -> May 12 exit crosses May 8 validation boundary, purging all four TRAIN rows. Three sample dates are not a usable training/test dataset. This is newly explicit evidence, not deterioration or model failure.
+- 285 Java tests, zero failures/errors/skips; 43 offline PS5.1 assertions passed. Shared seven-vector Java/PowerShell decimal fixture, malicious/invalid feature shapes, date overlap, unavailable/invalid/excluded bars, partial scope, immutable inputs and failure/repeat-run preservation covered. A PowerShell expression-precedence issue in the new allowlist check was caught by real-file replay and fixed before the tests passed. PS7 verification remains on spare.
+- Official Upstox docs reviewed; action endpoint existence does not verify coverage or candle adjustments. No provider API called. Preserve price-policy gate. Next: authoritative action/adjustment provenance plus bounded later stored bars/calendar, then immutable multi-date labels and frozen purged splits. No price adjustment, actual labels, fitting, model accuracy gain, project-percentage increase or training authorization claimed.
+- Canonical docs/current architecture updated. Pull + offline script only; no Docker rebuild or service restart. One `numerical-readiness-bundle-*.json` is the handoff artifact.
+
 ## 2026-09-18–19 — Combined quality/price evidence linkage implemented
 
 - Owner authorized the combined next step. E39 spare report verified: 0.693s, 12/12 calendar windows, no discrepancies. No repeat acquisition, feature endpoint run or model sweep required.

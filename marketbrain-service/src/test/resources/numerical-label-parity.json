@@ -1,0 +1,12 @@
+{
+  "version": "SYNTHETIC_LABEL_ARITHMETIC_PARITY_V1",
+  "cases": [
+    {"entry": 100, "exit": 110, "costBps": 0, "gross": 10, "net": 10},
+    {"entry": 100, "exit": 110, "costBps": 25, "gross": 10, "net": 9.75},
+    {"entry": 100, "exit": 110, "costBps": 50, "gross": 10, "net": 9.5},
+    {"entry": 100, "exit": 110, "costBps": 100, "gross": 10, "net": 9},
+    {"entry": 100, "exit": 90, "costBps": 50, "gross": -10, "net": -10.5},
+    {"entry": 100, "exit": 100, "costBps": 25, "gross": 0, "net": -0.25},
+    {"entry": 3, "exit": 4, "costBps": 50, "gross": 33.33333333, "net": 32.83333333}
+  ]
+}

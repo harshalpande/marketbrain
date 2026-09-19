@@ -8,6 +8,21 @@ import static org.assertj.core.api.Assertions.*;
 import static in.marketbrain.training.NumericalResearchLabelCalculator.Status.*;
 
 class NumericalResearchLabelCalculatorTest {
+    @Test void sharedOfflinePreflightArithmeticFixturesMatchJava() throws Exception {
+        try(var input=getClass().getResourceAsStream("/numerical-label-parity.json")) {
+            var fixtures=new com.fasterxml.jackson.databind.ObjectMapper().readTree(input);
+            for(var fixture:fixtures.get("cases")) {
+                var prices=bars();
+                var entry=fixture.get("entry").decimalValue();var exit=fixture.get("exit").decimalValue();
+                prices.put(calendar().get(1),new NumericalResearchLabelCalculator.Bar(calendar().get(1),entry,entry,entry,entry,true));
+                prices.put(calendar().get(20),new NumericalResearchLabelCalculator.Bar(calendar().get(20),exit,exit,exit,exit,true));
+                var result=calculator.calculate(decision,calendar(),prices,"SYNTHETIC","SYNTHETIC","TEST_SENSITIVITY",fixture.get("costBps").decimalValue());
+                assertThat(result.grossReturnPercent()).isEqualByComparingTo(fixture.get("gross").decimalValue());
+                assertThat(result.netReturnPercent()).isEqualByComparingTo(fixture.get("net").decimalValue());
+                assertThat(result.trainingAuthorized()).isFalse();
+            }
+        }
+    }
     final NumericalResearchLabelCalculator calculator=new NumericalResearchLabelCalculator();
     final LocalDate decision=LocalDate.of(2026,6,5);
     List<LocalDate> calendar() {

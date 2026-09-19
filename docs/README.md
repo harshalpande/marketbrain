@@ -54,15 +54,19 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: link stored quality and price evidence
+### Current next action: coordinated offline readiness preflight
 
-The feature snapshot (E37) and saved calendar review (E39: 12/12 windows, 0.693s) passed their bounded checks. E40 adds a read-only Java endpoint to link those instruments to stored backfill jobs, corporate actions and resolution/revocation evidence. Do not rerun acquisition, feature generation or model tests. Pull, rebuild/deploy the service with jobs idle, wait for health UP, then run:
+E41 confirms the stored-quality diagnostic on the spare laptop: 0.847s, all four stocks linked, no capped evidence. Corporate-action/price provenance remains unverified. E42 combines price gates, outcome-window arithmetic, feature-input leakage checks and candidate split purging using **two saved files only**. Pull and run; no Docker rebuild, health request, provider or model call:
 
 ```powershell
-& '.\ops\windows\GetNumericalPriceEvidence.ps1' -FeatureEvidencePath 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
+$parameters = @{
+    FeatureEvidencePath = 'C:\MarketBrainData\Review\numerical-features-20260918-232403-546f747afe27.json'
+    PriceEvidencePath = 'C:\MarketBrainData\Review\numerical-price-evidence-20260919-000346-a38eae6b4c9b.json'
+}
+& '.\ops\windows\ReviewNumericalReadinessBundle.ps1' @parameters
 ```
 
-Share one `numerical-price-evidence-<timestamp>-<id>.json`. This reads stored evidence only: no provider/model calls, price changes, database writes, labels or orders. Completed job membership is not a new quality PASS; no stored actions is not proof of an adjustment-free price series. [Exact scope and remaining gates](numerical-baseline-plan.md#e40-current-handoff-stored-quality-and-price-evidence).
+Share one `numerical-readiness-bundle-<timestamp>-<id>.json`. Expected status for current evidence: **BLOCKED_FOR_TRAINING**, not a script failure. Local replay: 12 feature-input checks passed, four arithmetic-only outcomes, eight unavailable horizons, four overlapping training rows purged. No actual training dataset or certified labels produced. Do not rerun history collection, features, price endpoint or LLM tests. [Scope, findings and next implementation](numerical-baseline-plan.md#e42-coordinated-offline-preflight).
 
 ### Previous N2 history handoff (completed; do not rerun)
 
