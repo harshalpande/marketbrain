@@ -114,15 +114,24 @@ public final class NumericalEvidenceLedger {
     /** One data file + coordination lock. Existing bytes are never truncated, deleted or overwritten. */
     static final class Store {
         final Path directory,data,lockPath;final Policy policy;
+        static Path unredirected(Path path)throws IOException {
+            require(!Files.isSymbolicLink(path),"SYMLINK_DIRECTORY");
+            // On Windows both resolve spelling/8.3 aliases; only the latter follows reparse points.
+            // Comparing the supplied spelling to a real path falsely rejects harmless TEMP aliases.
+            Path noFollow=path.toRealPath(LinkOption.NOFOLLOW_LINKS),followed=path.toRealPath();
+            require(noFollow.equals(followed),"REDIRECTED_DIRECTORY: requested="+path+"; noFollow="+noFollow+"; resolved="+followed);
+            return noFollow;
+        }
         Store(Path directory,Policy policy)throws IOException {
-            this.directory=directory.toAbsolutePath().normalize();this.policy=Objects.requireNonNull(policy);
-            require(this.directory.getParent()!=null,"ROOT_DIRECTORY_NOT_ALLOWED");
-            for(Path p=this.directory;p!=null;p=p.getParent())require(!Files.isSymbolicLink(p),"SYMLINK_DIRECTORY");
-            Files.createDirectories(this.directory);require(this.directory.toRealPath().equals(this.directory),"REDIRECTED_DIRECTORY");
+            Path requested=directory.toAbsolutePath().normalize();this.policy=Objects.requireNonNull(policy);
+            require(requested.getParent()!=null,"ROOT_DIRECTORY_NOT_ALLOWED");
+            // Reject existing redirected ancestors before creating anything below them.
+            for(Path p=requested;p!=null;p=p.getParent())if(Files.exists(p,LinkOption.NOFOLLOW_LINKS))unredirected(p);
+            Files.createDirectories(requested);this.directory=unredirected(requested);
             data=this.directory.resolve("evidence.bin");lockPath=this.directory.resolve("evidence.lock");safePaths();
         }
         void safePaths()throws IOException{
-            require(directory.toRealPath().equals(directory),"DIRECTORY_CHANGED");
+            require(unredirected(directory).equals(directory),"DIRECTORY_CHANGED");
             for(Path p:List.of(data,lockPath))require(!Files.exists(p,LinkOption.NOFOLLOW_LINKS) || Files.isRegularFile(p,LinkOption.NOFOLLOW_LINKS),"NON_REGULAR_LEDGER_FILE");
         }
         interface Work<T>{T run()throws IOException;}

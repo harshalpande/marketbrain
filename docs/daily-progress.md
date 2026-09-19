@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-09-19 - E70 spare directory guard failure reproduced and corrected
+
+- Report `numerical-evidence-layer-20260919-200106-b474f3461e7f.json` SHA256 `626EFD328829756D772B2EC7DD6829F76D13A9AE4E61279699AC8ED7C288F666`: 3.917s total, JVM exit 1 after 2.838s, timedOut=false, empty stdout, `REDIRECTED_DIRECTORY` at initial Store construction. Historical assessment succeeded, 600 rows/150 dates, original source unchanged. No completed synthetic result; do not mark E69 spare-accepted or resume this empty output.
+- Reproduced the exact guard exception with a real Windows 8.3 alias before correction. Canonicalize path spelling separately from link/reparse resolution; reject redirected ancestors before creating child directories. Actual junction remains rejected. Exact spare temporary path was absent, so alias is a supported diagnosis rather than directly captured spare-path evidence. Added resolved-path diagnostics and specific JVM exit versus timeout reporting.
+- Verification after fix: 390 standard Java tests/package, zero failures/errors/skips; 20 ledger cases including three new actual-path regressions, 22 embedded checks and 35 PS5.1 workflow assertions. Full suite also passes under a short-alias test directory. Local bundle 5.28s, saved-output replay 1.24s. [Durable E70 review](evidence/numerical-evidence-path-fix-20260919.json).
+- Commit/push and retry the short evidence bundle only. No Docker/service/DB/provider/model action, no mapping/feature rerun or collection/fit/trading authorization. Preserve the failed report; share one new JSON. Engineering percentages unchanged.
+
 ## 2026-09-19 - E69 two-track evidence infrastructure implemented
 
 - Owner confirmed documentation and authorized proceeding. Delivered read-only saved-snapshot assessment and standalone append-only evidence store, timestamp/quality checks, deduplication, conflicts, linked corrections, bounded writes, integrity audit and new-branch partial-write recovery together. [Scope and handoff](numerical-evidence-layer.md).

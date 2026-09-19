@@ -10,8 +10,40 @@ import static org.assertj.core.api.Assertions.*;
 class NumericalEvidenceLedgerTest {
     @TempDir Path root;
     Policy policy(){return new Policy(60,1000,30,128*1024);}
+    @Test void windowsShortAliasUsesCanonicalStoreWithoutFalseRedirection()throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
+        Path longDirectory=Files.createDirectory(root.resolve("long evidence directory with spaces"));
+        var process=new ProcessBuilder("cmd.exe","/d","/c","for %I in (\""+longDirectory+"\") do @echo %~sI").redirectErrorStream(true).start();
+        assertThat(process.waitFor(10,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        assertThat(process.exitValue()).isZero();
+        Path shortDirectory=Path.of(new String(process.getInputStream().readAllBytes(),java.nio.charset.Charset.defaultCharset()).trim());
+        org.junit.jupiter.api.Assumptions.assumeFalse(shortDirectory.equals(longDirectory),"8.3 aliases disabled on this filesystem");
+        assertThat(shortDirectory.toRealPath()).isEqualTo(longDirectory.toRealPath());
+        var store=new Store(shortDirectory.resolve("main"),policy());
+        assertThat(store.directory).isEqualTo(longDirectory.resolve("main").toRealPath());
+        assertThat(store.append(fixture(0)).appended()).isTrue();
+        assertThat(new Store(longDirectory.resolve("main"),policy()).audit().entries()).hasSize(1);
+        assertThat(suite(Files.createDirectory(shortDirectory.resolve("suite"))).get("status")).isEqualTo("EVIDENCE_CHECKS_PASSED");
+    }
     @Test void completePersistenceSuite()throws Exception {
         var r=suite(root);assertThat(r.get("status")).isEqualTo("EVIDENCE_CHECKS_PASSED");assertThat(r.get("checkCount")).isEqualTo(22);assertThat(r.get("failedCheckCount")).isEqualTo(0L);
+    }
+    @Test void windowsJunctionAncestorStillRejectedBeforeChildCreation()throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
+        Path target=Files.createDirectory(root.resolve("target")),junction=root.resolve("junction");
+        var process=new ProcessBuilder("cmd.exe","/d","/c","mklink","/J",junction.toString(),target.toString()).redirectErrorStream(true).start();
+        assertThat(process.waitFor(10,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        assertThat(process.exitValue()).isZero();
+        try {
+            assertThatThrownBy(()->new Store(junction.resolve("not-created"),policy())).hasMessageContaining("REDIRECTED_DIRECTORY");
+            assertThat(Files.exists(target.resolve("not-created"))).isFalse();
+        } finally {Files.delete(junction);} // Exact test-owned junction only; never its target recursively.
+    }
+    @Test void normalizedRelativeSpellingSharesCanonicalStore()throws Exception {
+        var store=new Store(root.resolve("child").resolve("..").resolve("store"),policy());
+        store.append(fixture(0));
+        assertThat(store.directory).isEqualTo(root.resolve("store").toRealPath());
+        assertThat(new Store(store.directory,policy()).audit().entries()).hasSize(1);
     }
     @Test void snapshotBinaryRoundTripAndInputImmutability()throws Exception {
         var s=fixture(0);assertThat(snapshot(snapshotBytes(s))).isEqualTo(s);

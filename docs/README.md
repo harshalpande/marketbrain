@@ -56,6 +56,8 @@ Close G00's remaining source-review coverage gap, verify the existing Upstox/dat
 
 ### Current work package: two-track evidence infrastructure implemented (E69)
 
+**E70 correction:** first spare persistence run failed before the suite with `REDIRECTED_DIRECTORY`, not timeout. The existing snapshot was assessed successfully. Windows short-alias guard defect reproduced and corrected without allowing junction redirection; **390 Java tests/package and 35 PowerShell assertions pass**. [Fix and one-file retry](numerical-evidence-layer.md#e70-windows-path-compatibility-correction). No Docker/model/data recollection. Spare acceptance pending; no completed JVM result exists to resume from that failed report.
+
 [Evidence-layer batch](numerical-evidence-layer.md): read-only assessment of the accepted historical snapshot plus standalone append-only prospective record storage, timestamp/quality checks, duplicate/conflict/correction handling and new-destination recovery. **387 Java tests/package, 22 embedded checks and 35 PowerShell workflow assertions passed locally.** One short native-JDK verification on spare produces one JSON; no service rebuild/restart, new data acquisition, mapping rerun, model fit or live collector. Capture settings and release gates remain pending. Whole-goal completion percentages unchanged.
 
 ### Previously accepted engineering and approved preparation (E68)

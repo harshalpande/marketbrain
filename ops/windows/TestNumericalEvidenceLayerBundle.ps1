@@ -58,7 +58,13 @@ try {
     $report.javaResultTextSha256=Get-TenFeatureTextHash $report.process.stdout
     Save-NumericalHistoryReport $report $path -Compact
     if($report.process.stdout){try{$report.javaResult=$report.process.stdout | ConvertFrom-Json}catch{}}
-    if($report.process.timedOut -or $report.process.exitCode -ne 0){throw 'Evidence JVM failed/timed out. Embedded output preserved; no automatic retry.'}
+    if($report.process.timedOut){throw 'Evidence JVM timed out. Embedded output preserved; no automatic retry.'}
+    if($report.process.exitCode -ne 0){
+        $detail=(@($report.process.stderr -split '\r?\n' | Where-Object {$_ -match '\S'}) | Select-Object -First 1)
+        if(-not $detail){$detail='No stderr detail; inspect embedded output.'}
+        if($detail.Length -gt 500){$detail=$detail.Substring(0,500)}
+        throw "Evidence JVM exited with code $($report.process.exitCode): $detail"
+    }
     Update-EvidenceProgress 85 'Independently verifying embedded ledger bytes, frame hashes, chain and safety flags.'
     Assert-EvidenceLayerResult $report.javaResult
     $report.status='EVIDENCE_ENGINEERING_PASSED_COLLECTION_AND_FIT_BLOCKED'

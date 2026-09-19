@@ -2,6 +2,14 @@
 
 2026-09-19. Owner authorized proceeding after the two-track preparation documentation. This batch implements the **evidence infrastructure**, not a live collector or market-trained predictor. It advances G02 preparation and G10 recovery support; it does not earn a whole-goal checkpoint or raise forecast accuracy.
 
+## E70 Windows path compatibility correction
+
+The first spare run stopped in 3.917s with JVM exit 1, **not a timeout**: `REDIRECTED_DIRECTORY` in the initial Store constructor. Its historical assessment succeeded and left the 600-row source unchanged; it produced no completed persistence result to resume. [Preserved diagnosis and fix evidence](evidence/numerical-evidence-path-fix-20260919.json).
+
+Our original guard falsely rejected real Windows 8.3 aliases by comparing the supplied spelling with the real path. A new local test reproduced the identical exception before correction. The fix canonicalizes spelling using `toRealPath(NOFOLLOW_LINKS)`, compares against followed resolution to retain redirection protection, checks existing ancestors before creating directories and stores the canonical path. Actual junction rejection and short-alias operation (including all 22 checks) both pass. The [OpenJDK Windows implementation](https://github.com/openjdk/jdk/blob/master/src/java.base/windows/classes/sun/nio/fs/WindowsLinkSupport.java) distinguishes actual-name resolution from following reparse points. The original spare report did not capture its temporary path, so the exact spare alias remains inferred rather than observed. Future redirection exceptions include the requested/canonical/resolved paths.
+
+Post-fix verification: **390 Java tests/package, zero failures/errors/skips; 20 ledger JUnit cases, 22 embedded checks and 35 PowerShell assertions**. Failure reporting now distinguishes timeout from nonzero exit and shows the first stderr line. Local full bundle 5.28s, offline completed-output replay 1.24s; not spare guarantees. Pull and rerun the short bundle below **without ResumeReport** for this failed run. No service rebuild, restart, model inference, history recollection or feature recomputation. Spare acceptance remains pending; original E69 verification below is historical.
+
 ## Delivered together
 
 | Subgoal | Implemented behavior | Remaining boundary |

@@ -1,0 +1,64 @@
+{
+  "version": "NUMERICAL_EVIDENCE_PATH_FIX_REVIEW_V1",
+  "evidenceId": "E70",
+  "date": "2026-09-19",
+  "status": "FIX_OFFLINE_VERIFIED_SPARE_RETRY_PENDING",
+  "spareReport": {
+    "file": "numerical-evidence-layer-20260919-200106-b474f3461e7f.json",
+    "sha256": "626EFD328829756D772B2EC7DD6829F76D13A9AE4E61279699AC8ED7C288F666",
+    "reportedCodeRevision": "40c2f7a44b95f6f5bb4b2afe38cbc3f9365352f3",
+    "powerShellVersion": "7.6.6",
+    "elapsedSeconds": 3.9166735,
+    "jvmElapsedSeconds": 2.8383718,
+    "exitCode": 1,
+    "timedOut": false,
+    "stdout": "",
+    "exception": "java.lang.IllegalArgumentException: REDIRECTED_DIRECTORY",
+    "failureStage": "Initial fixture Store constructor; no persistence suite result produced",
+    "historicalAssessmentSucceeded": true,
+    "historicalRows": 600,
+    "historicalDates": 150,
+    "sourceUnchanged": true,
+    "exactSpareTemporaryPathCaptured": false
+  },
+  "diagnosis": {
+    "confirmed": "Guard compared supplied absolute path spelling with canonical real path. A real Windows 8.3 alias reproduces the exact error locally before the fix.",
+    "spareInference": "A short temporary-path alias is consistent with the spare failure, but its exact path was not in the original report.",
+    "fix": "Validate existing ancestors before directory creation; compare canonical NOFOLLOW and followed real paths, reject redirection and retain canonical spelling. Recheck paths before each operation.",
+    "guardBypassed": false,
+    "failureReporting": "Timeout and nonzero exit are now distinct; surface first stderr line and retain complete output. Real redirection errors include requested and resolved paths.",
+    "primaryReference": "https://github.com/openjdk/jdk/blob/master/src/java.base/windows/classes/sun/nio/fs/WindowsLinkSupport.java"
+  },
+  "lfSha256": {
+    "marketbrain-service/src/main/java/in/marketbrain/training/NumericalEvidenceLedger.java": "57e2beb6d32e46587353d8db8c12ef53678dec1d3a66a4eda3d9f7a8ab17c231",
+    "marketbrain-service/src/test/java/in/marketbrain/training/NumericalEvidenceLedgerTest.java": "c258716710b4148a4fd273a273d826f72f8177669108a0f1754ea6464eb6af70",
+    "ops/windows/TestNumericalEvidenceLayerBundle.ps1": "e0930f257c8ad86c87ddba5cb6798bb601ce974d3b2ab1ace89b14305c568208"
+  },
+  "verification": {
+    "preFixRealWindowsAliasRegression": "Reproduced REDIRECTED_DIRECTORY, 1 test error, not skipped",
+    "postFixLedgerJUnitTests": 20,
+    "actualWindowsShortAliasAndCompleteSuite": "PASS",
+    "actualWindowsJunctionBlockedBeforeChildCreation": "PASS",
+    "normalizedRelativeSpelling": "PASS",
+    "mavenPackageExitCode": 0,
+    "standardJavaTests": 390,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "embeddedPersistenceChecks": 22,
+    "powerShellWorkflowAssertions": 35,
+    "localRuntime": "PowerShell 5.1 / JDK 22",
+    "localFullBundleSecondsRounded": 5.28,
+    "localCompletedOutputReplaySecondsRounded": 1.24
+  },
+  "boundaries": {
+    "sourceRecollection": false,
+    "databaseWrites": false,
+    "modelCalls": false,
+    "marketFitAuthorized": false,
+    "liveCollectorEnabled": false,
+    "tradingEnabled": false,
+    "spareAcceptancePending": true
+  },
+  "nextAction": "Pull fix and rerun only the short evidence bundle. Do not use ResumeReport for the failed run: its JVM produced no completed result. No Docker restart, mapping recomputation or provider call. Share one new JSON."
+}
