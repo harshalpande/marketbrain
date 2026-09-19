@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - E69 two-track evidence infrastructure implemented
+
+- Owner confirmed documentation and authorized proceeding. Delivered read-only saved-snapshot assessment and standalone append-only evidence store, timestamp/quality checks, deduplication, conflicts, linked corrections, bounded writes, integrity audit and new-branch partial-write recovery together. [Scope and handoff](numerical-evidence-layer.md).
+- Reused accepted E65 bytes: 600 rows, 150 dates, ten features, four symbols, all 600 rows with late receipt evidence. No remapping or feature calculation. Point-in-time eligible rows stay 0; retrospective fitting eligibility remains unassessed. Original file hash unchanged.
+- Local verification: 387 standard Java tests/package, zero failures/errors/skips; 17 new JUnit cases, 22 embedded checks and 35 PowerShell 5.1 workflow assertions. Latest local bundle 4.51s, completed-result replay 0.98s. One early fixture byte-quota assertion incorrectly assumed a single record exceeded 1024 bytes; corrected to fill the bounded store and verify a second append is rejected without changing bytes. Complete suites rerun successfully. [Durable evidence](evidence/numerical-evidence-layer-local-review-20260919.json).
+- Prospective collector remains disconnected/not implemented; no endpoint, bean, configuration, migration, dependency, model fitting, service/DB/provider/LLM action or trade. Fixture policy values are not approved runtime defaults. Source rights/price-action and operational/evaluation release gates remain open; Upstox PENDING_EXTERNAL_REPLY. No project-percentage increase or predictive-quality claim.
+- Commit/push and one compact new evidence-layer verification on spare. No Docker rebuild or repeat of accepted E65/E68 runs. After spare acceptance, close this engineering checkpoint and group capture-policy and retrospective evaluation decisions before collector wiring or fitting.
+
 ## 2026-09-19 - E68 spare engineering accepted; owner selected both research tracks
 
 - Verified the supplied `numerical-ten-feature-20260919-190344-6c0ef018cefd.json`, SHA256 `D691656250F59877AAC4F2B9ECA6B2FC55EA60935E5AFBBAD7A2E1A4D7FFD540`: 32/32 checks, 8.900s total, 1.045s synthetic suite, PS7.6.6/native Java25.0.4.1, code a6af41a. Source/runner/reviewer/helper/contract identities match CRLF checkout; raw output checksum, semantic numeric parity, artifacts, independent metrics/costs/coverage and all safety counters verified. No Docker-path acceptance inferred. [Durable E68 acceptance](evidence/numerical-ten-feature-spare-acceptance-20260919.json).

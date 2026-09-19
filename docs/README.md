@@ -54,7 +54,11 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current work package: engineering accepted; both research tracks prepared (E68)
+### Current work package: two-track evidence infrastructure implemented (E69)
+
+[Evidence-layer batch](numerical-evidence-layer.md): read-only assessment of the accepted historical snapshot plus standalone append-only prospective record storage, timestamp/quality checks, duplicate/conflict/correction handling and new-destination recovery. **387 Java tests/package, 22 embedded checks and 35 PowerShell workflow assertions passed locally.** One short native-JDK verification on spare produces one JSON; no service rebuild/restart, new data acquisition, mapping rerun, model fit or live collector. Capture settings and release gates remain pending. Whole-goal completion percentages unchanged.
+
+### Previously accepted engineering and approved preparation (E68)
 
 E68 closes the [ten-feature engineering checkpoint](numerical-ten-feature-engineering.md): **32/32 spare checks, 8.900s, PS7.6.6/native Java25**, independently reviewed. E65 mapping remains accepted. **Do not rerun either checkpoint.** The owner approved [preparing both tracks](numerical-research-scope-decision.md): restricted retrospective snapshot research plus prospective evidence preparation. The versioned plan pins saved data and defines timestamp/record/revision contracts without changing eligibility. Price/action, rights, historical availability and final evaluation criteria remain open; 0/600 existing rows are point-in-time training-eligible and retrospective eligibility is not yet assessed. No service build/restart, market-data export, collection or fitting authorized by this documentation handoff.
 

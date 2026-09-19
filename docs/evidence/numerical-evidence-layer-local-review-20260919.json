@@ -1,0 +1,75 @@
+{
+  "version": "NUMERICAL_EVIDENCE_LAYER_LOCAL_REVIEW_V1",
+  "date": "2026-09-19",
+  "evidenceId": "E69",
+  "status": "OFFLINE_VERIFIED_SPARE_PENDING",
+  "baseRevision": "240052758fbc2129a67e1674478fe8965bc59659",
+  "implementationIdentity": "LF-normalized SHA256 of scoped files; verified before commit",
+  "lfSha256": {
+    "marketbrain-service/src/main/java/in/marketbrain/training/NumericalEvidenceLedger.java": "79083e9f0e715cb4c4819ea8062a2fced20c429ea6d51668bfb5763fdaf1acb4",
+    "marketbrain-service/src/test/java/in/marketbrain/training/NumericalEvidenceLedgerTest.java": "bf9a9ca4d37db3351cd81432236e4eb8a4575c3509005f6456aab3c39f2a3ed3",
+    "ops/windows/NumericalEvidenceLayer.ps1": "908d0bd4138298bfd983b23573d7578d8f5d0b59b9bb806e1504be23a2594b99",
+    "ops/windows/TestNumericalEvidenceLayerBundle.ps1": "e9cdbe070c5644d3497432b7f312c4a6354b0cce88345b08d1313a0455f5d141",
+    "ops/windows/TestNumericalEvidenceLayerWorkflow.ps1": "14e942490986b865af6e491e0066e52297030cd6bc28358d7cd4622f06ea90d9"
+  },
+  "verification": {
+    "mavenCommand": "mvn -f marketbrain-service/pom.xml package -q",
+    "mavenExitCode": 0,
+    "standardJavaTestSuites": 133,
+    "standardJavaTests": 387,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "newJUnitTests": 17,
+    "embeddedPersistenceChecks": 22,
+    "powerShellWorkflowAssertions": 35,
+    "powerShellVersion": "5.1.26100.9444",
+    "javaVersion": "22.0.2",
+    "localBundleElapsedSeconds": 4.5058686,
+    "localSyntheticSuiteElapsedMillis": 730.7075,
+    "localReplayElapsedSecondsRounded": 0.98,
+    "bundleFile": "numerical-evidence-layer-20260919-195410-8cb6c3fe95e0.json",
+    "bundleSha256": "D88FEBD24EAAE13FAF409070B55B9973D34E263660D1A9D82AD7301ABF7DB240",
+    "rawReportsLocation": "marketbrain-service/target/evidence-workflow-2eeabf1b0f414b808d7066790f563193 (local ignored fixture artifacts)",
+    "spareRuntimeVerified": false,
+    "hardwarePowerLossVerified": false
+  },
+  "retrospective": {
+    "savedMappingSha256": "610A71CB2932688ABF29D45F99D7E5DD86F1807B692303E63B234359D4449D08",
+    "sourceUnchanged": true,
+    "rows": 600,
+    "dates": 150,
+    "features": 10,
+    "lateReceiptRows": 600,
+    "pointInTimeTrainingEligibleRows": 0,
+    "retrospectiveTrainingEligibleRows": null,
+    "featureRecalculationPerformed": false,
+    "recollectionPerformed": false
+  },
+  "prospective": {
+    "standaloneRecordStoreImplemented": true,
+    "collectorImplemented": false,
+    "collectionAuthorized": false,
+    "fixtureSettingsAreOperationalDefaults": false,
+    "recoveryOverwritesOriginal": false,
+    "metadataProvesSourceAuthenticity": false
+  },
+  "safety": {
+    "applicationServiceStarted": false,
+    "dockerUsed": false,
+    "databaseWritesPerformed": false,
+    "providerCallCount": 0,
+    "llmCallCount": 0,
+    "signalsCreated": 0,
+    "ordersCreated": 0,
+    "marketFitAuthorized": false,
+    "actionExecutionEnabled": false
+  },
+  "remaining": [
+    "Spare native-JDK and PowerShell7 evidence-layer verification",
+    "Source price/action evidence and rights; Upstox PENDING_EXTERNAL_REPLY",
+    "Operational capture, freshness/skew, quotas, retention and backup policy approval",
+    "Collector and separate prediction/outcome wiring after scope approval",
+    "Retrospective eligibility policy and final evaluation criteria before scoped market fitting"
+  ]
+}

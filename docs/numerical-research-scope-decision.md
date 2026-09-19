@@ -1,5 +1,7 @@
 # Next stage: choose research scope, then preregister market evaluation
 
+**Subsequent implementation E69:** after owner approval to proceed, the [evidence-layer batch](numerical-evidence-layer.md) implements read-only snapshot assessment and standalone record-store infrastructure. The preparation decisions below remain the baseline, not a claim that no later engineering occurred. Actual capture/fit remains unreleased; the next spare action is E69's new persistence verification, not repeating E65/E68.
+
 2026-09-19, following E68. **BOTH-TRACK PREPARATION OWNER-APPROVED / NO MARKET FIT OR COLLECTION RELEASED.** The owner answered: "Prepare both tracks (recommended)". [Versioned preparation plan](../ops/data/numerical-two-track-plan-v1.json), a document rather than runtime configuration.
 
 The ten-feature engineering checkpoint is complete: 32/32 checks on the spare laptop in 8.900s, native Java 25.0.4.1 / PowerShell 7.6.6. [Acceptance record](evidence/numerical-ten-feature-spare-acceptance-20260919.json). Do not rerun it or the accepted mapping/export merely to reconfirm completion. No new data-processing script is needed for this decision.
