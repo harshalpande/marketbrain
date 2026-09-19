@@ -2,7 +2,11 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E60 robustness accepted; E61 grouped contract review
+## Current: E62 scope approved; E63 mapping preparation
+
+Owner confirmed the documentation and first 20-session restricted-cohort price-return research scope. [E63 implementation](numerical-research-mapping.md) maps the ten real features, retains row eligibility blockers and reports date coverage using the existing E52 saved artifact. No new collection, source certification, fold freeze or fit. Local mapping replays 600/600 rows; all remain training-ineligible. Next: one spare service deployment/mapping round-trip, then review remaining source/evaluation policy evidence. The historical E61 review below is superseded only for the approved research scope, not for empirical evidence or production criteria.
+
+## E60 robustness accepted; E61 grouped contract review (historical)
 
 Latest spare report: **47/47 checks, 34.368s**, nine folds, Docker Java 21.0.9 / PowerShell 7.6.6; source hashes, metric checks, semantic raw/parsed equality and cleanup verified. [Persisted review](evidence/numerical-robustness-spare-review-20260919.json). The bounded synthetic engineering phase is complete; no repeat requested. Next is the [consolidated research contract review](numerical-market-contract-review.md): six related policy/mapping/evaluation subgoals in one packet, with owner decisions and evidence gaps explicit. No service rebuild, provider query, inference, market-data fitting or export repetition. Source-policy reply remains pending. After approvals/evidence, scope real mapping/eligibility/label/fold implementation together; do not replace that gate with more synthetic checks.
 

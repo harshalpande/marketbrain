@@ -2,7 +2,11 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45), repair capture (E50) and expanded 150-date research export (E52) reviewed within their scopes. All 600 arithmetic rows completed on spare. E53 records the remaining source-policy gap: no relevant adjustment references were recovered, and public documentation alone does not certify stored prices. Contract freeze, price provenance, certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
-## E60/E61 current checkpoint
+## E62/E63 current checkpoint
+
+Owner confirmed the documentation and restricted daily 20-session research scope. [Mapping preparation](numerical-research-mapping.md) now implements the ten-feature DTO, retained row/blocker ledger and date coverage without training. Local replay maps 600 rows; eligibility stays zero. Spare verification pending; source/availability/cost/evaluation gates and fitting approval remain open. No full-goal percentage increase.
+
+## E60/E61 checkpoint (historical)
 
 [EV1-EV3 evaluation engineering](numerical-evaluation-engineering-plan.md), baseline and [robustness bundle](numerical-robustness-bundle.md) are spare verified (E60: 47/47 checks, 34.368s). The next [consolidated market-contract review](numerical-market-contract-review.md) groups target/clock, prices/costs, features/availability, universe, evaluation and release decisions. No further synthetic run requested. No real-market training, price certification or production model is authorized. Upstox reply remains pending. This does not close N2/N3/N4/N5 acceptance or establish prediction readiness.
 

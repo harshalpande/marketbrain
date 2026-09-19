@@ -41,7 +41,7 @@
   <rect x="180" y="390" width="840" height="98" rx="9" class="planned"/>
   <text x="200" y="418" class="label">Numerical prediction engine — planned, predictive value not yet established</text>
   <text x="200" y="446" class="body">20-session first → required 5/60-session models; separate 30/60-minute intraday validation</text>
-  <text x="200" y="470" class="body">Synthetic folds/costs spare-verified; real-data contract review; fitting blocked</text>
+  <text x="200" y="470" class="body">Research scope approved; ten-feature mapper + eligibility ledger; fitting blocked</text>
   <path d="M600 488 V520" class="line"/>
   <rect x="180" y="522" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="550" class="label">Java proposal + risk → portal / private Telegram → ACCEPT / REJECT</text>

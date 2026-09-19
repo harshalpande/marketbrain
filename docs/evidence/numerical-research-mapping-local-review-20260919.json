@@ -1,0 +1,29 @@
+{
+  "evidenceId": "E63",
+  "reviewType": "OFFLINE_SAVED_DATA_REPLAY_NOT_SPARE_RUNTIME",
+  "sourceFile": "numerical-expanded-research-20260919-140603-9785384a9616.json",
+  "sourceSha256": "E983F6EE5B0B6DDA2DE40DC27D37451B2DD58C5D360CBBE092672B9EFD419CA8",
+  "mappingVersion": "NUMERICAL_RESEARCH_MAPPING_V1",
+  "rawResultSha256": "039EFD5338BA7BDABBF2D2DD4BF13ACC609A2306BEA417748A04CD0DDD78F707",
+  "rowCount": 600,
+  "mappingReadyCount": 600,
+  "dateGroupCount": 150,
+  "independentlyCheckedFeatureValueCount": 6000,
+  "trainingEligibleCount": 0,
+  "certifiedLabelCount": 0,
+  "trainingAuthorized": false,
+  "blockerCounts": {
+    "EVALUATION_POLICY_AND_FIT_APPROVAL_PENDING": 600,
+    "HISTORICAL_AVAILABILITY_UNVERIFIED": 600,
+    "PRICE_ACTION_PROVENANCE_UNVERIFIED": 600,
+    "SOURCE_RIGHTS_SCOPE_REVIEW_PENDING": 600,
+    "STORED_RECEIPT_AFTER_CUTOFF": 600
+  },
+  "standardJavaTests": {"tests": 347, "failures": 0, "errors": 0, "skipped": 0},
+  "explicitSavedDataProbeTests": 1,
+  "powerShell51WorkflowAssertions": 21,
+  "packageBuildPassed": true,
+  "spareRuntimeVerified": false,
+  "externalSourcePolicyStatus": "PENDING_EXTERNAL_REPLY",
+  "limitations": "Arithmetic mapping only, not point-in-time validity, certified labels, market fit or prediction accuracy. No new independent samples, collection, source certification, local service or trades. Owner scope approval does not waive empirical source evidence or evaluation policies. Standard test count excludes separately invoked EvidenceProbe classes."
+}

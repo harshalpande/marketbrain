@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - Owner scope approval; three real-data preparation deliverables
+
+- E62: owner confirmed the documentation commit and approved proceeding with daily 20-session price-return research on the restricted development cohort. This is not blanket approval of source facts, production features, costs, final evaluation thresholds, fitting or trading. Required intraday and 5/60-session goals remain.
+- E63: implemented the ten-feature research mapper, retained row eligibility/blocker ledger and per-date coverage summary together. Reuses E52's saved bars and pinned calendar; no recollection. No fitted transforms, label certification, final split or model fit. All records remain training-ineligible without an override.
+- Offline actual-data replay: 600/600 rows mapped across 150 dates; the independent PowerShell reviewer checked all 6,000 feature values plus source windows, identity/cutoff, blockers and safety counters. Every row has late stored-receipt evidence; neither late nor early stored receipts establish original publication/vintage. Source policy remains PENDING_EXTERNAL_REPLY. [Persisted review](evidence/numerical-research-mapping-local-review-20260919.json).
+- Verification: 347 standard Java tests, no failures/errors/skips; Maven package; one explicit saved-evidence Java probe; 21 PowerShell 5.1 workflow assertions covering mutation/leakage-field rejection, malformed output, one POST/no timeout retry, health failure, checkpoint preservation and offline reuse. Early local PowerShell expression/mock-scope defects were corrected and the complete workflow rerun successfully before handoff. No local service, Docker, DB/provider/model or trading action.
+- Spare requires service rebuild and one saved-input mapping call. New Spring route reuses the existing ObjectMapper constructor and shared non-queuing semaphore; no new bean/config/migration. Request <=2 MiB, four instruments/700 bars, no SQL. Response report has hashes, timing, progress and all evidence in one unique compact JSON. Runtime/PowerShell 7 acceptance remains pending. Whole-goal completion percentages unchanged; predictive quality is still unmeasured.
+
 ## 2026-09-19 - Robustness spare milestone verified; market-contract review prepared
 
 - E60 reviewed `numerical-robustness-bundle-20260919-163931-b9b7a0d78742.json` (SHA256 `4F5BB0934C5A6A801236C372F8AB41C3C665BBCF659F7A7C09954BA3EDD783B5`): 47/47 checks, all nine folds, 34.368s total / 9.881s Java suite. Docker Java 21.0.9 / PS7.6.6; child/cleanup exit 0, no timeout. Source/runner/helper hashes match E59 CRLF bytes.

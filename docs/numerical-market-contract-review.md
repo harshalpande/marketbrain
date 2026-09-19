@@ -1,6 +1,6 @@
 # Consolidated real-market research contract review
 
-2026-09-19, E61. **DRAFT_FOR_OWNER_REVIEW**. Prepared after E60 accepted the 47-check synthetic robustness bundle. This is documentation, not executable configuration, source certification, permission to fit or permission to trade. No new synthetic run is requested.
+2026-09-19, E61. **PARTIALLY_APPROVED_RESEARCH_SCOPE / REMAINING_EVIDENCE_PENDING**. E62 records the owner's subsequent approval of the first 20-session price-return research scope and restricted development cohort, and confirmation of the documentation commit. Remaining feature/evaluation/cost/source criteria are not blanket-approved. [E63 bounded preparation implementation](numerical-research-mapping.md) maps saved features and eligibility without fitting or certification. The original six-item proposal below is retained; its historical approval requests are superseded only for those two owner scope decisions.
 
 ## Why this is the next milestone
 

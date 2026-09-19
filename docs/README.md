@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current next action: consolidated market research contract review (E60/E61)
+### Current next action: restricted research mapping (E62/E63)
 
-The robustness spare bundle passed **47/47 checks in 34.368s** (E60), covering nine folds and 5/20/60-session synthetic contracts. Hashes, semantic output, metrics and cleanup verified. **No further machine run requested.** Review the [E61 grouped real-market research contract](numerical-market-contract-review.md): target/clock, price/costs, feature availability, universe, evaluation and release boundary. Six subgoals prepared for review, not marked implemented or approved. The synthetic two-feature fitter is not the real ten-feature mapping. Upstox clarification remains **PENDING_EXTERNAL_REPLY**; real-market fitting stays blocked. Pull documentation only; no service rebuild, model run or data recollection.
+E60's synthetic engineering bundle is accepted; do not repeat it. Owner confirmed the documentation and approved initial daily 20-session price-return research on the restricted development cohort (E62), not fitting/trading or source certification. [E63 mapping and eligibility preparation](numerical-research-mapping.md) combines ten-feature mapping, row blockers and date coverage from the existing saved E52 export. Rebuild the service on spare and run `PrepareNumericalResearchMapping.ps1` once; share its single JSON. Local mapping: 600/600 rows, zero training-eligible rows. No recollection, LLM run, DB/provider query or orders. Upstox remains **PENDING_EXTERNAL_REPLY**; full research-contract/evaluation gates remain open.
 
 ### E54 planning checkpoint
 
