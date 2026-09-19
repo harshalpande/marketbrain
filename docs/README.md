@@ -54,9 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current checkpoint: mapping and recovery verified (E65)
+### Current work package: six pre-fit contracts together (E66)
 
-E65 verifies corrected replay on **PowerShell 7.6.6 in 1.336s**: 600 mapped rows/150 dates, all 6,000 feature values checked, correct typed cutoffs, unchanged prior Java response and matching source/tool hashes. [Persisted acceptance](evidence/numerical-research-mapping-spare-acceptance-20260919.json). **No further mapping run or rebuild requested.** Zero rows are training-eligible; Upstox remains PENDING_EXTERNAL_REPLY. Next is the grouped source/availability and learner/evaluation contract stage in [the next-step plan](numerical-next-step.md), not another synthetic or LLM retry. E62's restricted 20-session research scope is unchanged; training and trades are not authorized.
+E65's 600-row mapping/recovery acceptance stands; **do not rerun it**. E66 delivers the [grouped pre-fit contract](numerical-prefit-contract.md) and [machine-readable specification](../ops/data/numerical-prefit-contract-v1.json): inputs/target, preprocessing, comparators/learner, temporal evaluation, metrics/uncertainty and artifacts/release. Six repository consistency tests check the existing DTO/target/evidence boundary. This is a proposed specification, not an implemented ten-feature learner, runtime configuration or fit approval. **No spare processing or rebuild needed.** Upstox remains PENDING_EXTERNAL_REPLY; 0/600 rows are training-eligible. Next implementation should group transformer/solver, evaluation and artifact tests rather than request one spare run per subgoal.
 
 ### E54 planning checkpoint
 

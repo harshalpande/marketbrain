@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-09-19 - E66 six associated pre-fit specifications prepared together
+
+- Owner confirmed documentation sync and requested grouped subgoals to reduce repetition. Delivered one [pre-fit contract](numerical-prefit-contract.md) plus `ops/data/numerical-prefit-contract-v1.json` covering PF1 inputs/target, PF2 train-only transforms/missingness, PF3 references/learner, PF4 chronological evaluation, PF5 scoring/costs/uncertainty and PF6 artifacts/release safeguards.
+- Concrete proposals: exact existing ten-field DTO, all features required, equal-date-weighted training statistics/objective, zero and weighted-training-mean references, one fixed-alpha ridge challenger without search, purged date-grouped folds, retained abstentions/losses and version-bound artifact parity. Distinguishes the unchanged two-feature synthetic lab (row weights/optional-volume imputation) from future ten-feature implementation. No undisclosed new defaults or claims of market calibration.
+- Six repository consistency tests verify DTO order/units, target/retained horizons, training-only and comparator proposals, explicitly unset acceptance criteria, artifact identity and E65's zero training-eligible rows. Full Maven package passes: **353 standard Java tests, no failures/errors/skips**. These are contract drift checks, not tests of an implemented ten-feature solver. [Persisted review](evidence/numerical-prefit-contract-local-review-20260919.json).
+- No production Java changes, dependencies, endpoints, collectors, runtime settings, migrations or market fit. E65 mapping evidence reused without a machine rerun. Alpha 0.01 is proposed, not calibrated/approved. Actual final dates, sample-size/effect thresholds, uncertainty parameters and fee/slippage policy remain unapproved; no promise of a 10-15% gain.
+- Next implementation should combine transformer/solver, comparators, evaluation/abstention reporting, artifact round-trip and regression tests in one reviewed batch. Real-data fitting remains separately gated by source/availability/rights evidence and approved evaluation criteria. Upstox remains PENDING_EXTERNAL_REPLY. No source resend/recollection or trading authorized. Pull contract/docs/tests only on spare; no build or process to run. Whole-goal percentages unchanged.
+
 ## 2026-09-19 - E65 mapping/recovery checkpoint verified on spare
 
 - Reviewed `numerical-research-mapping-20260919-173811-99db869b03af.json`, SHA256 `610A71CB2932688ABF29D45F99D7E5DD86F1807B692303E63B234359D4449D08`. PS7.6.6/en-US/India Standard Time; typed System.DateTime cutoff; successful offline replay in 1.336s total / 0.434s review, no failure stage/error. Prior Java timing 0.782s retained; no new Java request.

@@ -2,6 +2,8 @@
 
 2026-09-19, E61. **PARTIALLY_APPROVED_RESEARCH_SCOPE / REMAINING_EVIDENCE_PENDING**. E62 records the owner's subsequent approval of the first 20-session price-return research scope and restricted development cohort, and confirmation of the documentation commit. Remaining feature/evaluation/cost/source criteria are not blanket-approved. [E63 bounded preparation implementation](numerical-research-mapping.md) maps saved features and eligibility without fitting or certification. The original six-item proposal below is retained; its historical approval requests are superseded only for those two owner scope decisions.
 
+E65 subsequently verifies mapping/recovery on spare. [E66 pre-fit contract](numerical-prefit-contract.md) supplies detailed learner/preprocessing/evaluation/artifact proposals and code-consistency tests together; it does not settle the open source facts, practical-effect criteria or final-fit approval. The original mapping-future-work wording below is historical; the ten-feature mapper is now verified, while the ten-feature learner remains unimplemented.
+
 ## Why this is the next milestone
 
 The engineering checks for fixed numerical baselines, train-only transforms, temporal guards, synthetic 5/20/60-session folds and hypothetical costs have passed on spare. They do not show that stored market labels or input vintages are fit for a real model. Repeating those checks will not resolve price adjustment semantics, publication timing, constituent history or final-test independence.

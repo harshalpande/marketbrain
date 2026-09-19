@@ -2,7 +2,11 @@
 
 Status: N1 audit (E28), history (E30), features (E37), calendar (E39), quality linkage (E41), preflight (E43), outcome paths (E45), repair capture (E50) and expanded 150-date research export (E52) reviewed within their scopes. All 600 arithmetic rows completed on spare. E53 records the remaining source-policy gap: no relevant adjustment references were recovered, and public documentation alone does not certify stored prices. Contract freeze, price provenance, certified export and usable frozen splits remain open. Reuse existing Upstox quality work (E31/E35); do not repeat acquisition or blanket validation. [Current next work package](numerical-next-step.md). No fitting or trades. Governing goals: G01/G13 evidence, G02 dataset, then G03 numerical baseline; required 5/60-session and intraday horizons remain in G07.
 
-## E65 current checkpoint
+## E66 current checkpoint
+
+The [six-part pre-fit package](numerical-prefit-contract.md) specifies the ten-feature learner/missingness/weighting contract, comparators, temporal validation, scoring/uncertainty and artifact/release requirements together. Machine-readable proposal and six repository consistency tests added; no fitting implementation or production configuration changed. E65 acceptance stands. No spare run/rebuild. Source evidence and explicit evaluation/fit approval still required; whole-goal percentages unchanged.
+
+## E65 checkpoint (historical)
 
 Corrected spare mapping replay verified: 600/600 rows, 150 dates, 6,000 values checked, 1.336s on PS7.6.6; previous Java response unchanged. No further mapping run requested. [Grouped next-stage plan](numerical-next-step.md#current-e65-mappingrecovery-checkpoint-verified-no-repeat-run): source/availability evidence and learner/evaluation contracts, then eligible folds and separately approved fit. Zero eligible/certified rows; no numerical performance or whole-goal percentage uplift.
 

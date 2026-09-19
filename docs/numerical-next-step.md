@@ -2,7 +2,13 @@
 
 Prepared 2026-09-19 from E47; E49 implementation update below. This is not permission for fitting or trading.
 
-## Current: E65 mapping/recovery checkpoint verified; no repeat run
+## Current: E66 pre-fit contract package prepared, no machine run
+
+Owner requested multiple associated subgoals together. [E66 specification](numerical-prefit-contract.md) now covers PF1 input/target, PF2 train-only preprocessing, PF3 comparators/ten-feature learner, PF4 purged chronological evaluation, PF5 metrics/costs/uncertainty and PF6 model artifacts/release safeguards in one versioned JSON and review document. Six local contract tests check consistency with existing Java DTO/target and E65 evidence. No endpoint, collector, learner, fit or deployment was added; this is not a new synthetic/data-processing milestone.
+
+The next implementation batch is transformer + ten-feature solver + references + evaluation/abstention reporting + artifact replay and their regression tests, after the proposed contract is reviewed. Keep market fitting separately gated. Actual price/availability evidence, sample-size/effect/uncertainty criteria and final untouched dates are not silently chosen here. No future outcomes enter inputs; no old inspected dates become an untouched test. Reuse E65 without further spare execution; preserve any provider reply for the existing evidence review rather than recollecting history.
+
+## E65 mapping/recovery checkpoint verified; no repeat run (historical)
 
 The corrected spare report completes the bounded mapping/recovery checkpoint: **600/600 mapped rows, 150 date groups, all 6,000 values reviewed**, PowerShell 7.6.6, 1.336s total / 0.434s reviewer. The prior Java response is unchanged; source/request/provenance and CRLF tool hashes match. [Acceptance evidence](evidence/numerical-research-mapping-spare-acceptance-20260919.json). This is 100% of the scoped mapping rows, not forecasting accuracy or whole-project completion. No further export, mapping POST, synthetic run or Docker rebuild is requested.
 

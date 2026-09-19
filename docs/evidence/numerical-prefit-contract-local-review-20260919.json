@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E66",
+  "milestone": "GROUPED_PREFIT_SPECIFICATION_AND_CODE_CONSISTENCY_CHECKS",
+  "contractPath": "ops/data/numerical-prefit-contract-v1.json",
+  "contractVersion": "NUMERICAL_TEN_FEATURE_PREFIT_V1",
+  "contractSha256Utf8Lf": "0CA5EFAB05B6FDE03C16ADB4181E31D63893E80FEE8B71A63087EB35385A69D6",
+  "status": "PROPOSED_CONTRACT_NOT_EXECUTABLE",
+  "specifiedSubgoals": ["PF1", "PF2", "PF3", "PF4", "PF5", "PF6"],
+  "newContractConsistencyTests": 6,
+  "standardJavaTests": {"tests": 353, "failures": 0, "errors": 0, "skipped": 0},
+  "mavenPackagePassed": true,
+  "newProductionApplicationCode": false,
+  "newRuntimeDependency": false,
+  "newEndpointOrCollector": false,
+  "tenFeatureLearnerImplemented": false,
+  "marketFitAuthorized": false,
+  "marketDataUsedForNewFit": false,
+  "spareRunRequired": false,
+  "existingMappingAcceptance": "E65",
+  "existingTrainingEligibleRows": 0,
+  "sourcePolicyStatus": "PENDING_EXTERNAL_REPLY",
+  "limitations": "Six related specifications and repository drift checks, not six runtime-delivered subgoals or a trained predictor. Alpha/weighting/preprocessing are explicit proposals. Final dates, minimum coverage/effect, uncertainty settings and real cost policy remain unapproved. No new acquisition, model run, service deployment or trading action. Standard Java count excludes separately invoked historical EvidenceProbe classes."
+}
