@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-08 Resumption and paper persistence
+
+- Owner reports no direct Upstox answer and authorizes continuing independent work. Park the provider dependency without waiving price/action, rights, availability or evaluation gates. No new provider message, history collection, model fit or draft-policy approval inferred.
+- E73 records the already reviewed successful September 19 spare paper/preparation report: 26/26 plus 29/29, 4.306 seconds, eleven source hashes and reconciled accounting. Correct the documentation lag; do not rerun accepted preparation/storage/learner checkpoints.
+- E74 adds a bounded isolated PostgreSQL adapter: per-account row lock, atomic journal/projection, canonical payload and hash chain, policy/revision/reconciliation checks, duplicate-safe replay and capacity limits. Existing application schemas, beans, endpoints, configuration and runtime accounts unchanged.
+- Local verification: Maven package passes 434 tests, no failures/errors/skips, including 24 new mocked-JDBC cases. 33 PowerShell report/mutation/orchestration assertions pass with all Docker calls mocked. Docker/PostgreSQL is deliberately not run locally. Spare verification must prove transaction rollback, concurrent approvals, unknown-acknowledgement retry and committed recovery across an isolated database restart/fresh JVM. One compact report; successful synthetic resources cleaned, failed ones preserved with stop requested.
+- PostgreSQL integration/recovery status remains pending until evidence arrives. Paper policies, production integration, realistic execution/P&L and portal remain incomplete; project weighted completion stays 12.4%, no predictive-quality improvement claimed.
+
 ## 2026-09-19 - E71 acceptance and E72 parallel preparation
 
 - Reviewed successful spare report `numerical-evidence-layer-20260919-201035-a9cd32dd695e.json`: 22/22, 4.2536881 seconds, Java25/PS7, hashes/audit/recovery preserved. E69/E70 spare checkpoint closed; no repeat requested. [E71 record](evidence/numerical-evidence-layer-spare-acceptance-20260919.json).

@@ -1,5 +1,9 @@
 # System and INR 100,000 paper-portal design
 
+## Isolated persistence engineering update
+
+2026-10-08: [paper persistence verification](paper-persistence-verification.md) defines a separate engineering schema, singleton row lock, atomic command/account commit, bounded replay, explicit policy/hash checks and uncertain-commit retry by identical command ID. It uses the verified paper core; PostgreSQL testing runs only in a disposable private container on spare. No Spring wiring or application migration exists. The legacy one-fill-per-order constraint remains unchanged pending a reviewed integration migration. The draft numerical policies and provider source gates remain unreleased despite proceeding without a direct Upstox answer.
+
 ## E72 bounded implementation update
 
 The [offline paper-account core](paper-account-engineering.md) now verifies exact-paise cash/holdings, reservations, partial fills, terminal lifecycle and in-memory audit under fixed synthetic inputs. It is not wired to Spring, the database, notifications or any execution adapter. Durable transactions/restart recovery, realistic fees/liquidity/settlement, risk authorization, P&L and portal remain pending. Existing one-fill-per-order storage cannot be connected unchanged; freeze a reviewed migration/integration contract first.

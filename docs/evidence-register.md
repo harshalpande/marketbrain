@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E71/E72 records
+### Latest E73/E74 records
+
+- **E73 RUNTIME_VERIFIED, bounded fixture scope:** [E72 spare acceptance](evidence/paper-preparation-spare-acceptance-20261008.json), 26/26 paper and 29/29 policy checks, 4.306 seconds; 11 source hashes, raw/parity and independent accounting reviewed. Supersedes the historical E72 pending-spare statement below; no repeat required.
+- **E74 OFFLINE_VERIFIED, PostgreSQL runtime pending:** [isolated persistence](paper-persistence-verification.md), 434 standard Java tests/package (24 new mocked-JDBC cases) and 33 PowerShell review/orchestration assertions. [Local verification record](evidence/paper-persistence-local-20261008.json). Runtime tests planned on actual isolated PostgreSQL: 21 prepare checks plus three after container restart in a fresh JVM. No local database, application database, provider/model call, deployment or trading action is used to claim this checkpoint.
+
+### Earlier E71/E72 records
 
 - **E71 RUNTIME_VERIFIED (bounded synthetic scope):** evidence-store spare checks 22/22, 4.2536881 seconds, PS7.6.6/Java25; source/raw/audit/recovery hashes reviewed. [Acceptance](evidence/numerical-evidence-layer-spare-acceptance-20260919.json). Supersedes E69/E70 pending-spare status; not a hardware power-loss or connected-collector claim.
 - **E72 OFFLINE_VERIFIED / SOURCE_VERIFIED:** [parallel preparation](parallel-pilot-preparation.md), 410 standard Maven tests, 26 embedded paper checks, 29 policy checks, 18 rejected policy mutations, 32 combined workflow assertions. [Local record](evidence/numerical-paper-preparation-local-20260919.json). Owner authorization covers preparation, not proposed settings or live actions. Spare combined verification pending; predictive performance remains unmeasured.

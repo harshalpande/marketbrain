@@ -54,7 +54,13 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current work package: parallel preparation (E72)
+### Current work package: isolated paper persistence (E74)
+
+2026-10-08: owner reports Upstox is not providing a direct answer and authorizes continuing independent work. Source price/action, rights and availability questions remain open; the provider dependency is parked, not waived. [Paper persistence scope and spare verification](paper-persistence-verification.md) adds an isolated PostgreSQL adapter and transaction/restart tests. It does not deploy the application, migrate existing tables, approve draft policies or activate collection, fitting or trading.
+
+E73 records the successful E72 spare run: **26/26 paper checks and 29/29 policy checks in 4.306 seconds**. [Acceptance](evidence/paper-preparation-spare-acceptance-20261008.json). Do not repeat it. Next handoff produces one `paper-persistence-*.json`; Docker runs disposable fixtures only. PostgreSQL verification of the new adapter remains pending.
+
+### Completed parallel preparation (E72)
 
 E71 closes the evidence-store spare checkpoint: **22/22 checks in 4.254 seconds**, Java25/PS7, with original evidence preserved. Do not rerun E65, E68 or E69/E70. [Recorded acceptance](evidence/numerical-evidence-layer-spare-acceptance-20260919.json).
 

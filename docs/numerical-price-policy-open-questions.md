@@ -1,5 +1,7 @@
 # Price-policy evidence still needed, without recollecting history
 
+2026-10-08 update: the owner reports that Upstox is not providing a direct response and asks to continue independent work. The source-policy gate remains unresolved, not rejected or certified. `PENDING_EXTERNAL_REPLY` in earlier contracts means pending a usable clarification, not a claim that no correspondence occurred. Do not resend requests, discard the collected history, infer an adjustment policy or activate fitting from silence. Paper-account engineering proceeds separately; source facts and research eligibility remain review gates.
+
 2026-09-19, E54 update: **PENDING_EXTERNAL_REPLY**. The owner reports sending the neutral technical clarification email to Upstox support. No reply, delivery acknowledgement or ticket number has been supplied. The assistant has not sent any message. This is a source-evidence requirement, not a model-training failure; preserve existing history and repair work. No new provider download is authorized by this note.
 
 The owner requested no disclosure of project purpose. The revised email asks general API questions only, without naming the project, stored dataset or pilot stocks. The stock-specific questions below remain internal review requirements, not a claim about the email actually sent. Do not resend automatically. [Parallel evaluation-engineering work and session handoff](numerical-evaluation-engineering-plan.md).

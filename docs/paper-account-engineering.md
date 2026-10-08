@@ -1,5 +1,7 @@
 # Offline paper-account engineering slice
 
+E73 records this slice's successful spare verification (26 paper checks, 29 proposal checks). E74 adds a separate [bounded PostgreSQL persistence adapter and isolated test](paper-persistence-verification.md). The `Account` class below remains in-memory; the new adapter is not connected to the running application. Its PostgreSQL runtime verification is pending.
+
 This is the first bounded G08 accounting slice, not an activated paper account or a complete simulator. `PaperAccountEngineering` is a standalone JDK-only class. It is not a Spring bean, has no endpoint, writes no database, and makes no provider/model/broker/notification calls. The only command-line entry point is `--synthetic-paper`, using fixed synthetic inputs. No real proposal or user-supplied model is accepted by the CLI.
 
 ## Implemented and checked
