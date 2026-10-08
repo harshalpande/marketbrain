@@ -2,6 +2,24 @@
 
 The daily collection completed, but the feature snapshot remains blocked by one open POLICYBZR large-move finding. Review the exact finding and the withheld feature classifications without importing history, changing prices, writing resolutions or restarting automation.
 
+## Accepted diagnostic and guarded resolution
+
+E78 [accepted the spare follow-up](evidence/daily-quality-follow-up-acceptance-20261008.json): 155.008 seconds, all five requests returned. NSE UDIFF comparison matched POLICYBZR by ISIN/EQ with exactly the stored previous close and close, zero differences. All 13 withheld stocks have fewer than 252 eligible observations (198-245), none are stale or absent, and the feature manifest is unchanged. Do not repeat the diagnostic or invent missing history. The saved report includes parsed official evidence and source URL, not the original archive bytes. Empty corporate-action hints are not a proof of absence.
+
+Owner authorized the next scoped handoff. E79 `ResolveReviewedPolicyBzrMove.ps1` previews by default; `-Apply` plus typing `RESOLVE POLICYBZR 2026-09-24` appends exactly one `VERIFIED_EXCHANGE_MOVE` event through the existing API, with the named reviewer, exact source URL and accepted report SHA256 in its notes. It does not update candles or add an exclusion. The legacy `allowsTraining` flag becomes true for this individual finding; it does not authorize fitting or waive broader source-policy, rights, point-in-time or evaluation gates.
+
+The default evidence path is the exact accepted `daily-quality-follow-up-2026-10-08-fb41949416494625817181ede0b86c55.json` under `C:\MarketBrainData\Review`. Pass `-EvidencePath` only if that same file was moved. SHA256 is pinned to `190CE4143E39B84AADC14B34570E2278D7AB60F78448BEB2D81A0FB9910B4349`; a mismatch stops before HTTP. Do not substitute a newly generated report. The script embeds the accepted evidence, body, responses, request timings and write state in one uniquely named `policybzr-reviewed-resolution-*.json`.
+
+Before writing it verifies the exact run/manifest, current resolution, stopped REVIEW_REQUIRED automation and fresh database audit: same price pair, only the single open finding, no new corporate-action hints or quality blockers. It rechecks current resolution after confirmation. Exact already-applied payloads are read back without another POST; conflicting or multiple resolutions stop without revocation. No Upstox/NSE refetch, import, model, feature snapshot, signal, order or scheduler reset is requested.
+
+Run one copy only, with no other quality reviewers, feature jobs or data repairs operating concurrently. A local named mutex blocks another copy in the same Windows session, not other sessions/hosts or API clients. The existing server endpoint checks before insertion but has no atomic evidence-bound compare-and-set; this script is not a general concurrent write protocol. Human-reviewed single-writer operation is a prerequisite, not a claim that a client precheck eliminates every race.
+
+Intent is checkpointed as `UNKNOWN_PENDING_RECONCILIATION` before the only POST. A timeout, malformed acknowledgement or interrupted client may still mean the event committed. Never retry with `-Apply` blindly: run without `-Apply` to read the current record first and share the report. If no record appears, that alone does not authorize repeating an uncertain in-flight write. No rollback or price repair is automatic. API calls have explicit limits (15-second health, 30-second metadata/write/readback, 180-second audit, 660-second feature preview), no HTTP redirects and no request retries. Client timeout does not guarantee server cancellation.
+
+After verifying persistence, the script performs only a daily automation preview. Expected successful outcome: `RESOLUTION_VERIFIED_FEATURE_READY_NOT_PERSISTED`, with 487 eligible and 13 short-history instruments and the same manifest. Other blockers remain `RESOLUTION_VERIFIED_FEATURE_REVIEW_REQUIRED`; a preview failure does not undo a recorded resolution. `REVIEW_REQUIRED` automation is not automatically reclaimed by the scheduler. Feature persistence/requeue is a separate next action after report review; a warning Telegram message will not be retroactively replaced by this script.
+
+Verification: 59 offline PowerShell 5.1 assertions cover preview/apply/cancel, exact existing record, conflict, changed evidence digest, active automation, changed prices/action hints, one-POST limit, simulated commit with lost acknowledgement followed by read-only reconciliation, remaining feature blockers and preview failure after a verified write. HTTP, confirmation and fixture digest are mocked; the actual accepted attachment also passes the evidence guards independently. No real resolution has been written locally, no Java source changed, no app rebuild needed. Spare write/readiness outcome remains pending.
+
 ## Accepted evidence and open questions
 
 - Input `daily-quality-diagnostic-2026-10-08-369f62ae337f4ce595bf124565d9e4bc.json`, SHA256 `230A527C2F8399290FCF4DB8A8D309D4BA848DF275461986A323631A84080122`, captured October 8 at 11:44:46 UTC.
@@ -26,6 +44,6 @@ The existing preview's `pointInTimeSafe` flag means its date-filtered technical 
 
 ## Verification and next work
 
-E77: 70 offline PowerShell 5.1 assertions with HTTP mocked verify expected collection, single-file partial reporting, wrong/widened job scope, unsafe/missing flags, duplicate symbols, future dates, inconsistent counts, insufficient-history classification, changed manifest, timeout, source outage and attempted resolution-write rejection. No real service/provider/database/model was called locally. Spare report pending.
+E77: 70 offline PowerShell 5.1 assertions with HTTP mocked verify expected collection, single-file partial reporting, wrong/widened job scope, unsafe/missing flags, duplicate symbols, future dates, inconsistent counts, insufficient-history classification, changed manifest, timeout, source outage and attempted resolution-write rejection. No real service/provider/database/model was called locally. E78 above closes the spare diagnostic checkpoint; E79 resolution remains pending.
 
 E76 separately closes the isolated PostgreSQL checkpoint: 24/24 passed, 18m44s end to end, exact account reconciliation and cleanup reviewed. Do not repeat it. Paper application integration, migration, authenticated approvals, realistic fills and portal remain pending. Neither result improves measured predictive accuracy or completes G08 as a whole.

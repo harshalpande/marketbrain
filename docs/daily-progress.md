@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-08 Daily finding evidence accepted and resolution handoff
+
+- E78: accepted exact saved follow-up SHA256 `190CE4143E39B84AADC14B34570E2278D7AB60F78448BEB2D81A0FB9910B4349`, 155.008s. POLICYBZR NSE ISIN/EQ prices match exactly; all 13 withheld instruments are short of 252 observations; 487 eligible, zero stale/no-data, unchanged manifest. [Acceptance](evidence/daily-quality-follow-up-acceptance-20261008.json). No repeat collection needed.
+- E79: prepared scoped optional-apply script with pinned evidence, fresh quality checks, reviewer confirmation, one append-only resolution POST, exact existing-record reconciliation and read-only feature readiness. No candle/exclusion/threshold changes, snapshot creation, scheduler reset, model or trading action. Finding-level allowsTraining change explicitly disclosed; broader gates remain.
+- 59 offline PS5.1 assertions pass with mocked HTTP/confirmation/fixture digest; actual saved evidence guards pass independently. Pending spare application/readback; no Java changes or runtime calls locally. Unknown commit state must be reconciled without Apply, never blindly retried. Single-writer operation required; local mutex is not server-side transactional race protection. [Runbook](daily-quality-follow-up.md#accepted-diagnostic-and-guarded-resolution).
+
 ## 2026-10-08 Persistence accepted and daily quality follow up
 
 - E76 accepts the spare isolated PostgreSQL report: 21 preparation and three recovery checks passed, 1124.321 seconds total (1018.841 seconds image build/download). Independently replayed report assertions; eleven source hashes reconcile under CRLF checkout. Exact cash/holdings/expiry and ownership cleanup reviewed. [Acceptance](evidence/paper-persistence-spare-acceptance-20261008.json). E74/E75 spare gate closed; no repeat.

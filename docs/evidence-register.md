@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Latest E78 and E79 records
+
+- **E78 DIAGNOSTIC_ACCEPTED:** [spare follow-up](evidence/daily-quality-follow-up-acceptance-20261008.json), 155.008s, NSE price/ISIN match, all-500 feature classification independently replayed, 13 insufficient-history cases, unchanged manifest. Finding still OPEN; no resolution or feature write in the source report.
+- **E79 OFFLINE_VERIFIED, resolution apply pending:** [guarded resolution](daily-quality-follow-up.md#accepted-diagnostic-and-guarded-resolution), 59 mocked-HTTP PS5.1 assertions plus actual saved evidence guards. One reviewed finding only; optional confirmed POST, uncertain-commit handling, no automatic feature persistence or scheduler reset. No price repair, inference or broad training permission.
+
 ### Latest E76 and E77 records
 
 - **E76 RUNTIME_VERIFIED, isolated persistence only:** [spare acceptance](evidence/paper-persistence-spare-acceptance-20261008.json); 21+3 checks, 1124.321 seconds, independent saved-report/accounting review, CRLF source identity and owned cleanup reconciled. Closes E74/E75 PostgreSQL spare checkpoint. No repeat; production integration and portal remain pending.

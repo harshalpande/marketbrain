@@ -20,7 +20,7 @@ No credit for anticipated results, expired evidence, undocumented assumptions or
 
 ## Current dashboard
 
-**Current E76/E77 update, 2026-10-08:** [isolated PostgreSQL persistence](paper-persistence-verification.md) passed 21+3 actual database/restart checks on spare; E73 parallel preparation also remains accepted. Do not repeat either. [Daily quality follow up](daily-quality-follow-up.md) targets one open POLICYBZR move and 13 withheld feature reasons without changing data or guardrails. Upstox source evidence stays unresolved. No fitting or runtime paper account is activated. Application integration and portal remain pending; the 12.4% full-paper-first denominator remains unchanged.
+**Current E78/E79 update, 2026-10-08:** [isolated PostgreSQL persistence](paper-persistence-verification.md) passed 21+3 actual database/restart checks on spare; E73 preparation also remains accepted. E78 [daily follow-up](daily-quality-follow-up.md) confirms NSE prices and 13 insufficient-history cases, unchanged feature manifest. Do not repeat these checks. E79 prepares one confirmed append-only POLICYBZR resolution followed by read-only readiness; spare application pending. No price change, feature persistence, scheduler reset, fitting or runtime paper account is activated by this handoff. Upstox source evidence and paper application/portal integration remain pending; the 12.4% full-paper-first denominator remains unchanged.
 
 E71 closed E69/E70 evidence-store spare verification: 22/22 checks in 4.254 seconds. Saved-snapshot assessment and standalone append-only storage remain accepted within their synthetic scope. No repeated storage/export verification, live collector or market fit is requested.
 

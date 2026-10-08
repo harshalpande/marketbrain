@@ -56,7 +56,7 @@ Close G00's remaining source-review coverage gap, verify the existing Upstox/dat
 
 ### Current work package: daily quality review and accepted persistence
 
-E76 closes isolated paper PostgreSQL verification: **24/24 passed**, including restart recovery. [Acceptance](evidence/paper-persistence-spare-acceptance-20261008.json). Do not rerun that suite. E77 [daily quality follow up](daily-quality-follow-up.md) collects POLICYBZR official-price evidence and all withheld feature reasons in one file; pull then run `ops/windows/GetDailyQualityFollowUp.ps1` on spare, with no app rebuild. The feature quality guard remains enabled; paper application integration and portal remain pending.
+E76 closes isolated paper PostgreSQL verification: **24/24 passed**, including restart recovery. [Acceptance](evidence/paper-persistence-spare-acceptance-20261008.json). E78 also accepts the daily follow-up: NSE prices match, 487 eligible and 13 insufficient-history instruments, unchanged manifest. Do not repeat either diagnostic. E79 [guarded resolution](daily-quality-follow-up.md#accepted-diagnostic-and-guarded-resolution) uses `ops/windows/ResolveReviewedPolicyBzrMove.ps1` on spare: preview by default, confirmed `-Apply` appends one POLICYBZR review event and then checks readiness only. No app rebuild, price change, feature persistence or scheduler reset. Paper integration and portal remain pending.
 
 ### Earlier persistence handoff E74 and E75
 
