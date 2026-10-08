@@ -4,6 +4,32 @@ $ErrorActionPreference='Stop'
 $script:count=0
 function Check([bool]$Condition,[string]$Name){if(-not $Condition){throw "Failed: $Name"};$script:count++}
 function Reject([scriptblock]$Body,[string]$Name){$failed=$false;try{& $Body}catch{$failed=$true};Check $failed $Name}
+$testRoot=Join-Path (Resolve-Path (Join-Path $PSScriptRoot '../../marketbrain-service/target')).Path ('paper-persistence-review-'+[guid]::NewGuid().ToString('N'))
+# Empty discovery fixtures only: none is executed. Exercise the production resolver,
+# not a replacement of the path-selection logic that previously hid the bug.
+$launcherDir=Join-Path $testRoot 'Docker Desktop path with spaces'
+$otherDir=Join-Path $testRoot 'Other Docker installation'
+New-Item -ItemType Directory -Path $launcherDir,$otherDir -Force|Out-Null
+$exe=New-Item -ItemType File -Path (Join-Path $launcherDir 'docker.exe')
+$shim=New-Item -ItemType File -Path (Join-Path $launcherDir 'docker')
+$other=New-Item -ItemType File -Path (Join-Path $otherDir 'docker.exe')
+& {
+    function Get-Command {param($Name,$CommandType,$ErrorAction)
+        Check ($Name -ceq 'docker.exe' -and $CommandType -eq 'Application') 'explicit executable discovery'
+        $script:launcherMatches
+    }
+    $script:launcherMatches=@([pscustomobject]@{Source=$shim.FullName},[pscustomobject]@{Source=$exe.FullName},[pscustomobject]@{Source=$other.FullName})
+    $resolved=Resolve-PaperDockerExecutable
+    Check ($resolved -is [string] -and $resolved -ceq $exe.FullName) 'one existing exe selected with spaces and duplicate matches'
+    $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$resolved
+    Check ($info.FileName -ceq $exe.FullName) 'process filename is unquoted scalar path'
+    $script:launcherMatches=@([pscustomobject]@{Source=(Join-Path $testRoot 'missing/docker.exe')},[pscustomobject]@{Source=$exe.FullName})
+    Check ((Resolve-PaperDockerExecutable) -ceq $exe.FullName) 'missing match skipped'
+    foreach($invalid in @(@(),@([pscustomobject]@{Source=$shim.FullName}),@([pscustomobject]@{Source='docker.exe'}),@([pscustomobject]@{Source=@($exe.FullName,$other.FullName)}))){
+        $script:launcherMatches=$invalid
+        Reject {Resolve-PaperDockerExecutable} 'missing or invalid executable rejected'
+    }
+}
 $schema='paper_verify_'+('a'*32)
 # The frozen reconciliation trace is independent of the live database suite output.
 function Sample([string]$Phase){
@@ -38,6 +64,8 @@ Check ($begin -ge 0 -and $end -gt $begin) 'mock boundary located'
 $mock=@'
 function Docker([string]$Step,[string[]]$Arguments,[int]$Limit=60,[switch]$AllowFailure){
     $report['offlineMockTransport']=$true
+    $script:mockCalls+=@($Step)
+    if($Step -eq 'docker engine check' -and $script:failPreflight){throw 'Injected launcher or engine failure'}
     $stdout='';$exit=0
     switch($Step){
         'create fixture database' {$script:mockContainers[$db]=$true}
@@ -53,12 +81,11 @@ function Docker([string]$Step,[string[]]$Arguments,[int]$Limit=60,[switch]$Allow
 }
 '@
 $mocked=$text.Substring(0,$begin)+$mock+"`n"+$text.Substring($end)
-$mocked=$mocked.Replace('$docker=(Get-Command docker -CommandType Application -ErrorAction Stop).Source',"`$docker='OFFLINE_NO_EXECUTABLE'")
+$mocked=$mocked.Replace('$docker=Resolve-PaperDockerExecutable',"if(`$script:failResolution){throw 'Injected missing Docker executable'};`$docker='OFFLINE_NO_EXECUTABLE'")
 $mocked=$mocked.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))
 Check (-not $mocked.Contains('[Diagnostics.Process]::new()') -and -not $mocked.Contains('Get-Command docker')) 'all Docker process execution removed'
 $run=[scriptblock]::Create($mocked)
-$testRoot=Join-Path (Resolve-Path (Join-Path $PSScriptRoot '../../marketbrain-service/target')).Path ('paper-persistence-review-'+[guid]::NewGuid().ToString('N'))
-$script:failMock=$false;$script:mockContainers=@{}
+$script:failMock=$false;$script:mockContainers=@{};$script:failPreflight=$false;$script:failResolution=$false;$script:mockCalls=@()
 & $run -OutputDirectory (Join-Path $testRoot 'pass')
 $okFile=Get-ChildItem -LiteralPath (Join-Path $testRoot 'pass') -Filter '*.json'|Select-Object -First 1
 $ok=Get-Content -LiteralPath $okFile.FullName -Raw|ConvertFrom-Json
@@ -73,4 +100,17 @@ $bad=Get-Content -LiteralPath $badFile.FullName -Raw|ConvertFrom-Json
 Check ($bad.status -ceq 'FAILED' -and $bad.failure -like '*Injected*') 'failure checkpoint retained'
 Check (@($bad.steps|Where-Object step -like 'remove*').Count -eq 0 -and @($bad.cleanup|Where-Object action -eq 'PRESERVED_STOP_REQUESTED').Count -eq 2) 'failed owned resources preserved and stopped'
 Check (@($bad.steps|Where-Object step -eq 'restart fixture database').Count -eq 0) 'failed preparation cannot proceed to restart'
+foreach($stage in @('resolution','preflight')){
+    $script:failResolution=($stage -eq 'resolution');$script:failPreflight=($stage -eq 'preflight');$script:mockCalls=@();$script:mockContainers=@{}
+    $earlyDir=Join-Path $testRoot $stage
+    $warnings=@()
+    Reject {& $run -OutputDirectory $earlyDir -WarningVariable +warnings} "$stage failure propagated"
+    $earlyFile=Get-ChildItem -LiteralPath $earlyDir -Filter '*.json'|Select-Object -First 1
+    $early=Get-Content -LiteralPath $earlyFile.FullName -Raw|ConvertFrom-Json
+    Check ($early.status -ceq 'FAILED' -and $early.failure -like '*Injected*') "$stage failure checkpoint retained"
+    Check (@($early.cleanup).Count -eq 1 -and $early.cleanup[0].action -ceq 'SKIPPED_NO_FIXTURE_CREATION_ATTEMPTED') "$stage cleanup skipped"
+    $expectedCalls=if($stage -eq 'resolution'){0}else{1}
+    Check ($script:mockCalls.Count -eq $expectedCalls -and $warnings.Count -eq 0) "$stage no cleanup calls or misleading warnings"
+    Check ($early.syntheticDatabaseWritesPerformed -eq $false -and $null -eq $early.prepare -and $null -eq $early.recover) "$stage no database verification claimed"
+}
 Write-Host "PASS: $script:count offline persistence review assertions. Real PostgreSQL remains spare verification."

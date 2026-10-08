@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-08 Paper verification launcher correction
+
+- E75: owner console shows the isolated persistence runner joined two Docker application paths into one filename and failed at process launch in 4.65 seconds. The JSON itself was not supplied for this review. No database check completion or leftover fixture is inferred from that transcript.
+- Resolve one absolute existing `docker.exe`, preserve spaces, record the selected path, and checkpoint missing-launcher failures. Skip Docker cleanup before any fixture creation attempt; retain ownership checks and failure preservation after creation is attempted.
+- 56 offline PowerShell 5.1 assertions pass. Duplicate/shim paths and discovery/preflight failures are covered alongside the previous orchestration/report guards. No local Docker, database, provider or model execution; Java and application deployment unchanged. Pull and rerun only the isolated persistence bundle, sharing one new JSON. PostgreSQL acceptance and roadmap completion remain unchanged.
+
 ## 2026-10-08 Resumption and paper persistence
 
 - Owner reports no direct Upstox answer and authorizes continuing independent work. Park the provider dependency without waiving price/action, rights, availability or evaluation gates. No new provider message, history collection, model fit or draft-policy approval inferred.

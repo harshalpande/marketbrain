@@ -1,6 +1,20 @@
 # Definitions only. Independent fixed-fixture report review; no Docker or database calls on import.
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'NumericalPaperPreparation.ps1')
+function Resolve-PaperDockerExecutable {
+    # Windows can expose both docker.exe and the extensionless Docker shim.
+    # ProcessStartInfo needs one unquoted executable path, never an array.
+    $matches=@(Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue)
+    foreach($match in $matches){
+        $source=$match.Source
+        if($source -is [string] -and [IO.Path]::IsPathRooted($source) -and
+            [IO.Path]::GetFileName($source) -ieq 'docker.exe' -and
+            (Test-Path -LiteralPath $source -PathType Leaf)){
+            return [string](Get-Item -LiteralPath $source -ErrorAction Stop).FullName
+        }
+    }
+    throw 'Docker executable not found: install Docker Desktop and ensure docker.exe is on PATH. No fixture creation attempted.'
+}
 function Assert-PaperPersistencePhase($Result,[string]$Phase,[string]$Schema) {
     if($Result.version -cne 'PAPER_PERSISTENCE_ENGINEERING_V1' -or $Result.status -cne 'ISOLATED_DATABASE_CHECKS_PASSED' -or $Result.phase -cne $Phase -or $Result.schema -cne $Schema){throw 'Wrong persistence result identity/status.'}
     foreach($flag in @('applicationDatabaseAccessed','runtimePaperAccountEnabled','actionExecutionEnabled')){if($Result.$flag -isnot [bool] -or $Result.$flag){throw "Unsafe flag: $flag"}}

@@ -54,7 +54,9 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current work package: isolated paper persistence (E74)
+### Current work package: isolated paper persistence (E74 and E75)
+
+The first spare attempt failed before Docker launch because two executable paths were combined. E75 corrects path resolution and early cleanup reporting; 56 offline PowerShell assertions pass. Pull and rerun the isolated bundle only; no application rebuild. [Launcher correction and remaining runtime gate](paper-persistence-verification.md#docker-launcher-correction).
 
 2026-10-08: owner reports Upstox is not providing a direct answer and authorizes continuing independent work. Source price/action, rights and availability questions remain open; the provider dependency is parked, not waived. [Paper persistence scope and spare verification](paper-persistence-verification.md) adds an isolated PostgreSQL adapter and transaction/restart tests. It does not deploy the application, migrate existing tables, approve draft policies or activate collection, fitting or trading.
 

@@ -28,6 +28,12 @@ The handoff independently recomputes fixture cash, quantities and fees. Before r
 
 ## Spare machine execution and isolation
 
+### Docker launcher correction
+
+The October 8 spare attempt `paper-persistence-20261008-170839-3f1139d207b8.json` failed before Docker started: the console shows both `docker.exe` and an extensionless `docker` shim combined into one process filename. No PostgreSQL checks ran. The cleanup warning from that attempt does not establish that fixtures exist. Preserve its report; no Docker prune or application rebuild is needed.
+
+The corrected runner selects one existing absolute `docker.exe` path, records it in the report, and captures discovery failures within the report lifecycle. Before fixture creation is attempted, cleanup is explicitly skipped. After creation is attempted, ownership checks still govern cleanup, including uncertain create outcomes. The fix passes **56 offline PowerShell 5.1 assertions**, including duplicate launcher matches, paths with spaces, absent/invalid paths, preflight failure reporting and existing success/failure orchestration. Docker transport is mocked; PostgreSQL runtime verification and PowerShell 7 execution on the spare machine remain pending. The earlier 434-test Java package result is unchanged historical evidence, not a rerun for this script-only fix.
+
 Run `ops/windows/TestPaperPersistenceBundle.ps1` after pulling the implementation. Docker Desktop must be running with Linux containers. The first run builds a dedicated verification image and obtains `postgres:17`, so allow time for image/dependency downloads; it is not the previous four-second JVM check. Every stage has a timeout, visible progress and captured output. The report records the exact image IDs and database version used.
 
 The runner uses a uniquely labelled **internal-only Docker network**, no published ports, no host-directory mounts, no application Compose deployment and no `.env` credentials. PostgreSQL receives disposable fixture credentials, not the application credentials. Only the isolated database receives synthetic writes. The ordinary application service/database and installed LLMs are not started, stopped or modified.

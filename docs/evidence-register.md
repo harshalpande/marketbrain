@@ -4,7 +4,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E73/E74 records
+### Latest E73 to E75 records
+
+- **E75 OFFLINE_VERIFIED, spare retry pending:** [Docker launcher correction](paper-persistence-verification.md#docker-launcher-correction). Owner console for `paper-persistence-20261008-170839-3f1139d207b8.json` establishes a pre-Docker launch failure, not a PostgreSQL failure. Single existing executable selection and pre-creation cleanup guard pass 56 offline PS5.1 assertions. Original report not attached; no hash or database outcome asserted. Java unchanged; earlier E74 Java evidence retained. No application rebuild or fixture deletion requested; share one fresh isolated-run report.
 
 - **E73 RUNTIME_VERIFIED, bounded fixture scope:** [E72 spare acceptance](evidence/paper-preparation-spare-acceptance-20261008.json), 26/26 paper and 29/29 policy checks, 4.306 seconds; 11 source hashes, raw/parity and independent accounting reviewed. Supersedes the historical E72 pending-spare statement below; no repeat required.
 - **E74 OFFLINE_VERIFIED, PostgreSQL runtime pending:** [isolated persistence](paper-persistence-verification.md), 434 standard Java tests/package (24 new mocked-JDBC cases) and 33 PowerShell review/orchestration assertions. [Local verification record](evidence/paper-persistence-local-20261008.json). Runtime tests planned on actual isolated PostgreSQL: 21 prepare checks plus three after container restart in a fresh JVM. No local database, application database, provider/model call, deployment or trading action is used to claim this checkpoint.
