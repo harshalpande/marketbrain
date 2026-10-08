@@ -1,6 +1,8 @@
 # Isolated paper account persistence
 
-2026-10-08. This batch moves the verified in-memory paper account into a bounded PostgreSQL engineering adapter. The next spare run tests actual database transactions and restart recovery without deploying the application or touching its database. Upstox's unanswered source-policy questions remain open; they do not block these synthetic accounting tests.
+2026-10-08. This batch moves the verified in-memory paper account into a bounded PostgreSQL engineering adapter. The accepted spare run tested actual database transactions and restart recovery without deploying the application or touching its database. Upstox's unanswered source-policy questions remain open; they do not block these synthetic accounting tests.
+
+**E76 acceptance, October 8:** the [spare report](evidence/paper-persistence-spare-acceptance-20261008.json) passed all 21 preparation and three recovery checks in 1124.321 seconds. Saved-report assertions, exact accounting and owned cleanup were independently reviewed. The Docker launcher correction is validated on spare. This checkpoint is complete; no repeat requested. Application integration, portal and operational release remain pending.
 
 ## Storage and transaction contract
 
@@ -32,7 +34,7 @@ The handoff independently recomputes fixture cash, quantities and fees. Before r
 
 The October 8 spare attempt `paper-persistence-20261008-170839-3f1139d207b8.json` failed before Docker started: the console shows both `docker.exe` and an extensionless `docker` shim combined into one process filename. No PostgreSQL checks ran. The cleanup warning from that attempt does not establish that fixtures exist. Preserve its report; no Docker prune or application rebuild is needed.
 
-The corrected runner selects one existing absolute `docker.exe` path, records it in the report, and captures discovery failures within the report lifecycle. Before fixture creation is attempted, cleanup is explicitly skipped. After creation is attempted, ownership checks still govern cleanup, including uncertain create outcomes. The fix passes **56 offline PowerShell 5.1 assertions**, including duplicate launcher matches, paths with spaces, absent/invalid paths, preflight failure reporting and existing success/failure orchestration. Docker transport is mocked; PostgreSQL runtime verification and PowerShell 7 execution on the spare machine remain pending. The earlier 434-test Java package result is unchanged historical evidence, not a rerun for this script-only fix.
+The corrected runner selects one existing absolute `docker.exe` path, records it in the report, and captures discovery failures within the report lifecycle. Before fixture creation is attempted, cleanup is explicitly skipped. After creation is attempted, ownership checks still govern cleanup, including uncertain create outcomes. The fix passes **56 offline PowerShell 5.1 assertions**, including duplicate launcher matches, paths with spaces, absent/invalid paths, preflight failure reporting and existing success/failure orchestration. Docker transport was mocked locally; E76 subsequently verified the real spare execution. The earlier 434-test Java package result remains historical evidence, not a rerun for this script-only fix.
 
 Run `ops/windows/TestPaperPersistenceBundle.ps1` after pulling the implementation. Docker Desktop must be running with Linux containers. The first run builds a dedicated verification image and obtains `postgres:17`, so allow time for image/dependency downloads; it is not the previous four-second JVM check. Every stage has a timeout, visible progress and captured output. The report records the exact image IDs and database version used.
 
@@ -40,7 +42,7 @@ The runner uses a uniquely labelled **internal-only Docker network**, no publish
 
 One compact `paper-persistence-<timestamp>-<id>.json` contains stages, source/image identities, raw outputs, results, timing, errors and cleanup records. Successful fixtures remove only this run's ownership-checked containers and anonymous test volumes after saving evidence; images and the report remain. Failed fixtures are preserved with stop requested so evidence can be investigated; their resource names are in the report. No global Docker prune, existing-volume deletion or automatic repeat of the failed suite occurs. A successful test's removed synthetic database is recoverable only by rerunning the fixtures, not from the summary report; it contains no user or market data.
 
-Expected status: `ISOLATED_PERSISTENCE_PASSED_APPLICATION_RELEASE_BLOCKED`. Database verification is pending until that spare report is reviewed. A failed test is not permission to retry the same live action or relax a guard.
+Expected status: `ISOLATED_PERSISTENCE_PASSED_APPLICATION_RELEASE_BLOCKED`. E76 achieved this status and closes the bounded isolated database verification. A failed future test is not permission to retry the same live action or relax a guard.
 
 ## Remaining integration work
 

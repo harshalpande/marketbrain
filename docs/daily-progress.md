@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-08 Persistence accepted and daily quality follow up
+
+- E76 accepts the spare isolated PostgreSQL report: 21 preparation and three recovery checks passed, 1124.321 seconds total (1018.841 seconds image build/download). Independently replayed report assertions; eleven source hashes reconcile under CRLF checkout. Exact cash/holdings/expiry and ownership cleanup reviewed. [Acceptance](evidence/paper-persistence-spare-acceptance-20261008.json). E74/E75 spare gate closed; no repeat.
+- E77 diagnoses the Telegram warning: collection complete, one OPEN POLICYBZR move on September 24 (1886.30 to 1207.20), not a collection failure. 13 withheld reasons still need current preview evidence. Search-index price agreement is not official archive acceptance. No resolution, exclusion, feature write or threshold change performed.
+- Added one compact incident-bound read-only collector with existing endpoints, source scope validation, timings, manifest drift disclosure and partial checkpoints; 70 offline mocked-HTTP assertions pass. Spare runs five GETs, including a narrowly scoped NSE evidence read and one bulk feature preview. [Handoff and limits](daily-quality-follow-up.md). No Java/app rebuild; no training. Paper integration is next engineering work, not activated by this diagnostic. Full-goal weighted completion unchanged.
+
 ## 2026-10-08 Paper verification launcher correction
 
 - E75: owner console shows the isolated persistence runner joined two Docker application paths into one filename and failed at process launch in 4.65 seconds. The JSON itself was not supplied for this review. No database check completion or leftover fixture is inferred from that transcript.

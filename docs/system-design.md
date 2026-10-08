@@ -2,7 +2,7 @@
 
 ## Isolated persistence engineering update
 
-2026-10-08: [paper persistence verification](paper-persistence-verification.md) defines a separate engineering schema, singleton row lock, atomic command/account commit, bounded replay, explicit policy/hash checks and uncertain-commit retry by identical command ID. It uses the verified paper core; PostgreSQL testing runs only in a disposable private container on spare. No Spring wiring or application migration exists. The legacy one-fill-per-order constraint remains unchanged pending a reviewed integration migration. The draft numerical policies and provider source gates remain unreleased despite proceeding without a direct Upstox answer.
+2026-10-08: [paper persistence verification](paper-persistence-verification.md) defines a separate engineering schema, singleton row lock, atomic command/account commit, bounded replay, explicit policy/hash checks and uncertain-commit retry by identical command ID. E76 passed 24 isolated PostgreSQL/restart checks on spare. No Spring wiring or application migration exists. The legacy one-fill-per-order constraint remains unchanged pending a reviewed integration migration. E77 [daily quality review](daily-quality-follow-up.md) uses existing read-only endpoints; no resolution or feature release is automatic. The draft numerical policies and provider source gates remain unreleased despite proceeding without a direct Upstox answer.
 
 ## E72 bounded implementation update
 

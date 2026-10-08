@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Latest E76 and E77 records
+
+- **E76 RUNTIME_VERIFIED, isolated persistence only:** [spare acceptance](evidence/paper-persistence-spare-acceptance-20261008.json); 21+3 checks, 1124.321 seconds, independent saved-report/accounting review, CRLF source identity and owned cleanup reconciled. Closes E74/E75 PostgreSQL spare checkpoint. No repeat; production integration and portal remain pending.
+- **E77 OFFLINE_VERIFIED, daily finding remains OPEN:** [daily quality follow up](daily-quality-follow-up.md); original audit has one POLICYBZR large move and automation has 13 withheld instruments. One-report collector passes 70 mocked-HTTP PS5.1 assertions. Official archive and individual withheld reasons still await spare capture. No numerical release, quality resolution or feature persistence authorized by test success.
+
 ### Latest E73 to E75 records
 
 - **E75 OFFLINE_VERIFIED, spare retry pending:** [Docker launcher correction](paper-persistence-verification.md#docker-launcher-correction). Owner console for `paper-persistence-20261008-170839-3f1139d207b8.json` establishes a pre-Docker launch failure, not a PostgreSQL failure. Single existing executable selection and pre-creation cleanup guard pass 56 offline PS5.1 assertions. Original report not attached; no hash or database outcome asserted. Java unchanged; earlier E74 Java evidence retained. No application rebuild or fixture deletion requested; share one fresh isolated-run report.

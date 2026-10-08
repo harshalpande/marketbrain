@@ -20,7 +20,7 @@ No credit for anticipated results, expired evidence, undocumented assumptions or
 
 ## Current dashboard
 
-**Current E73/E74 update, 2026-10-08:** the [parallel preparation](parallel-pilot-preparation.md) spare run passed 26/26 paper and 29/29 policy checks in 4.306 seconds. That bounded checkpoint is closed. [Isolated PostgreSQL persistence](paper-persistence-verification.md) is implemented and offline verified; actual PostgreSQL transaction/restart tests are the next spare step. Upstox has not provided a direct answer; proceed with independent engineering while source evidence stays unresolved. No collection, fitting or runtime paper account is activated. The 12.4% full-paper-first denominator remains unchanged.
+**Current E76/E77 update, 2026-10-08:** [isolated PostgreSQL persistence](paper-persistence-verification.md) passed 21+3 actual database/restart checks on spare; E73 parallel preparation also remains accepted. Do not repeat either. [Daily quality follow up](daily-quality-follow-up.md) targets one open POLICYBZR move and 13 withheld feature reasons without changing data or guardrails. Upstox source evidence stays unresolved. No fitting or runtime paper account is activated. Application integration and portal remain pending; the 12.4% full-paper-first denominator remains unchanged.
 
 E71 closed E69/E70 evidence-store spare verification: 22/22 checks in 4.254 seconds. Saved-snapshot assessment and standalone append-only storage remain accepted within their synthetic scope. No repeated storage/export verification, live collector or market fit is requested.
 
@@ -160,7 +160,7 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 - G08.1 `PARTIAL`: seed for INR 100,000 portfolio plus order/fill tables exist; no complete simulator demonstrated; E07.
 - G08.2 `PARTIAL` E72: offline exact-paise account, reservations, holdings, supplied fees and in-memory audit verified; durable shared accounting and realised/unrealised P&L pending.
 - G08.3 `PARTIAL` E72: fixture lifecycle, idempotency, fresh-price/risk checks, partial fills and cancellation/expiry verified; authenticated integration and exchange-realistic execution policy pending.
-- G08.4 `PARTIAL` E74: reconciliation, overflow and fixture concurrency verified; bounded PostgreSQL transaction/replay adapter offline tested. Actual isolated database/restart verification pending on spare; application integration, corporate actions, settlement and broader property tests remain pending.
+- G08.4 `PARTIAL` E76: reconciliation, overflow, concurrency, bounded PostgreSQL transaction/replay and isolated restart recovery verified on spare (24/24). Application integration, corporate actions, settlement, hardware-loss recovery and broader property tests remain pending.
 - G08.5 `DESIGNED`: share data, prediction, proposal, risk, approval and order-intent contracts with the future production workflow; a separately authorized broker adapter will differ from the paper adapter. Require contract conformance, not identical fill outcomes.
 - G08.6 `DESIGNED`: isolate the approved INR 100,000 portfolio from research simulation of rejected/unapproved proposals. Never reserve/spend approved-account cash for hypothetical trades; preserve distinct IDs, costs and assumptions.
 - Acceptance: paise-level ledger reconciliation, no negative available cash/overselling, one approval cannot create duplicate fills, crash replay preserves balances. Real broker order placement remains absent/disabled by construction.
