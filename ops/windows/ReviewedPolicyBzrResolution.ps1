@@ -19,6 +19,7 @@ function Assert-PolicyBzrEvidence($Evidence){
 }
 function New-PolicyBzrResolutionBody([string]$Reviewer){
     if([string]::IsNullOrWhiteSpace($Reviewer) -or $Reviewer.Length -gt 120){throw 'A reviewer name of 1-120 characters is required.'}
+    if($Reviewer.Trim() -match '^(RESOLVE|PERSIST|CONFIRM|YES|IDLE)(\s|$)'){throw 'Enter your actual reviewer name, not the confirmation phrase.'}
     [ordered]@{jobId='eebff875-3621-4064-a2ea-9de0b269681e';symbol='POLICYBZR';findingType='LARGE_MOVE';findingDate='2026-09-24';relatedDate=$null
         resolutionType='VERIFIED_EXCHANGE_MOVE';evidenceSource='NSE UDIFF bhavcopy; reviewed captured ISIN comparison'
         evidenceUrl='https://archives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260924_F_0000.csv.zip'

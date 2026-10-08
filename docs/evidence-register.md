@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E78 and E79 records
+### Latest E80 and E81 records
+
+- **E80 RUNTIME_VERIFIED with reviewer-label caveat:** [resolution acceptance](evidence/policybzr-resolution-acceptance-20261008.json); saved/read-back resolution, daily quality PASS, zero unresolved findings, unchanged ready manifest, 487 eligible / 13 insufficient-history, 133.922s. `reviewedBy` incorrectly contains the confirmation phrase; retain and disclose this limitation, not authenticated reviewer provenance. Feature snapshot not yet persisted.
+- **E81 OFFLINE_VERIFIED, snapshot persistence pending:** [October snapshot handoff](daily-quality-follow-up.md#reviewed-october-snapshot-persistence). 137 new mocked-HTTP assertions and 59 resolution regressions. Exact report digest, fresh quality/manifest checks, reviewer-name guard, one optional confirmed POST, stored manifest/count readback and read-only uncertain-write reconciliation. No local runtime calls. No scheduler reset, fitting or trading release.
+
+### Earlier E78 and E79 records
 
 - **E78 DIAGNOSTIC_ACCEPTED:** [spare follow-up](evidence/daily-quality-follow-up-acceptance-20261008.json), 155.008s, NSE price/ISIN match, all-500 feature classification independently replayed, 13 insufficient-history cases, unchanged manifest. Finding still OPEN; no resolution or feature write in the source report.
 - **E79 OFFLINE_VERIFIED, resolution apply pending:** [guarded resolution](daily-quality-follow-up.md#accepted-diagnostic-and-guarded-resolution), 59 mocked-HTTP PS5.1 assertions plus actual saved evidence guards. One reviewed finding only; optional confirmed POST, uncertain-commit handling, no automatic feature persistence or scheduler reset. No price repair, inference or broad training permission.

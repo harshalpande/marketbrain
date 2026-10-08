@@ -1,6 +1,56 @@
 # October 8 daily quality review
 
-The daily collection completed, but the feature snapshot remains blocked by one open POLICYBZR large-move finding. Review the exact finding and the withheld feature classifications without importing history, changing prices, writing resolutions or restarting automation.
+Current E80 result: the POLICYBZR resolution is saved, database quality is PASS, and the unchanged snapshot is READY but not yet persisted. One reviewer-label audit caveat remains. Earlier diagnostic/resolution instructions below are historical; do not rerun their POST. Next use the scoped snapshot handoff below.
+
+## Reviewed October snapshot persistence
+
+E80 [acceptance](evidence/policybzr-resolution-acceptance-20261008.json) verifies source SHA256 `91F75E59F91A17696687801CECBCA281EDBA6BD614173E8E982C645B0C6FC69F`, resolution `19bc5ced-9ec0-497b-a2d2-ff86768249cd`, 133.922 seconds, zero unresolved findings, 487 eligible and 13 insufficient-history stocks. The previous `reviewedBy` contains `RESOLVE POLICYBZR 2026-09-24`, not a proper reviewer name. Retain it unchanged; do not silently edit/revoke an append-only audit event. Next approval obtains a separate self-declared actual name and explicitly preserves the caveat. Authentication remains future work.
+
+E81 `SaveReviewedOctoberFeatureSnapshot.ps1` uses only existing loopback endpoints. Default is read-only preview/reconciliation. With `-Apply`, the operator separately confirms scope, with other data collection, repair and review jobs idle. The script verifies the accepted evidence digest and embedded evidence, health, exact current resolution and idle automation, fresh daily quality PASS/500 coverage and both manifests. It requires 487 eligible / 13 withheld, no stale/no-data/quality failures. An existing completed snapshot is read back without another POST. Otherwise it checkpoints intent, sends at most one snapshot POST, and verifies persisted quality: 500 items, 487 complete vectors, 13 withheld, zero partial/withheld-vector violations and recomputed manifest equality. Stage progress and request timings are saved in ONE unique JSON, including partial failures.
+
+No raw candle, exclusion, resolution, model, signal, order or scheduler changes. The existing server endpoint writes the feature run and its items transactionally; `expectedManifestHash` rejects feature drift. Client fresh quality checks are not an atomic server compare-and-set. The shared local review mutex protects only the same Windows session; single-operator/no-concurrent-jobs remains required. HTTP timeout does not prove server cancellation. No new SQL, Spring beans, migrations or application build is introduced.
+
+### Run on spare laptop
+
+Keep the existing service running. This is pull-only: no Docker rebuild or restart. Supply the accepted report file, not a regenerated diagnostic. Run in PowerShell:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+$branch = git branch --show-current
+if ($LASTEXITCODE -ne 0 -or $branch -ne 'main') { throw 'Expected main branch; stop and review.' }
+if (@(git status --porcelain).Count -ne 0) { throw 'Working tree has changes; stop and review them.' }
+if ($LASTEXITCODE -ne 0) { throw 'Git status failed.' }
+git -c maintenance.auto=false -c gc.auto=0 pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git pull failed; do not continue.' }
+
+$parameters = @{
+    EvidencePath = 'C:\MarketBrainData\Review\policybzr-reviewed-resolution-2798223d024e493b8dc060a828532a6c.json'
+    ReviewedBy = (Read-Host 'Enter your actual name, NOT the confirmation phrase')
+    Apply = $true
+}
+& '.\ops\windows\SaveReviewedOctoberFeatureSnapshot.ps1' @parameters
+```
+
+At the separate confirmation prompt type `PERSIST FEATURES 2026-10-08`. Success is `FEATURE_SNAPSHOT_VERIFIED_RELEASE_BLOCKED`, not trading readiness. Share the one printed `reviewed-feature-snapshot-<id>.json`. The request limits are 660 seconds for fresh preview, 900 for persistence and 180 for persisted quality; these are ceilings, not measured runtime promises. Progress is per completed stage, not a fabricated percentage during a server request.
+
+### Uncertain write or failed verification
+
+If the write timed out, or stored quality failed, preserve the report and wait until the server operation is known idle. Do not automatically rerun with Apply. Read-only reconciliation uses the same evidence:
+
+```powershell
+& '.\ops\windows\SaveReviewedOctoberFeatureSnapshot.ps1' -EvidencePath 'C:\MarketBrainData\Review\policybzr-reviewed-resolution-2798223d024e493b8dc060a828532a6c.json'
+```
+
+`PREVIEW_READY_NO_WRITE` means no matching completed snapshot was established; it is not proof an earlier in-flight operation rolled back. Share the report before another write. An existing conflicting/incomplete snapshot, changed manifest or new quality blocker stops the script. A verified snapshot does not repair the old REVIEW_REQUIRED automation row or send a fresh Telegram completion; reconcile that workflow separately after this evidence is reviewed.
+
+### Verification and remaining gates
+
+Offline `TestReviewedOctoberFeatureSnapshot.ps1`: 137 assertions using synthetic fixtures and mocked HTTP, confirmation and digest. Covers preview/apply/cancel, identity and manifest drift, active automation, conflict, before-write race, name validation, encoded reviewer query, lost acknowledgement, read-only recovery, partial/mismatched quality and one-file reporting. Resolution regression suite: 59 assertions. Actual supplied report guard/digest replayed separately. Runtime persistence is pending spare evidence. No local application, database, provider or model is run.
+
+Eight existing Java service/controller/preview tests also pass with mocked dependencies; no Java changes or connected-database verification are claimed.
+
+97.4% feature availability is not predictive accuracy. The 13 short-history stocks remain withheld; no synthetic backfill is created. Upstox source policy, original information availability, numerical validation and full paper-portal integration remain separate gates. Neither the individual finding's legacy `allowsTraining` flag nor TECHNICAL_V1's cutoff flag establishes permission to fit or trade.
 
 ## Accepted diagnostic and guarded resolution
 

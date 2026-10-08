@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-08 Resolution accepted; guarded snapshot handoff
+
+- E80: accepted report SHA256 `91F75E59F91A17696687801CECBCA281EDBA6BD614173E8E982C645B0C6FC69F`, 133.922s. POST/readback and embedded source evidence verified; daily quality PASS, zero unresolved findings, unchanged ready manifest, 487/500 eligible and 13 withheld. Snapshot not yet persisted. [Acceptance](evidence/policybzr-resolution-acceptance-20261008.json).
+- Audit caveat: confirmation phrase entered as reviewer name. Existing record retained unchanged; next approval requires the actual self-declared name and rejects confirmation tokens. Not authenticated identity enforcement.
+- E81: one-report optional-apply snapshot script validates fresh readiness/manifest/resolution, refuses active automation, uses existing transactional service, then verifies stored counts and recomputed manifest. Existing snapshots reconcile read-only; uncertain POST outcomes are never automatically retried. No scheduler reset, candle/exclusion edits, fitting or orders.
+- Verification: 137 mocked snapshot assertions, 59 resolution regressions, eight existing Java service/controller/preview tests, supplied-report guards and syntax/JSON/SVG checks pass. Spare verification pending. Java unchanged; pull only, no Docker rebuild. [Runbook](daily-quality-follow-up.md#reviewed-october-snapshot-persistence). Full-goal weighted completion remains 12.4%; no predictive improvement inferred.
+
 ## 2026-10-08 Daily finding evidence accepted and resolution handoff
 
 - E78: accepted exact saved follow-up SHA256 `190CE4143E39B84AADC14B34570E2278D7AB60F78448BEB2D81A0FB9910B4349`, 155.008s. POLICYBZR NSE ISIN/EQ prices match exactly; all 13 withheld instruments are short of 252 observations; 487 eligible, zero stale/no-data, unchanged manifest. [Acceptance](evidence/daily-quality-follow-up-acceptance-20261008.json). No repeat collection needed.
