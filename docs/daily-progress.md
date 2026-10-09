@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-09 Storage accepted and recovery preparation
+
+- E96 accepts the uploaded application-storage report:12/12 isolated checks,27 source hashes matched, raw/parsed phases agree. Key status verified; INR100,000 cash, zero reserves and revision0 retained. Total734.530s includes owner confirmations; isolated84.005s. Backup/key confirmations do not prove an actual restore.
+- Owner authorized further actions. E97 combines logical backup/restore, exact synthetic row comparison, restored-delivery quarantine and redacted audit-reader permissions in14 new checks. No earlier spare acceptance bundle needs repeating, and no application restart, real token/key or provider call is requested.
+- The audit reader is deliberately not an approval writer. Current review row locks need a reviewed restricted command boundary before scoped write activation; cash UPDATE must not be granted merely to enable locking. Actual application restore, key rotation, uncertain-delivery reconciliation, real transport and risk/execution remain gates.
+- Local verification:636 Java tests passed (11 new);99 mocked recovery workflow assertions (43 new),91 storage and92 delivery regression assertions passed. Shared assertions overlap; no local Docker/database/application execution. Full-goal weighted baseline remains12.4%; this is safety engineering, not prediction accuracy.
+
 ## 2026-10-09 Delivery accepted and application storage setup
 
 - E94 accepts all 24 delivery/recovery checks, 199.542s total and 37.589s Java checks; 30 source hashes and raw/parsed output match. Synthetic cash INR100,000, no reservations/orders/fills, expected uncertain-delivery fixture preserved without resend, and owned cleanup completed. No real Telegram/provider/application use was claimed.

@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E97",
+  "reviewedAt": "2026-10-09",
+  "status": "OFFLINE_VERIFIED_ISOLATED_RUNTIME_PENDING",
+  "java": {"command": "mvn -q package", "exitCode": 0, "tests": 636, "failures": 0, "errors": 0, "skipped": 0, "newRecoveryUnitTests": 11},
+  "powerShell": {
+    "recoveryWorkflowAssertions": 99,
+    "newRecoveryAssertions": 43,
+    "storageRegressionAssertions": 91,
+    "deliveryRegressionAssertions": 92,
+    "note": "Totals include shared assertions; do not sum as unique coverage. Docker operations are replaced in memory, including pg_dump and pg_restore."
+  },
+  "spareChecks": {"prepare": 2, "recover": 12, "verifiedLocallyAgainstPostgreSql": false},
+  "noNewSpringBeansOrEndpoints": true,
+  "noNewFlywayMigration": true,
+  "applicationDatabaseAccessed": false,
+  "applicationRestoreVerified": false,
+  "productionKeyRead": false,
+  "approvalWriterReady": false,
+  "actionExecutionEnabled": false,
+  "remainingGates": ["Spare synthetic backup/restore and redacted audit permission acceptance", "Actual application backup restoration", "Scoped approval-writer interface and credential", "Key rotation and governed delivery reconciliation", "Real Telegram/quote review-only acceptance", "Approved risk, paper reservation, fills, costs and PnL"]
+}

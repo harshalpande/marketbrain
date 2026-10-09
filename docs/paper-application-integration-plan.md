@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+Current E96/E97: V28 storage/key attachment is accepted on spare (12/12 checks). The next active handoff is [backup recovery and audit permissions](paper-recovery-verification.md):14 new isolated checks and one report, without application restart or real credentials. It verifies a restricted audit reader, not the pending approval writer. Do not rerun the historical E95 deployment below.
+
 Latest E94/E95: 24/24 delivery/recovery checks are accepted. [Application storage/key setup](paper-approval-storage.md) is now the active handoff: 12 new isolated checks followed by guarded V28 deployment and status/account verification, with one shareable report. It requires database and key backups. Earlier isolated commands below are historical; do not rerun them separately. Notification/approval/execution activation stays disabled.
 
 Latest E92/E93: the 32 approval database/restart checks are accepted (185.262s). The next batch is [delivery and quote integration rehearsal](paper-delivery-integration.md), with 24 new combined checks and one report. Durable encrypted publication and transport adapters are implemented but application activation, credentials, approved risk and execution are not. Earlier E91 pending wording and commands below are historical; use only the latest handoff.

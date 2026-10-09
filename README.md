@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Read-only ledger/portal, isolated approval and **24/24 delivery/recovery checks** are accepted through E94. Next: [guarded application approval storage/key setup](docs/paper-approval-storage.md) (E95), combining isolated checks and application attachment in one handoff. Database and key backups are required. Real Telegram/provider approval activation and trading remain disabled. Account #1 remains INR100,000; October feature reconciliation is closed (E84).
+Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Approval storage/key attachment is accepted on spare (E96): **12/12 checks**, key verified, account #1 unchanged at INR100,000. Next: [backup recovery and restricted audit verification](docs/paper-recovery-verification.md) (E97), 14 combined synthetic checks with one report and no application restart. Production approval-writer permissions, real Telegram/provider approval activation and trading remain blocked. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 

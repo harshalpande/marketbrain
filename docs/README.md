@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-Latest, 2026-10-09: E94 accepts **24/24 delivery/recovery checks** in 199.542s. E95 [application approval storage/key setup](paper-approval-storage.md) now combines 12 new isolated checks and guarded application attachment in one handoff/report. Existing INR100,000 is preserved. Real notification/approval/execution activation remains blocked; full-goal baseline stays 12.4%.
+Latest, 2026-10-09: E96 accepts application storage/key attachment: **12/12 checks**, 734.530s including confirmations, INR100,000 preserved and key status verified. E97 [backup recovery and audit permissions](paper-recovery-verification.md) is the next 14-check isolated handoff, with no application restart or credentials. Audit-reader verification is not production approval-writer activation. Real transport/risk/execution remain blocked; full-goal baseline stays 12.4%.
 
 Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.
 

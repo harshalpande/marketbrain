@@ -1,5 +1,7 @@
 # Paper approval storage and key setup
 
+**Accepted:** E96 verifies this application handoff on spare:12/12 isolated checks, key status verified, cash INR100,000/reserves0/revision0 unchanged; total734.530s including confirmations. Do not repeat deployment. The current handoff is [backup recovery and audit permissions](paper-recovery-verification.md), which needs no application restart. Commands and pending wording below preserve the E95 implementation contract; its spare attachment gate is now closed.
+
 2026-10-09. The preceding delivery rehearsal is accepted: **24/24 checks in 199.542 seconds**, with all 30 source hashes verified (E94). The next authorized batch (E95) attaches approval storage to the existing application and binds a persistent encryption key. **Sending, callback activation, reservations and execution remain disabled.**
 
 ## Application changes

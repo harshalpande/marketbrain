@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E94 and E95 records
+### Latest E96 and E97 records
+
+- **E96 APPLICATION_STORAGE_AND_KEY_RUNTIME_ACCEPTED:** [acceptance](evidence/paper-storage-spare-acceptance-20261009.json), report SHA256 `0D643B59174365D11FA3B2601DF2149305B62D1165AE27EA7DCF2B80A8E15F53`, revision045b81b. Twelve checks passed; 27 source hashes and raw/parsed outputs agree. Isolated84.005s; total734.530s including confirmations. Application key verified, original account INR100,000/reserved0/revision0, anonymous access denied, owned cleanup completed. Backup confirmations are owner assertions, not restore-test results. E95 spare gate closes; transport and execution remain blocked.
+- **E97 RECOVERY_AND_AUDIT_READER_ENGINEERING / SPARE_PENDING:** [handoff](paper-recovery-verification.md) adds custom-format synthetic backup, atomic restore into a separate database, exact table-row hash comparison, restored-recipient quarantine and restricted redacted audit views. Fourteen new checks (2 preparation +12 recovery) await spare execution. [Local evidence](evidence/paper-recovery-local-20261009.json):636 Java tests,99 recovery workflow assertions,91 storage and92 delivery regression assertions passed; imported assertions overlap. No application schema/configuration change; production writer, actual application backup restoration and activation remain pending.
+
+### Historical E94 and E95 records
 
 - **E94 ISOLATED_DELIVERY_RUNTIME_ACCEPTED:** [acceptance](evidence/paper-delivery-spare-acceptance-20261009.json), report SHA256 `282C04A214FD3D583C06E4E2F6E5276B81CF1171B9D2B95070493B163AEBCB89`, revision a22b797, 199.542s. All 21 preparation + 3 recovery cases passed, 30 source hashes and raw/parsed outputs agree; fixture cash/reserves/history preserved and owned resources removed. Deliberate uncertain delivery stayed unresent. Fake HTTP only; E93 runtime gate closes without external transport activation.
 - **E95 APPLICATION_STORAGE_AND_KEY_SETUP / SPARE_PENDING:** [handoff](paper-approval-storage.md) promotes accepted SQL into V28, adds immutable key binding, opt-in read-only secret mount and private status GET. Twelve new isolated checks precede guarded application deployment in one script; database and key backup confirmations required. No notification/publisher/callback/execution activation. Dedicated writer permissions, operational rotation/reconciliation, approved risk and real transport remain release gates. Local results: [verification](evidence/paper-storage-local-20261009.json).
