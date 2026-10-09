@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+Latest E94/E95: 24/24 delivery/recovery checks are accepted. [Application storage/key setup](paper-approval-storage.md) is now the active handoff: 12 new isolated checks followed by guarded V28 deployment and status/account verification, with one shareable report. It requires database and key backups. Earlier isolated commands below are historical; do not rerun them separately. Notification/approval/execution activation stays disabled.
+
 Latest E92/E93: the 32 approval database/restart checks are accepted (185.262s). The next batch is [delivery and quote integration rehearsal](paper-delivery-integration.md), with 24 new combined checks and one report. Durable encrypted publication and transport adapters are implemented but application activation, credentials, approved risk and execution are not. Earlier E91 pending wording and commands below are historical; use only the latest handoff.
 
 Current E90/E91 update: V27 application attachment/readback and visible portal read/lock are accepted. The existing account remains INR100,000 with zero reservations and revision0. Phase 3 begins with the [internal approval review candidate](paper-approval-review.md) and 32 isolated PostgreSQL checks pending on spare. No runtime approval, quote adapter or simulated execution is activated. Older deployment-pending text below records prior checkpoints, not the next instruction.

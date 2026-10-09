@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-Latest, 2026-10-09: E92 accepts **32/32 approval checks** on spare in 185.262s. E93 [delivery/quote integration rehearsal](paper-delivery-integration.md) combines atomic encrypted publication, one-attempt delivery, private callbacks and strict quotes in **24 new isolated checks**. Real Telegram/provider adapters remain unwired; approval/execution are not activated. Run the new isolated bundle only, not earlier accepted suites. Account #1 remains INR100,000; full-goal baseline stays 12.4%.
+Latest, 2026-10-09: E94 accepts **24/24 delivery/recovery checks** in 199.542s. E95 [application approval storage/key setup](paper-approval-storage.md) now combines 12 new isolated checks and guarded application attachment in one handoff/report. Existing INR100,000 is preserved. Real notification/approval/execution activation remains blocked; full-goal baseline stays 12.4%.
 
 Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.
 

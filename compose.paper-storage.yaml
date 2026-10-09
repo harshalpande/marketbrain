@@ -1,0 +1,13 @@
+# Explicit opt-in overlay. Not part of a normal Compose invocation.
+services:
+  marketbrain-service:
+    environment:
+      MARKETBRAIN_PAPER_APPROVAL_STORAGE_ENABLED: "true"
+      MARKETBRAIN_PAPER_APPROVAL_KEY_FILE: /run/secrets/paper-approval.key
+    volumes:
+      - type: bind
+        source: ${MARKETBRAIN_PAPER_APPROVAL_KEY_HOST_FILE:?Use the guarded paper storage deployment script}
+        target: /run/secrets/paper-approval.key
+        read_only: true
+        bind:
+          create_host_path: false

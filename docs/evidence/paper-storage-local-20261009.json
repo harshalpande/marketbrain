@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E95",
+  "reviewedAt": "2026-10-09",
+  "status": "OFFLINE_VERIFIED_SPARE_APPLICATION_ACCEPTANCE_PENDING",
+  "java": {"command": "mvn -q package", "exitCode": 0, "tests": 625, "failures": 0, "errors": 0, "skipped": 0, "newStorageTests": 21},
+  "powerShell": {
+    "storageWorkflowAssertions": 91,
+    "storageDeployWorkflowAssertions": 220,
+    "deliveryRegressionAssertions": 92,
+    "note": "Workflow totals include shared/imported assertions and must not be summed as unique checks. Native Docker, HTTP and production key provisioning mocked."
+  },
+  "sparePreflight": {"prepareChecks": 10, "restartChecks": 2, "runtimeVerifiedLocally": false},
+  "migration": "V28__attach_paper_approval_storage.sql",
+  "previousSqlExecutableParityVerified": true,
+  "springDefaultAndComposeEnvironmentWiringVerified": true,
+  "localApplicationDatabaseAccessed": false,
+  "localDockerRuntimeUsed": false,
+  "realEncryptionKeyProvisionedLocally": false,
+  "callbackBeanRegistered": false,
+  "actionExecutionEnabled": false,
+  "remainingGates": ["Spare isolated preflight and guarded application deployment", "Actual backup/restore exercise", "Dedicated approval writer permissions", "Governed key rotation and uncertain-delivery recovery", "Real private Telegram and quote review-only test", "Approved risk and atomic paper execution, fill/cost/PnL policy"]
+}

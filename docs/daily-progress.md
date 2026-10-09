@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-09 Delivery accepted and application storage setup
+
+- E94 accepts all 24 delivery/recovery checks, 199.542s total and 37.589s Java checks; 30 source hashes and raw/parsed output match. Synthetic cash INR100,000, no reservations/orders/fills, expected uncertain-delivery fixture preserved without resend, and owned cleanup completed. No real Telegram/provider/application use was claimed.
+- Owner authorized the next stage. E95 promotes accepted approval/delivery SQL to V28, adds immutable encrypted key verification and opt-in startup binding. A mounted private host key is reused, never automatically replaced. Read-only status checks the current key; missing/mismatched setup leaves actions disabled without deliberately breaking unrelated collection startup. No callback/publisher/worker is registered.
+- One guarded spare script runs 12 new isolated migration/key/restart checks before deployment, obtains database/key backup confirmations, deploys service/UI with a read-only key mount, and verifies the unchanged account and private no-store status. Only one main JSON needs sharing; it embeds the isolated evidence. Actual startup/ACL/mount/migration and backup restoration remain spare/operator acceptance, not local claims.
+- Maven package: **625 Java tests**, zero failures/errors/skips, including 21 new storage cases. Offline PowerShell: **91 storage**, **220 deployment**, **92 delivery-regression** assertions; these include shared checks and are not additive. [Verification](evidence/paper-storage-local-20261009.json). Corrected a missing JDBC mock statement during test development; final suites pass. No local Docker/application/provider or production key provisioning.
+- Relevant docs/current SVG updated. [Active handoff](paper-approval-storage.md) supersedes earlier deploy commands. Dedicated writer permissions, operational key rotation/uncertain-delivery recovery, real review-only transport, risk approval and paper execution remain gated. Parent baseline **12.4%** unchanged; no predictive-performance claim.
+
 ## 2026-10-09 Approval accepted; combined delivery and quote rehearsal
 
 - E92 accepts the supplied `paper-approval-20261009-184445-c9a5b2447f02.json`: 30 preparation + 2 restart checks, zero failures, 185.262s. Hash and raw/parsed/source checks retained in the acceptance record. Existing cash INR100,000, zero reserves/revision/orders/fills and one review receipt remain intact in the recovery fixture. No application/provider/model side effects; owned fixture cleanup verified.

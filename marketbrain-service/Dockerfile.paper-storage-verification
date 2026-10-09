@@ -1,0 +1,11 @@
+FROM maven:3.9.11-eclipse-temurin-21 AS build
+WORKDIR /verification
+COPY pom.xml .
+RUN mvn -q -DskipTests dependency:go-offline
+COPY src src
+RUN mvn -q -DskipTests compile dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=/verification/lib
+FROM eclipse-temurin:21-jre
+WORKDIR /verification
+COPY --from=build /verification/target/classes /verification/classes
+COPY --from=build /verification/lib /verification/lib
+ENTRYPOINT ["java", "-Xmx256m", "-cp", "/verification/classes:/verification/lib/*", "in.marketbrain.paper.PaperStorageVerification"]

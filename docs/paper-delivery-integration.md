@@ -1,5 +1,7 @@
 # Phase 3: delivery and quote integration rehearsal
 
+**Accepted update:** E94 closes this 24-case spare checkpoint in 199.542s. Do not repeat its handoff below. E95 [application storage/key setup](paper-approval-storage.md) is next and supersedes the earlier outside-Flyway statement: V28 now promotes these schemas, while real transport and execution remain disabled.
+
 2026-10-09. E92 accepts the previous **32/32** isolated approval checks in **185.262 seconds**. No repeat of that bundle is requested. E93 connects the internal publication, delivery, callback and quote-review components in a new **24-case isolated rehearsal**. This is partial Phase 3 engineering, not activated application approval or execution.
 
 ## What is implemented

@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E92 and E93 records
+### Latest E94 and E95 records
+
+- **E94 ISOLATED_DELIVERY_RUNTIME_ACCEPTED:** [acceptance](evidence/paper-delivery-spare-acceptance-20261009.json), report SHA256 `282C04A214FD3D583C06E4E2F6E5276B81CF1171B9D2B95070493B163AEBCB89`, revision a22b797, 199.542s. All 21 preparation + 3 recovery cases passed, 30 source hashes and raw/parsed outputs agree; fixture cash/reserves/history preserved and owned resources removed. Deliberate uncertain delivery stayed unresent. Fake HTTP only; E93 runtime gate closes without external transport activation.
+- **E95 APPLICATION_STORAGE_AND_KEY_SETUP / SPARE_PENDING:** [handoff](paper-approval-storage.md) promotes accepted SQL into V28, adds immutable key binding, opt-in read-only secret mount and private status GET. Twelve new isolated checks precede guarded application deployment in one script; database and key backup confirmations required. No notification/publisher/callback/execution activation. Dedicated writer permissions, operational rotation/reconciliation, approved risk and real transport remain release gates. Local results: [verification](evidence/paper-storage-local-20261009.json).
+
+### Historical E92 and E93 records
 
 - **E92 ISOLATED_APPROVAL_RUNTIME_ACCEPTED:** [spare acceptance](evidence/paper-approval-spare-acceptance-20261009.json), report SHA256 `6198DED6EB8D7BA978A8B18599E759392C1A5F0CAEC43540297A69EA468C21D2`, revision466c13e,185.262s. All30 preparation +2 restart checks passed; raw/parsed outputs agree and22 source hashes match with CRLF normalization. Final fixture cash100000, reserves/revision/orders/fills0, one review receipt; owned fixtures cleaned up. Zero application DB/provider/Telegram/model calls. E91's isolated runtime gate closes, not application transport or execution readiness.
 - **E93 DELIVERY_QUOTE_REHEARSAL / ISOLATED_SPARE_PENDING:** [contract and handoff](paper-delivery-integration.md), [local verification](evidence/paper-delivery-local-20261009.json). Atomic encrypted publication, single-attempt delivery/uncertainty, private callback hook and strict bounded adapters. Twenty-one prepare +three restart checks use disposable PostgreSQL and fake HTTP only. No production migration, key configuration, registered callback bean, external message/quote or execution enabled. Parent baseline12.4% unchanged.
