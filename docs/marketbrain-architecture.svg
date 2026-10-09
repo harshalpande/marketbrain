@@ -21,7 +21,7 @@
   <rect x="30" y="94" width="350" height="110" rx="9" class="existing"/>
   <text x="48" y="121" class="label">Upstox REST / historical data</text>
   <text x="48" y="148" class="body">Existing source: instruments, quotes, candles</text>
-  <text x="48" y="173" class="body">Snapshot saved; reconcile pending</text>
+  <text x="48" y="173" class="body">October snapshot reconciliation accepted</text>
   <rect x="425" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="443" y="121" class="label">Upstox + Paytm live feeds</text>
   <text x="443" y="148" class="body">Planned streaming / read-only integration</text>
@@ -45,12 +45,12 @@
   <path d="M600 488 V520" class="line"/>
   <rect x="180" y="522" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="550" class="label">Java proposal + risk → portal / private Telegram → ACCEPT / REJECT</text>
-  <text x="200" y="578" class="body">Existing notification/risk foundations • Planned end-to-end wiring, expiry and price-zone checks</text>
-  <text x="200" y="601" class="body">One-time idempotent approval; fresh quote, holdings and risk revalidation before acceptance</text>
+  <text x="200" y="578" class="body">Internal approval review candidate; 32 isolated database checks pending on spare</text>
+  <text x="200" y="601" class="body">Recipient / expiry / quote / account checks; transport and execution remain disconnected</text>
   <path d="M600 614 V646" class="line"/>
   <rect x="180" y="648" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="676" class="label">PAPER portal + execution + one INR 100,000 ledger — planned workflow</text>
-  <text x="200" y="704" class="body">Ledger isolated tests passed; V27 + read balances built; spare deployment pending</text>
+  <text x="200" y="704" class="body">V27 + read balances + visible read/lock accepted; orders and P&amp;L still blocked</text>
   <text x="200" y="727" class="body">Isolated research simulation; shared future-live contracts, NOT identical fills or a LIVE switch</text>
   <rect x="30" y="776" width="735" height="84" rx="9" class="planned"/>
   <text x="48" y="804" class="label">Release gate: ≥30 elapsed days AND ≥20 trading sessions</text>

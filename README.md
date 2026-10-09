@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Phase 1 read-only portal is accepted (E86); all 31 isolated ledger checks passed (E88). [Phase 2 attachment](docs/paper-application-ledger.md#application-attachment-handoff) adds V27 and read-only reservation balances; guarded application deployment is next. No account is reseeded or trading enabled. October feature reconciliation is closed (E84).
+Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Read-only ledger deployment and visible Read/Refresh + Clear/Lock behaviour are accepted (E90); account #1 retains INR100,000, zero reserves and revision 0. Next: [approval review candidate and 32-case isolated handoff](docs/paper-approval-review.md) (E91). No application redeployment, Telegram/provider activation or trading is enabled by that test. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 

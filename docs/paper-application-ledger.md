@@ -1,6 +1,6 @@
 # Phase 2: durable paper-account ledger
 
-2026-10-09. E88 accepts all 31 isolated database checks in 218.014 seconds. E89 promotes the verified SQL to V27 and implements the read-only application attachment described below. **Application deployment is pending; execution remains disabled.** E86 remains the accepted Phase 1 portal checkpoint.
+2026-10-09. E88 accepts all 31 isolated database checks in 218.014 seconds. E89 promotes verified SQL to V27; E90 now accepts application deployment/readback (208.010s) and owner Read/Refresh + Clear/Lock screenshots. **Read-only attachment is accepted; execution remains disabled.** Next is the [approval review candidate](paper-approval-review.md), not another attachment deployment. Historical handoff below is retained for traceability.
 
 ## Implemented contract
 

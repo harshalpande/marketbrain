@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E88 and E89 records
+### Latest E90 and E91 records
+
+- **E90 APPLICATION_LEDGER_READ_AND_VISIBLE_BROWSER_BEHAVIOUR_ACCEPTED:** [acceptance](evidence/paper-ledger-read-acceptance-20261009.json), source SHA256 `9F1EEC3B3E280A305EE90561F5AA870614AA11E4CE07C6B91AD5A1C4E108D241`, revision a942a01, 208.010s. V1 preflight to V2 read-only attachment; account 1/cash100000 preserved, zero reserves, revision0, anonymous401 and proxy/page pass. Owner screenshots show masked-token read and cleared-token/hidden-balances lock. Visible behaviour accepted, not browser-forensic or backup-restore proof. E89 deployment-pending gate is closed; no rerun needed.
+- **E91 APPROVAL_REVIEW_CANDIDATE / ISOLATED_SPARE_PENDING:** [contract and handoff](paper-approval-review.md), [offline verification](evidence/paper-approval-local-20261009.json). Internal one-time proposal-level ACCEPT/REJECT review, recipient/expiry/fresh-quote/policy/account checks, immutable terminal receipts and no ledger writes. Candidate tables remain outside Flyway and Telegram remains blocked. Thirty preparation plus two restart cases await spare execution; no authenticated end-to-end or predictive-quality claim.
+
+### Historical E88 and E89 records
 
 - **E88 ISOLATED_LEDGER_RUNTIME_VERIFIED:** [accepted spare evidence](evidence/paper-ledger-spare-acceptance-20261009.json), 31/31 checks in 218.014s, zero failures. Raw/parsed output agrees; recorded source hashes match after Windows CRLF normalization. Restart retained committed balances; duplicate replay did not debit twice; expiry released remaining reserves. Owned containers/anonymous volumes and network removed. Application database not accessed; no execution enabled. Do not rerun this accepted checkpoint.
 - **E89 APPLICATION_ATTACHMENT_IMPLEMENTED / SPARE DEPLOYMENT PENDING:** [migration/read contract and handoff](paper-application-ledger.md). V27 matches verified candidate SQL; opening ledger exposed through authenticated read-only V2 API/portal, with inconsistent amounts withheld. Deploy requires fresh account preflight, idle confirmation and owner-confirmed backup. No command wiring or automatic fills. Offline results are recorded in daily progress; actual application Flyway/proxy/browser acceptance remains pending.

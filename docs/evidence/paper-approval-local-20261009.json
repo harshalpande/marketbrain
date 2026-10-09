@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E91",
+  "status": "OFFLINE_VERIFIED_ISOLATED_POSTGRESQL_PENDING",
+  "mavenPackage": {"tests": 566, "failures": 0, "errors": 0, "skipped": 0},
+  "newApprovalJavaTests": 34,
+  "offlinePowerShell": {
+    "approvalWorkflowAssertions": 90,
+    "ledgerRegressionAssertions": 80,
+    "sharedPersistenceAssertionsIncludedInBoth": 56,
+    "uniqueAssertions": 114,
+    "dockerTransport": "MOCKED"
+  },
+  "sparePostgreSqlSuite": {"prepareCases": 30, "restartCases": 2, "status": "NOT_RUN_LOCALLY"},
+  "applicationMigrationAdded": false,
+  "applicationDatabaseAccessed": false,
+  "providerCalls": 0,
+  "telegramCalls": 0,
+  "modelCalls": 0,
+  "actionExecutionEnabled": false,
+  "applicationWiring": "NONE: internal candidate, SQL outside Flyway, existing Telegram approval block retained",
+  "browserCodeChanged": false,
+  "limits": ["Mocked tests do not prove PostgreSQL transactions or locks", "No application migration or end-to-end authenticated transport acceptance", "Quote adapter, network timeout and approved comprehensive risk policy remain pending", "No financial accuracy or profit inference"]
+}

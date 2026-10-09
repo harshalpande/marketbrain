@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-09 Read/lock accepted; approval review candidate
+
+- E90 accepts `paper-ledger-read-a942e67bc4f24f2aa62b70014c89abba.json`, SHA256 `9F1EEC3B3E280A305EE90561F5AA870614AA11E4CE07C6B91AD5A1C4E108D241`, revision a942a01, elapsed208.010s. V27/readback preserves account1 and INR100,000, zero reserves, revision0; anonymous401 and proxy checks pass. Two owner screenshots confirm visible Read/Refresh and Clear/Lock behaviour. No browser-forensic or restore claim. Previous attachment deployment gate closed; do not repeat it.
+- Owner authorized next steps. E91 implements internal durable proposal/token/terminal-review storage, recipient/expiry checks, provider/instrument/time/zone/risk checks, policy fingerprint and account-revision binding. Network quote loading occurs outside database locks; binding/account/expiry are rechecked afterward. Duplicate callbacks and opposing actions cannot create a second decision. No cash/reserve/order mutation occurs.
+- Candidate SQL remains outside Flyway. No Spring/HTTP/Telegram/provider adapter is connected; existing runtime approval block remains. Bounded trusted quote adapter, durable publication/outbox, complete approved risk policy and atomic execution revalidation are later release gates, not inferred from fixtures.
+- Verification: Maven package **566 tests**, zero failures/errors/skips, including **34 new approval cases**. Approval PowerShell workflow **90 assertions**; ledger regression **80**, with 56 shared (114 unique). These use mocked transport, not real PostgreSQL. A 32-case isolated spare suite covers 30 preparation cases plus two restart/replay cases; one compact JSON includes progress, timings, hashes and outputs. No local Docker/database/model/provider runtime run.
+- Updated canonical docs and current SVG. [Next handoff](paper-approval-review.md) builds only disposable verification resources; no app redeploy or token needed. Full-goal baseline remains12.4%; Phase3 and predictive performance are not complete.
+
 ## 2026-10-09 Ledger accepted and application attachment implemented
 
 - E88 accepts `paper-ledger-20261009-152350-21a212db6ffa.json`: 31/31 checks, 218.014s, restart recovery, retained duplicate identity and reservation release passed. Source SHA256 `732EE4DE241D67E0328D732708585517018DAA203D454D121EF043C9CB2B923B`. Raw/parsed output parity verified; all differing source hashes match after CRLF normalization. Fixture cleanup completed; application database was not accessed. No rerun of this checkpoint requested.

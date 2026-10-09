@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-Latest, 2026-10-09: E88 accepts 31/31 isolated ledger checks. E89 [application attachment](paper-application-ledger.md#application-attachment-handoff) adds V27 and read-only ledger balances, with backup confirmation and fresh account preflight. Application deployment/readback is pending; trading remains disabled. See [integration phases](paper-application-integration-plan.md); full-goal baseline remains 12.4%.
+Latest, 2026-10-09: E90 accepts V27 application attachment/readback and the owner's Read/Refresh and Clear/Lock screenshots. Account #1 retains INR100,000 with zero reserves, revision 0. E91 [approval review candidate](paper-approval-review.md) adds a separate 32-case isolated database handoff; Telegram/provider wiring and execution remain blocked. No application redeployment or repeat of accepted ledger tests is needed now. Full-goal baseline remains 12.4%.
 
 Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.
 
