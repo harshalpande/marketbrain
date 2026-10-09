@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-09 Snapshot accepted and automation reconciliation
+
+- E82 accepts the spare snapshot report: 104.796s, 500 stored records, 487 complete vectors, 13 withheld, zero violations, one successful POST and matching recomputed manifest. Source SHA256 `128C921E4C21734E9CC0801B39735ECDF9152A43C9906FB3695FEE44ACB62324`. [Acceptance](evidence/reviewed-feature-snapshot-acceptance-20261009.json). Do not repeat snapshot persistence. Previous resolution reviewer caveat is unchanged.
+- E83 prepares an incident-bound reconciliation API, append-only V26 audit, and one-report optional-apply script. Fresh stored/daily quality checks; transaction plus row lock; matching replay read-only; no feature calculation/provider/model calls. Warning history remains; normal notifier may deliver a separate completion after commit. No notification receipt inferred.
+- [Deployment, verification and recovery](reviewed-feature-reconciliation.md). 84 mocked PowerShell assertions and 469 Java tests (35 new) pass, zero failures/errors/skips; supplied-evidence guard, script/handoff parsing, JSON/SVG checks pass. Runtime migration/apply pending; actual PostgreSQL locking/rollback is not established by mocked tests. Full-goal weighted completion remains 12.4%; this closes a data-operations substep, not a model-performance or paper-portal milestone.
+
 ## 2026-10-08 Resolution accepted; guarded snapshot handoff
 
 - E80: accepted report SHA256 `91F75E59F91A17696687801CECBCA281EDBA6BD614173E8E982C645B0C6FC69F`, 133.922s. POST/readback and embedded source evidence verified; daily quality PASS, zero unresolved findings, unchanged ready manifest, 487/500 eligible and 13 withheld. Snapshot not yet persisted. [Acceptance](evidence/policybzr-resolution-acceptance-20261008.json).

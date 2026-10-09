@@ -1,6 +1,6 @@
 # October 8 daily quality review
 
-Current E80 result: the POLICYBZR resolution is saved, database quality is PASS, and the unchanged snapshot is READY but not yet persisted. One reviewer-label audit caveat remains. Earlier diagnostic/resolution instructions below are historical; do not rerun their POST. Next use the scoped snapshot handoff below.
+Current E82 result: the POLICYBZR resolution and October 8 snapshot are saved; all 500 stored items and their manifest passed verification. The prior resolution reviewer-label caveat remains. Do not repeat the diagnostic, resolution or snapshot POST below. Next use [E83 guarded automation reconciliation](reviewed-feature-reconciliation.md); earlier handoffs remain for traceability.
 
 ## Reviewed October snapshot persistence
 

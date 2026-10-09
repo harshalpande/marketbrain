@@ -1,0 +1,32 @@
+{
+  "evidenceId": "E82",
+  "status": "SNAPSHOT_PERSISTENCE_RUNTIME_VERIFIED_AUTOMATION_PENDING",
+  "reviewDate": "2026-10-09",
+  "targetDate": "2026-10-08",
+  "sourceFile": "reviewed-feature-snapshot-7b3af00824bc43e6b1b2e00cc84c0529.json",
+  "sourceSha256": "128C921E4C21734E9CC0801B39735ECDF9152A43C9906FB3695FEE44ACB62324",
+  "elapsedSeconds": 104.7956698,
+  "sourceStatus": "FEATURE_SNAPSHOT_VERIFIED_RELEASE_BLOCKED",
+  "featureSnapshotRunId": "fc15cbe7-15c7-46ab-989e-f09ba7978858",
+  "dailyRunId": "eebff875-3621-4064-a2ea-9de0b269681e",
+  "featureManifestHash": "50e0749dfdfbc3e370f4cd5d0f23069021154bf69baafcc815cffcb509cbbb62",
+  "reviewedBy": "Harshal Pande",
+  "persistedItemCount": 500,
+  "completeVectorCount": 487,
+  "withheldCount": 13,
+  "partialVectorViolationCount": 0,
+  "withheldVectorViolationCount": 0,
+  "manifestMatches": true,
+  "postCount": 1,
+  "allEightRequestsReturned": true,
+  "signalsCreated": 0,
+  "ordersCreated": 0,
+  "lastCapturedAutomationStatus": "REVIEW_REQUIRED",
+  "lastCapturedAutomationError": "DATABASE_QUALITY",
+  "verification": "Source digest, embedded prior evidence, unchanged resolution identity, ready preview, persistence response and recomputed persisted-quality guards replayed offline. No service call locally.",
+  "limitations": [
+    "Snapshot reviewer is a self-declared actual name; prior resolution confirmation-phrase caveat remains unchanged.",
+    "Source automation read precedes snapshot POST; it is not a later live status check.",
+    "97.4 percent vector availability does not establish predictive accuracy, fitting authorization or trading readiness."
+  ]
+}

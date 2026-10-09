@@ -56,7 +56,7 @@ Close G00's remaining source-review coverage gap, verify the existing Upstox/dat
 
 ### Current work package: daily quality review and accepted persistence
 
-E76 closes isolated paper PostgreSQL verification: **24/24 passed**, including restart recovery. E80 [accepts the saved POLICYBZR resolution](evidence/policybzr-resolution-acceptance-20261008.json): daily quality PASS, unchanged ready manifest, 487 eligible / 13 insufficient-history. The reviewer label contains the confirmation phrase; this audit caveat is preserved, not silently repaired. Do not repeat diagnostics or resolution POST. E81 [next step](daily-quality-follow-up.md#reviewed-october-snapshot-persistence) uses `ops/windows/SaveReviewedOctoberFeatureSnapshot.ps1`: optional confirmed snapshot persistence with a real reviewer name, then stored-quality verification in one JSON. Pull only; no Docker rebuild, raw-price edits, scheduler reset, training or trading. Paper integration and portal remain pending.
+E76 closes isolated paper PostgreSQL verification (24/24). E82 [accepts the saved October 8 snapshot](evidence/reviewed-feature-snapshot-acceptance-20261009.json): 500 items, 487 vectors, 13 withheld, exact recomputed manifest, 104.796s. Do not repeat diagnostics, resolution or snapshot persistence. E83 [next guarded step](reviewed-feature-reconciliation.md) reconciles the stopped automation row with this snapshot and retains an audit. Rebuild required for the new endpoint/V26 table; explicit Apply remains separate. The old warning stays recorded and normal automation may send a separate completion. No feature regeneration, training or trading. Paper integration and portal remain pending.
 
 ### Earlier persistence handoff E74 and E75
 
