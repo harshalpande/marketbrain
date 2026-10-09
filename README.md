@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current implementation: [paper account integration plan and Phase 1 handoff](docs/paper-application-integration-plan.md). The new portal reads existing balances with private read-only access. Orders, approvals, fills and P&L integration remain pending; no account is reseeded. October feature reconciliation is closed (E84).
+Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Phase 1 read-only portal is spare-verified and owner-accepted (E86). [Phase 2 ledger candidate](docs/paper-application-ledger.md) implements durable reservations and partial-fill lifecycle; isolated PostgreSQL verification and application adoption remain pending. No account is reseeded or trading enabled. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 

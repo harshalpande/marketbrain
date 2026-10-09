@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+Latest, 2026-10-09: E86 accepts the existing-account read portal on spare. E87 [durable ledger candidate](paper-application-ledger.md) is implemented/offline verified; one isolated PostgreSQL bundle is next. Application migration and trading remain disabled. See [integration phases](paper-application-integration-plan.md); full-goal baseline remains 12.4%.
+
 Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.
 
 ## Agreed parent goals

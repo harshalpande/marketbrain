@@ -44,10 +44,12 @@ Open `http://127.0.0.1:8081` on the spare laptop. Enter the token, refresh and c
 
 ## Phase 2 migration contract
 
+2026-10-09: E86 accepts Phase 1 spare evidence and owner-reported portal behavior. E87 implements the [durable ledger candidate and verification](paper-application-ledger.md). Candidate SQL is outside Flyway; internal commands are not wired to application APIs. Next gate is 31 isolated database checks, followed by reviewed runtime adoption. This does not repeat the old standalone adapter's accepted persistence test.
+
 Use Phase 1 account identity/cash/history flags before selecting the migration path. Never create a second active funded account or reset balances. Existing history requires reconciliation before import. Support multiple fills per order through a reviewed migration, preserving legacy data and immutable transaction IDs. Define rollback that retains newly committed evidence; no ad-hoc deletion/reseed.
 
 The isolated adapter's 256-command fixture ceiling is not production storage. Phase 2 requires durable projections/checkpoints and idempotency retention, account locks, exact-money invariants and bounded indexed reads. Freeze risk percentages, quote authority, costs, liquidity, P&L cost basis and settlement assumptions before execution; do not inherit unapproved fixture defaults.
 
 ## Progress accounting
 
-Phase 1 implementation/offline verification is separate from spare acceptance. G08/G09 parent implementation and runtime checkpoints remain incomplete; adding a read-only view does not increase the full-goal weighted 12.4% baseline. Numerical predictive performance is unmeasured. Upstox historical-source questions remain open but do not block read-only portal or synthetic accounting work.
+Phase 1 spare verification and owner acceptance are recorded in E86. Phase 2 candidate implementation/offline verification is recorded in E87; actual PostgreSQL and application adoption gates remain open. G08/G09 parent implementation and runtime checkpoints remain incomplete; these partial milestones do not increase the full-goal weighted 12.4% baseline. Numerical predictive performance is unmeasured. Upstox historical-source questions remain open but do not block read-only portal or synthetic accounting work.

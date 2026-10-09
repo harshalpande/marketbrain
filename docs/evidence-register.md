@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Latest E86 and E87 records
+
+- **E86 READ_ONLY_RUNTIME_ACCEPTED:** [spare acceptance](evidence/paper-account-read-spare-acceptance-20261009.json), 221.117s, anonymous 401 at both ports, authenticated proxy/page pass, unique account #1 and unchanged INR100,000, no history or execution. Owner reports it worked; interactive browser behavior was not independently observed. Closes E85 spare gate within read-only scope.
+- **E87 OFFLINE_VERIFIED / APPLICATION_MIGRATION_PENDING:** [ledger contract](paper-application-ledger.md), [local results](evidence/paper-application-ledger-local-20261009.json). New candidate SQL and internal JDBC ledger, not a Spring command path; 518 Java tests, 80 mocked PowerShell assertions, 17 UI tests/build pass. Thirty-one new actual PostgreSQL checks prepared, not locally executed. Lockfile patch verified by zero-vulnerability npm audit; spare UI deployment pending. No parent-goal percentage or predictive claim.
+
 ### Latest E84 and E85 records
 
 - **E84 RUNTIME_VERIFIED, incident closed:** [reconciliation acceptance](evidence/feature-reconciliation-acceptance-20261009.json), 55.866s, four GETs, same audit, COMPLETED, 487 eligible/13 withheld, notification SENT, no writes/signals/orders. E83 spare gate closed; do not repeat Apply.

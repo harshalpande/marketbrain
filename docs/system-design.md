@@ -2,6 +2,8 @@
 
 ## Current application integration boundary
 
+E86 accepts Phase 1 on spare. E87 [application ledger candidate](paper-application-ledger.md) adds separate SQL tables and internal JDBC commands with portfolio/account row locks, exact-money reservations, retained identities, indexed projections, partial fills and explicit cancellation/expiry. Candidate SQL is not on Flyway and the class has no Spring/HTTP wiring. Thirty-one isolated database checks precede runtime adoption; expectedRevision and supplied risk metadata do not substitute for authenticated approval/quote authority. No application balance changes are enabled. Older Phase 1 pending statements below are superseded only within that accepted read scope.
+
 E84 closes the reconciled October checkpoint with read-only replay; older pending language below is historical. E85 [Phase 1](paper-application-integration-plan.md) connects the portal to a token-gated GET over existing portfolio/order/fill tables. A ten-second read-only REPEATABLE_READ transaction returns bounded account/history evidence. No new portfolio, migration, balance write, order or provider/model call. The exact-route UI proxy rejects other APIs. Missing/ambiguous accounts are not auto-created or selected; current cash is not available buying power. Tokens stay in page memory and apply only to read access. Write authentication, ledger integration and P&L remain pending; the isolated persistence adapter stays isolated.
 
 ## Isolated persistence engineering update

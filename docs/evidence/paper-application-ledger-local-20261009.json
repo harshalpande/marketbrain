@@ -1,0 +1,19 @@
+{
+  "evidenceId": "E87",
+  "status": "OFFLINE_VERIFIED_SPARE_DATABASE_VERIFICATION_PENDING",
+  "ledgerVersion": "PAPER_APPLICATION_LEDGER_V1",
+  "mavenCleanPackage": {"tests": 518, "failures": 0, "errors": 0, "skipped": 0},
+  "newJavaTests": 26,
+  "offlinePowerShellAssertions": 80,
+  "newLedgerPowerShellAssertions": 24,
+  "uiTests": 17,
+  "uiProductionBuild": "PASSED",
+  "npmAuditReportedVulnerabilities": 0,
+  "preparedSpareDatabaseChecks": 31,
+  "actualPostgresChecksExecutedLocally": 0,
+  "applicationMigrationEnabled": false,
+  "applicationCommandEndpointEnabled": false,
+  "applicationDatabaseAccessed": false,
+  "actionExecutionEnabled": false,
+  "limitations": ["JDBC and Docker orchestration are mocked locally", "Real migration, concurrency and restart verification pending on spare", "Authentication, risk provenance, fill policy, P&L and runtime adoption remain unreleased"]
+}

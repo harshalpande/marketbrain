@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-09 Phase 1 accepted; durable application ledger candidate
+
+- Owner accepted the Phase 1 result and authorized implementation. E86 records the report hash, revision, 221.117s runtime, unique account #1 with INR100,000, anonymous denial/proxy checks and owner-reported browser acceptance. No repeated Phase 1 deployment requested.
+- E87 adds separate ledger tables and internal transactional commands: indexed projections, retained idempotency receipts, integer-paise and owned-share reservations, multiple fills, cancellation/expiry, rollback and corruption guards. Candidate migration attaches only a pristine existing account; missing/history/changed accounts stay blocked, never reseeded. SQL remains outside Flyway and commands are not application-wired.
+- Clean Maven package: 518 tests, zero failures/errors/skips, including 26 new Java cases. PowerShell: 80 offline assertions, including 24 new-ledger checks. UI: 17 tests and build pass. npm lockfile source-map-js updated to patched 1.2.2; audit reports zero vulnerabilities. Spare UI image has not been rebuilt by this work.
+- Prepared one isolated Docker bundle of 31 new PostgreSQL migration/transaction/concurrency/restart checks, with one JSON report. Actual database behavior remains unverified until spare execution. Existing E76 adapter acceptance is retained, not repeated as the next runtime milestone.
+- Updated canonical documentation and current SVG. Next: inspect isolated ledger evidence, then guarded application migration/read projections, authenticated approval/risk, operational UI and simulation. No real account writes, local model/database run, policy release or full-goal percentage uplift; 12.4% parent baseline unchanged.
+
 ## 2026-10-09 Paper application Phase 1
 
 - Owner authorized the integration plan and next phase. [Plan and guarded handoff](paper-application-integration-plan.md) freeze a read-only first slice and subsequent migration/approval/simulation gates, with estimated working-day ranges rather than guaranteed completion dates.

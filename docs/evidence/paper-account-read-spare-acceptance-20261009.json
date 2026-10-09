@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E86",
+  "status": "READ_ONLY_INTEGRATION_ACCEPTED_EXECUTION_BLOCKED",
+  "sourceFile": "paper-account-read-fe320eb9f5c8409e9ffb0467123617f5.json",
+  "sourceSha256": "70F3F51F511F5D83E3A811AF222660A90CCF39699AA0168A17B2A9B18954133B",
+  "sourceRevision": "e174abf8688a48db074ec230c35bf77db64947d6",
+  "elapsedSeconds": 221.1167962,
+  "anonymousHttpStatuses": [401, 401],
+  "proxyAndPage": "PASSED",
+  "accountId": "1",
+  "startingCash": "100000.00",
+  "currentCash": "100000.00",
+  "currency": "INR",
+  "legacyOrdersPresent": false,
+  "legacyFillsPresent": false,
+  "migrationAssessment": "EMPTY_ACCOUNT_REVIEWABLE",
+  "databaseWritesPerformedByRead": false,
+  "actionExecutionEnabled": false,
+  "ownerReportedAcceptance": "IT worked as expected",
+  "browserIndependentlyObserved": false,
+  "limitations": ["Read-only scope only", "Application ledger and approval integration remain pending", "No predictive performance evidence"]
+}
