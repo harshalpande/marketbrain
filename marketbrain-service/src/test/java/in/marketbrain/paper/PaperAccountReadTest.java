@@ -69,7 +69,7 @@ class PaperAccountReadTest {
                     .blockers().contains("LEGACY_HISTORY_REQUIRES_MIGRATION_REVIEW"));
         }
     }
-    @Test @SuppressWarnings("unchecked") void jdbcOnlyUsesThreeBoundedReads() throws Exception {
+    @Test @SuppressWarnings("unchecked") void jdbcUsesBoundedAccountAndLedgerReads() throws Exception {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         ResultSet rs = mock(ResultSet.class);
         when(rs.getLong("id")).thenReturn(7L); when(rs.getString("name")).thenReturn("Saved account");
@@ -85,7 +85,7 @@ class PaperAccountReadTest {
         });
         var result = new PaperAccountReadService(jdbc).overview();
         assertEquals("7", result.account().id()); assertEquals("91234.56", result.account().currentCash());
-        assertEquals(3, mockingDetails(jdbc).getInvocations().size());
+        assertEquals(4, mockingDetails(jdbc).getInvocations().size());
     }
     @Test void transactionIsBoundedConsistentAndReadOnly() throws Exception {
         var tx = PaperAccountReadService.class.getMethod("overview").getAnnotation(Transactional.class);

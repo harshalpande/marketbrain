@@ -1,5 +1,14 @@
 # Daily progress and decision log
 
+## 2026-10-09 Ledger accepted and application attachment implemented
+
+- E88 accepts `paper-ledger-20261009-152350-21a212db6ffa.json`: 31/31 checks, 218.014s, restart recovery, retained duplicate identity and reservation release passed. Source SHA256 `732EE4DE241D67E0328D732708585517018DAA203D454D121EF043C9CB2B923B`. Raw/parsed output parity verified; all differing source hashes match after CRLF normalization. Fixture cleanup completed; application database was not accessed. No rerun of this checkpoint requested.
+- Owner authorized the next phase. E89 promotes verified SQL to V27, retaining the original fixture resource and a test for executable equivalence. Existing account #1 and INR100,000 are linked, never reset or re-funded. Guarded preflight stops changed/ambiguous/history-bearing accounts before deployment; SQL rechecks attachment conditions transactionally. No command bean/controller/scheduler is enabled.
+- V2 read-only overview and portal add verified opening ledger cash, reserved/unreserved cash and revision. At most nine bounded queries under existing ten-second read-only REPEATABLE_READ; no lifetime scans. Advanced/corrupt/nonempty ledger state withholds amounts. P&L/holdings and actual buying permission remain unavailable.
+- Deployment now requires current read credential, idle confirmation and owner-confirmed retained backup; it builds/recreates only service/UI and checks V2 postflight. Read-only recovery uses `-RequireLedger`, with no redeployment. One compact report records migration intent separately from GET writes. Backup restoration and actual application startup were not exercised locally.
+- Verification: **532 Java tests** in clean package, zero failures/errors/skips; **27 UI tests** plus build; **146 offline PowerShell assertions**. Corrected preflight ordering during review and added an assertion that the credential is collected before the request. [Local results](evidence/paper-ledger-attachment-local-20261009.json). No local service, Docker database, provider or model execution.
+- Relevant docs and current SVG updated. Next: application deployment/readback acceptance, then authenticated approval/risk and governed order integration. Full parent checkpoint baseline remains 12.4%; these engineering results do not demonstrate predictive performance.
+
 ## 2026-10-09 Phase 1 accepted; durable application ledger candidate
 
 - Owner accepted the Phase 1 result and authorized implementation. E86 records the report hash, revision, 221.117s runtime, unique account #1 with INR100,000, anonymous denial/proxy checks and owner-reported browser acceptance. No repeated Phase 1 deployment requested.

@@ -1,0 +1,18 @@
+{
+  "evidenceId": "E89",
+  "status": "OFFLINE_VERIFIED_APPLICATION_DEPLOYMENT_PENDING",
+  "migration": "V27__attach_paper_application_ledger.sql",
+  "sqlMatchesAcceptedCandidateIgnoringCommentsAndLineEndings": true,
+  "overviewVersion": "PAPER_ACCOUNT_OVERVIEW_V2",
+  "mavenCleanPackage": {"tests": 532, "failures": 0, "errors": 0, "skipped": 0},
+  "newJavaTests": 14,
+  "uiTests": 27,
+  "uiProductionBuild": "PASSED",
+  "offlinePowerShellAssertions": 146,
+  "actualApplicationMigrationExecutedLocally": false,
+  "localApplicationDatabaseAccessed": false,
+  "applicationCommandStoreWired": false,
+  "actionExecutionEnabled": false,
+  "backupVerification": "Owner confirmation required by deployment runner; not independently restore-tested",
+  "pending": ["Spare application Flyway migration", "Authenticated V2 readback and portal review", "Approval and trusted quote/risk integration", "Operational positions and P&L", "Governed simulation release"]
+}

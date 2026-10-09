@@ -1,6 +1,6 @@
 # Phase 2: durable paper-account ledger
 
-2026-10-09. E86 closes the Phase 1 read-only spare checkpoint. E87 implements the next ledger candidate and its verification bundle. **Application migration and execution are not enabled.** This is new application-ledger work, not a repeat of E76's accepted standalone persistence adapter.
+2026-10-09. E88 accepts all 31 isolated database checks in 218.014 seconds. E89 promotes the verified SQL to V27 and implements the read-only application attachment described below. **Application deployment is pending; execution remains disabled.** E86 remains the accepted Phase 1 portal checkpoint.
 
 ## Implemented contract
 
@@ -12,13 +12,21 @@
 
 ## Deliberate release boundaries
 
-`src/main/resources/paper/ledger-v1.sql` is **outside Flyway**. `PaperLedgerStore` is not a Spring bean, controller or scheduler. No public command endpoint, Telegram action, automatic fill or application balance write is connected. The accepted read-only portal remains unchanged.
+`src/main/resources/paper/ledger-v1.sql` remains the accepted fixture reference. V27 now contains the same executable SQL; an offline equality test prevents drift. Flyway will create the six ledger tables and attach the pristine account on deployment, without changing legacy cash/history. `PaperLedgerStore` is not a Spring bean, controller or scheduler. No public command endpoint, Telegram action or automatic fill is connected.
+
+The V2 account overview adds ledger state, cash, reserved cash, unreserved cash and revision. This release verifies only the opening attachment: account #1, INR100,000, zero reserves, revision zero, null policy/time, initial hash and no account-scoped ledger activity. Nine bounded reads share the existing ten-second read-only REPEATABLE_READ transaction. Activity or disagreement with legacy balances withholds ledger amounts and requires reconciliation. This is not an operational account reconciliation engine or buying-power authorization. Positions and P&L are still unavailable.
 
 Risk permits, timestamps and policies currently come from the internal caller. They are not proof of authenticated user approval or trusted quote provenance. Phase 3 must bind those authorities to the account revision and reject replay. Fixture costs, liquidity and timing are not approved production policy. P&L cost basis, settlement, corporate actions, backup/restore and operational expiry scheduling remain pending.
 
-The candidate migration takes short table locks and runs transactionally. On failure, roll back the transaction; do not delete/reseed legacy data. Future application adoption needs a freshly reviewed account preflight, backup, exclusion of legacy writers and promotion of the reviewed SQL into a versioned migration. Once any ledger commands exist, recovery must preserve them: disable command ingress and forward-fix/reconcile, never reset cash or drop evidence as a rollback shortcut. No application adoption command is included in this milestone.
+V27 takes short table locks and runs transactionally; attachment predicates are rechecked under those locks. Missing/ambiguous/changed accounts retain their data but are not attached. SQL failure rolls back the migration; do not delete/reseed or mark failed migrations successful. Source inspection found no application writer for legacy paper orders/fills/cash and no caller wiring the new command store. This is not protection against an external privileged database writer.
+
+Before deployment, retain a current restorable database backup and confirm all jobs are idle. The deploy runner requires the CURRENT read token and a successful read-only pristine-account preflight before building. It accepts existing V1 read responses only for preflight and requires V2 afterward. Backup confirmation is owner-reported, not a backup/restore drill. It does not run the old dataset-specific backup script or copy your database into the shareable report.
+
+If startup applied V27 but later UI verification failed, preserve the tables and report. Retry only the read check first. An older service can ignore the new additive tables while execution stays disabled, but never delete Flyway history, reset balances or drop committed evidence to roll back. Any future writes require forward-compatible recovery planning before release.
 
 ## Verification and acceptance
+
+E89 local verification: clean Maven package **532 tests**, zero failures/errors/skips; **27 UI tests** and production build; **146 mocked PowerShell read/deploy assertions**. Tests include SQL parity, ledger row mapping, unchanged authentication/POST rejection, withheld inconsistent amounts, existing V1 preflight compatibility, credential collection before preflight, backup refusal before Docker and post-deployment mismatch handling. Actual V27 application startup, proxy readback and browser rendering await the spare handoff.
 
 Local evidence: clean Maven package, **518 tests**, zero failures/errors/skips; **80 offline PowerShell assertions** (56 existing orchestration plus 24 new-ledger assertions); **17 UI tests**, production build and npm audit with zero reported vulnerabilities. These are offline/mock checks, not actual PostgreSQL migration or locking evidence.
 
@@ -32,7 +40,27 @@ Run on the spare laptop from the repository:
 
 Expected status: `ISOLATED_LEDGER_PASSED_APPLICATION_MIGRATION_PENDING`. Share only the printed `paper-ledger-<timestamp>-<id>.json`; it includes source hashes, timings, progress stages, checks, captured logs, failure and cleanup records. Build/download time is machine/cache dependent; 1,800 seconds is a build deadline, not an ETA. Do not automatically rerun failures. Successful owned fixture containers/anonymous volumes are removed; failed resources are preserved with stop requested. Never prune unrelated Docker resources.
 
-After this evidence passes: review migration/runtime adoption, connect ledger read views, then authenticated approval/risk and governed simulation. No predictive-performance or full-goal completion percentage is earned by this isolated test alone.
+E88 has passed; do not repeat this isolated bundle for the current handoff. Next is deployment/readback below, then authenticated approval/risk and governed simulation. No predictive-performance or full-goal completion percentage is earned by isolated accounting success.
+
+## Application attachment handoff
+
+Use PowerShell 7 on the spare laptop, with the existing service running and a retained database backup. After pulling the reviewed code:
+
+```powershell
+& '.\ops\windows\DeployPaperAccountReadPhase.ps1' -Deploy -AttachLedger
+```
+
+Confirm `IDLE`, enter the existing private read token, then confirm `BACKED_UP` only if true. The script builds/recreates service and UI only; Flyway applies V27 at startup. Existing schedules/configuration remain unchanged, so choose an idle maintenance window. PostgreSQL service/data volumes are not recreated. It checks anonymous denial, authenticated proxy read, no-store, restricted routing, page availability and exact opening ledger amounts. One `paper-ledger-read-<id>.json` records preflight, timings, migration intent, owner backup confirmation, postflight and failures. Never share the token.
+
+Expected status: `LEDGER_ATTACHED_READ_ONLY_VERIFIED_EXECUTION_BLOCKED`. In the portal expect current cash INR100,000, unreserved INR100,000, reserved INR0 and revision 0. Clear and lock must hide the values. No BUY/SELL/approval controls are added. Browser rendering remains an owner check.
+
+If deployment already completed but verification failed, inspect the report and run only:
+
+```powershell
+& '.\ops\windows\DeployPaperAccountReadPhase.ps1' -RequireLedger
+```
+
+This retry performs GETs only and does not deploy, reapply SQL or create an account. Do not type backup confirmation without a backup; arrange one first if missing.
 
 ## Dependency maintenance
 

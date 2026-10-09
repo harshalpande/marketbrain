@@ -149,7 +149,7 @@ class PaperLedgerStoreTest {
         assertTrue(db.params.keySet().stream().anyMatch(s->s.contains("paper_ledger_account WHERE portfolio_id=? FOR UPDATE")));
         assertTrue(db.params.keySet().stream().noneMatch(s->s.contains("ORDER BY")||s.contains("COUNT(*)")));
     }
-    @Test void candidateMigrationNotOnAutomaticFlywayPath() {
+    @Test void candidateRetainedAndCommandLayerStillNotWired() {
         assertNotNull(getClass().getResource("/paper/ledger-v1.sql"));
         assertNull(getClass().getResource("/db/migration/ledger-v1.sql"));
         assertFalse(PaperLedgerStore.class.isAnnotationPresent(org.springframework.stereotype.Service.class));

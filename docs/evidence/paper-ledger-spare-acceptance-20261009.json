@@ -1,0 +1,216 @@
+{
+    "evidenceId":  "E88",
+    "status":  "ISOLATED_LEDGER_RUNTIME_VERIFIED",
+    "sourceFile":  "paper-ledger-20261009-152350-21a212db6ffa.json",
+    "sourceSha256":  "732EE4DE241D67E0328D732708585517018DAA203D454D121EF043C9CB2B923B",
+    "sourceRevision":  "f5e0e63612eb8637fbda4c82a283295eb9d13116",
+    "elapsedSeconds":  218.0143637,
+    "prepare":  {
+                    "actionExecutionEnabled":  false,
+                    "applicationDatabaseAccessed":  false,
+                    "cashPaise":  9959990,
+                    "checkCount":  28,
+                    "checks":  [
+                                   {
+                                       "elapsedMillis":  2754.772083,
+                                       "name":  "pristine_attachment_preserves_existing_cash",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  604.213527,
+                                       "name":  "changed_cash_not_attached_or_reset",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  902.412856,
+                                       "name":  "missing_account_not_reseeded",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  396.627682,
+                                       "name":  "multiple_active_accounts_not_attached",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  171.398259,
+                                       "name":  "legacy_history_blocks_attachment",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  288.146081,
+                                       "name":  "approval_reserves_without_debit",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  620.940146,
+                                       "name":  "exact_command_retry_returns_original_receipt",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  306.240331,
+                                       "name":  "conflicting_command_rolls_back",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  468.388267,
+                                       "name":  "partial_fills_and_legacy_cash_are_atomic",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  432.777857,
+                                       "name":  "fill_identity_cannot_debit_twice",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  932.449077,
+                                       "name":  "overfill_and_fee_overrun_rejected",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  450.768991,
+                                       "name":  "cancellation_releases_remaining_cash",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  328.48111,
+                                       "name":  "expiry_is_explicit_and_due",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  1043.597866,
+                                       "name":  "hold_records_decision_without_order",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  232.954596,
+                                       "name":  "unowned_sell_rejected",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  1551.313708,
+                                       "name":  "sell_reserves_owned_shares_and_partial_cancel_releases",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  318.557702,
+                                       "name":  "stale_revision_rejected",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  189.633113,
+                                       "name":  "rollback_after_projection_writes",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  506.229217,
+                                       "name":  "lost_ack_exact_retry_is_idempotent",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  467.733661,
+                                       "name":  "concurrent_approvals_serialize",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  573.07966,
+                                       "name":  "concurrent_duplicate_has_one_effect",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  3202.317119,
+                                       "name":  "lock_deadline_preserves_state",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  644.865197,
+                                       "name":  "legacy_divergence_blocks",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  298.973996,
+                                       "name":  "append_only_evidence_rejects_edit_and_delete",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  691.163279,
+                                       "name":  "order_corruption_blocks",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  616.489869,
+                                       "name":  "journal_projection_corruption_blocks",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  21850.401792,
+                                       "name":  "more_than_256_commands_preserves_early_identity",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  301.404785,
+                                       "name":  "prepare_restart_ledger",
+                                       "passed":  true
+                                   }
+                               ],
+                    "elapsedSeconds":  41.164097339,
+                    "failedCount":  0,
+                    "phase":  "--prepare",
+                    "reservedCashPaise":  60690,
+                    "revision":  2,
+                    "schema":  "paper_verify_21a212db6ffa4980b97dc92c6b835778",
+                    "status":  "ISOLATED_LEDGER_CHECKS_PASSED",
+                    "syntheticDatabaseWritesPerformed":  true,
+                    "version":  "PAPER_APPLICATION_LEDGER_V1"
+                },
+    "recover":  {
+                    "actionExecutionEnabled":  false,
+                    "applicationDatabaseAccessed":  false,
+                    "cashPaise":  9959990,
+                    "checkCount":  3,
+                    "checks":  [
+                                   {
+                                       "elapsedMillis":  983.926597,
+                                       "name":  "fresh_jvm_recovery_preserves_balances",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  786.68935,
+                                       "name":  "recovered_duplicate_does_not_debit",
+                                       "passed":  true
+                                   },
+                                   {
+                                       "elapsedMillis":  141.948487,
+                                       "name":  "recovered_expiry_releases_reservation",
+                                       "passed":  true
+                                   }
+                               ],
+                    "elapsedSeconds":  1.916492743,
+                    "failedCount":  0,
+                    "phase":  "--recover",
+                    "reservedCashPaise":  0,
+                    "revision":  3,
+                    "schema":  "paper_verify_21a212db6ffa4980b97dc92c6b835778",
+                    "status":  "ISOLATED_LEDGER_CHECKS_PASSED",
+                    "syntheticDatabaseWritesPerformed":  true,
+                    "version":  "PAPER_APPLICATION_LEDGER_V1"
+                },
+    "cleanup":  [
+                    {
+                        "action":  "REMOVED_SYNTHETIC_CONTAINER_AND_ANONYMOUS_VOLUMES",
+                        "resource":  "mb-paper-21a212db6ffa-prepare"
+                    },
+                    {
+                        "action":  "REMOVED_SYNTHETIC_CONTAINER_AND_ANONYMOUS_VOLUMES",
+                        "resource":  "mb-paper-21a212db6ffa-recover"
+                    },
+                    {
+                        "action":  "REMOVED_SYNTHETIC_CONTAINER_AND_ANONYMOUS_VOLUMES",
+                        "resource":  "mb-paper-21a212db6ffa-db"
+                    }
+                ],
+    "rawParsedParityVerified":  true,
+    "sourceComparison":  "Matches reviewed source after CRLF normalization",
+    "applicationDatabaseAccessed":  false,
+    "actionExecutionEnabled":  false,
+    "scope":  "Synthetic database only. Application migration and portal ledger integration not included."
+}

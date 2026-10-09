@@ -50,7 +50,7 @@ export default function App() {
       <header className="hero">
         <div><p className="eyebrow">PAPER ACCOUNT INTEGRATION</p><h1>MarketBrain</h1>
           <p className="subheading">Your existing virtual account. Real stored balances, no sample trades.</p></div>
-        <div className="status-chip">Phase 1 · Account visibility</div>
+        <div className="status-chip">Phase 2 · Read-only ledger</div>
       </header>
       <section className="panel access-panel" aria-label="Read-only access">
         <form onSubmit={event => { event.preventDefault(); void refresh() }}>
@@ -69,7 +69,9 @@ export default function App() {
       <section className="metric-grid" aria-label="Stored account balances">
         <article className="metric-card"><p>Starting cash</p><strong>{account ? formatInr(account.startingCash) : '—'}</strong><span>Stored value; never reseeded</span></article>
         <article className="metric-card"><p>Current recorded cash</p><strong>{account ? formatInr(account.currentCash) : '—'}</strong><span>Not verified buying power</span></article>
-        <article className="metric-card"><p>Available / reserved cash</p><strong>Not integrated</strong><span>Ledger integration pending</span></article>
+        <article className="metric-card"><p>Unreserved / reserved cash</p><strong>{overview?.ledger.status === 'ATTACHED_READ_ONLY'
+          ? `${formatInr(overview.ledger.unreservedCash!)} / ${formatInr(overview.ledger.reservedCash!)}` : 'Unavailable'}</strong>
+          <span>Read-only ledger; not permission or buying power to trade</span></article>
         <article className="metric-card"><p>Portfolio P&amp;L</p><strong>Not calculated</strong><span>Holdings and valuation pending</span></article>
       </section>
       <section className="content-grid">
@@ -79,6 +81,7 @@ export default function App() {
             <p>Active accounts observed: {overview.activeAccountsObserved}{overview.activeAccountCountIsLowerBound ? '+' : ''}</p>
             <p>Legacy orders: {overview.legacyOrdersPresent ? 'Present' : 'None found'} · Legacy fills: {overview.legacyFillsPresent ? 'Present' : 'None found'}</p>
             <p>Migration assessment: {overview.migrationAssessment.replaceAll('_', ' ')}</p>
+            <p>Ledger: {overview.ledger.status.replaceAll('_', ' ')}{overview.ledger.revision !== null ? ` · Revision ${overview.ledger.revision}` : ''}</p>
             <ul>{overview.blockers.map(item => <li key={item}>{item.replaceAll('_', ' ')}</li>)}</ul>
           </> : <p>Read the account to inspect stored state. Missing data is never replaced with demo values.</p>}
         </article>

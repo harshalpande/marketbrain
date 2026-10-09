@@ -4,10 +4,11 @@ $ErrorActionPreference='Stop'
 $script:checks=0
 function Check([bool]$Condition,[string]$Name) { if(-not $Condition){throw "Assertion failed: $Name"};$script:checks++ }
 function Fixture {
-    return [pscustomobject]@{version='PAPER_ACCOUNT_OVERVIEW_V1';status='READ_ONLY_EXECUTION_BLOCKED';currency='INR';observedAtUtc='2026-10-09T00:00:00Z';
+    return [pscustomobject]@{version='PAPER_ACCOUNT_OVERVIEW_V2';status='READ_ONLY_EXECUTION_BLOCKED';currency='INR';observedAtUtc='2026-10-09T00:00:00Z';
         account=[pscustomobject]@{id='1';name='Default Paper Portfolio';executionMode='PAPER';startingCash='100000.00';currentCash='100000.00'};
         activeAccountsObserved=1;activeAccountCountIsLowerBound=$false;legacyOrdersPresent=$false;legacyFillsPresent=$false;
         migrationAssessment='EMPTY_ACCOUNT_REVIEWABLE';blockers=@('APPLICATION_LEDGER_MIGRATION_PENDING','AUTHENTICATED_APPROVAL_AND_RISK_INTEGRATION_PENDING','FILL_COST_AND_PNL_POLICY_PENDING');
+        ledger=[pscustomobject]@{status='NOT_ATTACHED';cash=$null;reservedCash=$null;unreservedCash=$null;revision=$null};
         databaseWritesPerformed=$false;actionExecutionEnabled=$false;liveExecutionEnabled=$false}
 }
 Assert-PaperAccountOverview (Fixture);Check $true 'valid fixture'

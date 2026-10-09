@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Latest E88 and E89 records
+
+- **E88 ISOLATED_LEDGER_RUNTIME_VERIFIED:** [accepted spare evidence](evidence/paper-ledger-spare-acceptance-20261009.json), 31/31 checks in 218.014s, zero failures. Raw/parsed output agrees; recorded source hashes match after Windows CRLF normalization. Restart retained committed balances; duplicate replay did not debit twice; expiry released remaining reserves. Owned containers/anonymous volumes and network removed. Application database not accessed; no execution enabled. Do not rerun this accepted checkpoint.
+- **E89 APPLICATION_ATTACHMENT_IMPLEMENTED / SPARE DEPLOYMENT PENDING:** [migration/read contract and handoff](paper-application-ledger.md). V27 matches verified candidate SQL; opening ledger exposed through authenticated read-only V2 API/portal, with inconsistent amounts withheld. Deploy requires fresh account preflight, idle confirmation and owner-confirmed backup. No command wiring or automatic fills. Offline results are recorded in daily progress; actual application Flyway/proxy/browser acceptance remains pending.
+
 ### Latest E86 and E87 records
 
 - **E86 READ_ONLY_RUNTIME_ACCEPTED:** [spare acceptance](evidence/paper-account-read-spare-acceptance-20261009.json), 221.117s, anonymous 401 at both ports, authenticated proxy/page pass, unique account #1 and unchanged INR100,000, no history or execution. Owner reports it worked; interactive browser behavior was not independently observed. Closes E85 spare gate within read-only scope.

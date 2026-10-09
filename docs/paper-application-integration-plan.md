@@ -32,17 +32,19 @@ The UI proxies only this exact GET route. Tokens stay in page memory, not browse
 
 ## Spare deployment and acceptance
 
-Use PowerShell 7, pull the reviewed revision, then run `ops/windows/DeployPaperAccountReadPhase.ps1 -Deploy`. Confirm all application jobs are idle by typing `IDLE`. Enter a private 32–128-character read token chosen in your password manager; enter the same token in the portal. Never share it in chat.
+Current E89 handoff: use PowerShell 7, retain a current database backup, pull the reviewed revision, then run `ops/windows/DeployPaperAccountReadPhase.ps1 -Deploy -AttachLedger`. Confirm jobs are idle, enter the CURRENT private read token and confirm `BACKED_UP` only if true. Fresh account preflight must pass before deployment. See [complete attachment contract](paper-application-ledger.md#application-attachment-handoff). Never share the token in chat.
 
 The runner passes the token through process/container configuration, never `.env` or the shareable report, and restores the caller's environment afterward. The container retains it across ordinary restarts. Future recreation without a configured token disables read access; supply it again through this runner. No persistent credential store is added here.
 
-Compose configuration is checked without printing secrets. Only service/UI are built/recreated; database/volumes are retained. Existing configured schedules remain unchanged and can resume after restart. The new GET has no writes; startup can still apply previously pending Flyway migrations. Deploy from the accepted V26 baseline and retain normal backup practice. This phase introduces no migration.
+Compose configuration is checked without printing secrets. Only service/UI are built/recreated; database/volumes are retained. Existing configured schedules remain unchanged and can resume after restart. The GET has no writes; startup now applies additive V27 over the accepted V26 baseline. V27 creates ledger tables and attaches only the pristine existing account without changing cash or legacy history. Approval/execution remain unavailable.
 
-Health waiting, Docker stages and HTTP reads are bounded. Tests cover anonymous denial on ports 8080/8081, authenticated proxy read, no-store headers, denial of another API route and HTML-shell availability. One compact `paper-account-read-<id>.json` stores revision, timings, stages, bounded redacted Docker output, readback and failures. No automatic redeployment occurs. If deployment succeeded but a read failed, inspect evidence and use the runner without `-Deploy` for a read-only check.
+Health waiting, Docker stages and HTTP reads are bounded. Tests cover anonymous denial on ports 8080/8081, authenticated proxy read, no-store headers, denial of another API route and HTML-shell availability. One compact `paper-ledger-read-<id>.json` stores revision, preflight, owner backup confirmation, timings, stages, bounded redacted Docker output, readback and failures. No automatic redeployment occurs. If deployment succeeded but a read failed, inspect evidence and use `-RequireLedger` without `-Deploy` for a read-only check.
 
 Open `http://127.0.0.1:8081` on the spare laptop. Enter the token, refresh and compare cash/account identity with the report; Clear and lock must remove amounts. Browser display remains an owner check. Local tests mock HTTP/JDBC and do not certify real Docker/proxy/database/browser operation.
 
 ## Phase 2 migration contract
+
+Current E88/E89 update: all 31 isolated checks passed on spare (218.014s). V27 now promotes that same SQL, and a V2 read-only ledger view plus guarded deploy/preflight is implemented. See [application attachment handoff](paper-application-ledger.md#application-attachment-handoff). Application deployment/readback remains pending. E87 candidate-only wording below is retained as the previous checkpoint, not current release state.
 
 2026-10-09: E86 accepts Phase 1 spare evidence and owner-reported portal behavior. E87 implements the [durable ledger candidate and verification](paper-application-ledger.md). Candidate SQL is outside Flyway; internal commands are not wired to application APIs. Next gate is 31 isolated database checks, followed by reviewed runtime adoption. This does not repeat the old standalone adapter's accepted persistence test.
 
@@ -52,4 +54,4 @@ The isolated adapter's 256-command fixture ceiling is not production storage. Ph
 
 ## Progress accounting
 
-Phase 1 spare verification and owner acceptance are recorded in E86. Phase 2 candidate implementation/offline verification is recorded in E87; actual PostgreSQL and application adoption gates remain open. G08/G09 parent implementation and runtime checkpoints remain incomplete; these partial milestones do not increase the full-goal weighted 12.4% baseline. Numerical predictive performance is unmeasured. Upstox historical-source questions remain open but do not block read-only portal or synthetic accounting work.
+Phase 1 spare verification and owner acceptance are recorded in E86. E88 closes the isolated ledger PostgreSQL checkpoint; E89 implements guarded application attachment/read views, with spare deployment/readback pending. G08/G09 parent implementation and runtime checkpoints remain incomplete; these partial milestones do not increase the full-goal weighted 12.4% baseline. Numerical predictive performance is unmeasured. Upstox historical-source questions remain open but do not block read-only portal or synthetic accounting work.
