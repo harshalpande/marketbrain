@@ -1,5 +1,9 @@
 # System and INR 100,000 paper-portal design
 
+## Current application integration boundary
+
+E84 closes the reconciled October checkpoint with read-only replay; older pending language below is historical. E85 [Phase 1](paper-application-integration-plan.md) connects the portal to a token-gated GET over existing portfolio/order/fill tables. A ten-second read-only REPEATABLE_READ transaction returns bounded account/history evidence. No new portfolio, migration, balance write, order or provider/model call. The exact-route UI proxy rejects other APIs. Missing/ambiguous accounts are not auto-created or selected; current cash is not available buying power. Tokens stay in page memory and apply only to read access. Write authentication, ledger integration and P&L remain pending; the isolated persistence adapter stays isolated.
+
 ## Isolated persistence engineering update
 
 E82 verifies E81 snapshot persistence; manual persistence does not update the REVIEW_REQUIRED scheduler row. E83 [reconciliation](reviewed-feature-reconciliation.md) adds an incident-bound endpoint and append-only audit: exact accepted snapshot/daily scope, stored/current quality validation, REPEATABLE_READ transaction, automation row lock and compare-and-set update. Existing features and raw prices remain unchanged. Completed audit replay is read-only. Prior warning history is preserved; the normal notifier can send its separate completion after commit. No network call occurs inside reconciliation, no authenticated reviewer identity is added, and no fitting/trading gate is waived. PostgreSQL runtime verification of the new path remains pending.

@@ -38,6 +38,7 @@ marketbrain:
     test-enabled: ${MARKETBRAIN_DUAL_NOTIFICATION_TEST_ENABLED:false}
   execution-mode: ${MARKETBRAIN_EXECUTION_MODE:PAPER}
   paper:
+    read-token: ${MARKETBRAIN_PAPER_READ_TOKEN:}
     starting-cash: ${MARKETBRAIN_PAPER_STARTING_CASH:100000}
   ollama:
     base-url: ${MARKETBRAIN_OLLAMA_BASE_URL:http://host.docker.internal:11434}

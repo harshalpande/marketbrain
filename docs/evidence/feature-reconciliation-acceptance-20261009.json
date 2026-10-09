@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E84",
+  "status": "RUNTIME_VERIFIED_RECONCILIATION_ONLY",
+  "sourceFile": "feature-reconciliation-2df21678922c40fc8729608ae377fe7f.json",
+  "sourceSha256": "6FC056C4D1528FD2A705981AE585C9F3DDB32687BFC93B076A36F6E460EDE167",
+  "elapsedSeconds": 55.865575,
+  "reportStatus": "AUTOMATION_RECONCILED_RELEASE_BLOCKED",
+  "writeState": "RECONCILIATION_VERIFIED",
+  "observedRequests": 4,
+  "allRequestsGet": true,
+  "previewAndReadbackStatus": "ALREADY_RECONCILED",
+  "reconciliationId": "ac324f65-b837-4205-a81a-95638f2a577f",
+  "targetDate": "2026-10-08",
+  "automationStatus": "COMPLETED",
+  "eligibleCount": 487,
+  "withheldCount": 13,
+  "notificationStatus": "SENT",
+  "databaseWritesPerformedOnReplay": false,
+  "snapshotWrites": 0,
+  "signalsCreated": 0,
+  "ordersCreated": 0,
+  "limitation": "Incident checkpoint and read-only replay only, not predictive quality, authenticated reviewer identity or trading release. Prior warning retained."
+}

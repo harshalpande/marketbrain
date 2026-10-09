@@ -56,6 +56,15 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -0.02em; }
 .guardrail-panel { background: linear-gradient(150deg, #153142, #102333); }
 .guardrail-panel ol { margin: 22px 0 0; padding-left: 22px; color: #c1d2dd; }
 .guardrail-panel li { padding: 8px 0; line-height: 1.45; }
+.access-panel { margin-bottom: 18px; }
+.access-panel form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.access-panel input { min-width: 0; padding: 10px; background: #07121f; color: #e9f2fa; border: 1px solid #75d3cc; border-radius: 6px; }
+.access-panel button { padding: 10px 16px; background: #75d3cc; color: #07121f; border: 0; border-radius: 6px; cursor: pointer; }
+.access-panel button:disabled { opacity: 0.6; cursor: wait; }
+.access-panel p { margin: 16px 0 0; color: #adc2d1; }
+.access-panel [role="alert"] { color: #ffadb3; }
+.panel > h2 { margin-bottom: 18px; }
+.panel li { overflow-wrap: anywhere; }
 
 @media (max-width: 760px) {
   .hero, .panel-heading { align-items: start; flex-direction: column; }

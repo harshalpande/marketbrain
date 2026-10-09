@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E82 and E83 records
+### Latest E84 and E85 records
+
+- **E84 RUNTIME_VERIFIED, incident closed:** [reconciliation acceptance](evidence/feature-reconciliation-acceptance-20261009.json), 55.866s, four GETs, same audit, COMPLETED, 487 eligible/13 withheld, notification SENT, no writes/signals/orders. E83 spare gate closed; do not repeat Apply.
+- **E85 implementation and offline verification:** [paper application Phase 1](paper-application-integration-plan.md), token-gated existing-account GET and real portal view, no migration/seeding/execution. Spare Docker/database/proxy and browser acceptance pending. Test results are recorded in daily progress; parent-goal percentages unchanged.
+
+### Earlier E82 and E83 records
 
 - **E82 RUNTIME_VERIFIED, stored snapshot only:** [spare acceptance](evidence/reviewed-feature-snapshot-acceptance-20261009.json), 104.796s, 500 items / 487 vectors / 13 withheld, matching manifest and zero violations; one POST, zero signals/orders. E81 spare snapshot gate closed. Last automation read preceded snapshot write and remained REVIEW_REQUIRED; no current Telegram delivery claim.
 - **E83 OFFLINE_VERIFIED, spare reconciliation pending:** [guarded reconciliation](reviewed-feature-reconciliation.md), exact reviewed scope, current quality check, transaction/row lock and append-only audit; no feature regeneration. 84 mocked PowerShell assertions and 469 Java tests (35 new), zero failures/errors/skips. Java verification includes Spring constructor/proxy wiring, HTTP diagnostic handling and rollback requests, not live PostgreSQL rollback proof. Existing notifier can send the separate completion after commit; no warning reset or delivery guarantee.

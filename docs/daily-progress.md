@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-09 Paper application Phase 1
+
+- Owner authorized the integration plan and next phase. [Plan and guarded handoff](paper-application-integration-plan.md) freeze a read-only first slice and subsequent migration/approval/simulation gates, with estimated working-day ranges rather than guaranteed completion dates.
+- E84 independently rechecks the supplied replay hash and saved response: four GETs, ALREADY_RECONCILED, same audit, COMPLETED, 487 eligible/13 withheld, notification SENT, no write. The incident checkpoint is closed. No rerun requested.
+- E85 adds Spring/JDBC account overview, private read credential, exact decimal strings, existing-history/ambiguity blockers and actual portal account display. Static sample signals and hard-coded balances are no longer displayed. No migration/seeding or paper/live execution is enabled.
+- Verification: clean Maven package **492 tests**, zero failures/errors/skips (23 new); **17 UI contract tests** and production build; **61 offline PowerShell assertions** over mocked HTTP/report orchestration. PS7 Docker deployment and interactive browser rendering were not run here. Runtime database/proxy/browser acceptance pending on spare.
+- Updated canonical docs and single architecture diagram. Full-goal weighted completion remains 12.4%; no model-quality improvement claimed. Next: review one spare readback, preserve the observed existing account, then implement the durable application ledger/migration contract.
+
 ## 2026-10-09 Snapshot accepted and automation reconciliation
 
 - E82 accepts the spare snapshot report: 104.796s, 500 stored records, 487 complete vectors, 13 withheld, zero violations, one successful POST and matching recomputed manifest. Source SHA256 `128C921E4C21734E9CC0801B39735ECDF9152A43C9906FB3695FEE44ACB62324`. [Acceptance](evidence/reviewed-feature-snapshot-acceptance-20261009.json). Do not repeat snapshot persistence. Previous resolution reviewer caveat is unchanged.

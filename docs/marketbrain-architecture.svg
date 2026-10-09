@@ -50,7 +50,7 @@
   <path d="M600 614 V646" class="line"/>
   <rect x="180" y="648" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="676" class="label">PAPER portal + execution + one INR 100,000 ledger — planned workflow</text>
-  <text x="200" y="704" class="body">Isolated PostgreSQL recovery verified; application integration remains pending</text>
+  <text x="200" y="704" class="body">Read-only account API + portal implemented; durable execution integration pending</text>
   <text x="200" y="727" class="body">Isolated research simulation; shared future-live contracts, NOT identical fills or a LIVE switch</text>
   <rect x="30" y="776" width="735" height="84" rx="9" class="planned"/>
   <text x="48" y="804" class="label">Release gate: ≥30 elapsed days AND ≥20 trading sessions</text>

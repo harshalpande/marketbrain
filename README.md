@@ -6,6 +6,8 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
+Current implementation: [paper account integration plan and Phase 1 handoff](docs/paper-application-integration-plan.md). The new portal reads existing balances with private read-only access. Orders, approvals, fills and P&L integration remain pending; no account is reseeded. October feature reconciliation is closed (E84).
+
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 
 - [Roadmap and completion dashboard](docs/roadmap.md)

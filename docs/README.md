@@ -54,7 +54,13 @@ G10.6 scoped cleanup is now completed and owner-accepted (E26). Granite was remo
 
 Close G00's remaining source-review coverage gap, verify the existing Upstox/data foundation, and establish G13/G14 data feasibility before claiming full coverage. The first numerical implementation remains a 20-session baseline, followed by required 5/60-session and intraday validation. Portal contracts and provider-access evidence can progress in parallel when authorized. Keep existing diagnostics, but do not confuse prompt optimization with model fitting. The V1 estimate and percentage are superseded as described in the roadmap and daily log.
 
-### Current work package: daily quality review and accepted persistence
+### Current work package: paper account application integration
+
+E84 closes E83 on spare: same audited checkpoint, COMPLETED, 487 eligible/13 withheld, notification SENT, read-only replay verified. Do not repeat reconciliation or snapshot generation. The owner authorized [paper integration](paper-application-integration-plan.md); E85 provides a token-gated read-only account API and portal backed by existing tables. Local tests pass; spare deployment and browser acceptance pending. No migration, cash reset, approved-order execution or model run. The next bounded milestone after readback review is the durable application ledger and lifecycle migration.
+
+### Previous work package: daily quality review and accepted persistence
+
+The deployment/apply-pending wording below is historical and superseded by E84 above.
 
 E76 closes isolated paper PostgreSQL verification (24/24). E82 [accepts the saved October 8 snapshot](evidence/reviewed-feature-snapshot-acceptance-20261009.json): 500 items, 487 vectors, 13 withheld, exact recomputed manifest, 104.796s. Do not repeat diagnostics, resolution or snapshot persistence. E83 [next guarded step](reviewed-feature-reconciliation.md) reconciles the stopped automation row with this snapshot and retains an audit. Rebuild required for the new endpoint/V26 table; explicit Apply remains separate. The old warning stays recorded and normal automation may send a separate completion. No feature regeneration, training or trading. Paper integration and portal remain pending.
 
