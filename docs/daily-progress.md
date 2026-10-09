@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-09 Approval accepted; combined delivery and quote rehearsal
+
+- E92 accepts the supplied `paper-approval-20261009-184445-c9a5b2447f02.json`: 30 preparation + 2 restart checks, zero failures, 185.262s. Hash and raw/parsed/source checks retained in the acceptance record. Existing cash INR100,000, zero reserves/revision/orders/fills and one review receipt remain intact in the recovery fixture. No application/provider/model side effects; owned fixture cleanup verified.
+- Owner authorized the next stages. E93 batches atomic encrypted proposal delivery, publication replay/rollback/concurrency, uncertain-message handling, optional authenticated private callbacks and bounded strict Telegram/Upstox adapters. Sent/uncertain/interrupted attempts are not automatically resent. Fresh response timestamps cannot rejuvenate old last-traded prices.
+- Next spare bundle combines **24 database/restart checks** with fake HTTP in one compact report. Candidate SQL stays outside Flyway; no callback bean, endpoint, dispatch worker, credentials or actual notification/quote is activated. ACCEPT yields review only, with no ledger reservation or order. The existing read-only application needs no rebuild.
+- **Maven package and 604 Java tests** passed, zero failures/errors/skips, including 38 new transport/private-callback/Spring-wiring cases. Offline PowerShell delivery 92, approval 90 and ledger 80 assertions passed (56 common; **150 unique**). [Local evidence](evidence/paper-delivery-local-20261009.json) retains scope and remaining gates. Local Docker/database/provider/model runtime was not run. An initial Maven clean encountered a Windows generated-file lock; package verification was retried without destructive cleanup.
+- Current docs/SVG record the implemented and blocked boundaries. [One spare handoff](paper-delivery-integration.md) replaces the older accepted approval test. Pending after acceptance: application/key management, controlled real transport, approved risk and atomic paper execution, then operational portal/fill/P&L. Phase 3 and full G08/G09 remain incomplete; parent weighted baseline stays **12.4%**, with no predictive-accuracy claim.
+
 ## 2026-10-09 Read/lock accepted; approval review candidate
 
 - E90 accepts `paper-ledger-read-a942e67bc4f24f2aa62b70014c89abba.json`, SHA256 `9F1EEC3B3E280A305EE90561F5AA870614AA11E4CE07C6B91AD5A1C4E108D241`, revision a942a01, elapsed208.010s. V27/readback preserves account1 and INR100,000, zero reserves, revision0; anonymous401 and proxy checks pass. Two owner screenshots confirm visible Read/Refresh and Clear/Lock behaviour. No browser-forensic or restore claim. Previous attachment deployment gate closed; do not repeat it.

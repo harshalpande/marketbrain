@@ -4,7 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Latest E90 and E91 records
+### Latest E92 and E93 records
+
+- **E92 ISOLATED_APPROVAL_RUNTIME_ACCEPTED:** [spare acceptance](evidence/paper-approval-spare-acceptance-20261009.json), report SHA256 `6198DED6EB8D7BA978A8B18599E759392C1A5F0CAEC43540297A69EA468C21D2`, revision466c13e,185.262s. All30 preparation +2 restart checks passed; raw/parsed outputs agree and22 source hashes match with CRLF normalization. Final fixture cash100000, reserves/revision/orders/fills0, one review receipt; owned fixtures cleaned up. Zero application DB/provider/Telegram/model calls. E91's isolated runtime gate closes, not application transport or execution readiness.
+- **E93 DELIVERY_QUOTE_REHEARSAL / ISOLATED_SPARE_PENDING:** [contract and handoff](paper-delivery-integration.md), [local verification](evidence/paper-delivery-local-20261009.json). Atomic encrypted publication, single-attempt delivery/uncertainty, private callback hook and strict bounded adapters. Twenty-one prepare +three restart checks use disposable PostgreSQL and fake HTTP only. No production migration, key configuration, registered callback bean, external message/quote or execution enabled. Parent baseline12.4% unchanged.
+
+### Historical E90 and E91 records
 
 - **E90 APPLICATION_LEDGER_READ_AND_VISIBLE_BROWSER_BEHAVIOUR_ACCEPTED:** [acceptance](evidence/paper-ledger-read-acceptance-20261009.json), source SHA256 `9F1EEC3B3E280A305EE90561F5AA870614AA11E4CE07C6B91AD5A1C4E108D241`, revision a942a01, 208.010s. V1 preflight to V2 read-only attachment; account 1/cash100000 preserved, zero reserves, revision0, anonymous401 and proxy/page pass. Owner screenshots show masked-token read and cleared-token/hidden-balances lock. Visible behaviour accepted, not browser-forensic or backup-restore proof. E89 deployment-pending gate is closed; no rerun needed.
 - **E91 APPROVAL_REVIEW_CANDIDATE / ISOLATED_SPARE_PENDING:** [contract and handoff](paper-approval-review.md), [offline verification](evidence/paper-approval-local-20261009.json). Internal one-time proposal-level ACCEPT/REJECT review, recipient/expiry/fresh-quote/policy/account checks, immutable terminal receipts and no ledger writes. Candidate tables remain outside Flyway and Telegram remains blocked. Thirty preparation plus two restart cases await spare execution; no authenticated end-to-end or predictive-quality claim.

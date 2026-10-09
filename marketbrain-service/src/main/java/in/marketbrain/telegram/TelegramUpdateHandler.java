@@ -3,6 +3,9 @@ package in.marketbrain.telegram;
 import in.marketbrain.configuration.MarketBrainProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import in.marketbrain.paper.PaperApprovalCallback;
 
 @Component
 @ConditionalOnProperty(prefix = "marketbrain.telegram", name = "enabled", havingValue = "true")
@@ -15,6 +18,14 @@ class TelegramUpdateHandler {
     private final TelegramStateStore stateStore;
     private final TelegramActionProcessor actionProcessor;
     private final String pairingCode;
+    private PaperApprovalCallback paperApproval;
+
+    @Autowired
+    TelegramUpdateHandler(TelegramBotClient client,TelegramStateStore stateStore,TelegramActionProcessor actionProcessor,
+                          MarketBrainProperties properties,ObjectProvider<PaperApprovalCallback> paperApproval) {
+        this(client,stateStore,actionProcessor,properties);
+        this.paperApproval=paperApproval.getIfAvailable();
+    }
 
     TelegramUpdateHandler(
             TelegramBotClient client,
@@ -95,7 +106,15 @@ class TelegramUpdateHandler {
             client.answerCallback(callback.callbackId(), "Unauthorized action.", true);
             return;
         }
-        if (!callback.data().startsWith(ACTION_PREFIX)) {
+        if (callback.data()!=null && callback.data().startsWith("mbp:")) {
+            if(paperApproval==null){client.answerCallback(callback.callbackId(),"PAPER approval integration is not enabled. No trade created.",true);return;}
+            String message;
+            try {message=paperApproval.handle(callback.callbackId(),callback.userId(),callback.chatId(),callback.chatType(),callback.data());}
+            catch(IllegalArgumentException invalid){message="Invalid or unauthorized PAPER proposal. No trade created.";}
+            catch(java.sql.SQLException unavailable){throw new IllegalStateException("PAPER review temporarily unavailable; callback not acknowledged.");}
+            client.answerCallback(callback.callbackId(),message,true);return;
+        }
+        if (callback.data()==null || !callback.data().startsWith(ACTION_PREFIX)) {
             client.answerCallback(callback.callbackId(), "Invalid action.", true);
             return;
         }

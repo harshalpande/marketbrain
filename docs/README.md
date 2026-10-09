@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-Latest, 2026-10-09: E90 accepts V27 application attachment/readback and the owner's Read/Refresh and Clear/Lock screenshots. Account #1 retains INR100,000 with zero reserves, revision 0. E91 [approval review candidate](paper-approval-review.md) adds a separate 32-case isolated database handoff; Telegram/provider wiring and execution remain blocked. No application redeployment or repeat of accepted ledger tests is needed now. Full-goal baseline remains 12.4%.
+Latest, 2026-10-09: E92 accepts **32/32 approval checks** on spare in 185.262s. E93 [delivery/quote integration rehearsal](paper-delivery-integration.md) combines atomic encrypted publication, one-attempt delivery, private callbacks and strict quotes in **24 new isolated checks**. Real Telegram/provider adapters remain unwired; approval/execution are not activated. Run the new isolated bundle only, not earlier accepted suites. Account #1 remains INR100,000; full-goal baseline stays 12.4%.
 
 Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.
 

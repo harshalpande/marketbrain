@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+Latest E92/E93: the 32 approval database/restart checks are accepted (185.262s). The next batch is [delivery and quote integration rehearsal](paper-delivery-integration.md), with 24 new combined checks and one report. Durable encrypted publication and transport adapters are implemented but application activation, credentials, approved risk and execution are not. Earlier E91 pending wording and commands below are historical; use only the latest handoff.
+
 Current E90/E91 update: V27 application attachment/readback and visible portal read/lock are accepted. The existing account remains INR100,000 with zero reservations and revision0. Phase 3 begins with the [internal approval review candidate](paper-approval-review.md) and 32 isolated PostgreSQL checks pending on spare. No runtime approval, quote adapter or simulated execution is activated. Older deployment-pending text below records prior checkpoints, not the next instruction.
 
 E73 closes paper-core preparation; E76 closes all 24 isolated PostgreSQL persistence/restart checks. E84 closes the October 8 feature checkpoint: 487 eligible instruments, 13 withheld, same reconciliation audit on read-only replay, notification status SENT. Do not repeat accepted checkpoints. They do not establish investment accuracy or complete application readiness.

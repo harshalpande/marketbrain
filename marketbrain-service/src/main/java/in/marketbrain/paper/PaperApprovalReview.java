@@ -41,20 +41,28 @@ public final class PaperApprovalReview {
     }
     /** Internal proposal publisher only. Raw tokens returned once; persistence contains hashes only. */
     public Tokens issue(Proposal p)throws SQLException {
+        validateIssue(p);
+        try(Connection c=connections.open()) {begin(c);try {
+            Tokens tokens=issue(c,p);c.commit();return tokens;
+        }catch(Exception e){rollback(c,e);throw e;}}
+    }
+    /** Shared transaction for atomic proposal + encrypted delivery enqueue. Never called by HTTP. */
+    Tokens issue(Connection c,Proposal p)throws SQLException {
+        validateIssue(p);
+        String accept=newToken(),reject=newToken(),payload=encode(p);
+        binding(c,p.userId,p.chatId,true);
+        var snapshot=snapshot(c,p,true);require(snapshot.consistent&&snapshot.revision==p.expectedRevision,"Account changed or inconsistent");
+        update(c,"INSERT INTO paper_approval_proposal(id,portfolio_id,instrument_id,recipient_hash,expected_revision,payload,payload_hash,policy_hash) VALUES(?,?,?,?,?,?,?,?)",
+                p.id,p.portfolioId,p.instrumentId,identity(p.userId,p.chatId),p.expectedRevision,payload,hash(payload),hash(encode(policy)));
+        update(c,"INSERT INTO paper_approval_token VALUES(?,?,?)",hash(accept),p.id,"ACCEPT");
+        update(c,"INSERT INTO paper_approval_token VALUES(?,?,?)",hash(reject),p.id,"REJECT");
+        return new Tokens(accept,reject);
+    }
+    private void validateIssue(Proposal p) {
         Instant now=clock.instant();
         require(!now.isBefore(p.terms.createdAt())&&now.isBefore(p.terms.expiresAt()),"Proposal outside validity");
         require(p.policyId.equals(policy.id)&&Duration.between(p.terms.createdAt(),p.terms.expiresAt()).compareTo(policy.maxProposalLifetime)<=0,"Proposal policy mismatch");
         require(p.terms.side()!=Side.HOLD,"HOLD has no action tokens");
-        String accept=newToken(),reject=newToken(),payload=encode(p);
-        try(Connection c=connections.open()) {begin(c);try {
-            binding(c,p.userId,p.chatId,true);
-            var snapshot=snapshot(c,p,true);require(snapshot.consistent&&snapshot.revision==p.expectedRevision,"Account changed or inconsistent");
-            update(c,"INSERT INTO paper_approval_proposal(id,portfolio_id,instrument_id,recipient_hash,expected_revision,payload,payload_hash,policy_hash) VALUES(?,?,?,?,?,?,?,?)",
-                    p.id,p.portfolioId,p.instrumentId,identity(p.userId,p.chatId),p.expectedRevision,payload,hash(payload),hash(encode(policy)));
-            update(c,"INSERT INTO paper_approval_token VALUES(?,?,?)",hash(accept),p.id,"ACCEPT");
-            update(c,"INSERT INTO paper_approval_token VALUES(?,?,?)",hash(reject),p.id,"REJECT");
-            c.commit();return new Tokens(accept,reject);
-        }catch(Exception e){rollback(c,e);throw e;}}
     }
     /** Callback identity must come from the authenticated private transport, not HTTP body fields.
      * First authenticate without a network call; load quote without DB locks; recheck under locks. */
@@ -98,7 +106,7 @@ public final class PaperApprovalReview {
         }catch(IllegalArgumentException|ArithmeticException invalid){return "RISK_BLOCKED";}
         return "ACCEPTED_EXECUTION_BLOCKED";
     }
-    private static void binding(Connection c,long user,long chat,boolean lock)throws SQLException {
+    static void binding(Connection c,long user,long chat,boolean lock)throws SQLException {
         try(var s=statement(c,"SELECT telegram_user_id,telegram_chat_id FROM telegram_binding WHERE binding_key='PRIMARY' AND active=TRUE"+(lock?" FOR SHARE":""));var r=s.executeQuery()) {
             require(r.next()&&r.getLong(1)==user&&r.getLong(2)==chat,"Unauthorized binding");
         }
@@ -134,7 +142,7 @@ public final class PaperApprovalReview {
     }
     private String newToken(){byte[] bytes=new byte[32];random.nextBytes(bytes);return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);}
     static String identity(long user,long chat){return hash(user+":"+chat);}
-    private static void begin(Connection c)throws SQLException {c.setAutoCommit(false);c.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);try(var s=c.createStatement()){s.execute("SET LOCAL lock_timeout='3s'; SET LOCAL statement_timeout='10s'; SET LOCAL idle_in_transaction_session_timeout='15s'; SET LOCAL synchronous_commit=on");}}
+    static void begin(Connection c)throws SQLException {c.setAutoCommit(false);c.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);try(var s=c.createStatement()){s.execute("SET LOCAL lock_timeout='3s'; SET LOCAL statement_timeout='10s'; SET LOCAL idle_in_transaction_session_timeout='15s'; SET LOCAL synchronous_commit=on");}}
     private static void rollback(Connection c,Exception e){try{c.rollback();}catch(SQLException x){e.addSuppressed(x);}}
     private static void tokenId(String s){require(s!=null&&s.matches("[A-Za-z0-9_.:-]{1,100}"),"Invalid identifier");}
     private static void require(boolean ok,String message){if(!ok)throw new IllegalArgumentException(message);}

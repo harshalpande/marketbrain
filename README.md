@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Read-only ledger deployment and visible Read/Refresh + Clear/Lock behaviour are accepted (E90); account #1 retains INR100,000, zero reserves and revision 0. Next: [approval review candidate and 32-case isolated handoff](docs/paper-approval-review.md) (E91). No application redeployment, Telegram/provider activation or trading is enabled by that test. October feature reconciliation is closed (E84).
+Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Read-only ledger/portal (E90) and **32/32 isolated approval checks** (E92) are accepted. Next: [delivery/quote integration rehearsal and 24-case handoff](docs/paper-delivery-integration.md) (E93). No application redeployment, real Telegram/provider activation or trading is enabled by that test. Account #1 remains INR100,000; October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 
@@ -19,7 +19,7 @@ Current implementation: [paper account integration plan](docs/paper-application-
 
 ## Current state
 
-The Java service contains Upstox REST integration, historical/daily collection, technical snapshots, prototype outcome datasets, model-evaluation tools, and notification foundations. The React dashboard is a static preview. A trained numerical predictor, live streaming pipeline and complete paper-order lifecycle are not yet implemented. Source presence does not prove spare-laptop runtime readiness.
+The Java service contains Upstox REST integration, historical/daily collection, technical snapshots, prototype outcome datasets, model-evaluation tools, and notification foundations. The React paper portal reads the stored account/ledger; operational orders, holdings and P&L remain pending. A trained numerical predictor, live streaming pipeline and complete application paper-order lifecycle are not yet implemented. Source presence does not prove spare-laptop runtime readiness.
 
 Development and offline verification take place here; model inference and deployment take place on the spare laptop. Credentials stay in ignored local configuration. Do not enable live execution or use archived deployment commands as current instructions.
 

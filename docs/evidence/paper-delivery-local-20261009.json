@@ -1,0 +1,43 @@
+{
+  "evidenceId": "E93",
+  "reviewedAt": "2026-10-09",
+  "status": "OFFLINE_TESTS_PASSED_ISOLATED_SPARE_PENDING",
+  "verificationScope": "Offline Java and mocked PowerShell only; no local Docker, database, provider, Telegram or model runtime",
+  "mavenPackageExitCode": 0,
+  "javaTests": {
+    "suites": 141,
+    "tests": 604,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "newTests": 38,
+    "transportTests": 34,
+    "newPrivateCallbackAndSpringWiringTests": 4
+  },
+  "powerShellAssertions": {
+    "deliveryWorkflow": 92,
+    "approvalRegression": 90,
+    "ledgerRegression": 80,
+    "sharedAssertionsPerWorkflow": 56,
+    "uniqueAssertionsAcrossThreeWorkflows": 150,
+    "failures": 0
+  },
+  "spareSuite": {
+    "prepareChecks": 21,
+    "restartChecks": 3,
+    "runtimeVerified": false,
+    "httpTransport": "FAKE_NO_NETWORK"
+  },
+  "applicationMigrationAdded": false,
+  "callbackBeanRegistered": false,
+  "actualApplicationDatabaseAccessed": false,
+  "realTelegramProviderCallsPerformed": false,
+  "actionExecutionEnabled": false,
+  "remainingGates": [
+    "Spare isolated PostgreSQL acceptance",
+    "Application migration, write boundary and persistent delivery key management",
+    "Explicitly authorized real private Telegram and Upstox review-only verification",
+    "Approved operating risk policy and atomic paper execution revalidation",
+    "Fill, cost, liquidity, PnL, operational UI and end-to-end pilot acceptance"
+  ]
+}

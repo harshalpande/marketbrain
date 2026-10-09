@@ -1,5 +1,7 @@
 # Phase 3: durable approval review candidate
 
+**Accepted update, 2026-10-09:** E92 verifies all 32 spare checks in 185.262s; [acceptance](evidence/paper-approval-spare-acceptance-20261009.json). Do not rerun the historical handoff below. E93's [24-case delivery/quote rehearsal](paper-delivery-integration.md) is next and supersedes the earlier unimplemented-adapter/outbox descriptions. Approval tables and external transport remain application-disabled; execution is still blocked.
+
 2026-10-09. E90 accepts the deployed read-only ledger and the owner's Read/Refresh and Clear/Lock screenshots. E91 begins approval/risk integration with an internal candidate and a **32-case isolated PostgreSQL suite**. It does not activate Telegram actions, application writes or execution. The existing read-only portal remains unchanged.
 
 ## Implemented boundary

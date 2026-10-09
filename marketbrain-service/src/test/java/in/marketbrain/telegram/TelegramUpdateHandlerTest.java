@@ -82,6 +82,57 @@ class TelegramUpdateHandlerTest {
                 null);
     }
 
+    @Test
+    void paperActionsRemainDisabledWithoutRegisteredAdapter() {
+        when(stateStore.activeBinding()).thenReturn(Optional.of(new TelegramBinding(100,200,"Owner")));
+        handler.handle(new TelegramUpdate(8,null,new TelegramCallback("paper-1",200,"private",100,"mbp:"+"a".repeat(43))));
+        verify(client).answerCallback(eq("paper-1"),contains("not enabled"),eq(true));
+        verify(actionProcessor,never()).process(any(),any());
+    }
+
+    @Test
+    void springWiringStartsWithoutPaperAdapter() {
+        new org.springframework.boot.test.context.runner.ApplicationContextRunner()
+                .withPropertyValues("marketbrain.telegram.enabled=true")
+                .withBean(TelegramBotClient.class,()->client).withBean(TelegramStateStore.class,()->stateStore)
+                .withBean(TelegramActionProcessor.class,()->actionProcessor).withBean(MarketBrainProperties.class,this::properties)
+                .withUserConfiguration(TelegramUpdateHandler.class)
+                .run(context->{org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(TelegramUpdateHandler.class);
+                    org.assertj.core.api.Assertions.assertThat(context).doesNotHaveBean(in.marketbrain.paper.PaperApprovalCallback.class);});
+    }
+
+    @Test
+    void paperAdapterOnlyReceivesBoundPrivateCallbacks()throws Exception {
+        var paper=mock(in.marketbrain.paper.PaperApprovalCallback.class);
+        @SuppressWarnings("unchecked") var provider=(org.springframework.beans.factory.ObjectProvider<in.marketbrain.paper.PaperApprovalCallback>)mock(org.springframework.beans.factory.ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(paper);
+        var connected=new TelegramUpdateHandler(client,stateStore,actionProcessor,properties(),provider);
+        when(stateStore.activeBinding()).thenReturn(Optional.of(new TelegramBinding(100,200,"Owner")));
+        String data="mbp:"+"a".repeat(43);
+        connected.handle(new TelegramUpdate(9,null,new TelegramCallback("wrong",200,"private",999,data)));
+        connected.handle(new TelegramUpdate(10,null,new TelegramCallback("group",200,"group",100,data)));
+        verify(paper,never()).handle(any(),org.mockito.ArgumentMatchers.anyLong(),org.mockito.ArgumentMatchers.anyLong(),any(),any());
+        when(paper.handle("correct",100,200,"private",data)).thenReturn("Review only");
+        connected.handle(new TelegramUpdate(11,null,new TelegramCallback("correct",200,"private",100,data)));
+        verify(paper).handle("correct",100,200,"private",data);
+        verify(client).answerCallback("correct","Review only",true);
+        verify(actionProcessor,never()).process(any(),any());
+    }
+
+    @Test
+    void databaseFailureMustNotAcknowledgeCallback()throws Exception {
+        var paper=mock(in.marketbrain.paper.PaperApprovalCallback.class);
+        @SuppressWarnings("unchecked") var provider=(org.springframework.beans.factory.ObjectProvider<in.marketbrain.paper.PaperApprovalCallback>)mock(org.springframework.beans.factory.ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(paper);
+        when(stateStore.activeBinding()).thenReturn(Optional.of(new TelegramBinding(100,200,"Owner")));
+        String data="mbp:"+"a".repeat(43);
+        when(paper.handle("failure",100,200,"private",data)).thenThrow(new java.sql.SQLException("secret connection data"));
+        var connected=new TelegramUpdateHandler(client,stateStore,actionProcessor,properties(),provider);
+        var error=org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,()->connected.handle(new TelegramUpdate(12,null,new TelegramCallback("failure",200,"private",100,data))));
+        org.junit.jupiter.api.Assertions.assertFalse(error.toString().contains("secret"));
+        verify(client,never()).answerCallback(eq("failure"),any(),org.mockito.ArgumentMatchers.anyBoolean());
+    }
+
     private MarketBrainProperties properties() {
         return new MarketBrainProperties(
                 "PAPER",

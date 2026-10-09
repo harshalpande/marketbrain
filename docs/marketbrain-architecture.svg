@@ -45,8 +45,8 @@
   <path d="M600 488 V520" class="line"/>
   <rect x="180" y="522" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="550" class="label">Java proposal + risk → portal / private Telegram → ACCEPT / REJECT</text>
-  <text x="200" y="578" class="body">Internal approval review candidate; 32 isolated database checks pending on spare</text>
-  <text x="200" y="601" class="body">Recipient / expiry / quote / account checks; transport and execution remain disconnected</text>
+  <text x="200" y="578" class="body">32 approval checks accepted; encrypted delivery + strict quote rehearsal: 24 checks next</text>
+  <text x="200" y="601" class="body">Private callback hook disabled; real transport, key policy and execution remain gated</text>
   <path d="M600 614 V646" class="line"/>
   <rect x="180" y="648" width="840" height="92" rx="9" class="planned"/>
   <text x="200" y="676" class="label">PAPER portal + execution + one INR 100,000 ledger — planned workflow</text>
