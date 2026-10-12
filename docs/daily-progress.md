@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-12 Installer rehearsal syntax correction
+
+- E103 records `paper-writer-install-20261012-145835-e096ec5253d7.json`: postgres/superuser confirmed, Plan exit0 (0.785s), Rehearse exit3 / SQLSTATE42601 (1.676s), total57.685s. Apply was never attempted; commit outcome NOT_ATTEMPTED. No successful installation or independent post-failure catalog restoration is claimed.
+- Source review found an unparenthesized SQL CASE inside a PL/pgSQL IF. Parentheses now keep the inner THEN inside its SQL expression. Fixed hashes, ownership, permissions and all confirmation/rollback/readback gates remain unchanged. Offline tests had missed this database-language defect.
+- Added lexical regression for Rehearse/Apply/Verify that rejects the original expression, numeric-only error locations/section mapping, secret-output withholding, and explicit wrong-admin versus SQL-syntax failure codes. 263 offline installer assertions pass (39 more than the original224); these are not PostgreSQL execution tests. [E103](evidence/paper-writer-install-fix-20261012.json) retains verification and failure evidence.
+- Pull and repeat the same guarded installer on spare with postgres credentials kept local. No Docker rebuild, application restart, schema reset, blanket grant or role elevation. Permission-staging package stays60%; R/A pending, full roadmap12.4%, no new percentage credit for defect repair.
+
 ## 2026-10-12 Catalog accepted; guarded NOLOGIN installation prepared
 
 - E101 accepts `paper-writer-preflight-20261012-125200-716dc1c95468.json`: all seven source entries match exact/line-ending-normalized source; catalog contract/stage exits/cleanup passed. Total 110.692s, build 95.318s, catalog stage 11.951s, Java 3.265s. Twelve tables, zero collisions/PUBLIC schema CREATE/callable definers; account data and privileges were not modified.

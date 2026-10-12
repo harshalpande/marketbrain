@@ -1,0 +1,36 @@
+{
+  "evidenceId": "E103",
+  "reviewedAt": "2026-10-12",
+  "status": "SYNTAX_CORRECTION_OFFLINE_VERIFIED_SPARE_REHEARSAL_PENDING",
+  "failedSpareRun": {
+    "file": "paper-writer-install-20261012-145835-e096ec5253d7.json",
+    "sha256": "6D1AEEF2BC743C15FFA5F58EF0AAB4338C103FCD9897E52A1A1A676C43EB3631",
+    "revision": "c1cae44f52843235b2b1eb9c6678ee43c509489a",
+    "administrator": "postgres",
+    "adminSuperuser": true,
+    "elapsedSeconds": 57.6850208,
+    "planExitCode": 0,
+    "planSeconds": 0.7852168,
+    "rehearseExitCode": 3,
+    "rehearseSeconds": 1.6763981,
+    "sqlState": "42601",
+    "applyAttempted": false,
+    "commitOutcome": "NOT_ATTEMPTED",
+    "independentRollbackReadbackCompleted": false
+  },
+  "correction": "Parenthesize CASE inside the function-body-hash verification IF. Permission requirements and the two installed function bodies are unchanged.",
+  "diagnosisLimit": "Original report recorded SQLSTATE but withheld exact server location; source parser analysis identifies the malformed IF. New diagnostics retain bounded numeric locations and fixed section names only.",
+  "java": {"command": "mvn -q package", "exitCode": 0, "tests": 682, "failures": 0, "errors": 0, "skipped": 0, "elapsedSeconds": 57.2923826},
+  "offlineInstaller": {
+    "assertions": 263,
+    "previousAssertions": 224,
+    "scope": "PowerShell 5.1, native processes mocked; lexical IF-boundary regression tests reject the old expression in Rehearse, Apply and Verify. Not PostgreSQL compiler/runtime verification.",
+    "additionalCases": ["numeric input/inline-block locations", "fixed section mapping", "secret error text withheld", "out-of-bounds locations rejected", "wrong administrator surfaced explicitly", "SQL syntax failure checkpointed without Apply"]
+  },
+  "applicationDatabaseAccessedLocally": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "stagingPackagePercent": 60,
+  "parentRoadmapPercent": 12.4,
+  "percentagePointGainForRepair": 0
+}

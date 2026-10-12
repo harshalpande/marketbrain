@@ -2,6 +2,10 @@
 
 Current handoff, 2026-10-12. E101 accepts the configured-database preflight and owner review of its two findings: an authorized administrator is needed, and existing PUBLIC TEMP access must be preserved explicitly for reviewed existing roles. E99's 26 isolated writer checks remain accepted; do not repeat them.
 
+**E103 correction:** the administrator run at 14:58 stopped during rehearsal with SQLSTATE 42601, before Apply or COMMIT. The verification condition now parenthesizes its SQL CASE expression so its inner THEN cannot terminate the PL/pgSQL IF condition. Pull the correction and use the same command below; do not reset the database or change administrator credentials. A fresh plan and rollback rehearsal must still pass. Installation remains unaccepted.
+
+The [PostgreSQL 18 parser](https://github.com/postgres/postgres/blob/REL_18_STABLE/src/pl/plpgsql/src/pl_gram.y) reads IF conditions through a top-level THEN and tracks parenthesis depth. [E103 verification](evidence/paper-writer-install-fix-20261012.json): 263 offline installer assertions and 682 Java regression tests passed; Maven package 57.292s. This does not certify the corrected installation against the spare database yet.
+
 This installation stages **two NOLOGIN roles and two review-only functions**. It does not create a usable writer credential, connect an application datasource, restart MarketBrain, send messages, write account rows or enable trading. Application credential activation and controlled review transport are separate gates.
 
 ## Exact change and safeguards
@@ -16,6 +20,8 @@ This installation stages **two NOLOGIN roles and two review-only functions**. It
 8. Only after `INSTALL <displayed fingerprint>` repeat the guarded transaction with COMMIT. A fresh read-only connection verifies the installed state. No automatic retry, credential activation or application restart follows.
 
 Each SQL statement has a 15-second deadline and 3-second lock limit; each psql stage has a 120-second outer deadline. Console progress, stage timing, source hashes and safe SQLSTATE/fixed assertion labels are checkpointed to one JSON. Raw stderr and credentials are not embedded. The admin password is prompted securely and passed only through the child process environment, removed after use; equally privileged operating-system processes can still inspect process memory/environment. Do not use a shared untrusted session.
+
+Diagnostics now retain bounded numeric psql input-line and inline-block locations, mapped to fixed installer section names where available. They do not expose source lines, raw database errors or passwords. `POSTGRESQL_ADMIN_REQUIRED` distinguishes the wrong database role from `SQL_SYNTAX_ERROR`; a location can be absent if PostgreSQL does not emit a recognized format. The first rehearsal failure report withheld its exact error line, so the CASE diagnosis is source-supported rather than an exact server-line capture. The correction's lexical regression detects the original malformed IF boundary; full SQL/runtime verification still occurs on spare, not in mocked offline tests.
 
 MD5 catalog/body fingerprints detect accidental drift, not cryptographic authentication. Run reviewed repository code with a clean worktree; retain the SHA256 source manifest and report. Idle coordination is required: the advisory lock serializes this installer, not arbitrary administrator commands.
 

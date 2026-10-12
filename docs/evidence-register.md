@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E103 REHEARSAL_SYNTAX_FIX / SPARE_RETRY_PENDING:** [correction evidence](evidence/paper-writer-install-fix-20261012.json). Administrator run Plan passed, Rehearse failed42601 before Apply/COMMIT. Parenthesized CASE in verification IF; added original-defect lexical regression and sanitized numeric error locations/explicit failure codes. 263 offline installer assertions pass; PostgreSQL runtime remains pending. No installation acceptance or progress increase from this repair.
+
 - **E101 PREFLIGHT_ACCEPTED / INSTALLATION_SEPARATE:** [spare acceptance](evidence/paper-writer-preflight-spare-acceptance-20261012.json), source SHA256 EFB875292B8DD2A1543B14E826ED4727FB4B8CC616B43DC6335487C5D186CA1F. Seven source hashes match; catalog runtime 110.692s, PostgreSQL180006, twelve tables, no role/function collision or PUBLIC schema CREATE/callable definer. Owner has administrator access and authorizes exact TEMP impact preservation. This closes E100 R/A, not writer installation.
 - **E102 NOLOGIN_STAGING / OFFLINE_VERIFIED / SPARE_PENDING:** [installation contract](paper-writer-installation.md), [local evidence](evidence/paper-writer-install-local-20261012.json). 682 Java regression tests, 224 offline installer assertions and 113 preflight regression assertions pass. Catalog/role/default-ACL bounds, transactional rehearsal/restoration, exact-plan commit, fresh readback and uncertain-commit recovery are guarded. No local PostgreSQL/PS7 native runtime, application restart, usable writer credential, account mutation or execution. This new package is 60%, with spare R/A pending.
 

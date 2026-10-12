@@ -25,7 +25,22 @@ $v=Sample;$v.plan.roles[0].roleName='$mb$';Reject {New-PaperWriterInstallSql 'Re
 foreach($phase in @('Plan','Rehearse','Apply','Verify')) {
     $sql=New-PaperWriterInstallSql $phase (Sample)
     Check ($sql -notmatch '__[A-Z_]+__') 'no unresolved SQL placeholders'
-    Check ($sql.StartsWith('BEGIN;') -and $sql.Contains("statement_timeout='15s'") -and $sql.Contains("lock_timeout='3s'")) 'bounded transaction'
+    Check ($sql.Contains("`nBEGIN;") -and $sql.Contains("statement_timeout='15s'") -and $sql.Contains("lock_timeout='3s'")) 'bounded transaction'
+    if($phase -ne 'Plan') {
+        # Focused lexical regression, not a substitute for a PostgreSQL compiler/runtime test.
+        $condition=[regex]::Match($sql,"(?s)IF NOT f.prosecdef.*?THEN RAISE EXCEPTION 'Privileged function boundary mismatch'").Value
+        Check ($condition.Length -gt 0) 'verification condition found'
+        foreach($mutated in @($false,$true)) {
+            $examined=if($mutated){$condition.Replace('(CASE','CASE').Replace(' END) OR',' END OR')}else{$condition}
+            $depth=0;$firstThen=-1
+            foreach($token in [regex]::Matches($examined,"'(?:''|[^'])*'|\bTHEN\b|[()]")) {
+                if($token.Value -eq '('){$depth++}elseif($token.Value -eq ')'){$depth--}
+                elseif($token.Value -ceq 'THEN' -and $depth -eq 0){$firstThen=$token.Index;break}
+            }
+            $isOuter=($firstThen -eq $examined.LastIndexOf('THEN RAISE'))
+            Check ($isOuter -ne $mutated) 'inner CASE THEN must not terminate outer IF; old expression rejected'
+        }
+    }
     if($phase -in @('Plan','Verify')){Check ($sql.Contains('SET TRANSACTION READ ONLY;') -and $sql.EndsWith('ROLLBACK;')) 'read-only rollback';Check ($sql -notmatch '(?i)CREATE ROLE|GRANT |REVOKE |ALTER FUNCTION|UPDATE public\.') 'read mode not installation'}
     else {
         Check ($sql.IndexOf('Approved catalog plan changed') -lt $sql.IndexOf('CREATE ROLE')) 'guard before changes'
@@ -45,6 +60,17 @@ Check ($helper.Contains('ReadToEndAsync') -and $helper.Contains('120') -and $hel
 $verifySql=Get-PaperWriterInstallResource 'writer-install-verify-v1.sql'
 Check ($verifySql.Contains('FOR v_relation IN SELECT c.oid') -and $verifySql.Contains('attrelid=v_relation.oid')) 'record variables do not shadow catalog aliases'
 Check ($verifySql.Contains('Required tables changed') -and $verifySql.Contains("left(n.nspname,3)<>'pg_'")) 'required objects and exact system namespace exclusion'
+$diagnosticSql="-- MB_INSTALL_SECTION: guard`nDO x;`n-- MB_INSTALL_SECTION: verification`nDO y;`nEND;"
+$diagnosticText='psql:<stdin>:5: ERROR:  42601: syntax error TEST_PASSWORD_NEVER_SERIALIZE' + "`n" + 'CONTEXT: compilation of PL/pgSQL function "inline_code_block" near line 3'
+$diagnostic=Get-PaperInstallerDiagnostic $diagnosticText $diagnosticSql
+Check ($diagnostic.sqlStates[0] -ceq '42601') 'SQLSTATE captured'
+Check ($diagnostic.inputLocations[0].inputLine -eq 5 -and $diagnostic.inputLocations[0].section -ceq 'verification') 'input location mapped to fixed section'
+Check ($diagnostic.inlineBlockLines[0] -eq 3) 'inline block location captured'
+Check (-not ($diagnostic|ConvertTo-Json -Depth 5).Contains('TEST_PASSWORD_NEVER_SERIALIZE')) 'raw diagnostic text withheld'
+$diagnostic=Get-PaperInstallerDiagnostic 'psql:<stdin>:9999999: ERROR:  426010000: secret' $diagnosticSql
+Check ($diagnostic.inputLocations.Count -eq 0 -and $diagnostic.sqlStates.Count -eq 0) 'invalid codes and out-of-bounds locations withheld'
+$diagnostic=Get-PaperInstallerDiagnostic '' $diagnosticSql
+Check ($diagnostic.sqlStates.Count -eq 0 -and $diagnostic.inlineBlockLines.Count -eq 0) 'empty diagnostic accepted'
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $mocked=$source.Replace('#Requires -Version 7.0','').Replace(". (Join-Path `$PSScriptRoot 'NumericalHistoryEvidence.ps1')",'').Replace(". (Join-Path `$PSScriptRoot 'PaperWriterInstallation.ps1')",'')
 $mocked=[regex]::Replace($mocked,'(?m)^\$repo=.*$',('$repo='''+$repo.Replace("'","''")+'''').Replace('$','$$'))
@@ -67,15 +93,19 @@ function Invoke-PaperInstallerPsql([string]$Executable,[string]$Database,[int]$P
     Check ($Password -ceq 'TEST_PASSWORD_NEVER_SERIALIZE') 'password not SQL or arguments'
     Check (-not $Sql.Contains($Password)) 'no SQL password'
     $v=if($phase -eq 'Plan'){Sample}else{Receipt $phase}
+    if($script:case -eq 'not-admin' -and $phase -eq 'Plan'){$v.plan.adminSuperuser=$false}
     if($script:case -eq 'drift' -and @($script:phases|Where-Object {$_ -eq 'Plan'}).Count -eq 2){$v.planHash='b'*32}
     if($script:case -eq 'unsafe-receipt' -and $phase -eq 'Rehearse'){$v.actionExecutionEnabled=$true}
     $exitCode=0;$timedOut=$false
     if(($script:case -eq 'rehearsal-fail' -and $phase -eq 'Rehearse') -or ($script:case -eq 'lost-commit' -and $phase -eq 'Apply') -or ($script:case -eq 'verify-fail' -and $phase -eq 'Verify')){$exitCode=1}
     if($script:case -eq 'timeout' -and $phase -eq 'Rehearse'){$exitCode=-999;$timedOut=$true}
-    [pscustomobject]@{stdout=($v|ConvertTo-Json -Depth 10 -Compress);exitCode=$exitCode;timedOut=$timedOut;elapsedSeconds=0.1;sqlStates=@();assertionFailures=@();stderrCharacters=0}
+    $errorText=''
+    if($script:case -eq 'syntax-error' -and $phase -eq 'Rehearse'){$exitCode=3;$errorText='psql:<stdin>:'+($Sql -split "`n").Count+': ERROR:  42601: TEST_PASSWORD_NEVER_SERIALIZE'}
+    $diagnostic=Get-PaperInstallerDiagnostic $errorText $Sql
+    [pscustomobject]@{stdout=($v|ConvertTo-Json -Depth 10 -Compress);exitCode=$exitCode;timedOut=$timedOut;elapsedSeconds=0.1;sqlStates=$diagnostic.sqlStates;assertionFailures=@();inputLocations=$diagnostic.inputLocations;inlineBlockLines=$diagnostic.inlineBlockLines;stderrCharacters=$errorText.Length}
 }
 $passedPath=$null
-foreach($script:case in @('pass','plan-only','backup-cancel','roles-cancel','commit-cancel','rehearsal-fail','unsafe-receipt','timeout','drift','lost-commit','verify-fail','verify-only')) {
+foreach($script:case in @('pass','plan-only','backup-cancel','roles-cancel','commit-cancel','rehearsal-fail','unsafe-receipt','timeout','drift','lost-commit','verify-fail','verify-only','not-admin','syntax-error')) {
     $script:phases=@();$dir=Join-Path $root $script:case
     $parameters=@{OutputDirectory=$dir;Apply=$true}
     if($script:case -eq 'plan-only'){$parameters.Apply=$false}
@@ -90,6 +120,8 @@ foreach($script:case in @('pass','plan-only','backup-cancel','roles-cancel','com
     elseif($script:case -eq 'plan-only'){Check ($r.status -eq 'INSTALLATION_PLAN_CAPTURED_NO_CHANGES') 'default no changes';Check (($script:phases -join ',') -eq 'Plan') 'only plan'}
     elseif($script:case -eq 'verify-only'){Check ($r.commitOutcome -eq 'STAGED_STATE_VERIFIED') 'saved verification';Check (($script:phases -join ',') -eq 'Verify') 'no verification writes'}
     else{Check ($r.status -eq 'STOPPED_REVIEW_REQUIRED') 'failed workflow not success'}
+    if($script:case -eq 'not-admin'){Check ($r.failureCode -ceq 'POSTGRESQL_ADMIN_REQUIRED') 'specific credential diagnostic';Check (($script:phases -join ',') -eq 'Plan') 'admin guard before rehearsal'}
+    if($script:case -eq 'syntax-error'){Check ($r.failureCode -ceq 'SQL_SYNTAX_ERROR') 'specific SQL diagnostic';Check ($r.steps[-1].inputLocations.Count -eq 1) 'SQL error location retained'}
     if($script:case -eq 'lost-commit'){Check ($r.commitOutcome -eq 'UNKNOWN_VERIFY_BEFORE_RETRY') 'unknown commit preserved'}
     elseif($script:case -eq 'verify-fail'){Check ($r.commitOutcome -eq 'COMMIT_ACKNOWLEDGED_READBACK_PENDING') 'readback failure not undone'}
     elseif($script:case -notin @('pass','verify-only','plan-only')){Check (-not $r.applyAttempted) 'precommit guard prevented apply'}

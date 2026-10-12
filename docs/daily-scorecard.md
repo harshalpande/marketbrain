@@ -41,6 +41,8 @@ The candidate percentage is **not** the completion of the production writer, pap
 
 ## Proposed sequence
 
+E103 repair update: the spare administrator rehearsal failed SQL parsing before Apply/COMMIT. The CASE-expression correction and expanded offline diagnostics/regression checks do not earn a new checkpoint. Staging stays60%, with R/A pending; full-roadmap change0pp. Do not count a failed rehearsal as completed runtime verification.
+
 Latest handoff gains: preflight 60% to 100% (+40 pp), plus a separately scoped NOLOGIN staging package 0% to 60% (+60 pp). These are not additive project gains. Full roadmap stays 12.4%; there is no forecast-quality gain to report. R/A for installation cannot be credited until the spare report and review.
 
 1. Restricted approval-writer permissions and command boundary: isolated tests must prove review operations work while money/order mutation, secret disclosure and privilege escalation fail. Do not grant cash-update privileges just to acquire a lock. Application adoption needs a separate guarded migration/readback.

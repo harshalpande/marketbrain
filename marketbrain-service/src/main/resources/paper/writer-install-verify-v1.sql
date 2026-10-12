@@ -76,7 +76,7 @@ BEGIN
       f.proconfig IS DISTINCT FROM ARRAY['search_path=pg_catalog, public, pg_temp'] OR
       NOT pg_catalog.has_function_privilege('marketbrain_paper_review_writer',f.oid,'EXECUTE') OR
       pg_catalog.has_function_privilege('public',f.oid,'EXECUTE') OR
-      md5(f.prosrc) IS DISTINCT FROM CASE f.proname WHEN 'paper_review_lock' THEN '__LOCK_HASH__' ELSE '__RECORD_HASH__' END OR
+      md5(f.prosrc) IS DISTINCT FROM (CASE f.proname WHEN 'paper_review_lock' THEN '__LOCK_HASH__' ELSE '__RECORD_HASH__' END) OR
       EXISTS(SELECT 1 FROM pg_catalog.aclexplode(f.proacl) x WHERE x.is_grantable OR x.grantee NOT IN
               (SELECT oid FROM pg_catalog.pg_roles WHERE rolname IN ('marketbrain_paper_review_writer','marketbrain_paper_review_helper')))
       THEN RAISE EXCEPTION 'Privileged function boundary mismatch'; END IF;

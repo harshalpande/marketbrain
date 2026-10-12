@@ -11,6 +11,7 @@ $ErrorActionPreference='Stop'
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $watch=[Diagnostics.Stopwatch]::StartNew();$password=$null;$secure=$null;$admin=$null
 $report=[ordered]@{version='PAPER_WRITER_INSTALL_BUNDLE_V1';status='RUNNING';updatedAtUtc=$null;elapsedSeconds=0;revision=$null;manifest=@{};events=@();steps=@();target=@{host='127.0.0.1';port=$DatabasePort;database=$DatabaseName};plan=$null;rehearsal=$null;applyReceipt=$null;verification=$null;failure=$null;backupConfirmed=$false;maintenanceConfirmed=$false;targetConfirmed=$false;rolesApproved=$false;rehearsalRollbackVerified=$false;applyRequested=[bool]$Apply;applyAttempted=$false;commitOutcome='NOT_ATTEMPTED';applicationWriterActivated=$false;actionExecutionEnabled=$false;credentialsSaved=$false}
+$report.failureCode=$null
 [void](New-Item -ItemType Directory -Path $OutputDirectory -Force)
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-writer-install-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),[guid]::NewGuid().ToString('N').Substring(0,12))
 if($path.Length+41 -ge 260 -or (Test-Path -LiteralPath $path)){throw 'Unsafe or existing report path.'}
@@ -19,8 +20,11 @@ function Stage([int]$Percent,[string]$Message){$report.events+=@{percent=$Percen
 function Run-Sql([string]$Phase,$Envelope) {
     $sql=New-PaperWriterInstallSql $Phase $Envelope
     $r=Invoke-PaperInstallerPsql $psql $DatabaseName $DatabasePort $admin $password $sql
-    $report.steps+=@{phase=$Phase;exitCode=$r.exitCode;timedOut=$r.timedOut;elapsedSeconds=$r.elapsedSeconds;sqlStates=$r.sqlStates;assertionFailures=$r.assertionFailures;stderrCharacters=$r.stderrCharacters};Save
-    if($r.exitCode -ne 0 -or $r.timedOut -or $r.stdout.Length -gt 500000){throw 'Database stage failed; do not automatically retry.'}
+    $report.steps+=@{phase=$Phase;exitCode=$r.exitCode;timedOut=$r.timedOut;elapsedSeconds=$r.elapsedSeconds;sqlStates=$r.sqlStates;assertionFailures=$r.assertionFailures;inputLocations=$r.inputLocations;inlineBlockLines=$r.inlineBlockLines;stderrCharacters=$r.stderrCharacters};Save
+    if($r.exitCode -ne 0 -or $r.timedOut -or $r.stdout.Length -gt 500000){
+        $report.failureCode=if($r.sqlStates -contains '42601'){'SQL_SYNTAX_ERROR'}elseif($r.timedOut){'DATABASE_STAGE_TIMEOUT'}else{'DATABASE_STAGE_FAILED'}
+        throw 'Database stage failed; do not automatically retry.'
+    }
     return ($r.stdout.Trim()|ConvertFrom-Json)
 }
 try {
@@ -77,7 +81,9 @@ try {
 } catch {
     $report.status='STOPPED_REVIEW_REQUIRED'
     $report.failure='Stopped during '+[string]$report.events[-1].message+' See stage SQLSTATE/exit codes. Never repeat Apply blindly after an attempted commit.'
-    Write-Warning 'Stopped safely for review. A failed/lost commit acknowledgement may need read-only verification; do not reset or reinstall.'
+    if($_.Exception.Data['PaperWriterCode'] -ceq 'POSTGRESQL_ADMIN_REQUIRED'){$report.failureCode='POSTGRESQL_ADMIN_REQUIRED';$report.failure='Use an authorized PostgreSQL superuser, not the application database role. Do not elevate the application role.'}
+    if(-not $report.failureCode){$report.failureCode='INSTALLATION_GUARD_OR_RUNNER_FAILED'}
+    Write-Warning ($report.failureCode+': '+$report.failure)
 } finally {
     $password=$null;$admin=$null;if($secure){$secure.Dispose()};$secure=$null
     Stage 100 $report.status;Write-Progress -Activity 'Guarded paper writer installation' -Completed
