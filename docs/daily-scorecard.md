@@ -44,6 +44,8 @@ The candidate percentage is **not** the completion of the production writer, pap
 
 ## Proposed sequence
 
+E111 repair: elevated access inspection reached the old candidate-rule cap after 42.47s, without database access. Revised collector passes 128 contract/firewall and 160 runner assertions, including larger rule sets and partial evidence retention. Retry access collection only. Package remains 60%; repair gain 0pp and full roadmap 12.4% unchanged.
+
 Current E109/E110 handoff: foundation closes60% to100%,+40pp,26.49s spare run. Access-review implementation is60%, with719 Java tests and62+139 separately scoped PowerShell assertions passed. No application login activation or trading credit; full roadmap12.4%. Run the combined access review once; do not repeat foundation/installation. Earlier next-handoff statements below are historical.
 
 Current E107/E108 handoff: connection inventory closes 60% to 100% (+40pp), 16.181s total and 0.410s database stage. The owner approved TLS deferral for the private same-machine policy. The separate foundation candidate is 60%, with 708 Java tests, 120 mocked boundary assertions and 15 synthetic custody checks passed locally; spare acceptance remains pending. No actual writer login, application deployment or execution is credited. Full roadmap remains 12.4%. Earlier retry/next-step statements below are historical.

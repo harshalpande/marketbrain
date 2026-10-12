@@ -1,4 +1,37 @@
 # Definitions and fixed contracts only.
+function Read-PaperFirewallOutput([string]$Text,[bool]$Interrupted) {
+    if($Text.Length -gt 32MB){throw 'ACCESS_FIREWALL_OUTPUT_LIMIT'}
+    $last=$null;$malformed=$false;$lineCount=0
+    foreach($line in ($Text -split '\r?\n')){
+        if(-not $line.Trim()){continue}
+        $lineCount++
+        if($lineCount -gt 24 -or [Text.Encoding]::UTF8.GetByteCount($line) -gt 1MB){$malformed=$true;break}
+        try {
+            $v=$line|ConvertFrom-Json
+            if($v.version -cne 'PAPER_FIREWALL_SNAPSHOT_V2' -or $v.status -cnotin @('RUNNING','FAILED','METADATA_CAPTURED_REVIEW_REQUIRED')){throw 'Invalid checkpoint'}
+            if(@($v.rules).Count -gt 1000 -or @($v.profiles).Count -gt 3){throw 'Invalid checkpoint size'}
+            foreach($flag in @('configurationChanged','effectiveAccessProven','truncated')){if($v.$flag -isnot [bool]){throw 'Invalid flag'}}
+            if($v.configurationChanged -or $v.effectiveAccessProven){throw 'Unsafe checkpoint'}
+            foreach($field in @('inboundRuleCount','scannedRuleCount','candidateRuleCount')){
+                if(($v.$field -isnot [int] -and $v.$field -isnot [long]) -or $v.$field -lt 0 -or $v.$field -gt 2001){throw 'Invalid count'}
+            }
+            if($v.candidateRuleCount -ne @($v.rules).Count -or $v.scannedRuleCount -gt $v.inboundRuleCount){throw 'Inconsistent count'}
+            if($v.status -ceq 'METADATA_CAPTURED_REVIEW_REQUIRED' -and ($v.truncated -or $v.failureCode -or @($v.profiles).Count -ne 3 -or $v.scannedRuleCount -ne $v.inboundRuleCount)){throw 'Incomplete success'}
+            # Only diagnostic metadata belongs in the retained report, never arbitrary extra fields.
+            $last=$v|Select-Object version,status,inboundRuleCount,scannedRuleCount,candidateRuleCount,truncated,failureCode,elapsedSeconds,configurationChanged,effectiveAccessProven
+            $last|Add-Member -NotePropertyName profiles -NotePropertyValue @($v.profiles|Select-Object Name,Enabled,DefaultInboundAction,AllowInboundRules,AllowLocalFirewallRules)
+            $last|Add-Member -NotePropertyName rules -NotePropertyValue @($v.rules|Select-Object name,action,profile,protocol,localPort,remotePort,localAddress,remoteAddress,program,service,edgeTraversal,policySourceType)
+            if($last.failureCode -and $last.failureCode -cnotmatch '^FIREWALL_[A-Z_]+$'){$last.failureCode='FIREWALL_QUERY_FAILED'}
+        }catch{$malformed=$true;break}
+    }
+    if($null -eq $last){throw 'ACCESS_FIREWALL_OUTPUT_INVALID'}
+    if($Interrupted -or $malformed -or $last.status -ceq 'RUNNING'){
+        $last.status='FAILED';$last.truncated=$true
+        $last.failureCode=if($Interrupted){'FIREWALL_PROCESS_INTERRUPTED'}elseif($malformed){'FIREWALL_OUTPUT_INVALID'}else{'FIREWALL_OUTPUT_INCOMPLETE'}
+    }
+    return $last
+}
+
 function Assert-PaperFoundationEvidence($Saved) {
     if($Saved.version -cne 'PAPER_WRITER_FOUNDATION_V1' -or $Saved.status -cne 'FOUNDATION_CAPTURED_PRIVATE_BOUNDARY_REVIEW_REQUIRED' -or
        $Saved.failureCode -or $Saved.checkCount -ne 15 -or @($Saved.checks|Select-Object -Unique).Count -ne 15 -or

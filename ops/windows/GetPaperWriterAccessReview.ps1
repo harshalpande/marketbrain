@@ -47,9 +47,11 @@ try {
     $psql=Join-Path $PostgreSqlBin 'psql.exe';if(-not(Test-Path -LiteralPath $psql -PathType Leaf)){throw 'ACCESS_PSQL_MISSING'}
     $phase='FIREWALL'
     Stage 15 'Reading effective Windows firewall profile/rule metadata relevant to port 5432; no firewall changes.'
-    $firewallText=Native (Join-Path $PSHOME 'pwsh.exe') @('-NoLogo','-NoProfile','-NonInteractive','-File',(Join-Path $PSScriptRoot 'PaperWriterFirewallSnapshot.ps1')) 90 'FIREWALL_METADATA'
-    $report.firewall=$firewallText|ConvertFrom-Json
-    if($report.firewall.version -cne 'PAPER_FIREWALL_SNAPSHOT_V1' -or $report.firewall.status -cne 'METADATA_CAPTURED_REVIEW_REQUIRED' -or $report.firewall.truncated -or $report.firewall.configurationChanged){throw 'ACCESS_FIREWALL_INCOMPLETE'}
+    $firewallResult=Invoke-PaperCatalogProcess (Join-Path $PSHOME 'pwsh.exe') @('-NoLogo','-NoProfile','-NonInteractive','-File',(Join-Path $PSScriptRoot 'PaperWriterFirewallSnapshot.ps1')) $root 210
+    $report.steps+=@{stage='FIREWALL_METADATA';exitCode=$firewallResult.exitCode;timedOut=$firewallResult.timedOut;elapsedSeconds=$firewallResult.elapsedSeconds}
+    $report.firewall=Read-PaperFirewallOutput $firewallResult.stdout $firewallResult.timedOut
+    $report.diagnosticFailureCode=$report.firewall.failureCode;Save
+    if($firewallResult.exitCode -ne 0 -or $firewallResult.timedOut -or $report.firewall.status -cne 'METADATA_CAPTURED_REVIEW_REQUIRED' -or $report.firewall.truncated){throw 'ACCESS_FIREWALL_INCOMPLETE'}
     $phase='ROUTE_PROBE'
     Stage 35 'Compiling a temporary diagnostic class with native JDK 21+; application rebuild is not needed.'
     [void](New-Item -ItemType Directory -Path $fixture)

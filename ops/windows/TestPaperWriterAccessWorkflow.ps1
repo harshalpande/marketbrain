@@ -33,18 +33,42 @@ foreach($port in @('5432','Any','5000-6000','RPC')){Check (Test-PortRelevant @{P
 foreach($port in @('80','5433','5000-5431')){Check (-not (Test-PortRelevant @{Protocol='TCP';LocalPort=$port})) 'Unrelated port excluded'}
 Check (-not (Test-PortRelevant @{Protocol='UDP';LocalPort='5432'})) 'UDP irrelevant to PostgreSQL TCP'
 $mocked=$source.Replace('#Requires -Version 7.0','').Replace("if(`$report.status -ceq 'FAILED'){exit 2}",'')
+$mocked=$mocked.Replace('$watch.Elapsed.TotalSeconds -ge 180',"(`$script:case -ceq 'deadline' -and `$rows.Count -ge 2)")
 function Get-NetFirewallProfile {param($PolicyStore);@('Domain','Private','Public')|ForEach-Object {[pscustomobject]@{Name=$_;Enabled='True';DefaultInboundAction='Block'}}}
-function Get-NetFirewallPortFilter {param($PolicyStore);if($script:case -ceq 'throw'){throw 'SECRET_NEVER_OUTPUT'};$n=if($script:case -ceq 'limit'){2001}else{1};1..$n|ForEach-Object {[pscustomobject]@{Protocol='TCP';LocalPort='5432';RemotePort='Any'}}}
-function Get-NetFirewallRule {param($AssociatedNetFirewallPortFilter);[pscustomobject]@{Name='fixture';Enabled='True';Direction='Inbound';Action='Allow';Profile='Private';EdgeTraversalPolicy='Block';PolicyStoreSourceType='Local'}}
+function Get-NetFirewallPortFilter {param($AssociatedNetFirewallRule);$script:ports++;if($script:case -ceq 'throw' -and $AssociatedNetFirewallRule.Ordinal -eq 3){throw 'SECRET_NEVER_OUTPUT'};if($script:case -ceq 'missing'){return};$port=if($script:case -ceq 'irrelevant'){'80'}else{'Any'};[pscustomobject]@{Protocol='TCP';LocalPort=$port;RemotePort='Any'}}
+function Get-NetFirewallRule {
+    param($PolicyStore,$Enabled,$Direction)
+    $script:ruleQueries++;if($PolicyStore -cne 'ActiveStore' -or $Enabled -cne 'True' -or $Direction -cne 'Inbound'){throw 'Server filter missing'}
+    $n=switch($script:case){'101'{101};'500'{500};'1000'{1000};'limit'{1001};'inbound-limit'{2001};default{3}}
+    1..$n|ForEach-Object {[pscustomobject]@{Name=if($script:case -ceq 'duplicate'){'same'}else{"fixture-$_"};Ordinal=$_;Enabled='True';Direction='Inbound';Action='Allow';Profile='Private';EdgeTraversalPolicy='Block';PolicyStoreSourceType='Local'}}
+}
 function Get-NetFirewallAddressFilter {param($AssociatedNetFirewallRule);[pscustomobject]@{LocalAddress='Any';RemoteAddress='LocalSubnet'}}
-function Get-NetFirewallApplicationFilter {param($AssociatedNetFirewallRule);[pscustomobject]@{Program='C:\fixture\postgres.exe'}}
+function Get-NetFirewallApplicationFilter {param($AssociatedNetFirewallRule);[pscustomobject]@{Program=if($script:case -ceq 'payload' -and $AssociatedNetFirewallRule.Ordinal -eq 3){'x'*1000001}else{'C:\fixture\postgres.exe'}}}
 function Get-NetFirewallServiceFilter {param($AssociatedNetFirewallRule);[pscustomobject]@{Service='Any'}}
-foreach($script:case in @('pass','limit','throw')){
-    $text=& ([scriptblock]::Create($mocked));$r=$text|ConvertFrom-Json
+foreach($script:case in @('pass','101','500','1000','limit','inbound-limit','throw','deadline','payload','missing','duplicate','irrelevant')){
+    $script:ports=0;$script:ruleQueries=0
+    $text=(& ([scriptblock]::Create($mocked))) -join "`n";$r=Read-PaperFirewallOutput $text $false
     Check ($text -notmatch 'SECRET_NEVER_OUTPUT') 'No raw errors'
     Check (-not $r.configurationChanged -and -not $r.effectiveAccessProven) 'Metadata not access certification'
-    if($script:case -ceq 'pass'){Check ($r.status -ceq 'METADATA_CAPTURED_REVIEW_REQUIRED' -and $r.rules.Count -eq 1) 'Relevant rules captured'}else{Check ($r.status -ceq 'FAILED') 'Limits and exceptions stop'}
+    Check ($script:ruleQueries -eq 1) 'Only one filtered rule enumeration'
+    Check ($script:ports -le $r.inboundRuleCount) 'No per-port reverse rule lookups'
+    if($script:case -in @('pass','101','500','1000','irrelevant')){
+        Check ($r.status -ceq 'METADATA_CAPTURED_REVIEW_REQUIRED' -and -not $r.truncated) 'Complete relevant rules captured'
+        $expected=if($script:case -ceq 'irrelevant'){0}elseif($script:case -ceq 'pass'){3}else{[int]$script:case}
+        Check ($r.rules.Count -eq $expected -and $r.scannedRuleCount -eq $r.inboundRuleCount) 'All candidate rows and counts retained'
+    }else{Check ($r.status -ceq 'FAILED' -and $r.truncated) 'Limits and exceptions stop with incomplete evidence'}
+    if($script:case -in @('throw','deadline','payload')){Check ($r.rules.Count -eq 2 -and $r.profiles.Count -eq 3) 'Partial rows and profiles preserved'}
+    if($script:case -ceq 'limit'){Check ($r.failureCode -ceq 'FIREWALL_RULE_LIMIT' -and $r.rules.Count -eq 1000) 'Rule overflow retains first 1000, never success'}
+    if($script:case -ceq 'inbound-limit'){Check ($r.failureCode -ceq 'FIREWALL_INBOUND_RULE_LIMIT' -and $script:ports -eq 0) 'Enumeration overflow stops before per-rule work'}
+    if($script:case -ceq '500'){$checkpoint=($text -split '\r?\n')[1];$partial=Read-PaperFirewallOutput ($checkpoint+"`n{" ) $true;Check ($partial.rules.Count -eq 100 -and $partial.status -ceq 'FAILED' -and $partial.truncated) 'Hard timeout retains last complete JSON line'}
+    if($script:case -ceq 'pass'){$valid=$text}
 }
+$v=Read-PaperFirewallOutput $valid $false;$v|Add-Member -NotePropertyName unexpectedSecret -NotePropertyValue 'SECRET_NEVER_OUTPUT'
+$raw=$v|ConvertTo-Json -Depth 8 -Compress;$v=Read-PaperFirewallOutput $raw $false
+Check (($v|ConvertTo-Json -Depth 8) -notmatch 'SECRET_NEVER_OUTPUT') 'Unexpected fields discarded'
+$v.scannedRuleCount=0;Reject {Read-PaperFirewallOutput ($v|ConvertTo-Json -Depth 8 -Compress) $false}
+Reject {Read-PaperFirewallOutput '{' $false}
+Reject {Read-PaperFirewallOutput ('x'*(32MB+1)) $false}
 foreach($file in @('GetPaperWriterAccessReview.ps1','PaperWriterAccessReview.ps1','PaperWriterFirewallSnapshot.ps1')){
     $tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $file),[ref]$tokens,[ref]$errors);Check ($errors.Count -eq 0) 'Parses'
 }

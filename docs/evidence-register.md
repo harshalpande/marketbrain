@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E111 FIREWALL_COLLECTOR_REPAIRED / SPARE_RETRY_PENDING:** [repair evidence](evidence/paper-writer-access-fix-20261012.json), [handoff](paper-writer-access-review.md). Elevated collection exceeded the old 100-rule cap before database access. Rule-first enumeration, larger bounded collection and partial checkpoints verified by 128 contract/firewall and 160 runner assertions. No configuration changes; access review stays 60%, full roadmap 12.4%.
+
 - **E110 ACCESS_REVIEW_IMPLEMENTED / SPARE_PENDING:** [runbook](paper-writer-access-review.md), [local evidence](evidence/paper-writer-access-local-20261012.json). Same-container read-only diagnostic, current HBA/permission verification and bounded Windows Firewall metadata; no writer login or configuration changes.719 Java tests,62 contract/firewall assertions,139 runner assertions; native runtime mocked locally.
 - **E109 FOUNDATION_ACCEPTED:** [spare evidence](evidence/paper-writer-foundation-spare-acceptance-20261012.json).15/15 custody checks,6/6 source matches,5/5 inspection stages in26.49s. Foundation100%; broad database listener still needs access review. Configured local route is not a proven session; no writer activation.
 

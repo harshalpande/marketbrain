@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-12 Firewall collector limit repaired
+
+- E111 records the elevated spare failure: `FIREWALL_RULE_LIMIT`, 42.47 seconds total, 41.05 seconds firewall stage; no database access or configuration changes. Elevation succeeded. More than 100 possible rules is not proof of external database exposure.
+- The collector now filters enabled inbound rules at retrieval, avoids reverse per-port rule queries, retains broad/unknown port selectors, and allows 1,000 candidate rules within 2,000 inbound rules. Time and payload limits remain enforced. Complete JSON-line checkpoints and sanitized partial failures are folded into one final report; incomplete evidence cannot reach database stages.
+- Offline regression: 128 access/firewall assertions and 160 full-runner assertions passed. Includes 101/500/1,000 rules, overflow, missing/duplicate filters, query failures and soft/hard timeouts. No real Windows firewall, Docker or database runtime was used locally. Java unchanged; no new Java run claimed.
+- Documentation skill used to preserve the evidence boundary and explain purpose, success and next steps. Retry the access diagnostic on the spare laptop in elevated PowerShell 7. No rebuild, security-policy change or writer activation. Access-review package remains 60%, full roadmap 12.4%; repair gain 0 percentage points.
+
 ## 2026-10-12 Foundation accepted and targeted access review prepared
 
 - E109 accepts the spare foundation report:15 custody checks, six source matches, five successful inspection stages,26.49s; temporary fixture removed and no activation/mutation. Service/UI publish to localhost; database listens on all interfaces. This is not proof of external exposure. Foundation closes60% to100%,+40pp.

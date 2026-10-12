@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+**Current repair E111:** the elevated access review reached firewall inspection but exceeded the collector's 100-rule limit. The [updated diagnostic](paper-writer-access-review.md) handles larger sets and retains partial evidence on failure/timeout. Pull and retry only this diagnostic; no rebuild, role/firewall changes or installer rerun. Access review remains 60%, full roadmap 12.4%; no extra completion credit for the repair.
+
 **Current handoff, 2026-10-12 (E109/E110):** the foundation report is accepted:15/15 custody checks, six source matches and five successful inspection commands in26.49s. Run the [targeted access review](paper-writer-access-review.md) next to correlate a read-only application-container connection with current database authentication and Windows Firewall metadata. One JSON, no rebuild or configuration change. TLS stays deferred and the writer remains NOLOGIN/unwired. Do not repeat installation or foundation tests.
 
 The [daily scorecard](daily-scorecard.md) records foundation60% to100% (+40pp), new access-review implementation60%, and full-roadmap12.4% unchanged. These different scopes are not averaged. Older handoffs below are historical.

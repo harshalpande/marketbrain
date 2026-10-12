@@ -24,11 +24,18 @@ function Get-Command {param($Name,$CommandType,$ErrorAction);[pscustomobject]@{S
 function Test-Path {param($LiteralPath,$PathType);if($LiteralPath -like '*psql.exe'){return $true};if($PathType){Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath -PathType $PathType}else{Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath}}
 function Read-Host {param($Prompt,[switch]$AsSecureString);if($AsSecureString){return (ConvertTo-SecureString 'SECRET_SENTINEL' -AsPlainText -Force)};if($Prompt -ceq 'Confirm database name'){if($script:case -ceq 'cancel'){return 'NO'};return 'marketbrain'};return 'postgres'}
 function Invoke-PaperCatalogProcess($Executable,$Arguments,$WorkingDirectory,$LimitSeconds){
-    $script:nativeCalls++;Check ($LimitSeconds -le 90) 'Bounded stage'
+    $script:nativeCalls++;Check ($LimitSeconds -le 210) 'Bounded stage'
     $out='';$exit=0;$timeout=$false
     if($Arguments -contains 'PaperWriterFirewallSnapshot.ps1' -or ($Arguments -join ' ') -like '*PaperWriterFirewallSnapshot.ps1*'){
-        $out=@{version='PAPER_FIREWALL_SNAPSHOT_V1';status='METADATA_CAPTURED_REVIEW_REQUIRED';truncated=$false;configurationChanged=$false;profiles=@(@{Enabled='True';DefaultInboundAction='Block'})*3;rules=@()}|ConvertTo-Json -Depth 8 -Compress
-        if($script:case -ceq 'firewall-fail'){$exit=2;$out='{"version":"PAPER_FIREWALL_SNAPSHOT_V1","status":"FAILED","failureCode":"FIREWALL_QUERY_FAILED"}'}
+        $snapshot=@{version='PAPER_FIREWALL_SNAPSHOT_V2';status='METADATA_CAPTURED_REVIEW_REQUIRED';truncated=$false;failureCode=$null;elapsedSeconds=0.01;inboundRuleCount=0;scannedRuleCount=0;candidateRuleCount=0;configurationChanged=$false;effectiveAccessProven=$false;profiles=@(@{Enabled='True';DefaultInboundAction='Block'})*3;rules=@()}
+        if($script:case -in @('firewall-fail','firewall-limit','firewall-timeout')){
+            $exit=2;$snapshot.status='FAILED';$snapshot.truncated=$true;$snapshot.failureCode='FIREWALL_QUERY_FAILED'
+            $snapshot.rules=@(@{name='preserved';action='Allow'});$snapshot.inboundRuleCount=101;$snapshot.scannedRuleCount=1;$snapshot.candidateRuleCount=1
+            if($script:case -ceq 'firewall-limit'){$snapshot.failureCode='FIREWALL_RULE_LIMIT'}
+            if($script:case -ceq 'firewall-timeout'){$snapshot.status='RUNNING';$snapshot.failureCode=$null;$timeout=$true}
+        }
+        $out=$snapshot|ConvertTo-Json -Depth 8 -Compress
+        if($script:case -ceq 'firewall-timeout'){$out+="`n{"}
     }elseif($Arguments -contains '--release'){
         if($script:case -ceq 'compile-fail'){$exit=1}else{
             $destination=$Arguments[3];$dir=Join-Path $destination 'in\marketbrain\paper';[void][IO.Directory]::CreateDirectory($dir);[IO.File]::WriteAllText((Join-Path $dir 'PaperApplicationRouteProbe.class'),'synthetic')
@@ -48,7 +55,7 @@ function Invoke-PaperInstallerPsql($Executable,$Database,$Port,$Admin,$Password,
     $out=((Receipt 'Verify')|ConvertTo-Json -Compress)+"`n"+((Inventory)|ConvertTo-Json -Depth 10 -Compress)+"`n"+(@{serverStartEpoch=$epoch}|ConvertTo-Json -Compress)
     return [pscustomobject]@{stdout=$out;exitCode=if($script:case -ceq 'sql-fail'){3}else{0};timedOut=$false;elapsedSeconds=0.01;sqlStates=@();assertionFailures=@()}
 }
-foreach($script:case in @('pass','dirty','firewall-fail','compile-fail','ambiguous','probe-fail','probe-timeout','cancel','sql-fail','instance-mismatch','cleanup-fail')){
+foreach($script:case in @('pass','dirty','firewall-fail','firewall-limit','firewall-timeout','compile-fail','ambiguous','probe-fail','probe-timeout','cancel','sql-fail','instance-mismatch','cleanup-fail')){
     $script:nativeCalls=0;$script:dbCalls=0;$dir=Join-Path $work $script:case;$threw=$false
     try{& $runner -InstallationReportPath $installation -FoundationReportPath $foundationPath -OutputDirectory $dir}catch{$threw=$true}
     $files=@(Get-ChildItem -LiteralPath $dir -Filter '*.json');Check ($files.Count -eq 1) 'Single compact report'
@@ -58,7 +65,12 @@ foreach($script:case in @('pass','dirty','firewall-fail','compile-fail','ambiguo
     Check ($script:dbCalls -le 1) 'No database retries'
     if($script:case -ceq 'pass'){Check (-not $threw -and $r.status -ceq 'ACCESS_EVIDENCE_CAPTURED_REVIEW_REQUIRED' -and $r.diagnosticCleanupComplete) 'Successful guarded workflow'}else{Check ($threw -and $r.status -ceq 'FAILED' -and $r.failureCode) ('Failure retained: '+$script:case)}
     if($script:case -eq 'firewall-fail'){Check ($r.diagnosticFailureCode -ceq 'FIREWALL_QUERY_FAILED') 'Safe firewall diagnostic'}
+    if($script:case -in @('firewall-fail','firewall-limit','firewall-timeout')){
+        Check ($r.firewall.rules.Count -eq 1 -and $r.firewall.truncated -and $r.firewall.profiles.Count -eq 3) 'Partial evidence survives runner failure'
+        Check ($script:nativeCalls -eq 1 -and -not $r.existingApplicationLoginProbed) 'No compile or app login after incomplete firewall'
+    }
+    if($script:case -eq 'firewall-timeout'){Check ($r.diagnosticFailureCode -ceq 'FIREWALL_PROCESS_INTERRUPTED') 'Hard timeout is explicit'}
     if($script:case -eq 'probe-fail'){Check ($r.diagnosticFailureCode -ceq 'PROBE_CONNECTION_OR_QUERY_FAILED') 'Safe probe diagnostic'}
-    if($script:case -in @('dirty','firewall-fail','compile-fail','ambiguous','probe-fail','probe-timeout','cancel')){Check ($script:dbCalls -eq 0) 'Stops before admin database'}
+    if($script:case -in @('dirty','firewall-fail','firewall-limit','firewall-timeout','compile-fail','ambiguous','probe-fail','probe-timeout','cancel')){Check ($script:dbCalls -eq 0) 'Stops before admin database'}
 }
 Write-Host "PASS: $script:checks runner assertions; all runtime I/O mocked. Fixtures: $work"
