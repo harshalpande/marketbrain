@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Catalog accepted; guarded NOLOGIN installation prepared
+
+- E101 accepts `paper-writer-preflight-20261012-125200-716dc1c95468.json`: all seven source entries match exact/line-ending-normalized source; catalog contract/stage exits/cleanup passed. Total 110.692s, build 95.318s, catalog stage 11.951s, Java 3.265s. Twelve tables, zero collisions/PUBLIC schema CREATE/callable definers; account data and privileges were not modified.
+- Owner confirms PostgreSQL administrator authority and approves targeted PUBLIC TEMP impact review/preservation. Preflight closes at 100% (+40 pp since 60%). No claim that its configured target independently proves the running application's database identity.
+- E102 implements native, opt-in guarded staging: bounded catalog fingerprint, displayed role-preservation list, backup/idle approvals, unchanged function bodies, two NOLOGIN roles, exact permission assertions, rollback rehearsal and original-plan readback before final commit confirmation. A separate connection verifies committed metadata. Lost acknowledgement is UNKNOWN, never an automatic retry. No usable credential, application restart, Spring/Flyway wiring, account mutation or trading activation.
+- [Local evidence](evidence/paper-writer-install-local-20261012.json): 682 Java regression tests passed; latest package 59.781s. 224 new offline installer assertions and 113 preflight regression assertions pass; installer SQL and PS7 native database calls are not executed locally. Actual PostgreSQL syntax/permissions remain subject to the spare rollback rehearsal before commit. Final source review also separated PL/pgSQL record names from catalog aliases, rejected embedded block delimiters and required exact table/signature checks.
+- [Next handoff](paper-writer-installation.md): run `InstallPaperApprovalWriter.ps1 -Apply` with administrator credentials entered only locally; share one JSON. No Docker rebuild or repeat fixture suite. NOLOGIN staging package 0% to 60% (D/I/V), R/A pending. Full roadmap remains 12.4%; accuracy unmeasured. Dedicated credential custody/wiring, controlled real review, approved risk/fills/P&L and operational recovery/pilot remain later gates.
+
 ## 2026-10-12 Writer accepted and application catalog preflight prepared
 
 - E99 accepts `paper-writer-20261012-113601-8e9aad77e84c.json`: 23 preparation plus 3 restart checks passed, zero failures. All 27 source manifest entries match exact or LF/CRLF-normalized source; raw and parsed phases agree. Total 287.297s, build 200.120s, Java checks 15.838s. Synthetic cash INR100,000, reserves/revision/orders/fills zero, no application/provider/Telegram/model calls; owned fixture cleanup passed.

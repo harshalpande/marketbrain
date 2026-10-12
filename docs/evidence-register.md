@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Current guarded writer installation
+
+- **E101 PREFLIGHT_ACCEPTED / INSTALLATION_SEPARATE:** [spare acceptance](evidence/paper-writer-preflight-spare-acceptance-20261012.json), source SHA256 EFB875292B8DD2A1543B14E826ED4727FB4B8CC616B43DC6335487C5D186CA1F. Seven source hashes match; catalog runtime 110.692s, PostgreSQL180006, twelve tables, no role/function collision or PUBLIC schema CREATE/callable definer. Owner has administrator access and authorizes exact TEMP impact preservation. This closes E100 R/A, not writer installation.
+- **E102 NOLOGIN_STAGING / OFFLINE_VERIFIED / SPARE_PENDING:** [installation contract](paper-writer-installation.md), [local evidence](evidence/paper-writer-install-local-20261012.json). 682 Java regression tests, 224 offline installer assertions and 113 preflight regression assertions pass. Catalog/role/default-ACL bounds, transactional rehearsal/restoration, exact-plan commit, fresh readback and uncertain-commit recovery are guarded. No local PostgreSQL/PS7 native runtime, application restart, usable writer credential, account mutation or execution. This new package is 60%, with spare R/A pending.
+
 ### Current writer acceptance and application preflight
 
 - **E99 ISOLATED_WRITER_ACCEPTED / APPLICATION_ACTIVATION_BLOCKED:** [spare acceptance](evidence/paper-writer-spare-acceptance-20261012.json). 26/26 checks, 287.297s total; 27 manifest entries match exact/line-ending-normalized source and raw/parsed phases agree. Synthetic INR100,000, zero reserves/orders/fills, no external calls or application access. Owner requested review and continuation. This closes E98's runtime/acceptance gates, not production adoption.

@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E102",
+  "reviewedAt": "2026-10-12",
+  "status": "OFFLINE_VERIFIED_NOLOGIN_INSTALLATION_SPARE_PENDING",
+  "java": {"command": "mvn -q package", "tests": 682, "failures": 0, "errors": 0, "skipped": 0, "exitCode": 0, "elapsedSeconds": 59.7808405, "scope": "Existing regression; no new Java or Spring wiring. Subsequent SQL-only alias hardening is covered by offline source-generation tests, not database execution."},
+  "powerShell": {
+    "installerAssertions": 224,
+    "preflightRegressionAssertions": 113,
+    "scope": "PS5.1 offline SQL generation/validation and real orchestration with psql, git and credentials mocked; no PostgreSQL SQL execution or PS7 native-wrapper runtime",
+    "cases": ["strict plan and receipt validation", "SQL quoting and grant bounds", "plan only", "rehearse then commit then independent verify", "backup cancellation", "role approval cancellation", "commit cancellation", "rehearsal failure", "unsafe receipt", "timeout", "catalog drift", "lost commit acknowledgement", "readback failure", "read-only saved-report reconciliation"]
+  },
+  "stagingPackage": {"openingPercent": 0, "currentPercent": 60, "gainPercentagePoints": 60, "complete": ["D", "I", "V"], "pending": ["R", "A"], "scope": "NOLOGIN metadata staging only; usable credentials and runtime application wiring excluded"},
+  "preflightPackagePercent": 100,
+  "parentRoadmapPercent": 12.4,
+  "applicationDatabaseAccessedLocally": false,
+  "applicationRestarted": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "remainingGates": ["Spare PostgreSQL rollback rehearsal, committed permission verification and acceptance", "Dedicated writer credential custody and scoped application connection", "Controlled private Telegram and fresh-quote review", "Approved paper risk, reservations, realistic fills, costs and PnL", "Actual application recovery and prospective paper pilot", "Independent numerical predictive validation"]
+}

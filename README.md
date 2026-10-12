@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Storage/key attachment, synthetic recovery and the restricted writer candidate are accepted; the latest writer report passed **26/26 checks** (E99). Next: [application permission preflight](docs/paper-writer-application-preflight.md), a standalone catalog-only read with one report and no application restart or permission changes. Production approval-writer installation, real Telegram/provider approval activation and trading remain blocked. October feature reconciliation is closed (E84).
+Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Storage/key attachment, synthetic recovery, the restricted writer candidate (26/26, E99) and catalog preflight (E101) are accepted. Next: [guarded writer permission installation](docs/paper-writer-installation.md), preserving approved existing TEMP access and staging NOLOGIN roles after rollback rehearsal. One JSON; no application restart, usable writer credential or trading activation. Real review transport and paper execution remain gated. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 

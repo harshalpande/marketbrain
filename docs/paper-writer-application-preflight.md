@@ -1,5 +1,7 @@
 # Paper writer application permission preflight
 
+**Accepted 2026-10-12 (E101):** the spare catalog report and owner review close this preflight-only package at 100%. Its administrator/PUBLIC TEMP findings feed the [guarded NOLOGIN installation](paper-writer-installation.md). Do not rerun the historical preflight command below. Installation and activation are not implied by acceptance.
+
 The isolated writer candidate passed 26/26 PostgreSQL checks on the spare laptop ([E99](evidence/paper-writer-spare-acceptance-20261012.json)). The next step inspects the configured application database before preparing its writer installation. It does not install a role, create a credential, restart MarketBrain, publish a notification or approve a trade.
 
 ## Why inspect the application first

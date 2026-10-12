@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+Current E101/E102 handoff: catalog preflight accepted; proceed with [guarded NOLOGIN installation](paper-writer-installation.md), not the older preflight/recovery commands below. Administrator permission, exact existing-role TEMP preservation approval, backup and idle confirmations, rollback rehearsal and independent readback are mandatory. This stages permissions only; credentials, application review wiring and orders stay disabled.
+
 2026-10-12: E97 synthetic recovery passed 14/14 and E99 accepts the restricted writer's 26/26 spare checks. The current handoff is [application permission preflight](paper-writer-application-preflight.md): catalog-only metadata from the configured database, one report, no application restart or permission changes. Review PUBLIC privileges, object collisions and administrator authority before the application writer installation. No previous storage/recovery/writer suite is repeated. Real transport and paper execution remain later gates; older next-handoff statements below are historical.
 
 Current E96/E97: V28 storage/key attachment is accepted on spare (12/12 checks). The next active handoff is [backup recovery and audit permissions](paper-recovery-verification.md):14 new isolated checks and one report, without application restart or real credentials. It verifies a restricted audit reader, not the pending approval writer. Do not rerun the historical E95 deployment below.
