@@ -1,10 +1,10 @@
 # Guarded paper writer permission installation
 
-Current handoff, 2026-10-12. E101 accepts the configured-database preflight and owner review of its two findings: an authorized administrator is needed, and existing PUBLIC TEMP access must be preserved explicitly for reviewed existing roles. E99's 26 isolated writer checks remain accepted; do not repeat them.
+Accepted installation, 2026-10-12. [E104](evidence/paper-writer-install-spare-acceptance-20261012.json) verifies the successful rollback rehearsal, original-plan restoration, commit and independent readback. All five stages exited zero, all nine source hashes matched, total62.346s. **Do not repeat Apply.** The current handoff is the [read-only connection security review](paper-writer-connection-review.md). E99's 26 isolated writer checks and E101 preflight remain accepted; do not repeat them.
 
-**E103 correction:** the administrator run at 14:58 stopped during rehearsal with SQLSTATE 42601, before Apply or COMMIT. The verification condition now parenthesizes its SQL CASE expression so its inner THEN cannot terminate the PL/pgSQL IF condition. Pull the correction and use the same command below; do not reset the database or change administrator credentials. A fresh plan and rollback rehearsal must still pass. Installation remains unaccepted.
+**Historical E103 correction:** the administrator run at 14:58 stopped during rehearsal with SQLSTATE 42601, before Apply or COMMIT. The verification condition now parenthesizes its SQL CASE expression so its inner THEN cannot terminate the PL/pgSQL IF condition. E104 subsequently passed the corrected installation on spare; no database reset or administrator-credential change was needed.
 
-The [PostgreSQL 18 parser](https://github.com/postgres/postgres/blob/REL_18_STABLE/src/pl/plpgsql/src/pl_gram.y) reads IF conditions through a top-level THEN and tracks parenthesis depth. [E103 verification](evidence/paper-writer-install-fix-20261012.json): 263 offline installer assertions and 682 Java regression tests passed; Maven package 57.292s. This does not certify the corrected installation against the spare database yet.
+The [PostgreSQL 18 parser](https://github.com/postgres/postgres/blob/REL_18_STABLE/src/pl/plpgsql/src/pl_gram.y) reads IF conditions through a top-level THEN and tracks parenthesis depth. [E103 verification](evidence/paper-writer-install-fix-20261012.json): 263 offline installer assertions and 682 Java regression tests passed; Maven package 57.292s. E104 supplies the subsequent spare acceptance.
 
 This installation stages **two NOLOGIN roles and two review-only functions**. It does not create a usable writer credential, connect an application datasource, restart MarketBrain, send messages, write account rows or enable trading. Application credential activation and controlled review transport are separate gates.
 
@@ -37,9 +37,11 @@ PostgreSQL documents [additive PUBLIC privileges and REVOKE](https://www.postgre
 | R | 20% | Spare rehearsal, committed metadata and independent permission verification succeed |
 | A | 20% | Report/source/target/side-effect review accepted; credentials and execution remain disabled |
 
-Current **60% (D/I/V)**; R/A pending. Offline tests do not execute PostgreSQL SQL or the PS7 native process wrapper. The first real rehearsal on spare must pass before any commit. Full roadmap stays **12.4%**, and predictive accuracy remains unmeasured. This scope is permission staging, not completion of production approval integration.
+Current **100% (D/I/V/R/A)** after E104, up40percentage points from60%. Offline tests do not execute PostgreSQL SQL or the PS7 native process wrapper; E104 supplies that installation runtime evidence. Full roadmap stays **12.4%**, and predictive accuracy remains unmeasured. This scope is permission staging, not completion of production approval integration.
 
-## Run on spare
+## Historical installation command
+
+This command is retained for the installation contract, not the next run. The current spare installation is accepted. Use the [connection review handoff](paper-writer-connection-review.md#run-on-spare), not another Apply.
 
 Use PowerShell 7. Have PostgreSQL administrator credentials locally, know the application database name, retain a current restorable backup and arrange a short idle maintenance window. No Docker build or service restart is needed.
 

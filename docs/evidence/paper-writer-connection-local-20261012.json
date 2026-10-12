@@ -1,0 +1,38 @@
+{
+  "evidenceId": "E105",
+  "status": "OFFLINE_VERIFIED_SPARE_CONNECTION_REVIEW_PENDING",
+  "scope": "Read-only HBA file metadata and cross-database ACL inventory before credential custody and application wiring",
+  "newPowerShellAssertionsPassed": 149,
+  "installerRegressionAssertionsPassed": 263,
+  "javaRegression": {"command": "mvn -q package", "exitCode": 0, "tests": 682, "failures": 0, "errors": 0, "skipped": 0, "elapsedSeconds": null},
+  "powerShellRuntime": "Windows PowerShell 5.1 with native process, prompts and Git mocked",
+  "postgresqlExecutedLocally": false,
+  "powerShell7NativeExecutionVerifiedLocally": false,
+  "actualInstallationPrerequisiteValidatorPassed": true,
+  "adversarialCases": [
+    "Missing, failed, uncommitted or unsafe installation evidence",
+    "Target cluster, database and port mismatch",
+    "Dirty worktree, missing psql or cancelled target confirmation before database access",
+    "Nonzero database exit, timeout or native exception with no automatic retry",
+    "Malformed, oversized or extra-row output",
+    "Unexpected enabled-login or mutation flags",
+    "Database and HBA overflow, empty inventory and invalid metadata types",
+    "Authentication-file errors retained as findings rather than treated as valid rules",
+    "Password sentinel absent from success and failure reports"
+  ],
+  "packagePercent": 60,
+  "completedCheckpoints": ["D", "I", "V"],
+  "pendingCheckpoints": ["R", "A"],
+  "fullRoadmapPercent": 12.4,
+  "activationAuthorizedByReport": false,
+  "databaseWritesPerformed": false,
+  "credentialsSaved": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "limitations": [
+    "Offline tests generate SQL but do not execute it or validate the native PS7 database process",
+    "HBA current file is not proof of loaded authentication rules or the Docker client route",
+    "Cross-database ACLs are potential privileges, not observed login or data access",
+    "Collection does not provision credentials, activate LOGIN or wire an application datasource"
+  ]
+}

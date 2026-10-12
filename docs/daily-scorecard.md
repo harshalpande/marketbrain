@@ -34,12 +34,15 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 |---|---:|---:|---:|---|---|
 | Approval/security: isolated restricted-writer candidate | 0% | 100% | +100 | D/I/V [E98](evidence/paper-writer-local-20261012.json); R/A [E99](evidence/paper-writer-spare-acceptance-20261012.json), 26/26 spare checks accepted | Candidate closed; application adoption is separate |
 | Application adoption: catalog preflight only | 0% | 100% | +100 | D/I/V E100; R/A [E101](evidence/paper-writer-preflight-spare-acceptance-20261012.json), 110.692s spare catalog report and authorized administrator/TEMP review | Closed; installation is separate |
-| Application adoption: NOLOGIN permission staging | 0% | 60% | +60 | D/I/V [E102](evidence/paper-writer-install-local-20261012.json), [frozen scope](paper-writer-installation.md) | R/A: spare rollback rehearsal, commit and independent permission readback; usable credentials excluded |
+| Application adoption: NOLOGIN permission staging | 0% | 100% | +100 | D/I/V E102/E103; R/A [E104](evidence/paper-writer-install-spare-acceptance-20261012.json) | Closed; usable credentials/application activation excluded |
+| Connection security inventory only | 0% | 60% | +60 | D/I/V E105; [frozen scope](paper-writer-connection-review.md) | R/A: spare read-only authentication/cross-database report and findings review |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Complete integrated parent-goal gates |
 
 The candidate percentage is **not** the completion of the production writer, paper portal, entire approval area or predictor. Its latest change is **60% to 100%, +40 percentage points**; the table's +100 is the cumulative change from today's opening 0%, not an additional gain. Runtime: 287.297 seconds total, 200.120 seconds build and 15.838 seconds Java checks. No application deployment or production-writer activation is credited. Preflight and candidate package scores are not averaged into a project percentage.
 
 ## Proposed sequence
+
+E104 current update: permission staging **60% to100%, +40pp this handoff**;62.346s including owner prompts,1.706s total database stages, no account mutation. New connection-inventory package D/I/V60%; R/A pending. These package gains are not additive project gains. Credentials, application wiring and actual transport checks remain separate. Full roadmap12.4%, model accuracy unmeasured. Earlier handoff statements below are historical.
 
 E103 repair update: the spare administrator rehearsal failed SQL parsing before Apply/COMMIT. The CASE-expression correction and expanded offline diagnostics/regression checks do not earn a new checkpoint. Staging stays60%, with R/A pending; full-roadmap change0pp. Do not count a failed rehearsal as completed runtime verification.
 

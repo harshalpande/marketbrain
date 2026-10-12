@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Permission installation accepted and connection review prepared
+
+- E104 accepts `paper-writer-install-20261012-151121-ca9707876fe9.json`: all five stages exit0, no timeouts/stderr, all three receipts valid, rollback restoration proved within catalog scope, COMMITTED_AND_VERIFIED. Nine source hashes match exact or line-ending-normalized source. Total62.346s including prompts; database stages1.706s. Current cash was not queried; no account rows were written.
+- Permission-staging package closes60% to100% (+40pp). Do not repeat Apply. Full paper-first roadmap remains12.4%; this is not predictive-performance progress or an activated application writer.
+- E105 adds one read-only [connection review bundle](paper-writer-connection-review.md): saved successful-install guard, live staged-permission check, bounded authentication-file/database-ACL inventory and settings, explicit findings, safe diagnostics and one JSON. No writer password, LOGIN, HBA/grant edits, configuration reload, application rebuild, provider calls or orders. Current HBA-file metadata cannot prove loaded rules or the actual Docker client route.
+- Offline verification:149 new connection assertions and263 installer regression assertions pass; native processes/prompts are mocked on local PowerShell5.1. Maven package also passed682 Java tests with zero failures/errors/skips; its total elapsed time was not instrumented for this run. The uploaded successful installation passes the new prerequisite validator. SQL/native PowerShell7 runtime remains a spare-only check.
+- New connection-inventory package D/I/V60%; spare runtime and review pending. Next sequence: inspect findings, implement scoped credential custody/application connection with positive/negative route verification, then controlled private review transport. Execution and fill/risk policy stay gated.
+
 ## 2026-10-12 Installer rehearsal syntax correction
 
 - E103 records `paper-writer-install-20261012-145835-e096ec5253d7.json`: postgres/superuser confirmed, Plan exit0 (0.785s), Rehearse exit3 / SQLSTATE42601 (1.676s), total57.685s. Apply was never attempted; commit outcome NOT_ATTEMPTED. No successful installation or independent post-failure catalog restoration is claimed.

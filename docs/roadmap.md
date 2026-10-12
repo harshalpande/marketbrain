@@ -4,7 +4,7 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
-2026-10-12: E97 synthetic recovery (14/14), E99 restricted writer candidate (26/26) and E101 catalog preflight are accepted. E102 [guarded permission installation](paper-writer-installation.md) prepares targeted PUBLIC TEMP preservation, rollback rehearsal and NOLOGIN role/function staging. Installation runtime and acceptance remain pending; usable credentials, application activation and real review transport are later gates. The [daily scorecard](daily-scorecard.md) separates these packages; full-goal weighted baseline remains 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from permission tests.
+2026-10-12: E97 synthetic recovery (14/14), E99 restricted writer candidate (26/26), E101 catalog preflight and E104 actual NOLOGIN permission staging are accepted. Installation rehearsal, commit and independent verification passed. The next [connection security review](paper-writer-connection-review.md) collects read-only authentication and cross-database metadata; usable credentials, application activation and real review transport remain later gates. The [daily scorecard](daily-scorecard.md) separates these packages; full-goal weighted baseline remains 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from permission tests.
 
 These percentages measure engineering delivery, **not investment accuracy, probability of profit, or confidence in a model**. This is a new, broader scope; it must not be compared with old experimental scorecards or a previously quoted project percentage.
 

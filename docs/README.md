@@ -1,8 +1,8 @@
 # MarketBrain: canonical project baseline
 
-**Latest correction E103:** the administrator rehearsal failed SQL syntax before Apply/COMMIT. The [installer correction](paper-writer-installation.md) and safe diagnostics are ready; pull before repeating the same command. Installation acceptance remains pending. No database reset or Docker rebuild is needed.
+**Latest acceptance E104:** NOLOGIN writer installation succeeded on spare in62.346s. Rollback rehearsal, commit and independent verification passed; all nine source hashes match. **Do not repeat installation.** Permissions are staged, but writer login and application actions remain disabled.
 
-**Current handoff, 2026-10-12:** the restricted writer candidate (26/26, E99) and catalog preflight ([E101](evidence/paper-writer-preflight-spare-acceptance-20261012.json)) are accepted. Run the [guarded NOLOGIN writer installation](paper-writer-installation.md) with authorized PostgreSQL administrator credentials on spare. It preserves approved existing TEMP access, rehearses with rollback, requires final confirmation and independently verifies committed permissions. One JSON, no service restart or usable writer credential. Trading remains disabled. The [daily scorecard](daily-scorecard.md) keeps these packages separate from full-goal progress.
+**Current handoff, 2026-10-12:** [connection security review](paper-writer-connection-review.md) collects authentication-file metadata and cross-database privileges before dedicated credential custody/application wiring. One JSON, read-only, no Docker rebuild, password issuance or activation. The [daily scorecard](daily-scorecard.md) records staging60% to100% (+40pp), separately from full-goal progress.
 
 **Accepted recovery baseline:** E97's October 10 synthetic recovery report passed **14/14 checks** in 152.692s. Older next-handoff wording below is historical; no repeat test is needed. [Daily scorecard](daily-scorecard.md) records package percentages and daily gains; the full-goal baseline stays **12.4%**, not a model-accuracy estimate. Application writer installation follows catalog review; real transport and paper execution remain later gates.
 
