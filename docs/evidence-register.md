@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E106 CONNECTION_VALIDATOR_CORRECTED / SPARE_RETRY_PENDING:** [repair evidence](evidence/paper-writer-connection-fix-20261012.json). Accept Int32/Int64 integer zero without coercion; reproduce the original rejection with accepted evidence, test every stage and the mocked full workflow. Separate safe failure codes and bounded stage index replace the generic input failure. No database stage occurred in the uploaded failure. E104 remains accepted; connection R/A still pending, no progress credit for repair.
+
 - **E104 NOLOGIN_STAGING_ACCEPTED:** [spare acceptance](evidence/paper-writer-install-spare-acceptance-20261012.json). All five stages exited0; rehearsal rollback, exact-plan comparison, commit and fresh permission readback passed. Nine source hashes match. Total62.346s, database stages1.706s. No credentials/application activation/account writes. Closes E102/E103 R/A: staging60% to100%, not the full writer integration. Do not rerun Apply.
 - **E105 CONNECTION_REVIEW_IMPLEMENTED / SPARE_PENDING:** [contract and handoff](paper-writer-connection-review.md), [local evidence](evidence/paper-writer-connection-local-20261012.json). One read-only bundle adds authentication-file metadata, settings and cross-database ACL review before writer login. Current-file rules are not proof of the loaded client route; options/passwords/raw errors are withheld. No automatic activation or broad permission changes.
 

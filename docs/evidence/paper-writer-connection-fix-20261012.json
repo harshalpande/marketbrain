@@ -1,0 +1,35 @@
+{
+  "evidenceId": "E106",
+  "status": "INTEGER_COMPATIBILITY_FIXED_SPARE_RETRY_PENDING",
+  "failureReport": "paper-writer-connection-20261012-153746-1558f100b316.json",
+  "failureReportSha256": "E0E282198CE7EA9EB2ED0430C010C7A909BF828273F97806BD2473ECA1A5F76D",
+  "failureElapsedSeconds": 0.3132367,
+  "failureCode": "INSTALLATION_REPORT_INVALID_OR_UNAVAILABLE",
+  "databaseStageStarted": false,
+  "originalDefectReproducedWithInt64ExitCodes": true,
+  "acceptedInstallationReportPassesCorrectedInt64Validation": true,
+  "connectionOfflineAssertionsPassed": 299,
+  "previousConnectionAssertions": 149,
+  "connectionVerificationElapsedSeconds": 6.9851113,
+  "installerRegressionAssertionsPassed": 263,
+  "testRuntime": "Windows PowerShell 5.1; explicit Int32/Int64 fixtures; native processes and external interactions mocked",
+  "nativePowerShell7TestedLocally": false,
+  "databaseExecutedLocally": false,
+  "javaOrSqlChanged": false,
+  "javaRegressionRerunThisRepair": false,
+  "diagnostics": [
+    "Separate unavailable-input, JSON-parse, contract-validation and installation-stage codes",
+    "Fixed allowlisted stage code and zero-based index bounded to 0 through 4",
+    "PowerShell version retained; raw exceptions and credentials withheld"
+  ],
+  "limitations": [
+    "Original spare report omits the exact exception; root cause is locally reproduced and consistent with the failed phase",
+    "Corrected native PS7 database inspection requires the spare read-only rerun",
+    "No permission installation, credential provisioning or activation is needed for this repair"
+  ],
+  "installationPackagePercent": 100,
+  "connectionPackagePercent": 60,
+  "fullPaperFirstRoadmapPercent": 12.4,
+  "progressDeltaPercentagePoints": 0,
+  "actionExecutionEnabled": false
+}

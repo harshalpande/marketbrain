@@ -17,6 +17,19 @@ function Inventory {
     @{version='PAPER_WRITER_CONNECTION_REVIEW_V1';database='marketbrain';databaseOid='123';clusterId='123456';serverPort=5432;serverVersion=180006;hbaEvidence='CURRENT_FILE_NOT_PROOF_OF_LOADED_RULES_OR_CLIENT_ROUTE';adminSuperuser=$true;writerLoginEnabled=$false;databaseWritesPerformed=$false;credentialsSaved=$false;applicationWriterActivated=$false;actionExecutionEnabled=$false;passwordEncryption='scram-sha-256';ssl='on';databases=@(@{name='marketbrain';oid='123';allowsConnections=$true;template=$false;writerConnect=$true;writerCreate=$false;writerTemp=$false});hbaRules=@(@{ruleNumber=1;lineNumber=10;type='host';databases=@('all');users=@('all');address='127.0.0.1';netmask='255.255.255.255';authMethod='scram-sha-256';optionsPresent=$false;hasError=$false})}|ConvertTo-Json -Depth 10|ConvertFrom-Json
 }
 Assert-PaperInstalledReport (Installed);Check $true 'accepted install'
+for($stageIndex=0;$stageIndex -lt 5;$stageIndex++) {
+    foreach($value in @([int]0,[long]0)) {
+        $v=Installed;$v.steps[$stageIndex].exitCode=$value
+        Assert-PaperInstalledReport $v;Check $true 'Int32 and Int64 zero accepted at every stage'
+    }
+    foreach($value in @([int]1,[long]1,[int]-1,[long]-1,'0',$false,$null,[double]0,[double]0.5,[decimal]0,[long]4294967296)) {
+        $v=Installed;$v.steps[$stageIndex].exitCode=$value
+        Reject {Assert-PaperInstalledReport $v}
+        try {Assert-PaperInstalledReport $v} catch {
+            Check ($_.Exception.Data['PaperConnectionCode'] -ceq 'INSTALLATION_STAGE_INVALID' -and $_.Exception.Data['PaperConnectionStageIndex'] -eq $stageIndex) 'safe fixed code and stage index'
+        }
+    }
+}
 foreach($flag in @('backupConfirmed','maintenanceConfirmed','targetConfirmed','rolesApproved','rehearsalRollbackVerified','applyRequested','applyAttempted')){$v=Installed;$v.$flag=$false;Reject {Assert-PaperInstalledReport $v};$v.$flag='true';Reject {Assert-PaperInstalledReport $v}}
 foreach($flag in @('applicationWriterActivated','actionExecutionEnabled','credentialsSaved')){$v=Installed;$v.$flag=$true;Reject {Assert-PaperInstalledReport $v}}
 foreach($mutation in @({param($v)$v.commitOutcome='UNKNOWN'},{param($v)$v.failure='failure'},{param($v)$v.target.host='other'},{param($v)$v.target.port='5432'},{param($v)$v.target.database='other'},{param($v)$v.steps=@()},{param($v)$v.steps[3].exitCode=1},{param($v)$v.steps[2].timedOut=$true},{param($v)$v.steps[0].phase='Apply'},{param($v)$v.verification.checksPassed=$false})){$v=Installed;& $mutation $v;Reject {Assert-PaperInstalledReport $v}}
@@ -47,6 +60,18 @@ $runner=[scriptblock]::Create($mocked)
 $root=Join-Path ([IO.Path]::GetTempPath()) ('paper-connection-offline-'+[guid]::NewGuid().ToString('N'));[void](New-Item -ItemType Directory -Path $root)
 $inputPath=Join-Path $root 'install.json';$fixture=Installed;$fixture|Add-Member -NotePropertyName updatedAtUtc -NotePropertyValue $null;Save-NumericalHistoryReport $fixture $inputPath -Compact
 function git {$global:LASTEXITCODE=0;if($args -contains 'rev-parse'){'a'*40};if($args -contains 'status' -and $script:case -eq 'dirty'){' M owned.txt'}}
+function ConvertFrom-Json {
+    param([Parameter(ValueFromPipeline)]$InputObject)
+    process {
+        if($script:case -eq 'invalid-json' -and $InputObject -like '*"steps"*'){throw 'TEST_PASSWORD_NEVER_SERIALIZE'}
+        $parsed=Microsoft.PowerShell.Utility\ConvertFrom-Json -InputObject $InputObject
+        if($null -ne $parsed -and $parsed.PSObject.Properties['steps']) {
+            if($script:case -eq 'int64-pass'){foreach($step in $parsed.steps){$step.exitCode=[long]$step.exitCode}}
+            if($script:case -eq 'invalid-stage'){$parsed.steps[3].exitCode='TEST_PASSWORD_NEVER_SERIALIZE'}
+        }
+        return $parsed
+    }
+}
 function Test-Path {param($LiteralPath,$PathType);if($LiteralPath -like '*psql.exe'){return ($script:case -ne 'missing-psql')};if($PathType){Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath -PathType $PathType}else{Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath}}
 function Read-Host {param($Prompt,[switch]$AsSecureString)
     if($AsSecureString){return (ConvertTo-SecureString 'TEST_PASSWORD_NEVER_SERIALIZE' -AsPlainText -Force)}
@@ -65,15 +90,19 @@ function Invoke-PaperInstallerPsql([string]$Executable,[string]$Database,[int]$P
     if($script:case -eq 'native-exception'){throw 'TEST_PASSWORD_NEVER_SERIALIZE'}
     [pscustomobject]@{stdout=$out;exitCode=if($script:case -eq 'sql-fail'){3}else{0};timedOut=($script:case -eq 'timeout');elapsedSeconds=0.1;sqlStates=@();assertionFailures=@();stderrCharacters=0}
 }
-foreach($script:case in @('pass','dirty','missing-psql','cancel','wrong-cluster','unsafe-receipt','malformed','extra-row','oversized','native-exception','sql-fail','timeout')) {
+foreach($script:case in @('pass','int64-pass','invalid-stage','invalid-json','missing-report','dirty','missing-psql','cancel','wrong-cluster','unsafe-receipt','malformed','extra-row','oversized','native-exception','sql-fail','timeout')) {
     $script:calls=0;$dir=Join-Path $root $script:case
-    if($script:case -eq 'pass'){& $runner -InstallationReportPath $inputPath -OutputDirectory $dir}else{Reject {& $runner -InstallationReportPath $inputPath -OutputDirectory $dir}}
+    $selectedInput=if($script:case -eq 'missing-report'){Join-Path $root 'missing.json'}else{$inputPath}
+    if($script:case -in @('pass','int64-pass')){& $runner -InstallationReportPath $selectedInput -OutputDirectory $dir}else{Reject {& $runner -InstallationReportPath $selectedInput -OutputDirectory $dir}}
     $files=@(Get-ChildItem -LiteralPath $dir -Filter '*.json');Check ($files.Count -eq 1) 'one report per run'
     $raw=Get-Content -LiteralPath $files[0].FullName -Raw;$r=$raw|ConvertFrom-Json
     Check (-not $raw.Contains('TEST_PASSWORD_NEVER_SERIALIZE')) 'secrets absent from success and failure'
     Check ($script:calls -le 1) 'no automatic retry'
     Check (-not $r.applicationWriterActivated -and -not $r.databaseWritesPerformed -and -not $r.credentialsSaved) 'side effects disabled'
-    if($script:case -eq 'pass'){Check ($r.status -ceq 'CONNECTION_REVIEW_CAPTURED_LOGIN_DISABLED' -and $r.reviewFindings.Count -eq 3) 'inventory not authorization'}else{Check ($r.status -ceq 'FAILED') 'failure retained'}
-    if($script:case -in @('dirty','missing-psql','cancel')){Check ($script:calls -eq 0) 'precondition before database'}
+    if($script:case -in @('pass','int64-pass')){Check ($r.status -ceq 'CONNECTION_REVIEW_CAPTURED_LOGIN_DISABLED' -and $r.reviewFindings.Count -eq 3) 'inventory not authorization'}else{Check ($r.status -ceq 'FAILED') 'failure retained'}
+    if($script:case -in @('dirty','missing-psql','cancel','invalid-stage','invalid-json','missing-report')){Check ($script:calls -eq 0) 'precondition before database'}
+    if($script:case -eq 'invalid-stage'){Check ($r.failureCode -ceq 'INSTALLATION_STAGE_INVALID' -and $r.installationStageIndex -eq 3) 'runner retains safe validation diagnostic'}
+    if($script:case -eq 'missing-report'){Check ($r.failureCode -ceq 'INSTALLATION_REPORT_UNAVAILABLE') 'missing report distinguished'}
+    if($script:case -eq 'invalid-json'){Check ($r.failureCode -ceq 'INSTALLATION_REPORT_JSON_INVALID') 'JSON parse failure distinguished without raw exception'}
 }
 Write-Host "PASS: $script:checks offline assertions. Native processes mocked; SQL not executed. Fixtures retained: $root"

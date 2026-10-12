@@ -10,6 +10,8 @@ $ErrorActionPreference='Stop'
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $watch=[Diagnostics.Stopwatch]::StartNew();$password=$null;$secure=$null;$failureCode='REPORT_INITIALIZATION_FAILED'
 $report=[ordered]@{version='PAPER_WRITER_CONNECTION_BUNDLE_V1';status='RUNNING';updatedAtUtc=$null;elapsedSeconds=0;revision=$null;manifest=@{};installationReportSha256=$null;target=$null;events=@();stage=$null;verification=$null;inventory=$null;reviewFindings=@();failure=$null;failureCode=$null;databaseWritesPerformed=$false;credentialsSaved=$false;applicationWriterActivated=$false;actionExecutionEnabled=$false}
+$report.powerShellVersion=$PSVersionTable.PSVersion.ToString()
+$report.installationStageIndex=$null
 [void](New-Item -ItemType Directory -Path $OutputDirectory -Force)
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-writer-connection-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),[guid]::NewGuid().ToString('N').Substring(0,12))
 if($path.Length+41 -ge 260 -or (Test-Path -LiteralPath $path)){throw 'Unsafe report path.'}
@@ -17,9 +19,12 @@ function Save {$report.elapsedSeconds=$watch.Elapsed.TotalSeconds;Save-Numerical
 function Stage([int]$Percent,[string]$Message){$report.events+=@{percent=$Percent;message=$Message;atUtc=[DateTime]::UtcNow.ToString('o')};Save;Write-Host "[$Percent%] $Message";Write-Progress -Activity 'Paper writer connection review' -Status $Message -PercentComplete $Percent}
 try {
     Stage 0 'Read-only authentication and database-access inventory. No login, password, grants or application changes.'
-    $failureCode='INSTALLATION_REPORT_INVALID_OR_UNAVAILABLE'
+    $failureCode='INSTALLATION_REPORT_UNAVAILABLE'
     if((Get-Item -LiteralPath $InstallationReportPath).Length -gt 2097152){throw 'Report too large.'}
-    $saved=Get-Content -LiteralPath $InstallationReportPath -Raw|ConvertFrom-Json
+    $savedText=Get-Content -LiteralPath $InstallationReportPath -Raw
+    $failureCode='INSTALLATION_REPORT_JSON_INVALID'
+    $saved=$savedText|ConvertFrom-Json
+    $failureCode='INSTALLATION_REPORT_VALIDATION_FAILED'
     Assert-PaperInstalledReport $saved
     $report.installationReportSha256=(Get-FileHash -LiteralPath $InstallationReportPath).Hash
     $report.target=$saved.target
@@ -54,6 +59,18 @@ try {
     $report.status='CONNECTION_REVIEW_CAPTURED_LOGIN_DISABLED'
 } catch {
     $report.status='FAILED';$report.failure='Connection inspection failed. Review safe stage diagnostics; no automatic retry or configuration change.'
+    # Fixed code and bounded index only; never serialize an exception or caller-supplied values.
+    if($_.Exception.Data['PaperConnectionCode'] -ceq 'INSTALLATION_STAGE_INVALID') {
+        $failureCode='INSTALLATION_STAGE_INVALID'
+        $index=$_.Exception.Data['PaperConnectionStageIndex']
+        if($index -is [int] -and $index -ge 0 -and $index -lt 5){$report.installationStageIndex=$index}
+    }
+    switch($failureCode) {
+        'INSTALLATION_REPORT_UNAVAILABLE' {$report.failure='The installation report could not be read or exceeds the size limit. Check the original successful report path; do not reinstall.'}
+        'INSTALLATION_REPORT_JSON_INVALID' {$report.failure='The installation report is not readable JSON. Use the original successful installation report.'}
+        'INSTALLATION_REPORT_VALIDATION_FAILED' {$report.failure='The installation report did not satisfy its acceptance contract. Share the original report; do not reinstall.'}
+        'INSTALLATION_STAGE_INVALID' {$report.failure='An installation stage has invalid metadata, a nonzero exit code, incorrect phase or timeout. See installationStageIndex (zero-based); do not reinstall.'}
+    }
     $report.failureCode=$failureCode
 } finally {
     $password=$null;if($secure){$secure.Dispose()};Save

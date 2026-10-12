@@ -2,6 +2,8 @@
 
 The permission installation is accepted in E104. Do not repeat `InstallPaperApprovalWriter.ps1 -Apply`. Both roles remain NOLOGIN; the application has no dedicated writer connection. This next bundle collects the remaining authentication and cross-database evidence needed to design credential custody and scoped application wiring. It does not enable either.
 
+E106 corrects the report validator's integer compatibility: zero exit codes are accepted as either Int32 or Int64, without coercing strings, booleans or fractional values. The first spare connection report stopped before database access in 0.313s. Its generic error omitted the exact exception; the rejected Int64 representation was reproduced locally using the accepted installation report. Pull the correction and repeat only the read-only command below. Missing files, JSON parsing and invalid installation stages now have separate safe diagnostic codes; reports also record the PowerShell version. Native PowerShell 7/PostgreSQL verification remains pending.
+
 ## Scope and acceptance
 
 One native PostgreSQL 18 read-only transaction checks the installed role/function boundaries against the saved installation plan, then reads database privilege metadata and selected authentication-file fields. A repeatable-read snapshot covers transactional catalogs, not concurrent filesystem edits. Coordinate with the administrator so configuration is not being edited during collection. The report is evidence, not a signed authorization artifact; the live permission check remains mandatory.

@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-12 Connection validator integer compatibility correction
+
+- E106 records the connection report stopping at input validation after0.313s, before revision/target capture or a database stage. Installation E104 is unaffected. The exact spare exception was not retained; locally, converting the accepted report's exit codes to Int64 reproduced the defect in the original Int32-only check.
+- The validator now accepts Int32/Int64 zero only. New tests cover both types at all five stages, reject nonzero/string/bool/null/fractional/overflow values, and exercise the full mocked runner with Int64 input. Failures retain separate unavailable/JSON/contract/stage codes and a bounded zero-based stage index, never raw exception text. PowerShell version is captured.
+- Verification:299 connection assertions passed (150 added;6.985s), plus263 installer regression assertions. Local PowerShell5.1 with explicit numeric-type fixtures and native processes mocked; native PS7 and PostgreSQL were not run locally. The actual accepted installation report passes after representing all exit codes as Int64. Java/SQL are unchanged; the previous682 Java tests were not rerun for this PowerShell-only repair.
+- No SQL, Java, permissions, credentials or application activation changed. Pull and rerun the existing read-only connection command, not Apply. This repair earns no additional checkpoint: connection package60%, staging100%, full paper-first roadmap12.4%; spare connection review remains pending.
+
 ## 2026-10-12 Permission installation accepted and connection review prepared
 
 - E104 accepts `paper-writer-install-20261012-151121-ca9707876fe9.json`: all five stages exit0, no timeouts/stderr, all three receipts valid, rollback restoration proved within catalog scope, COMMITTED_AND_VERIFIED. Nine source hashes match exact or line-ending-normalized source. Total62.346s including prompts; database stages1.706s. Current cash was not queried; no account rows were written.

@@ -16,7 +16,13 @@ function Assert-PaperInstalledReport($Saved) {
     if(@($Saved.steps).Count -ne 5){throw 'Incomplete installation stages.'}
     for($i=0;$i -lt 5;$i++) {
         $s=$Saved.steps[$i]
-        if($s.phase -cne $phases[$i] -or $s.exitCode -isnot [int] -or $s.exitCode -ne 0 -or $s.timedOut -isnot [bool] -or $s.timedOut){throw 'Installation stage failed.'}
+        # JSON readers differ between PowerShell editions. Do not coerce strings, booleans or fractions.
+        if($s.phase -cne $phases[$i] -or ($s.exitCode -isnot [int] -and $s.exitCode -isnot [long]) -or $s.exitCode -ne 0 -or $s.timedOut -isnot [bool] -or $s.timedOut){
+            $failure=[InvalidOperationException]::new('An installation stage has invalid metadata or did not complete successfully.')
+            $failure.Data['PaperConnectionCode']='INSTALLATION_STAGE_INVALID'
+            $failure.Data['PaperConnectionStageIndex']=$i
+            throw $failure
+        }
     }
     Assert-PaperWriterInstallReceipt $Saved.rehearsal 'Rehearse' $Saved.plan.planHash
     Assert-PaperWriterInstallReceipt $Saved.applyReceipt 'Apply' $Saved.plan.planHash

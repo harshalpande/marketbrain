@@ -42,6 +42,8 @@ The candidate percentage is **not** the completion of the production writer, pap
 
 ## Proposed sequence
 
+E106 repair: connection collection stopped at saved-report validation before database access. Int32/Int64 compatibility and safe diagnostics are corrected; no new progress checkpoint is earned. Connection inventory remains60%, NOLOGIN staging100%, full roadmap12.4%. Repeat only the read-only collection after pulling the correction.
+
 E104 current update: permission staging **60% to100%, +40pp this handoff**;62.346s including owner prompts,1.706s total database stages, no account mutation. New connection-inventory package D/I/V60%; R/A pending. These package gains are not additive project gains. Credentials, application wiring and actual transport checks remain separate. Full roadmap12.4%, model accuracy unmeasured. Earlier handoff statements below are historical.
 
 E103 repair update: the spare administrator rehearsal failed SQL parsing before Apply/COMMIT. The CASE-expression correction and expanded offline diagnostics/regression checks do not earn a new checkpoint. Staging stays60%, with R/A pending; full-roadmap change0pp. Do not count a failed rehearsal as completed runtime verification.

@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-**Latest acceptance E104:** NOLOGIN writer installation succeeded on spare in62.346s. Rollback rehearsal, commit and independent verification passed; all nine source hashes match. **Do not repeat installation.** Permissions are staged, but writer login and application actions remain disabled.
+**Latest correction E106:** the connection report validator now accepts Int32 and Int64 zero exit codes and distinguishes missing-report, JSON and stage-validation failures. Pull and rerun only the [read-only connection review](paper-writer-connection-review.md). The prior NOLOGIN installation remains accepted in E104; **do not repeat installation**. Writer login and actions remain disabled.
 
 **Current handoff, 2026-10-12:** [connection security review](paper-writer-connection-review.md) collects authentication-file metadata and cross-database privileges before dedicated credential custody/application wiring. One JSON, read-only, no Docker rebuild, password issuance or activation. The [daily scorecard](daily-scorecard.md) records staging60% to100% (+40pp), separately from full-goal progress.
 
