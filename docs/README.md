@@ -1,8 +1,8 @@
 # MarketBrain: canonical project baseline
 
-**Latest correction E106:** the connection report validator now accepts Int32 and Int64 zero exit codes and distinguishes missing-report, JSON and stage-validation failures. Pull and rerun only the [read-only connection review](paper-writer-connection-review.md). The prior NOLOGIN installation remains accepted in E104; **do not repeat installation**. Writer login and actions remain disabled.
+**Current handoff, 2026-10-12 (E107/E108):** connection inventory is accepted, closing that package at100%. The owner approved a private single-laptop policy with **TLS deferred**. Run the [local writer foundation bundle](paper-writer-local-foundation.md): synthetic credential custody plus selected local ports/configured-route observations in one JSON. No database login, rebuild, password issuance or activation. The connector is implemented but not application-wired. Do not repeat the accepted NOLOGIN installation or connection inventory.
 
-**Current handoff, 2026-10-12:** [connection security review](paper-writer-connection-review.md) collects authentication-file metadata and cross-database privileges before dedicated credential custody/application wiring. One JSON, read-only, no Docker rebuild, password issuance or activation. The [daily scorecard](daily-scorecard.md) records staging60% to100% (+40pp), separately from full-goal progress.
+The [daily scorecard](daily-scorecard.md) records connection review60% to100% (+40pp), new local-foundation candidate60%, and full-roadmap12.4% unchanged. These different scopes are not averaged. Older handoffs below are historical.
 
 **Accepted recovery baseline:** E97's October 10 synthetic recovery report passed **14/14 checks** in 152.692s. Older next-handoff wording below is historical; no repeat test is needed. [Daily scorecard](daily-scorecard.md) records package percentages and daily gains; the full-goal baseline stays **12.4%**, not a model-accuracy estimate. Application writer installation follows catalog review; real transport and paper execution remain later gates.
 

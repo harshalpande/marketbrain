@@ -1,8 +1,8 @@
 # Paper writer connection security review
 
-The permission installation is accepted in E104. Do not repeat `InstallPaperApprovalWriter.ps1 -Apply`. Both roles remain NOLOGIN; the application has no dedicated writer connection. This next bundle collects the remaining authentication and cross-database evidence needed to design credential custody and scoped application wiring. It does not enable either.
+The permission installation is accepted in E104, and this connection inventory is now accepted in E107. Do not repeat `InstallPaperApprovalWriter.ps1 -Apply` or the accepted inventory. Both roles remain NOLOGIN; no application writer is activated. Next: [local writer foundation](paper-writer-local-foundation.md), following the owner-approved private same-machine policy with TLS deferred.
 
-E106 corrects the report validator's integer compatibility: zero exit codes are accepted as either Int32 or Int64, without coercing strings, booleans or fractional values. The first spare connection report stopped before database access in 0.313s. Its generic error omitted the exact exception; the rejected Int64 representation was reproduced locally using the accepted installation report. Pull the correction and repeat only the read-only command below. Missing files, JSON parsing and invalid installation stages now have separate safe diagnostic codes; reports also record the PowerShell version. Native PowerShell 7/PostgreSQL verification remains pending.
+E106 corrected integer compatibility: zero exit codes accept Int32 or Int64 without coercing strings, booleans or fractions. E107 subsequently verified the collector on PowerShell 7.6.6/PostgreSQL 18: eight source matches, 16.181s total and 0.410s database stage. Findings retain SSL off, potential other-database access and the unverified application route; they do not authorize LOGIN. The command below is retained for reference, not a request to rerun.
 
 ## Scope and acceptance
 
@@ -29,7 +29,7 @@ No password issuance/storage, LOGIN/role/HBA edits, grant changes, configuration
 
 This package does not earn permission to activate the writer. Runtime authentication, credential custody and application wiring remain separate acceptance gates even if collection passes.
 
-## Run on spare
+## Historical collector command
 
 Use PowerShell 7 and PostgreSQL administrator credentials entered only on the spare laptop. No backup or idle application maintenance is required for this read-only check; avoid concurrent administrator configuration edits. Keep the successful installation report at its original path.
 

@@ -1,0 +1,21 @@
+{
+  "evidenceId": "E108",
+  "status": "LOCAL_FOUNDATION_VERIFIED_SPARE_PENDING",
+  "transportPolicy": "PRIVATE_SAME_MACHINE_TLS_DEFERRED",
+  "javaRegression": {"command": "mvn -q test", "exitCode": 0, "tests": 708, "newConnectorTests": 26, "failures": 0, "errors": 0, "skipped": 0, "totalWallSeconds": null},
+  "privateBoundaryAssertions": 120,
+  "syntheticCustodyChecks": 15,
+  "syntheticCustodyElapsedSecondsRounded": 2.31,
+  "installerRegressionAssertions": 263,
+  "verificationEnvironment": "Local Windows PowerShell 5.1, native DPAPI synthetic fixture; Docker and listener inspection mocked; Java 22 offline JUnit",
+  "sparePowerShell7Verified": false,
+  "realDatabaseAccessed": false,
+  "realCredentialsCreated": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "packagePercent": 60,
+  "completedCheckpoints": ["D", "I", "V"],
+  "pendingCheckpoints": ["R", "A"],
+  "fullRoadmapPercent": 12.4,
+  "limitations": ["Connector not Spring registered or application wired", "DPAPI-to-Docker real credential handoff not implemented", "Configured route is not live database identity proof", "Firewall and external reachability not tested", "No new paper or live trading authority"]
+}

@@ -4,7 +4,7 @@
 
 ## Accepted foundations
 
-E104 now accepts the actual NOLOGIN permission staging: rehearsal, commit and independent readback passed. Do not repeat installation. The next handoff is [connection security review](paper-writer-connection-review.md): authentication-file metadata and cross-database ACLs, read-only, before credential custody and dedicated application wiring. No login or order execution is enabled. Older handoffs below are historical.
+E104 NOLOGIN staging and E107 connection inventory are accepted. Do not repeat installation or inventory. Next is [local writer foundation](paper-writer-local-foundation.md): synthetic custody and selected private-boundary observations in one report. The owner approved TLS deferral for this single-laptop setup. The connector is implemented but unwired; real credential handoff, route/access verification and application review integration remain pending. No login or order execution is enabled. Older handoffs below are historical.
 
 Current E101/E102 handoff: catalog preflight accepted; proceed with [guarded NOLOGIN installation](paper-writer-installation.md), not the older preflight/recovery commands below. Administrator permission, exact existing-role TEMP preservation approval, backup and idle confirmations, rollback rehearsal and independent readback are mandatory. This stages permissions only; credentials, application review wiring and orders stay disabled.
 

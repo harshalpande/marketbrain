@@ -4,7 +4,7 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
-2026-10-12: E97 synthetic recovery (14/14), E99 restricted writer candidate (26/26), E101 catalog preflight and E104 actual NOLOGIN permission staging are accepted. Installation rehearsal, commit and independent verification passed. The next [connection security review](paper-writer-connection-review.md) collects read-only authentication and cross-database metadata; usable credentials, application activation and real review transport remain later gates. The [daily scorecard](daily-scorecard.md) separates these packages; full-goal weighted baseline remains 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from permission tests.
+2026-10-12: E97 recovery, E99 restricted writer, E101 preflight, E104 NOLOGIN staging and E107 connection inventory are accepted. E108 [local writer foundation](paper-writer-local-foundation.md) implements an unwired connector and synthetic custody with combined local-boundary collection. Owner-approved policy: private single laptop, TLS deferred. Foundation spare verification, actual private route, real credential handoff and application review wiring remain pending. The [daily scorecard](daily-scorecard.md) separates packages; full-goal baseline stays 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from these checks.
 
 These percentages measure engineering delivery, **not investment accuracy, probability of profit, or confidence in a model**. This is a new, broader scope; it must not be compared with old experimental scorecards or a previously quoted project percentage.
 

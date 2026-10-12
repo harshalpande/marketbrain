@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Private local writer policy and connection acceptance
+
+- E107 accepts the successful PowerShell7.6.6 connection inventory: eight source matches,16.181s total,0.410s database stage, no writer login or mutation. Connection package60% to100%,+40pp. NOLOGIN permission staging stays accepted; do not repeat Apply or inventory collection.
+- Owner accepted deferring TLS for the private single-laptop setup. Keep private access, restricted database identity, credential hygiene and transaction/approval controls. TLS is optional for later topology changes, not a mandatory certificate project now.
+- E108 adds the [local foundation](paper-writer-local-foundation.md): explicit private-local connector with metadata identity checks, optional no-downgrade TLS path, synthetic DPAPI custody, and combined selective Docker-port/configured-route/listener observations. No Spring registration, real credentials, role/HBA/firewall changes, database access, restart or trading activation.
+- Offline verification:708 Java tests passed including26 new connector tests;120 mocked boundary assertions,15 native synthetic custody checks and263 installer regression assertions passed. Custody run2.31s; whole Maven elapsed time unmeasured. An initial fixture inheritance-reset privilege issue was corrected by creating an empty inherited fixture without requesting SACL privileges. An adversarial route-output test caught and removed unrecognized output from reports before handoff.
+- New package D/I/V60%, spare R/A pending. One JSON combines checks; actual database session, private access enforcement, real credential handoff/revocation and application wiring remain next. Full roadmap12.4% unchanged; prediction accuracy unmeasured.
+
 ## 2026-10-12 Connection validator integer compatibility correction
 
 - E106 records the connection report stopping at input validation after0.313s, before revision/target capture or a database stage. Installation E104 is unaffected. The exact spare exception was not retained; locally, converting the accepted report's exit codes to Int64 reproduced the defect in the original Int32-only check.

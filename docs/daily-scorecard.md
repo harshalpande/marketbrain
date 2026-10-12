@@ -35,12 +35,15 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 | Approval/security: isolated restricted-writer candidate | 0% | 100% | +100 | D/I/V [E98](evidence/paper-writer-local-20261012.json); R/A [E99](evidence/paper-writer-spare-acceptance-20261012.json), 26/26 spare checks accepted | Candidate closed; application adoption is separate |
 | Application adoption: catalog preflight only | 0% | 100% | +100 | D/I/V E100; R/A [E101](evidence/paper-writer-preflight-spare-acceptance-20261012.json), 110.692s spare catalog report and authorized administrator/TEMP review | Closed; installation is separate |
 | Application adoption: NOLOGIN permission staging | 0% | 100% | +100 | D/I/V E102/E103; R/A [E104](evidence/paper-writer-install-spare-acceptance-20261012.json) | Closed; usable credentials/application activation excluded |
-| Connection security inventory only | 0% | 60% | +60 | D/I/V E105; [frozen scope](paper-writer-connection-review.md) | R/A: spare read-only authentication/cross-database report and findings review |
+| Connection security inventory only | 0% | 100% | +100 | D/I/V E105/E106; R/A [E107](evidence/paper-writer-connection-spare-acceptance-20261012.json) | Closed; not proof of writer login or private application route |
+| Local writer foundation candidate | 0% | 60% | +60 | D/I/V [E108](evidence/paper-writer-foundation-local-20261012.json); [frozen scope](paper-writer-local-foundation.md) | Spare synthetic custody and local boundary collection/review; real credential handoff and wiring excluded |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Complete integrated parent-goal gates |
 
 The candidate percentage is **not** the completion of the production writer, paper portal, entire approval area or predictor. Its latest change is **60% to 100%, +40 percentage points**; the table's +100 is the cumulative change from today's opening 0%, not an additional gain. Runtime: 287.297 seconds total, 200.120 seconds build and 15.838 seconds Java checks. No application deployment or production-writer activation is credited. Preflight and candidate package scores are not averaged into a project percentage.
 
 ## Proposed sequence
+
+Current E107/E108 handoff: connection inventory closes 60% to 100% (+40pp), 16.181s total and 0.410s database stage. The owner approved TLS deferral for the private same-machine policy. The separate foundation candidate is 60%, with 708 Java tests, 120 mocked boundary assertions and 15 synthetic custody checks passed locally; spare acceptance remains pending. No actual writer login, application deployment or execution is credited. Full roadmap remains 12.4%. Earlier retry/next-step statements below are historical.
 
 E106 repair: connection collection stopped at saved-report validation before database access. Int32/Int64 compatibility and safe diagnostics are corrected; no new progress checkpoint is earned. Connection inventory remains60%, NOLOGIN staging100%, full roadmap12.4%. Repeat only the read-only collection after pulling the correction.
 
