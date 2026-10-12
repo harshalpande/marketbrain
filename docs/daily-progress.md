@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-12 PostgreSQL host address validation repaired
+
+- E112 records the next spare result: the repaired collector completed all 264 inbound rules and retained 126 candidates in 31.03s. Java compilation, application read-only query, administrator metadata query and cleanup exited successfully. The 66.08s run failed only at route address validation: PostgreSQL emitted `127.0.0.1/32`, which the original plain-IP validator rejected.
+- Corrected the producer to use PostgreSQL `host(inet)`; added strict host-mask compatibility for IPv4 `/32` and IPv6 `/128` without accepting subnets or malformed addresses. Loopback findings now use parsed IP addresses. Validated receipt/inventory metadata is saved before route validation; the failing validation stage is retained.
+- Verified 720 Java tests, 186 access/firewall assertions and 216 mocked runner assertions. Replayed the actual report's two address values against old/new validators. No local live database, firewall, Docker or model calls. Documentation skill kept successful substeps distinct from incomplete package acceptance.
+- Pull and rerun only the combined diagnostic; no rebuild or installer action. No authentication/firewall policy changes, TLS requirement or writer activation. Access-review package remains 60%, full roadmap 12.4%, repair gain 0pp until successful spare completion and findings review.
+
 ## 2026-10-12 Firewall collector limit repaired
 
 - E111 records the elevated spare failure: `FIREWALL_RULE_LIMIT`, 42.47 seconds total, 41.05 seconds firewall stage; no database access or configuration changes. Elevation succeeded. More than 100 possible rules is not proof of external database exposure.

@@ -15,7 +15,7 @@ public final class PaperApplicationRouteProbe {
           'status','READ_ONLY_APPLICATION_ROUTE_OBSERVED','database',current_database(),
           'databaseOid',(SELECT oid::text FROM pg_catalog.pg_database WHERE datname=current_database()),
           'applicationUser',current_user,'sessionUser',session_user,
-          'clientAddress',inet_client_addr()::text,'serverAddress',inet_server_addr()::text,
+          'clientAddress',host(inet_client_addr()),'serverAddress',host(inet_server_addr()),
           'serverPort',inet_server_port(),
           'serverStartEpoch',extract(epoch FROM pg_catalog.pg_postmaster_start_time())::text,
           'applicationName',current_setting('application_name'),

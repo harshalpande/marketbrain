@@ -42,7 +42,11 @@ function Invoke-PaperCatalogProcess($Executable,$Arguments,$WorkingDirectory,$Li
         }
     }elseif($Arguments[0] -ceq 'ps'){$out='abcdef012345';if($script:case -ceq 'ambiguous'){$out+="`nabcdef012346"}}
     elseif($Arguments -contains 'java'){
-        $script:probeId=$Arguments[-1];$v=Route;$v.applicationName='mb-route-'+$script:probeId;$out=$v|ConvertTo-Json -Compress
+        $script:probeId=$Arguments[-1];$v=Route;$v.applicationName='mb-route-'+$script:probeId
+        if($script:case -ceq 'pass-inet-mask'){$v.clientAddress='127.0.0.1/32';$v.serverAddress='127.0.0.1/32'}
+        if($script:case -ceq 'pass-ipv6'){$v.clientAddress='::1/128';$v.serverAddress='::1/128'}
+        if($script:case -ceq 'invalid-address'){$v.clientAddress='127.0.0.1/24'}
+        $out=$v|ConvertTo-Json -Compress
         if($script:case -ceq 'probe-fail'){$exit=2;$out='{"version":"PAPER_APPLICATION_ROUTE_V1","status":"FAILED","failureCode":"PROBE_CONNECTION_OR_QUERY_FAILED"}'}
         if($script:case -ceq 'probe-timeout'){$timeout=$true}
     }elseif($Arguments -contains 'rm' -and $script:case -ceq 'cleanup-fail'){$exit=1}
@@ -55,7 +59,7 @@ function Invoke-PaperInstallerPsql($Executable,$Database,$Port,$Admin,$Password,
     $out=((Receipt 'Verify')|ConvertTo-Json -Compress)+"`n"+((Inventory)|ConvertTo-Json -Depth 10 -Compress)+"`n"+(@{serverStartEpoch=$epoch}|ConvertTo-Json -Compress)
     return [pscustomobject]@{stdout=$out;exitCode=if($script:case -ceq 'sql-fail'){3}else{0};timedOut=$false;elapsedSeconds=0.01;sqlStates=@();assertionFailures=@()}
 }
-foreach($script:case in @('pass','dirty','firewall-fail','firewall-limit','firewall-timeout','compile-fail','ambiguous','probe-fail','probe-timeout','cancel','sql-fail','instance-mismatch','cleanup-fail')){
+foreach($script:case in @('pass','pass-inet-mask','pass-ipv6','invalid-address','dirty','firewall-fail','firewall-limit','firewall-timeout','compile-fail','ambiguous','probe-fail','probe-timeout','cancel','sql-fail','instance-mismatch','cleanup-fail')){
     $script:nativeCalls=0;$script:dbCalls=0;$dir=Join-Path $work $script:case;$threw=$false
     try{& $runner -InstallationReportPath $installation -FoundationReportPath $foundationPath -OutputDirectory $dir}catch{$threw=$true}
     $files=@(Get-ChildItem -LiteralPath $dir -Filter '*.json');Check ($files.Count -eq 1) 'Single compact report'
@@ -63,7 +67,15 @@ foreach($script:case in @('pass','dirty','firewall-fail','firewall-limit','firew
     Check ($raw -notmatch 'SECRET_SENTINEL') 'No raw process errors or credentials'
     Check (-not $r.databaseWritesPerformed -and -not $r.applicationWriterActivated -and -not $r.writerLoginAttempted -and -not $r.configurationChanged) 'No side effects'
     Check ($script:dbCalls -le 1) 'No database retries'
-    if($script:case -ceq 'pass'){Check (-not $threw -and $r.status -ceq 'ACCESS_EVIDENCE_CAPTURED_REVIEW_REQUIRED' -and $r.diagnosticCleanupComplete) 'Successful guarded workflow'}else{Check ($threw -and $r.status -ceq 'FAILED' -and $r.failureCode) ('Failure retained: '+$script:case)}
+    if($script:case -in @('pass','pass-inet-mask','pass-ipv6')){
+        Check (-not $threw -and $r.status -ceq 'ACCESS_EVIDENCE_CAPTURED_REVIEW_REQUIRED' -and $r.diagnosticCleanupComplete -and $r.validationStage -ceq 'COMPLETE') 'Successful guarded workflow'
+        Check ($r.findings -notcontains 'APPLICATION_SOURCE_NOT_LOOPBACK_REVIEW_EXACT_HBA_SCOPE') 'No false loopback finding'
+    }else{Check ($threw -and $r.status -ceq 'FAILED' -and $r.failureCode) ('Failure retained: '+$script:case)}
+    if($script:case -in @('invalid-address','instance-mismatch')){
+        Check ($null -ne $r.inventory -and $null -ne $r.verification -and $null -ne $r.serverMetadata) 'Validated admin evidence retained after route validation failure'
+        Check ($r.validationStage -ceq 'ROUTE_IDENTITY_AND_ADDRESS' -and -not $r.existingApplicationLoginProbed) 'Failed validation stage retained without accepting route'
+    }
+    if($script:case -ceq 'invalid-address'){Check ($r.failureCode -ceq 'ACCESS_ROUTE_ADDRESS_INVALID') 'CIDR subnet is not accepted as host'}
     if($script:case -eq 'firewall-fail'){Check ($r.diagnosticFailureCode -ceq 'FIREWALL_QUERY_FAILED') 'Safe firewall diagnostic'}
     if($script:case -in @('firewall-fail','firewall-limit','firewall-timeout')){
         Check ($r.firewall.rules.Count -eq 1 -and $r.firewall.truncated -and $r.firewall.profiles.Count -eq 3) 'Partial evidence survives runner failure'

@@ -6,6 +6,12 @@ import java.sql.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 class PaperApplicationRouteProbeTest {
+    @Test void queryUsesHostTextWithoutInetMask(){
+        assertTrue(PaperApplicationRouteProbe.SQL.contains("host(inet_client_addr())"));
+        assertTrue(PaperApplicationRouteProbe.SQL.contains("host(inet_server_addr())"));
+        assertFalse(PaperApplicationRouteProbe.SQL.contains("inet_client_addr()::text"));
+        assertFalse(PaperApplicationRouteProbe.SQL.contains("inet_server_addr()::text"));
+    }
     @ParameterizedTest @ValueSource(strings={"jdbc:postgresql://evil:5432/marketbrain","jdbc:postgresql://host.docker.internal:5432/marketbrain?user=owner","jdbc:postgresql://localhost:5432/marketbrain",""})
     void refusesDifferentRouteOrOptions(String url){assertThrows(IllegalArgumentException.class,()->PaperApplicationRouteProbe.approvedUrl(url,"marketbrain","5432"));}
     @Test void fixedPolicy(){assertEquals("jdbc:postgresql://host.docker.internal:5432/marketbrain",PaperApplicationRouteProbe.approvedUrl("jdbc:postgresql://host.docker.internal:5432/marketbrain","marketbrain","5432"));

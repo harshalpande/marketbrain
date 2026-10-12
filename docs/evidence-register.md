@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E112 HOST_ADDRESS_VALIDATOR_REPAIRED / SPARE_RETRY_PENDING:** [repair evidence](evidence/paper-writer-address-fix-20261012.json), [handoff](paper-writer-access-review.md). Firewall and both database queries succeeded; explicit `inet::text` yielded `127.0.0.1/32` and failed plain-IP parsing. SQL now emits host text; validator accepts strict full host masks and classifies loopback semantically. 720 Java tests, 186 contract/firewall and 216 runner assertions passed. Successful admin metadata survives later validation failure. No new package-completion credit.
+
 - **E111 FIREWALL_COLLECTOR_REPAIRED / SPARE_RETRY_PENDING:** [repair evidence](evidence/paper-writer-access-fix-20261012.json), [handoff](paper-writer-access-review.md). Elevated collection exceeded the old 100-rule cap before database access. Rule-first enumeration, larger bounded collection and partial checkpoints verified by 128 contract/firewall and 160 runner assertions. No configuration changes; access review stays 60%, full roadmap 12.4%.
 
 - **E110 ACCESS_REVIEW_IMPLEMENTED / SPARE_PENDING:** [runbook](paper-writer-access-review.md), [local evidence](evidence/paper-writer-access-local-20261012.json). Same-container read-only diagnostic, current HBA/permission verification and bounded Windows Firewall metadata; no writer login or configuration changes.719 Java tests,62 contract/firewall assertions,139 runner assertions; native runtime mocked locally.

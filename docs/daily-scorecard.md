@@ -44,6 +44,8 @@ The candidate percentage is **not** the completion of the production writer, pap
 
 ## Proposed sequence
 
+E112 repair: firewall collection and both database queries succeeded, but PostgreSQL host-mask formatting failed route validation after 66.08s. Corrected producer/parser and evidence retention; 720 Java tests plus 186 contract/firewall and 216 runner assertions passed. Retry diagnostic only, no rebuild. Access review remains 60%, repair gain 0pp, full roadmap 12.4%; previous foundation acceptance is unchanged.
+
 E111 repair: elevated access inspection reached the old candidate-rule cap after 42.47s, without database access. Revised collector passes 128 contract/firewall and 160 runner assertions, including larger rule sets and partial evidence retention. Retry access collection only. Package remains 60%; repair gain 0pp and full roadmap 12.4% unchanged.
 
 Current E109/E110 handoff: foundation closes60% to100%,+40pp,26.49s spare run. Access-review implementation is60%, with719 Java tests and62+139 separately scoped PowerShell assertions passed. No application login activation or trading credit; full roadmap12.4%. Run the combined access review once; do not repeat foundation/installation. Earlier next-handoff statements below are historical.

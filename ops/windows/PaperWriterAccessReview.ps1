@@ -45,6 +45,17 @@ function New-PaperAccessReviewSql($Envelope) {
     if(-not $sql.EndsWith('ROLLBACK;')){throw 'ACCESS_SQL_BOUNDARY_INVALID'}
     return $sql.Substring(0,$sql.Length-9)+"`nSELECT jsonb_build_object('serverStartEpoch',extract(epoch FROM pg_catalog.pg_postmaster_start_time())::text);`nROLLBACK;"
 }
+function ConvertTo-PaperRouteAddress($Value) {
+    # PostgreSQL inet::text appends /32 or /128, unlike host(inet). Accept only full host masks.
+    # Never strip arbitrary CIDR prefixes, resolve DNS, or accept .NET's abbreviated IPv4 syntax.
+    if($Value -isnot [string] -or $Value.Length -gt 64 -or $Value -cnotmatch '^[0-9A-Fa-f:.]+(?:/(?:32|128))?$'){throw 'ACCESS_ROUTE_ADDRESS_INVALID'}
+    $parts=$Value.Split('/');$literal=$parts[0];$address=$null
+    if(-not $literal.Contains(':') -and $literal -cnotmatch '^(?:0|[1-9][0-9]{0,2})(?:\.(?:0|[1-9][0-9]{0,2})){3}$'){throw 'ACCESS_ROUTE_ADDRESS_INVALID'}
+    if(-not [Net.IPAddress]::TryParse($literal,[ref]$address)){throw 'ACCESS_ROUTE_ADDRESS_INVALID'}
+    $hostMask=if($address.AddressFamily -eq [Net.Sockets.AddressFamily]::InterNetwork){'32'}else{'128'}
+    if($parts.Count -eq 2 -and $parts[1] -cne $hostMask){throw 'ACCESS_ROUTE_ADDRESS_INVALID'}
+    return $address
+}
 function Assert-PaperApplicationRoute($Route,$Inventory,$Server,[string]$RunId) {
     if(($Route.serverPort -isnot [int] -and $Route.serverPort -isnot [long]) -or
        [string]$Route.databaseOid -cnotmatch '^[0-9]{1,12}$' -or [string]$Route.serverStartEpoch -cnotmatch '^[0-9]{1,12}\.[0-9]{1,6}$'){throw 'ACCESS_ROUTE_METADATA_INVALID'}
@@ -54,7 +65,7 @@ function Assert-PaperApplicationRoute($Route,$Inventory,$Server,[string]$RunId) 
        $Route.applicationName -cne ('mb-route-'+$RunId) -or $Route.applicationUser -cne $Route.sessionUser -or
        $Route.applicationUser -cnotmatch '^[A-Za-z_][A-Za-z0-9_]{0,62}$' -or $Route.readOnly -isnot [bool] -or -not $Route.readOnly){throw 'ACCESS_ROUTE_IDENTITY_MISMATCH'}
     foreach($field in @('databaseWritesPerformed','writerLoginAttempted','actionExecutionEnabled')){if($Route.$field -isnot [bool] -or $Route.$field){throw 'ACCESS_ROUTE_UNSAFE'}}
-    foreach($field in @('clientAddress','serverAddress')){$address=$null;if(-not [Net.IPAddress]::TryParse([string]$Route.$field,[ref]$address)){throw 'ACCESS_ROUTE_ADDRESS_INVALID'}}
+    foreach($field in @('clientAddress','serverAddress')){$null=ConvertTo-PaperRouteAddress $Route.$field}
 }
 function Get-PaperAccessFindings($Inventory,$Firewall,$Route) {
     $findings=[Collections.Generic.List[string]]::new()
@@ -73,6 +84,8 @@ function Get-PaperAccessFindings($Inventory,$Firewall,$Route) {
         if(-not $loopback){$findings.Add('NON_LOOPBACK_OR_COMPLEX_HBA_ALLOW_REQUIRES_REVIEW')}
         if($rule.authMethod -cne 'scram-sha-256'){$findings.Add('NON_SCRAM_AUTHENTICATION_REQUIRES_REVIEW')}
     }
-    if($Route.clientAddress -notin @('127.0.0.1','::1')){$findings.Add('APPLICATION_SOURCE_NOT_LOOPBACK_REVIEW_EXACT_HBA_SCOPE')}
+    $clientAddress=ConvertTo-PaperRouteAddress $Route.clientAddress
+    if($clientAddress.IsIPv4MappedToIPv6){$clientAddress=$clientAddress.MapToIPv4()}
+    if(-not [Net.IPAddress]::IsLoopback($clientAddress)){$findings.Add('APPLICATION_SOURCE_NOT_LOOPBACK_REVIEW_EXACT_HBA_SCOPE')}
     return @($findings.ToArray()|Select-Object -Unique)
 }

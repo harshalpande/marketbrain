@@ -10,12 +10,26 @@ function Route {@{version='PAPER_APPLICATION_ROUTE_V1';status='READ_ONLY_APPLICA
 $inventory=@{database='marketbrain';databaseOid='123';serverPort=5432;hbaRules=@(@{type='host';address='127.0.0.1';netmask='255.255.255.255';authMethod='scram-sha-256';optionsPresent=$false;hasError=$false})}
 $server=@{serverStartEpoch='123456.123456'}
 Assert-PaperApplicationRoute (Route) $inventory $server ('a'*32);Check $true 'Matched instance/session'
+# Regression: the real PostgreSQL result used 127.0.0.1/32 for both addresses.
+foreach($value in @('127.0.0.1','127.0.0.1/32','192.168.1.5/32','::1','::1/128','0:0:0:0:0:0:0:1/128','2001:db8::1/128','::ffff:127.0.0.1/128')){
+    $r=Route;$r.clientAddress=$value;$r.serverAddress=$value
+    Assert-PaperApplicationRoute $r $inventory $server ('a'*32);Check ($r.clientAddress -ceq $value) 'Host address accepted without altering raw evidence'
+}
+foreach($value in @($null,'','wrong','localhost','127.0.0.1/24','127.0.0.1/128','::1/32','::1/64','::ffff:127.0.0.1/32','127.0.0.1/32/32','127.0.0.1/032','127.0.0.1/','127.0.0.999/32','127.1','2130706433','0177.0.0.1',' 127.0.0.1','127.0.0.1 ','[::1]','fe80::1%2',123)){
+    foreach($field in @('clientAddress','serverAddress')){$r=Route;$r.$field=$value;Reject {Assert-PaperApplicationRoute $r $inventory $server ('a'*32)}}
+}
 foreach($field in @('version','status','database','databaseOid','serverStartEpoch','applicationName','applicationUser','sessionUser','clientAddress','serverAddress')){$r=Route;$r.$field='wrong';Reject {Assert-PaperApplicationRoute $r $inventory $server ('a'*32)}}
 foreach($port in @('5432',[double]5432,5433,$null)){$r=Route;$r.serverPort=$port;Reject {Assert-PaperApplicationRoute $r $inventory $server ('a'*32)}}
 foreach($field in @('databaseWritesPerformed','writerLoginAttempted','actionExecutionEnabled')){foreach($value in @($true,'false',$null)){$r=Route;$r.$field=$value;Reject {Assert-PaperApplicationRoute $r $inventory $server ('a'*32)}}}
 foreach($value in @($false,'true',$null)){$r=Route;$r.readOnly=$value;Reject {Assert-PaperApplicationRoute $r $inventory $server ('a'*32)}}
 $fw=@{status='METADATA_CAPTURED_REVIEW_REQUIRED';truncated=$false;profiles=@(@{Enabled='True';DefaultInboundAction='Block'})*3;rules=@()}
 Check (@(Get-PaperAccessFindings $inventory $fw (Route)).Count -eq 1) 'Even narrow evidence retains credential restriction gate'
+foreach($value in @('127.0.0.1/32','127.0.0.2/32','::1/128','0:0:0:0:0:0:0:1','::ffff:127.0.0.1/128')){
+    $r=Route;$r.clientAddress=$value;Check ((Get-PaperAccessFindings $inventory $fw $r) -notcontains 'APPLICATION_SOURCE_NOT_LOOPBACK_REVIEW_EXACT_HBA_SCOPE') 'Equivalent loopback forms are not falsely flagged'
+}
+foreach($value in @('192.168.1.5/32','2001:db8::1/128','::ffff:192.168.1.5/128')){
+    $r=Route;$r.clientAddress=$value;Check ((Get-PaperAccessFindings $inventory $fw $r) -contains 'APPLICATION_SOURCE_NOT_LOOPBACK_REVIEW_EXACT_HBA_SCOPE') 'Nonloopback host still requires review'
+}
 $fw.rules=@(@{action='Allow'});Check ((Get-PaperAccessFindings $inventory $fw (Route)) -contains 'POSTGRES_PORT_CANDIDATE_ALLOW_RULES_REQUIRE_SCOPE_REVIEW') 'Allow not treated as effective reachability'
 $fw.profiles[0].Enabled='False';Check ((Get-PaperAccessFindings $inventory $fw (Route)) -contains 'FIREWALL_PROFILE_REQUIRES_REVIEW') 'Disabled firewall visible'
 $inventory.hbaRules[0].address='0.0.0.0';Check ((Get-PaperAccessFindings $inventory $fw (Route)) -contains 'NON_LOOPBACK_OR_COMPLEX_HBA_ALLOW_REQUIRES_REVIEW') 'Broad HBA visible'

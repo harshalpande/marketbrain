@@ -18,6 +18,7 @@ $path=Join-Path $out ('paper-writer-access-{0}-{1}.json' -f (Get-Date -Format 'y
 $fixture=Join-Path $out ('route-probe-'+$id);$containerPath='/tmp/mb-route-'+$id
 $timer=[Diagnostics.Stopwatch]::StartNew();$password=$null;$secure=$null;$containerId=$null;$copied=$false;$containerCreated=$false;$phase='PREFLIGHT'
 $report=[ordered]@{version='PAPER_WRITER_ACCESS_V1';status='RUNNING';runId=$id;revision=$null;manifest=@{};inputHashes=@{};events=@();steps=@();route=$null;firewall=$null;inventory=$null;verification=$null;findings=@();failureCode=$null;cleanupFailureCode=$null;diagnosticFailureCode=$null;elapsedSeconds=0;diagnosticCleanupComplete=$false;existingApplicationLoginProbed=$false;writerLoginAttempted=$false;configurationChanged=$false;databaseWritesPerformed=$false;credentialsSaved=$false;applicationWriterActivated=$false;actionExecutionEnabled=$false;externalReachabilityTested=$false;transportPolicy='PRIVATE_SAME_MACHINE_TLS_DEFERRED'}
+$report['validationStage']='NOT_STARTED';$report['serverMetadata']=$null
 function Save {$report.elapsedSeconds=$timer.Elapsed.TotalSeconds;Save-NumericalHistoryReport $report $path -Compact}
 function Stage([int]$Percent,[string]$Message){$report.events+=@{percent=$Percent;message=$Message};Save;Write-Host "[$Percent%] $Message";Write-Progress -Activity 'Paper writer access review' -Status $Message -PercentComplete $Percent}
 function Native([string]$Executable,[string[]]$Arguments,[int]$Limit,[string]$Label){
@@ -78,12 +79,20 @@ try {
     if($result.exitCode -ne 0 -or $result.timedOut -or $result.stdout.Length -gt 2MB){throw 'ACCESS_DATABASE_METADATA_FAILED'}
     $rows=@($result.stdout.Trim() -split '\r?\n'|Where-Object {$_.Trim().Length});if($rows.Count -ne 3){throw 'ACCESS_DATABASE_RESPONSE_INVALID'}
     $receipt=$rows[0]|ConvertFrom-Json;$inventory=$rows[1]|ConvertFrom-Json;$server=$rows[2]|ConvertFrom-Json
+    $report.validationStage='INSTALL_RECEIPT'
     Assert-PaperWriterInstallReceipt $receipt 'Verify' $saved.plan.planHash
+    $report.verification=$receipt
+    $report.validationStage='CONNECTION_INVENTORY'
     Assert-PaperConnectionReview $inventory $saved.plan $saved.target.port
+    $report.inventory=$inventory
+    $report.validationStage='ROUTE_IDENTITY_AND_ADDRESS'
+    $report.serverMetadata=$server|Select-Object serverStartEpoch
+    Save
     Assert-PaperApplicationRoute $report.route $inventory $server $id
     $report.existingApplicationLoginProbed=$true
-    $report.verification=$receipt;$report.inventory=$inventory
+    $report.validationStage='ACCESS_FINDINGS'
     $report.findings=@(Get-PaperAccessFindings $inventory $report.firewall $report.route)
+    $report.validationStage='COMPLETE'
     Stage 90 'Read-only session correlated with the inspected database; preserving findings for credential/access preparation.'
     $report.status='ACCESS_EVIDENCE_CAPTURED_REVIEW_REQUIRED'
 }catch{$report.status='FAILED';$report.failureCode=$phase+'_FAILED';if($_.Exception.Message -cmatch '^ACCESS_[A-Z_]+$'){$report.failureCode=$_.Exception.Message}}
