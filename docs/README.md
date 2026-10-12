@@ -1,10 +1,10 @@
 # MarketBrain: canonical project baseline
 
-**Current repair E112:** the firewall collector now succeeds (264 inbound rules, 126 candidates). Both database queries succeeded, but the route validator rejected PostgreSQL's `127.0.0.1/32` host representation. The [updated diagnostic](paper-writer-access-review.md) emits plain host text, accepts only valid IPv4/IPv6 host masks for compatibility, and retains validated database evidence before later checks. Pull and retry only this diagnostic; no rebuild, role/firewall changes or installer rerun. Access review remains 60%, full roadmap 12.4%; no extra completion credit for the repair.
+**Current handoff E113:** the corrected access run completed in 57.98s: 10 successful stages, 14 source matches, read-only container route correlated, cleanup complete. Access review is **80%**, with policy findings/owner acceptance pending. Use the [restricted access plan](paper-writer-restricted-access-plan.md) next; **do not rerun** the unchanged diagnostic. This handoff is documentation only: no rebuild, credentials, HBA/firewall edits or LOGIN. Full roadmap stays 12.4%. Older handoffs below are historical.
 
 **Current handoff, 2026-10-12 (E109/E110):** the foundation report is accepted:15/15 custody checks, six source matches and five successful inspection commands in26.49s. Run the [targeted access review](paper-writer-access-review.md) next to correlate a read-only application-container connection with current database authentication and Windows Firewall metadata. One JSON, no rebuild or configuration change. TLS stays deferred and the writer remains NOLOGIN/unwired. Do not repeat installation or foundation tests.
 
-The [daily scorecard](daily-scorecard.md) records foundation60% to100% (+40pp), new access-review implementation60%, and full-roadmap12.4% unchanged. These different scopes are not averaged. Older handoffs below are historical.
+The [daily scorecard](daily-scorecard.md) records foundation at 100%, access review 60% to 80% (+20pp), and full-roadmap 12.4% unchanged. These different scopes are not averaged. Older handoffs below are historical.
 
 **Accepted recovery baseline:** E97's October 10 synthetic recovery report passed **14/14 checks** in 152.692s. Older next-handoff wording below is historical; no repeat test is needed. [Daily scorecard](daily-scorecard.md) records package percentages and daily gains; the full-goal baseline stays **12.4%**, not a model-accuracy estimate. Application writer installation follows catalog review; real transport and paper execution remain later gates.
 

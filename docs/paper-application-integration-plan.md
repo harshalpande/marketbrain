@@ -4,7 +4,7 @@
 
 ## Accepted foundations
 
-E104 NOLOGIN staging, E107 inventory and E109 foundation are accepted. Next is [targeted access review](paper-writer-access-review.md): actual read-only application-container probe, current HBA/permission verification and Windows Firewall metadata in one report. Do not repeat installation/foundation. TLS stays deferred; connector remains unwired. Satisfactory review enables real credential/handoff preparation, not automatic LOGIN or order execution. Older handoffs below are historical.
+E104 NOLOGIN staging, E107 inventory and E109 foundation are accepted. E113 verifies the corrected access runtime: 10 stages, 14 matching sources, 57.98s; policy findings keep that package at 80%. Next is the [restricted writer access plan](paper-writer-restricted-access-plan.md), not another inventory run. Preserve the current app identity and shared ACLs; review writer-specific connection isolation and missing firewall selectors. TLS stays deferred; connector remains unwired. No LOGIN, credential creation or order execution follows from this plan. Older handoffs below are historical.
 
 Current E101/E102 handoff: catalog preflight accepted; proceed with [guarded NOLOGIN installation](paper-writer-installation.md), not the older preflight/recovery commands below. Administrator permission, exact existing-role TEMP preservation approval, backup and idle confirmations, rollback rehearsal and independent readback are mandatory. This stages permissions only; credentials, application review wiring and orders stay disabled.
 

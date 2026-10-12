@@ -37,12 +37,14 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 | Application adoption: NOLOGIN permission staging | 0% | 100% | +100 | D/I/V E102/E103; R/A [E104](evidence/paper-writer-install-spare-acceptance-20261012.json) | Closed; usable credentials/application activation excluded |
 | Connection security inventory only | 0% | 100% | +100 | D/I/V E105/E106; R/A [E107](evidence/paper-writer-connection-spare-acceptance-20261012.json) | Closed; not proof of writer login or private application route |
 | Local writer foundation candidate | 0% | 100% | +100 | D/I/V E108; R/A [E109](evidence/paper-writer-foundation-spare-acceptance-20261012.json) | Closed; real credential handoff and application wiring remain separate |
-| Targeted writer access review | 0% | 60% | +60 | D/I/V [E110](evidence/paper-writer-access-local-20261012.json); [frozen scope](paper-writer-access-review.md) | Spare actual-route/current-HBA/firewall metadata and findings review |
+| Targeted writer access review | 0% | 80% | +80 | D/I/V E110-E112; R [E113](evidence/paper-writer-access-spare-verification-20261012.json), 57.98s; [frozen scope](paper-writer-access-review.md) | Policy findings review and owner acceptance; [restriction plan](paper-writer-restricted-access-plan.md) prepared, not applied |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Complete integrated parent-goal gates |
 
 The candidate percentage is **not** the completion of the production writer, paper portal, entire approval area or predictor. Its latest change is **60% to 100%, +40 percentage points**; the table's +100 is the cumulative change from today's opening 0%, not an additional gain. Runtime: 287.297 seconds total, 200.120 seconds build and 15.838 seconds Java checks. No application deployment or production-writer activation is credited. Preflight and candidate package scores are not averaged into a project percentage.
 
 ## Proposed sequence
+
+Current E113: corrected spare access review completed all 10 stages with 14 matching sources, 57.98s. Latest gain is 60% to 80%, +20pp for R; the table's +80 is cumulative from today's opening 0%. A remains pending. Prepare exact-writer restriction and targeted firewall-selector review without blanket ACL changes or live edits. No new percentage for the plan; full roadmap 12.4%. Earlier retry instructions below are historical; do not repeat the unchanged diagnostic.
 
 E112 repair: firewall collection and both database queries succeeded, but PostgreSQL host-mask formatting failed route validation after 66.08s. Corrected producer/parser and evidence retention; 720 Java tests plus 186 contract/firewall and 216 runner assertions passed. Retry diagnostic only, no rebuild. Access review remains 60%, repair gain 0pp, full roadmap 12.4%; previous foundation acceptance is unchanged.
 

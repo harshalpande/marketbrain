@@ -1,5 +1,7 @@
 # Paper writer access review
 
+**Current result E113:** the corrected spare run completed all 10 stages in 57.98s, with 14 matching source hashes, a correlated read-only application route and successful cleanup. Package is **80%**, not the historical 60% shown below. Policy findings and owner acceptance remain pending. Next: [restricted writer access plan](paper-writer-restricted-access-plan.md). Do not rerun this unchanged diagnostic; the command and failed-run history below are retained for reference.
+
 ## Why this script is needed
 
 The foundation check passed, but PostgreSQL listens on all interfaces. We must distinguish that listening address from the access actually allowed by authentication and firewall rules. We also need an observed connection from the application container, not just its configured hostname, before preparing the restricted writer's real credential.

@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Access runtime verified and restriction plan prepared
+
+- E113 records successful corrected spare collection: 57.98s, 10/10 stages, 14/14 source matches, 264 inbound rules and 126 candidates. Read-only container route and administrator metadata agree; cleanup complete, zero writes/configuration changes, writer still NOLOGIN. Offline revalidation of the saved report passed without contacting runtime systems.
+- Access-review package rises 60% to 80% (+20pp for R). Findings review/owner acceptance remains pending; full roadmap stays 12.4%. No gain for merely documenting the next plan.
+- [Restricted access plan](paper-writer-restricted-access-plan.md) proposes exact-writer HBA isolation rather than blanket PUBLIC revokes, preserving the application account. Database ACL results do not identify grant provenance, and HBA denial does not erase inherited ACLs. Firewall package/interface/security selectors need targeted review before declaring its scope safe; older PostgreSQL rules are not automatically obsolete.
+- Next grouped implementation: guarded block generation and rollback rehearsal plus targeted missing rule conditions. Real HBA changes, credential/LOGIN activation and application wiring require their separate reviewed gates. Windows HBA changes affect new connections immediately; live edits are not rehearsals. TLS remains deferred.
+- Documentation skill used to align the handoff, evidence, scorecard and diagram. This turn changed documentation only; no executable code, database, firewall, model, credentials or deployment changes. Spare handoff is a documentation pull, not another test run.
+
 ## 2026-10-12 PostgreSQL host address validation repaired
 
 - E112 records the next spare result: the repaired collector completed all 264 inbound rules and retained 126 candidates in 31.03s. Java compilation, application read-only query, administrator metadata query and cleanup exited successfully. The 66.08s run failed only at route address validation: PostgreSQL emitted `127.0.0.1/32`, which the original plain-IP validator rejected.
