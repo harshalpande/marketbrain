@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Foundation accepted and targeted access review prepared
+
+- E109 accepts the spare foundation report:15 custody checks, six source matches, five successful inspection stages,26.49s; temporary fixture removed and no activation/mutation. Service/UI publish to localhost; database listens on all interfaces. This is not proof of external exposure. Foundation closes60% to100%,+40pp.
+- User requests purpose and success/next-step explanations at every handoff; added to operating rules and the new runbook. The documentation skill keeps acceptance and implementation states distinct.
+- E110 [targeted access review](paper-writer-access-review.md) combines bounded firewall metadata, current HBA/permission verification and a read-only diagnostic inside the running app container. Existing app credentials stay in the container; administrator credentials are prompted locally. Database identity is correlated using name/OID/port/server-start time. No app rebuild, credential issuance, LOGIN, firewall/HBA changes or trading.
+- Local verification:719 Java tests (11 new),62 contract/firewall assertions and139 full-runner assertions passed. Standalone Java21 compilation emits one class. Docker, database and firewall runtime remain spare-only; local native I/O is mocked. Failure/timeout/cancel/mismatch/cleanup cases leave one report and never retry the database.
+- Access-review package D/I/V60%, R/A pending. Next after satisfactory review: scoped real-credential handoff/cross-database restriction, then guarded writer authentication and application review persistence. Full roadmap remains12.4%; prediction performance unmeasured.
+
 ## 2026-10-12 Private local writer policy and connection acceptance
 
 - E107 accepts the successful PowerShell7.6.6 connection inventory: eight source matches,16.181s total,0.410s database stage, no writer login or mutation. Connection package60% to100%,+40pp. NOLOGIN permission staging stays accepted; do not repeat Apply or inventory collection.

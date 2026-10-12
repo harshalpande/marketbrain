@@ -4,6 +4,8 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
+Current E109/E110 update: foundation verification is100%; targeted application-route/authentication/firewall review is implemented and locally verified at60%, pending spare evidence. Both are bounded packages, not completion of the whole writer or paper portal. Full-roadmap12.4% unchanged; TLS remains deferred. [Next handoff and purpose](paper-writer-access-review.md). Older next-stage text below is historical.
+
 2026-10-12: E97 recovery, E99 restricted writer, E101 preflight, E104 NOLOGIN staging and E107 connection inventory are accepted. E108 [local writer foundation](paper-writer-local-foundation.md) implements an unwired connector and synthetic custody with combined local-boundary collection. Owner-approved policy: private single laptop, TLS deferred. Foundation spare verification, actual private route, real credential handoff and application review wiring remain pending. The [daily scorecard](daily-scorecard.md) separates packages; full-goal baseline stays 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from these checks.
 
 These percentages measure engineering delivery, **not investment accuracy, probability of profit, or confidence in a model**. This is a new, broader scope; it must not be compared with old experimental scorecards or a previously quoted project percentage.

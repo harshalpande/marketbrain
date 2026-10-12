@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E110",
+  "status": "OFFLINE_ACCESS_REVIEW_VERIFIED_SPARE_PENDING",
+  "javaRegression": {"command": "mvn -q test", "exitCode": 0, "tests": 719, "newProbeTests": 11, "failures": 0, "errors": 0, "skipped": 0, "totalElapsedSeconds": null},
+  "accessContractAndFirewallAssertions": 62,
+  "fullRunnerAssertions": 139,
+  "standaloneJava21CompilePassed": true,
+  "standaloneClassCount": 1,
+  "powerShellTests": "Windows PowerShell 5.1; native processes, firewall APIs, elevation and prompts mocked",
+  "localApplicationOrDatabaseAccessed": false,
+  "spareRuntimeVerified": false,
+  "credentialsCreated": false,
+  "configurationChanged": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "packagePercent": 60,
+  "pendingCheckpoints": ["R", "A"],
+  "fullRoadmapPercent": 12.4,
+  "limitations": ["Firewall metadata is not effective-access certification", "Probe uses existing application account, not the NOLOGIN writer", "Actual container layout and network path not exercised locally", "No external reachability test", "TLS deferred by owner-approved private deployment policy"]
+}

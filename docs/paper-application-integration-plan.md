@@ -4,7 +4,7 @@
 
 ## Accepted foundations
 
-E104 NOLOGIN staging and E107 connection inventory are accepted. Do not repeat installation or inventory. Next is [local writer foundation](paper-writer-local-foundation.md): synthetic custody and selected private-boundary observations in one report. The owner approved TLS deferral for this single-laptop setup. The connector is implemented but unwired; real credential handoff, route/access verification and application review integration remain pending. No login or order execution is enabled. Older handoffs below are historical.
+E104 NOLOGIN staging, E107 inventory and E109 foundation are accepted. Next is [targeted access review](paper-writer-access-review.md): actual read-only application-container probe, current HBA/permission verification and Windows Firewall metadata in one report. Do not repeat installation/foundation. TLS stays deferred; connector remains unwired. Satisfactory review enables real credential/handoff preparation, not automatic LOGIN or order execution. Older handoffs below are historical.
 
 Current E101/E102 handoff: catalog preflight accepted; proceed with [guarded NOLOGIN installation](paper-writer-installation.md), not the older preflight/recovery commands below. Administrator permission, exact existing-role TEMP preservation approval, backup and idle confirmations, rollback rehearsal and independent readback are mandatory. This stages permissions only; credentials, application review wiring and orders stay disabled.
 

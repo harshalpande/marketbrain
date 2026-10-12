@@ -1,8 +1,8 @@
 # MarketBrain: canonical project baseline
 
-**Current handoff, 2026-10-12 (E107/E108):** connection inventory is accepted, closing that package at100%. The owner approved a private single-laptop policy with **TLS deferred**. Run the [local writer foundation bundle](paper-writer-local-foundation.md): synthetic credential custody plus selected local ports/configured-route observations in one JSON. No database login, rebuild, password issuance or activation. The connector is implemented but not application-wired. Do not repeat the accepted NOLOGIN installation or connection inventory.
+**Current handoff, 2026-10-12 (E109/E110):** the foundation report is accepted:15/15 custody checks, six source matches and five successful inspection commands in26.49s. Run the [targeted access review](paper-writer-access-review.md) next to correlate a read-only application-container connection with current database authentication and Windows Firewall metadata. One JSON, no rebuild or configuration change. TLS stays deferred and the writer remains NOLOGIN/unwired. Do not repeat installation or foundation tests.
 
-The [daily scorecard](daily-scorecard.md) records connection review60% to100% (+40pp), new local-foundation candidate60%, and full-roadmap12.4% unchanged. These different scopes are not averaged. Older handoffs below are historical.
+The [daily scorecard](daily-scorecard.md) records foundation60% to100% (+40pp), new access-review implementation60%, and full-roadmap12.4% unchanged. These different scopes are not averaged. Older handoffs below are historical.
 
 **Accepted recovery baseline:** E97's October 10 synthetic recovery report passed **14/14 checks** in 152.692s. Older next-handoff wording below is historical; no repeat test is needed. [Daily scorecard](daily-scorecard.md) records package percentages and daily gains; the full-goal baseline stays **12.4%**, not a model-accuracy estimate. Application writer installation follows catalog review; real transport and paper execution remain later gates.
 
@@ -44,6 +44,8 @@ Upstox is an existing primary data integration, not a pending discovery. Paytm l
 Use the roadmap as the only progress ledger and system-design safety rules as the execution boundary. Never interpret a plan as permission to change credentials, infrastructure, broker settings or live-order behaviour. Discuss unclear scope before implementation. Add a dated decision when scope changes; do not silently rewrite old evidence.
 
 ## Operating rules
+
+Every script handoff must explain **why it is needed, what success proves, what success enables next, and what remains blocked**. Name prerequisites and side effects, retain one compact report where practical, and distinguish successful evidence collection from permission to activate a feature. Do not repeat accepted checks without a relevant new question or change.
 
 1. Existing data, raw model outputs and failed experiments are retained subject to source licences and privacy limits. Do not reset results to improve scores.
 2. Completion means evidence-backed delivery checkpoints, not prediction confidence, probability of profit, time consumed or lines of code.

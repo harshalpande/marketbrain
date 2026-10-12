@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E110 ACCESS_REVIEW_IMPLEMENTED / SPARE_PENDING:** [runbook](paper-writer-access-review.md), [local evidence](evidence/paper-writer-access-local-20261012.json). Same-container read-only diagnostic, current HBA/permission verification and bounded Windows Firewall metadata; no writer login or configuration changes.719 Java tests,62 contract/firewall assertions,139 runner assertions; native runtime mocked locally.
+- **E109 FOUNDATION_ACCEPTED:** [spare evidence](evidence/paper-writer-foundation-spare-acceptance-20261012.json).15/15 custody checks,6/6 source matches,5/5 inspection stages in26.49s. Foundation100%; broad database listener still needs access review. Configured local route is not a proven session; no writer activation.
+
 - **E108 LOCAL_FOUNDATION_VERIFIED / SPARE_PENDING:** [contract and one-command handoff](paper-writer-local-foundation.md), [local evidence](evidence/paper-writer-foundation-local-20261012.json). Owner-approved private same-machine policy, TLS deferred. Unwired connector, synthetic Windows custody and selective local boundary collection.708 Java tests including26 new,120 mocked boundary assertions,15 native custody checks. No real login, credential handoff or execution claimed.
 - **E107 CONNECTION_INVENTORY_ACCEPTED:** [acceptance evidence](evidence/paper-writer-connection-spare-acceptance-20261012.json). Eight source matches,16.181s total/0.410s database, NOLOGIN intact. Closes E105/E106 spare inventory/review100%; actual client route and credential/application activation remain separate. No need to repeat accepted installation or inventory. Earlier retry wording below is historical.
 
