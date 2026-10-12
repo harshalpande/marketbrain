@@ -4,9 +4,12 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
-### Current E98 writer candidate and E97 runtime closure
+### Current writer acceptance and application preflight
 
-- **E98 RESTRICTED_WRITER_CANDIDATE / SPARE_PENDING:** [contract and handoff](paper-approval-writer.md), [offline evidence](evidence/paper-writer-local-20261012.json). Restricted review-only JDBC path, fixed-search-path functions and disposable least-privilege role verification. Twenty-six new PostgreSQL checks await spare evidence. No application credential, migration or worker is activated. Candidate D/I/V progress is separate from parent-goal percentages and model performance.
+- **E99 ISOLATED_WRITER_ACCEPTED / APPLICATION_ACTIVATION_BLOCKED:** [spare acceptance](evidence/paper-writer-spare-acceptance-20261012.json). 26/26 checks, 287.297s total; 27 manifest entries match exact/line-ending-normalized source and raw/parsed phases agree. Synthetic INR100,000, zero reserves/orders/fills, no external calls or application access. Owner requested review and continuation. This closes E98's runtime/acceptance gates, not production adoption.
+- **E100 APPLICATION_CATALOG_PREFLIGHT / OFFLINE_VERIFIED / SPARE_PENDING:** [contract and handoff](paper-writer-application-preflight.md), [offline evidence](evidence/paper-writer-preflight-local-20261012.json). 682 Java tests passed (28 new), package 137.209s; 113 mocked PowerShell assertions passed. Reads bounded PostgreSQL catalog metadata with read-only session and time limits. No local application/database runtime, user-data read, grant/revocation, credential provisioning or activation. Actual catalog findings and configured-versus-running target identity still require spare review before installation.
+
+- **E98 RESTRICTED_WRITER_CANDIDATE / RUNTIME CLOSED BY E99:** [contract](paper-approval-writer.md), [original offline evidence](evidence/paper-writer-local-20261012.json). Restricted review-only JDBC path, fixed-search-path functions and disposable least-privilege role verification. E99 closes the original 26-check spare gate. No application credential, migration or worker is activated. Candidate progress is separate from parent-goal percentages and model performance.
 - **E97 runtime update recorded 2026-10-12:** the October 10 report `paper-recovery-20261010-000650-514a9fc4a639.json`, SHA256 `C8BA54C9EF99A36497360A2C066BF5D7EE2C6F3317BEEAB752687466E8053BC3`, passed 14/14 checks in 152.692s. Source/restored 23-table snapshot hashes match. Application access, actual application restore verification, writer readiness and action execution remain false. This closes the historical E97 spare-pending label below only for its synthetic scope; no repeat run required.
 
 ### Latest E96 and E97 records

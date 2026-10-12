@@ -32,10 +32,11 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 | Area / bounded package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|
-| Approval/security: isolated restricted-writer candidate | 0% | 60% | +60 | D/I/V: authorized scope, implementation, Java/offline checks; [E98](evidence/paper-writer-local-20261012.json) | R: 26 spare checks; A: evidence review and owner acceptance |
+| Approval/security: isolated restricted-writer candidate | 0% | 100% | +100 | D/I/V [E98](evidence/paper-writer-local-20261012.json); R/A [E99](evidence/paper-writer-spare-acceptance-20261012.json), 26/26 spare checks accepted | Candidate closed; application adoption is separate |
+| Application adoption: catalog preflight only | 0% | 60% | +60 | D/I/V: [E100](evidence/paper-writer-preflight-local-20261012.json), [frozen scope](paper-writer-application-preflight.md); 682 Java tests and 113 mocked PowerShell assertions | R/A configured-database report and findings review |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Complete integrated parent-goal gates |
 
-The candidate percentage is **not** the completion of the production writer, paper portal, entire approval area or predictor. Application adoption is a separate guarded package, as specified in the opening sequence. No new application deployment or runtime acceptance is credited today. The [candidate contract](paper-approval-writer.md#frozen-candidate-checkpoint-criteria) fixes what each checkpoint earns; spare verification and acceptance have not been awarded.
+The candidate percentage is **not** the completion of the production writer, paper portal, entire approval area or predictor. Its latest change is **60% to 100%, +40 percentage points**; the table's +100 is the cumulative change from today's opening 0%, not an additional gain. Runtime: 287.297 seconds total, 200.120 seconds build and 15.838 seconds Java checks. No application deployment or production-writer activation is credited. Preflight and candidate package scores are not averaged into a project percentage.
 
 ## Proposed sequence
 

@@ -1,6 +1,6 @@
 # Restricted paper approval writer
 
-The next checkpoint is an isolated approval-writer candidate, not activation in the application. It reuses the accepted review rules and verifies that a dedicated backend database login can record a terminal review without direct permission to change account balances, issue proposals or create orders. The portal READ token is not a writer credential.
+The isolated approval-writer candidate is accepted: **26/26 spare checks passed**, 287.297 seconds total, no application access or orders ([E99](evidence/paper-writer-spare-acceptance-20261012.json)). It verifies that a dedicated backend database login can record a terminal review without direct permission to change account balances, issue proposals or create orders. The portal READ token is not a writer credential. The current handoff is the [application permission preflight](paper-writer-application-preflight.md); do not repeat the accepted suite below unless relevant code changes.
 
 ## Permission boundary
 
@@ -47,4 +47,4 @@ The suite checks allowed ACCEPT/REJECT, duplicate/opposing replay, wrong recipie
 
 ## Next gate
 
-After candidate acceptance, prepare a separately reviewed application migration and dedicated credential setup with rollback/readback. Then exercise controlled real private Telegram and quote review without orders. Actual application backup restoration, key rotation/reconciliation and approved paper risk/fill/cost/P&L remain release gates. Numerical forecasting accuracy is independent of these engineering checks.
+Candidate acceptance is complete. Run the catalog-only application preflight before preparing a separately reviewed migration and dedicated credential setup with rollback/readback. Never copy the fixture's broad PUBLIC revocations into the application. Then exercise controlled real private Telegram and quote review without orders. Actual application backup restoration, key rotation/reconciliation and approved paper risk/fill/cost/P&L remain release gates. Numerical forecasting accuracy is independent of these engineering checks.

@@ -4,7 +4,7 @@
 
 ## Accepted foundations
 
-2026-10-12: E97 synthetic recovery passed 14/14. The current handoff is the [restricted approval-writer candidate](paper-approval-writer.md), with 26 isolated checks and one JSON report. No previous storage/recovery deployment is repeated. Application writer credentials/migration, real transport and paper execution remain later gates; older next-handoff statements below are historical.
+2026-10-12: E97 synthetic recovery passed 14/14 and E99 accepts the restricted writer's 26/26 spare checks. The current handoff is [application permission preflight](paper-writer-application-preflight.md): catalog-only metadata from the configured database, one report, no application restart or permission changes. Review PUBLIC privileges, object collisions and administrator authority before the application writer installation. No previous storage/recovery/writer suite is repeated. Real transport and paper execution remain later gates; older next-handoff statements below are historical.
 
 Current E96/E97: V28 storage/key attachment is accepted on spare (12/12 checks). The next active handoff is [backup recovery and audit permissions](paper-recovery-verification.md):14 new isolated checks and one report, without application restart or real credentials. It verifies a restricted audit reader, not the pending approval writer. Do not rerun the historical E95 deployment below.
 

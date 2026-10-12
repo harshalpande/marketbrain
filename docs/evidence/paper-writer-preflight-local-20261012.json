@@ -1,0 +1,44 @@
+{
+  "evidenceId": "E100",
+  "reviewedAt": "2026-10-12",
+  "status": "OFFLINE_VERIFIED_CONFIGURED_DATABASE_PREFLIGHT_PENDING",
+  "java": {
+    "command": "mvn -q package",
+    "exitCode": 0,
+    "elapsedSeconds": 137.2089897,
+    "tests": 682,
+    "newPreflightTests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "Mocked JDBC read-only/rollback, catalog bounds, collision/privilege findings, connection guards and standalone Compose isolation; no PostgreSQL or Docker runtime"
+  },
+  "powerShell": {
+    "command": "ops/windows/TestPaperWriterPreflightWorkflow.ps1",
+    "assertions": 113,
+    "exitCode": 0,
+    "scope": "PS5.1 offline validation and real runner body with native calls replaced in memory; PS7 native process runtime awaits spare",
+    "cases": ["valid report with installation findings", "build failure", "inspector failure", "timeout", "cleanup failure", "unsafe result", "secret output withheld"]
+  },
+  "preflightPackage": {
+    "openingPercent": 0,
+    "currentPercent": 60,
+    "gainPercentagePoints": 60,
+    "completedCheckpoints": ["D", "I", "V"],
+    "pendingCheckpoints": ["R", "A"]
+  },
+  "parentRoadmapPercent": 12.4,
+  "applicationDatabaseAccessedLocally": false,
+  "applicationRestarted": false,
+  "applicationWriterActivated": false,
+  "newSpringBeansOrEndpoints": false,
+  "newFlywayMigration": false,
+  "actionExecutionEnabled": false,
+  "remainingGates": [
+    "Spare configured-database catalog report and target/permission findings review",
+    "Scoped application writer installation, credential custody and readback",
+    "Controlled real private Telegram and fresh-quote review-only acceptance",
+    "Approved paper risk, reservations, realistic fills, costs, holdings and PnL",
+    "Actual application recovery and prospective pilot; independent numerical validation"
+  ]
+}

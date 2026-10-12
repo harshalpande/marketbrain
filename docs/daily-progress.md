@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Writer accepted and application catalog preflight prepared
+
+- E99 accepts `paper-writer-20261012-113601-8e9aad77e84c.json`: 23 preparation plus 3 restart checks passed, zero failures. All 27 source manifest entries match exact or LF/CRLF-normalized source; raw and parsed phases agree. Total 287.297s, build 200.120s, Java checks 15.838s. Synthetic cash INR100,000, reserves/revision/orders/fills zero, no application/provider/Telegram/model calls; owned fixture cleanup passed.
+- Owner asked to analyze and proceed. Candidate package closes from 60% to 100% (+40 percentage points this handoff; cumulative +100 from today's opening). This is isolated permission engineering, not production writer or predictor completion. Full paper-first roadmap remains 12.4%.
+- E100 combines catalog readiness, role/function collision review, PUBLIC permission findings, result bounds, sanitized failure evidence and timing in one standalone preflight. Fixture-wide PUBLIC revocations are not promoted into the application. No Spring bean, Flyway migration, application restart, credential change, user-data query or provider/model call is introduced. The configured `.env` database is explicitly not claimed to be independently matched to the running service's target.
+- Local verification: 682 Java tests (28 new), zero failures/errors/skips, package 137.209s; 113 offline PowerShell assertions with native processes mocked, including success, build/inspection failure, timeout, cleanup failure, unsafe evidence and secret-output withholding. Compose isolation is parsed/tested offline; actual PS7/Docker/PostgreSQL runtime awaits the spare report. [E100 evidence](evidence/paper-writer-preflight-local-20261012.json).
+- Preflight-only package advances 0% to 60% (D/I/V). R/A await one configured-database report and reviewed findings. Do not average these different packages or count this as a deployment. [Current handoff](paper-writer-application-preflight.md): pull and run `GetPaperWriterPreflight.ps1`; no repeated writer/storage/recovery suites, token or application rebuild. Next is a targeted writer installation plan/readback, then real review-only transport; paper risk/fills/P&L and actual application recovery remain gated.
+
 ## 2026-10-12 Restricted writer candidate implemented
 
 - Owner authorized the next implementation slice. E98 adds an explicit restricted JDBC review path, two candidate security-definer functions and a separate non-owner login/NOLOGIN helper in disposable verification only. Review code no longer needs direct table-update authority in this mode. The helper locks identifier columns; no cash-column grant, proposal issuance, delivery/key read or order privilege is given to the writer.

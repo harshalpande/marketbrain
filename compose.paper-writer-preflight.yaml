@@ -1,0 +1,23 @@
+# Standalone project. Never merge with compose.yaml; no service restart, application mount or port.
+services:
+  paper-writer-preflight:
+    build:
+      context: ./marketbrain-service
+      dockerfile: Dockerfile.paper-writer-preflight
+    environment:
+      MARKETBRAIN_DB_URL: ${MARKETBRAIN_DB_URL:-jdbc:postgresql://host.docker.internal:5432/marketbrain}
+      MARKETBRAIN_DB_USERNAME: ${MARKETBRAIN_DB_USERNAME:-marketbrain_app}
+      MARKETBRAIN_DB_PASSWORD: ${MARKETBRAIN_DB_PASSWORD:?Set the existing database password locally}
+      MARKETBRAIN_EXECUTION_MODE: PAPER
+      MARKETBRAIN_PREFLIGHT_SCHEMA: ${MARKETBRAIN_PREFLIGHT_SCHEMA:-public}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 1.0
+    restart: "no"

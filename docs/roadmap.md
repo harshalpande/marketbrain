@@ -4,7 +4,7 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
-2026-10-12: E97 synthetic recovery is accepted (14/14). E98 [restricted writer candidate](paper-approval-writer.md) advances the bounded approval/security package without activating application writes. The [daily scorecard](daily-scorecard.md) separately tracks candidate checkpoints; the full-goal weighted baseline remains 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from isolated permission tests.
+2026-10-12: E97 synthetic recovery is accepted (14/14); E99 accepts the restricted writer candidate (26/26). The candidate package is 100%, not production approval readiness. E100 [application catalog preflight](paper-writer-application-preflight.md) prepares targeted adoption without restarting the application or changing grants. The [daily scorecard](daily-scorecard.md) separates these packages; full-goal weighted baseline remains 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from isolated permission tests.
 
 These percentages measure engineering delivery, **not investment accuracy, probability of profit, or confidence in a model**. This is a new, broader scope; it must not be compared with old experimental scorecards or a previously quoted project percentage.
 
