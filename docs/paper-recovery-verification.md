@@ -1,5 +1,7 @@
 # Paper backup recovery and audit permissions
 
+**Checkpoint recorded 2026-10-12:** the October 10 spare report passed all 14 checks in 152.692 seconds with matching source/restored snapshot hashes. See the [dated evidence entry](daily-progress.md#2026-10-12-resume-checkpoint-and-daily-measurement). The E97 synthetic checkpoint is closed; the handoff below is retained for reference, not a request to rerun. Actual application restoration and production writer permissions remain unverified.
+
 2026-10-09. Application approval storage and key setup passed on the spare laptop (E96): 12/12 isolated checks, verified application key, INR100,000 cash, zero reserves and ledger revision 0. Total elapsed time was 734.530 seconds, including operator confirmations; the isolated portion took 84.005 seconds. No repeat storage deployment is needed.
 
 The next batch, E97, combines **14 new checks** for database backup/restore, encrypted evidence recovery, quarantine after restoration and a restricted audit role. These are engineering checks on synthetic data. They do not restore the owner's actual application backup or activate approval transport.

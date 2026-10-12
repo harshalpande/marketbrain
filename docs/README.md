@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+**Resume update, 2026-10-12:** E97's October 10 synthetic recovery report passed **14/14 checks** in 152.692s. The older next-handoff wording below is superseded for this checkpoint; no repeat test is needed. Next recommended milestone: restricted approval writer, followed by review-only real transport and paper execution. [Daily scorecard](daily-scorecard.md) now defines evidence-backed package percentages and daily gains; the full-goal baseline stays **12.4%**, not a model-accuracy estimate. No application implementation is started by this documentation update.
+
 Latest, 2026-10-09: E96 accepts application storage/key attachment: **12/12 checks**, 734.530s including confirmations, INR100,000 preserved and key status verified. E97 [backup recovery and audit permissions](paper-recovery-verification.md) is the next 14-check isolated handoff, with no application restart or credentials. Audit-reader verification is not production approval-writer activation. Real transport/risk/execution remain blocked; full-goal baseline stays 12.4%.
 
 Version: **MB-PLAN-2026-09-18-V2**. Owner/acceptance authority: Harshal. Status: owner accepted the two parent goals and alignment clarifications; this revision records them. Application implementation, detailed risk thresholds and live execution still require their respective approvals.

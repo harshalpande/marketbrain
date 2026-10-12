@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-12 Resume checkpoint and daily measurement
+
+- Resumed from the October 10 recovery result, not a new runtime run today. `paper-recovery-20261010-000650-514a9fc4a639.json`, SHA256 `C8BA54C9EF99A36497360A2C066BF5D7EE2C6F3317BEEAB752687466E8053BC3`, reports `ISOLATED_RECOVERY_PASSED_APPLICATION_RELEASE_BLOCKED`: 2 preparation plus 12 recovery checks passed, zero failures, 152.692 seconds. Both phases match the 23-table snapshot hash. This supersedes the earlier E97 spare-pending wording only within its synthetic scope; no repeat run is requested.
+- Application access, action execution, approval-writer readiness and actual application restore verification remain false. Real transport, restricted writer permissions, risk policy and paper execution remain pending.
+- Owner requested daily evidence-backed percentages by area. Adopt [daily scorecard rules](daily-scorecard.md): fixed work-package criteria, opening/closing percentages and percentage-point gains, runtime/offline evidence separated, blockers and next action recorded. Historical results recorded today are not newly completed runtime work today.
+- Recommended next package: restricted approval-writer boundary, then controlled real review-only Telegram/quote integration, then paper risk/reservation/fill and operational portal. This entry authorizes no application change or execution. Overall full-goal checkpoint baseline remains 12.4%; prediction quality remains unmeasured.
+
 ## 2026-10-09 Storage accepted and recovery preparation
 
 - E96 accepts the uploaded application-storage report:12/12 isolated checks,27 source hashes matched, raw/parsed phases agree. Key status verified; INR100,000 cash, zero reserves and revision0 retained. Total734.530s includes owner confirmations; isolated84.005s. Backup/key confirmations do not prove an actual restore.
