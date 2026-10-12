@@ -1,0 +1,39 @@
+{
+  "evidenceId": "E98",
+  "reviewedAt": "2026-10-12",
+  "status": "OFFLINE_VERIFIED_ISOLATED_RUNTIME_PENDING",
+  "java": {
+    "command": "mvn -q package",
+    "exitCode": 0,
+    "elapsedSeconds": 71.347,
+    "tests": 654,
+    "newWriterTests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "powerShell": {
+    "writerWorkflowAssertions": 93,
+    "newWriterAssertions": 37,
+    "recoveryRegressionAssertions": 99,
+    "deliveryRegressionAssertions": 92,
+    "storageRegressionAssertions": 91,
+    "note": "Each suite imports 56 shared assertions. Do not add totals as unique coverage. Native Docker calls replaced in memory; no local database or application runtime."
+  },
+  "spareChecks": {"prepare": 23, "recover": 3, "verifiedLocallyAgainstPostgreSql": false},
+  "candidatePackage": {"openingPercent": 0, "currentPercent": 60, "gainPercentagePoints": 60, "completedCheckpoints": ["D", "I", "V"], "pendingCheckpoints": ["R", "A"]},
+  "parentRoadmapPercent": 12.4,
+  "applicationDatabaseAccessed": false,
+  "applicationWriterActivated": false,
+  "newSpringBeansOrEndpoints": false,
+  "newFlywayMigration": false,
+  "actionExecutionEnabled": false,
+  "remainingGates": [
+    "26 spare isolated PostgreSQL writer checks and acceptance",
+    "Reviewed application migration and dedicated writer credential adoption",
+    "Controlled real Telegram and Upstox review-only acceptance",
+    "Actual application backup restoration and key/delivery recovery governance",
+    "Approved paper risk, atomic execution, realistic fills, costs and PnL",
+    "Independent numerical prediction and prospective paper validation"
+  ]
+}

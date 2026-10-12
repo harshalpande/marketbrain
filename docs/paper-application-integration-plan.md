@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+2026-10-12: E97 synthetic recovery passed 14/14. The current handoff is the [restricted approval-writer candidate](paper-approval-writer.md), with 26 isolated checks and one JSON report. No previous storage/recovery deployment is repeated. Application writer credentials/migration, real transport and paper execution remain later gates; older next-handoff statements below are historical.
+
 Current E96/E97: V28 storage/key attachment is accepted on spare (12/12 checks). The next active handoff is [backup recovery and audit permissions](paper-recovery-verification.md):14 new isolated checks and one report, without application restart or real credentials. It verifies a restricted audit reader, not the pending approval writer. Do not rerun the historical E95 deployment below.
 
 Latest E94/E95: 24/24 delivery/recovery checks are accepted. [Application storage/key setup](paper-approval-storage.md) is now the active handoff: 12 new isolated checks followed by guarded V28 deployment and status/account verification, with one shareable report. It requires database and key backups. Earlier isolated commands below are historical; do not rerun them separately. Notification/approval/execution activation stays disabled.

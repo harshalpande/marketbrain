@@ -35,9 +35,19 @@ public final class PaperApprovalReview {
     private record Pending(Proposal proposal,String action,String policyHash,String decidedToken,Receipt receipt) {}
     private final Connections connections; private final QuoteSource quotes; private final Clock clock; private final PolicyVersion policy;
     private final SecureRandom random=new SecureRandom();
+    private final boolean restricted;
     public PaperApprovalReview(Connections connections, QuoteSource quotes, Clock clock,PolicyVersion policy) {
+        this(connections,quotes,clock,policy,false);
+    }
+    private PaperApprovalReview(Connections connections, QuoteSource quotes, Clock clock,PolicyVersion policy,boolean restricted) {
         this.connections=Objects.requireNonNull(connections);this.quotes=Objects.requireNonNull(quotes);
         this.clock=Objects.requireNonNull(clock);this.policy=Objects.requireNonNull(policy);
+        this.restricted=restricted;
+    }
+    /** Trusted backend review worker only; never use the portal READ credential or client-supplied identity.
+     * Requires the candidate writer functions and dedicated non-owner datasource. Not application wired. */
+    public static PaperApprovalReview restrictedWriter(Connections connections,QuoteSource quotes,Clock clock,PolicyVersion policy) {
+        return new PaperApprovalReview(connections,quotes,clock,policy,true);
     }
     /** Internal proposal publisher only. Raw tokens returned once; persistence contains hashes only. */
     public Tokens issue(Proposal p)throws SQLException {
@@ -59,6 +69,7 @@ public final class PaperApprovalReview {
         return new Tokens(accept,reject);
     }
     private void validateIssue(Proposal p) {
+        require(!restricted,"Review writer cannot issue proposals");
         Instant now=clock.instant();
         require(!now.isBefore(p.terms.createdAt())&&now.isBefore(p.terms.expiresAt()),"Proposal outside validity");
         require(p.policyId.equals(policy.id)&&Duration.between(p.terms.createdAt(),p.terms.expiresAt()).compareTo(policy.maxProposalLifetime)<=0,"Proposal policy mismatch");
@@ -75,17 +86,22 @@ public final class PaperApprovalReview {
             try{q=quotes.latest(initial.proposal);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new SQLException("Quote review interrupted",interrupted);}catch(Exception unavailable){q=null;}
         }
         try(Connection c=connections.open()) {begin(c);try {
-            binding(c,cb.userId,cb.chatId,true);
-            Pending current=pending(c,tokenHash,cb,true);
+            if(restricted) writerCommand(c,"SELECT paper_review_lock(?,?,?)",tokenHash,cb.userId,cb.chatId);
+            else binding(c,cb.userId,cb.chatId,true);
+            Pending current=pending(c,tokenHash,cb,!restricted);
             if(current.receipt!=null) {require(current.decidedToken.equals(tokenHash),"Proposal already decided by another action");c.commit();return current.receipt;}
             Proposal p=current.proposal;
-            Snapshot account=snapshot(c,p,true);Instant now=clock.instant();
+            Snapshot account=snapshot(c,p,!restricted);Instant now=clock.instant();
             String status=now.isBefore(p.terms.createdAt())?"CLOCK_INVALID":!now.isBefore(p.terms.expiresAt())?"EXPIRED"
                     :current.action.equals("REJECT")?"REJECTED":!current.policyHash.equals(hash(encode(policy)))?"POLICY_CHANGED":evaluate(p,q,account,now,policy);
             Receipt result=new Receipt(VERSION,status,p.id,account.revision,policy.id,now,q==null?null:hash(encode(q)),false);
-            require(update(c,"UPDATE paper_approval_proposal SET decided_token=?,callback_id=?,receipt=? WHERE id=? AND receipt IS NULL",tokenHash,cb.id,encode(result),p.id)==1,"Decision raced");
+            if(restricted) writerCommand(c,"SELECT paper_review_record(?,?,?,?,?)",tokenHash,cb.userId,cb.chatId,cb.id,encode(result));
+            else require(update(c,"UPDATE paper_approval_proposal SET decided_token=?,callback_id=?,receipt=? WHERE id=? AND receipt IS NULL",tokenHash,cb.id,encode(result),p.id)==1,"Decision raced");
             c.commit();return result;
         }catch(Exception e){rollback(c,e);throw e;}}
+    }
+    static void writerCommand(Connection c,String sql,Object...args)throws SQLException {
+        try(var s=statement(c,sql,args);var r=s.executeQuery()) {require(r.next()&&r.getBoolean(1)&&!r.wasNull(),"Restricted review command failed");}
     }
     static String evaluate(Proposal p,MarketQuote q,Snapshot s,Instant now,PolicyVersion policy) {
         if(!s.consistent)return "ACCOUNT_INCONSISTENT";

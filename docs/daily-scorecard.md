@@ -28,6 +28,15 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 - Proposed next bounded package, restricted approval writer: **0/5 checkpoints, 0%** under this new scorecard. Existing reusable review code is retained; this is not a claim that the entire approval area has no implementation. Freeze detailed permission and acceptance criteria before awarding design credit.
 - Other future packages have not yet been baselined here; do not assign them guessed percentages. Numerical predictive performance remains unmeasured.
 
+## Recorded progress on 2026-10-12
+
+| Area / bounded package | Opening % | Current % | Change (pp) | Evidence | Pending |
+|---|---:|---:|---:|---|---|
+| Approval/security: isolated restricted-writer candidate | 0% | 60% | +60 | D/I/V: authorized scope, implementation, Java/offline checks; [E98](evidence/paper-writer-local-20261012.json) | R: 26 spare checks; A: evidence review and owner acceptance |
+| Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Complete integrated parent-goal gates |
+
+The candidate percentage is **not** the completion of the production writer, paper portal, entire approval area or predictor. Application adoption is a separate guarded package, as specified in the opening sequence. No new application deployment or runtime acceptance is credited today. The [candidate contract](paper-approval-writer.md#frozen-candidate-checkpoint-criteria) fixes what each checkpoint earns; spare verification and acceptance have not been awarded.
+
 ## Proposed sequence
 
 1. Restricted approval-writer permissions and command boundary: isolated tests must prove review operations work while money/order mutation, secret disclosure and privilege escalation fail. Do not grant cash-update privileges just to acquire a lock. Application adoption needs a separate guarded migration/readback.

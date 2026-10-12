@@ -1,20 +1,22 @@
 #Requires -Version 5.1
 [CmdletBinding()]
-param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidateRange(60,1800)][int]$BuildTimeoutSeconds=900,[switch]$ApplicationLedger,[switch]$ApprovalReview,[switch]$ApprovalDelivery,[switch]$ApprovalStorage,[switch]$ApprovalRecovery)
+param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidateRange(60,1800)][int]$BuildTimeoutSeconds=900,[switch]$ApplicationLedger,[switch]$ApprovalReview,[switch]$ApprovalDelivery,[switch]$ApprovalStorage,[switch]$ApprovalRecovery,[switch]$ApprovalWriter)
 $ErrorActionPreference='Stop'
-if(([int]$ApplicationLedger.IsPresent+[int]$ApprovalReview.IsPresent+[int]$ApprovalDelivery.IsPresent+[int]$ApprovalStorage.IsPresent+[int]$ApprovalRecovery.IsPresent) -gt 1){throw 'Choose one isolated suite only.'}
+if(([int]$ApplicationLedger.IsPresent+[int]$ApprovalReview.IsPresent+[int]$ApprovalDelivery.IsPresent+[int]$ApprovalStorage.IsPresent+[int]$ApprovalRecovery.IsPresent+[int]$ApprovalWriter.IsPresent) -gt 1){throw 'Choose one isolated suite only.'}
 . (Join-Path $PSScriptRoot 'PaperPersistenceVerification.ps1')
 . (Join-Path $PSScriptRoot 'PaperLedgerVerification.ps1')
 . (Join-Path $PSScriptRoot 'PaperApprovalVerification.ps1')
 . (Join-Path $PSScriptRoot 'PaperDeliveryVerification.ps1')
 . (Join-Path $PSScriptRoot 'PaperStorageVerification.ps1')
 . (Join-Path $PSScriptRoot 'PaperRecoveryVerification.ps1')
+. (Join-Path $PSScriptRoot 'PaperWriterVerification.ps1')
 $successStatus=if($ApplicationLedger){'ISOLATED_LEDGER_PASSED_APPLICATION_MIGRATION_PENDING'}else{'ISOLATED_PERSISTENCE_PASSED_APPLICATION_RELEASE_BLOCKED'}
 $dockerfile=if($ApplicationLedger){'marketbrain-service/Dockerfile.paper-ledger-verification'}else{'marketbrain-service/Dockerfile.paper-verification'}
 if($ApprovalReview){$successStatus='ISOLATED_APPROVAL_PASSED_TRANSPORT_AND_EXECUTION_BLOCKED';$dockerfile='marketbrain-service/Dockerfile.paper-approval-verification'}
 if($ApprovalDelivery){$successStatus='ISOLATED_DELIVERY_PASSED_LIVE_TRANSPORT_AND_EXECUTION_BLOCKED';$dockerfile='marketbrain-service/Dockerfile.paper-delivery-verification'}
 if($ApprovalStorage){$successStatus='ISOLATED_STORAGE_PASSED_APPLICATION_DEPLOYMENT_PENDING';$dockerfile='marketbrain-service/Dockerfile.paper-storage-verification'}
 if($ApprovalRecovery){$successStatus='ISOLATED_RECOVERY_PASSED_APPLICATION_RELEASE_BLOCKED';$dockerfile='marketbrain-service/Dockerfile.paper-recovery-verification'}
+if($ApprovalWriter){$successStatus='ISOLATED_WRITER_PASSED_APPLICATION_ACTIVATION_BLOCKED';$dockerfile='marketbrain-service/Dockerfile.paper-writer-verification'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $id=[guid]::NewGuid().ToString('N');$prefix='mb-paper-'+$id.Substring(0,12);$schema='paper_verify_'+$id
 $network=$prefix+'-net';$db=$prefix+'-db';$prepare=$prefix+'-prepare';$recover=$prefix+'-recover';$image=$prefix+':verification'
@@ -25,6 +27,7 @@ if($ApprovalReview){$report.version='PAPER_APPROVAL_BUNDLE_V1'}
 if($ApprovalDelivery){$report.version='PAPER_DELIVERY_BUNDLE_V1'}
 if($ApprovalStorage){$report.version='PAPER_STORAGE_BUNDLE_V1'}
 if($ApprovalRecovery){$report.version='PAPER_RECOVERY_BUNDLE_V1';$report.backup=$null;$report.approvalWriterReady=$false;$report.actualApplicationRestoreVerified=$false}
+if($ApprovalWriter){$report.version='PAPER_WRITER_BUNDLE_V1';$report.applicationWriterActivated=$false}
 New-Item -ItemType Directory -Path $OutputDirectory -Force|Out-Null
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-persistence-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))
 if($ApplicationLedger){$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-ledger-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
@@ -32,6 +35,7 @@ if($ApprovalReview){$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory)
 if($ApprovalDelivery){$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-delivery-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
 if($ApprovalStorage){$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-storage-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
 if($ApprovalRecovery){$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-recovery-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
+if($ApprovalWriter){$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-writer-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
 if($path.Length+41 -ge 260 -or (Test-Path -LiteralPath $path)){throw 'Unsafe or existing report path.'}
 function Save-Report { $report.elapsedSeconds=$timer.Elapsed.TotalSeconds;Save-NumericalHistoryReport $report $path -Compact }
 function Progress([int]$Percent,[string]$Detail){Write-Host "[$Percent%] $Detail";Write-Progress -Activity 'Isolated paper persistence' -Status $Detail -PercentComplete $Percent;$report.events+=@{atUtc=[DateTime]::UtcNow.ToString('o');percent=$Percent;detail=$Detail};Save-Report}
@@ -65,6 +69,9 @@ try {
         foreach($file in @($dockerfile,'marketbrain-service/src/main/java/in/marketbrain/paper/PaperRecoveryVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperStorageVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperApprovalStorage.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperApprovalReview.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperApprovalVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperApprovalDelivery.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperLedgerStore.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperLedgerVerification.java','marketbrain-service/src/main/resources/paper/ledger-v1.sql','marketbrain-service/src/main/resources/paper/approval-audit-v1.sql','marketbrain-service/src/main/resources/db/migration/V1__create_marketbrain_paper_foundation.sql','marketbrain-service/src/main/resources/db/migration/V2__make_alert_delivery_channel_neutral.sql','marketbrain-service/src/main/resources/db/migration/V3__create_telegram_delivery_foundation.sql','marketbrain-service/src/main/resources/db/migration/V28__attach_paper_approval_storage.sql','ops/windows/PaperRecoveryVerification.ps1','ops/windows/PaperApprovalVerification.ps1')){$report.manifest[$file]=(Get-FileHash -LiteralPath (Join-Path $root $file)).Hash}
     }
     Progress 10 'Building isolated verification image; no application deployment or restart.'
+    if($ApprovalWriter){
+        foreach($file in @($dockerfile,'marketbrain-service/src/main/java/in/marketbrain/paper/PaperWriterVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperStorageVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperApprovalReview.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperApprovalVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperRecoveryVerification.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperLedgerStore.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperLedgerVerification.java','marketbrain-service/src/main/resources/paper/ledger-v1.sql','marketbrain-service/src/main/resources/paper/approval-writer-v1.sql','marketbrain-service/src/main/resources/db/migration/V1__create_marketbrain_paper_foundation.sql','marketbrain-service/src/main/resources/db/migration/V2__make_alert_delivery_channel_neutral.sql','marketbrain-service/src/main/resources/db/migration/V3__create_telegram_delivery_foundation.sql','marketbrain-service/src/main/resources/db/migration/V28__attach_paper_approval_storage.sql','ops/windows/PaperWriterVerification.ps1','ops/windows/PaperApprovalVerification.ps1')){$report.manifest[$file]=(Get-FileHash -LiteralPath (Join-Path $root $file)).Hash}
+    }
     [void](Docker 'build verification image' @('build','-f',(Join-Path $root $dockerfile),'-t',$image,(Join-Path $root 'marketbrain-service')) $BuildTimeoutSeconds)
     [void](Docker 'pull fixture database image' @('pull','postgres:17') 300)
     $report.manifest.verificationImage=(Docker 'verification image identity' @('image','inspect',$image,'--format','{{.Id}}') 15).stdout.Trim()
@@ -81,7 +88,7 @@ try {
     [void](Docker 'create prepare verifier' @('create','--name',$prepare,'--network',$network,'--label',"$label=$id",'--memory','384m','--cpus','1',$report.manifest.verificationImage,'--prepare',$schema) 20)
     $p=Docker 'prepare database fixtures' @('start','-a',$prepare) 300
     $report.prepare=$p.stdout|ConvertFrom-Json;Save-Report
-    if($ApprovalRecovery){Assert-PaperRecoveryPhase $report.prepare '--prepare' $schema}elseif($ApprovalStorage){Assert-PaperStoragePhase $report.prepare '--prepare' $schema}elseif($ApprovalDelivery){Assert-PaperDeliveryPhase $report.prepare '--prepare' $schema}elseif($ApprovalReview){Assert-PaperApprovalPhase $report.prepare '--prepare' $schema}elseif($ApplicationLedger){Assert-PaperLedgerPhase $report.prepare '--prepare' $schema}else{Assert-PaperPersistencePhase $report.prepare '--prepare' $schema}
+    if($ApprovalWriter){Assert-PaperWriterPhase $report.prepare '--prepare' $schema}elseif($ApprovalRecovery){Assert-PaperRecoveryPhase $report.prepare '--prepare' $schema}elseif($ApprovalStorage){Assert-PaperStoragePhase $report.prepare '--prepare' $schema}elseif($ApprovalDelivery){Assert-PaperDeliveryPhase $report.prepare '--prepare' $schema}elseif($ApprovalReview){Assert-PaperApprovalPhase $report.prepare '--prepare' $schema}elseif($ApplicationLedger){Assert-PaperLedgerPhase $report.prepare '--prepare' $schema}else{Assert-PaperPersistencePhase $report.prepare '--prepare' $schema}
     if($ApprovalRecovery){
         Progress 65 'Backing up only the synthetic schema and restoring into a new disposable database.'
         if(-not (Owned-Container $db)){throw 'Fixture ownership missing before backup/restore.'}
@@ -99,7 +106,7 @@ try {
     [void](Docker 'create fresh recovery verifier' @('create','--name',$recover,'--network',$network,'--label',"$label=$id",'--memory','384m','--cpus','1',$report.manifest.verificationImage,'--recover',$schema) 20)
     $p=Docker 'fresh JVM recovery verification' @('start','-a',$recover) 120
     $report.recover=$p.stdout|ConvertFrom-Json;Save-Report
-    if($ApprovalRecovery){Assert-PaperRecoveryPhase $report.recover '--recover' $schema;Assert-PaperRecoveryPair $report.prepare $report.recover $report.backup}elseif($ApprovalStorage){Assert-PaperStoragePhase $report.recover '--recover' $schema}elseif($ApprovalDelivery){Assert-PaperDeliveryPhase $report.recover '--recover' $schema}elseif($ApprovalReview){Assert-PaperApprovalPhase $report.recover '--recover' $schema}elseif($ApplicationLedger){Assert-PaperLedgerPhase $report.recover '--recover' $schema}else{
+    if($ApprovalWriter){Assert-PaperWriterPhase $report.recover '--recover' $schema}elseif($ApprovalRecovery){Assert-PaperRecoveryPhase $report.recover '--recover' $schema;Assert-PaperRecoveryPair $report.prepare $report.recover $report.backup}elseif($ApprovalStorage){Assert-PaperStoragePhase $report.recover '--recover' $schema}elseif($ApprovalDelivery){Assert-PaperDeliveryPhase $report.recover '--recover' $schema}elseif($ApprovalReview){Assert-PaperApprovalPhase $report.recover '--recover' $schema}elseif($ApplicationLedger){Assert-PaperLedgerPhase $report.recover '--recover' $schema}else{
         Assert-PaperPersistencePhase $report.recover '--recover' $schema
         if($report.prepare.receipt.tailHash -ceq $report.recover.receipt.tailHash){throw 'Expiry did not advance persisted history.'}
     }

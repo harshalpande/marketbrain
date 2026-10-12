@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-12 Restricted writer candidate implemented
+
+- Owner authorized the next implementation slice. E98 adds an explicit restricted JDBC review path, two candidate security-definer functions and a separate non-owner login/NOLOGIN helper in disposable verification only. Review code no longer needs direct table-update authority in this mode. The helper locks identifier columns; no cash-column grant, proposal issuance, delivery/key read or order privilege is given to the writer.
+- Terminal receipt shape, token-linked recipient, active binding and replay boundaries are checked at the command interface. Java remains the trusted transport/quote/policy authority; this is not a defence against a compromised backend fabricating an advisory review. All accepted reviews retain execution-blocked status.
+- [Verification and scope](evidence/paper-writer-local-20261012.json): 654 Java tests passed (18 new), package 71.347s; 93 offline writer assertions (37 new), 99 recovery, 92 delivery and 91 storage regression assertions passed. Imported assertions overlap; do not sum them. The suite contains 26 new isolated database checks (23 preparation, 3 restart) for the spare laptop, not locally claimed PostgreSQL success. One compact JSON includes timing, source hashes, checks, raw output and cleanup.
+- Candidate package score: 0% to 60%, +60 percentage points (D/I/V); R/A remain pending. Full roadmap stays 12.4%; forecast accuracy remains unmeasured. No application database, provider/model call, migration, Spring activation or deployment is performed. Candidate application adoption and real review-only transport follow spare acceptance.
+- [Spare handoff](paper-approval-writer.md#spare-verification) is the only next run; do not repeat accepted storage/recovery bundles. Relevant docs and the one current SVG are updated. An initial compile ambiguity in fixture imports was corrected before successful verification.
+
 ## 2026-10-12 Resume checkpoint and daily measurement
 
 - Resumed from the October 10 recovery result, not a new runtime run today. `paper-recovery-20261010-000650-514a9fc4a639.json`, SHA256 `C8BA54C9EF99A36497360A2C066BF5D7EE2C6F3317BEEAB752687466E8053BC3`, reports `ISOLATED_RECOVERY_PASSED_APPLICATION_RELEASE_BLOCKED`: 2 preparation plus 12 recovery checks passed, zero failures, 152.692 seconds. Both phases match the 23-table snapshot hash. This supersedes the earlier E97 spare-pending wording only within its synthetic scope; no repeat run is requested.

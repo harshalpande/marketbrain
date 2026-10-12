@@ -4,6 +4,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Current E98 writer candidate and E97 runtime closure
+
+- **E98 RESTRICTED_WRITER_CANDIDATE / SPARE_PENDING:** [contract and handoff](paper-approval-writer.md), [offline evidence](evidence/paper-writer-local-20261012.json). Restricted review-only JDBC path, fixed-search-path functions and disposable least-privilege role verification. Twenty-six new PostgreSQL checks await spare evidence. No application credential, migration or worker is activated. Candidate D/I/V progress is separate from parent-goal percentages and model performance.
+- **E97 runtime update recorded 2026-10-12:** the October 10 report `paper-recovery-20261010-000650-514a9fc4a639.json`, SHA256 `C8BA54C9EF99A36497360A2C066BF5D7EE2C6F3317BEEAB752687466E8053BC3`, passed 14/14 checks in 152.692s. Source/restored 23-table snapshot hashes match. Application access, actual application restore verification, writer readiness and action execution remain false. This closes the historical E97 spare-pending label below only for its synthetic scope; no repeat run required.
+
 ### Latest E96 and E97 records
 
 - **E96 APPLICATION_STORAGE_AND_KEY_RUNTIME_ACCEPTED:** [acceptance](evidence/paper-storage-spare-acceptance-20261009.json), report SHA256 `0D643B59174365D11FA3B2601DF2149305B62D1165AE27EA7DCF2B80A8E15F53`, revision045b81b. Twelve checks passed; 27 source hashes and raw/parsed outputs agree. Isolated84.005s; total734.530s including confirmations. Application key verified, original account INR100,000/reserved0/revision0, anonymous access denied, owned cleanup completed. Backup confirmations are owner assertions, not restore-test results. E95 spare gate closes; transport and execution remain blocked.

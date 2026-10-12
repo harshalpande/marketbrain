@@ -4,6 +4,8 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
+2026-10-12: E97 synthetic recovery is accepted (14/14). E98 [restricted writer candidate](paper-approval-writer.md) advances the bounded approval/security package without activating application writes. The [daily scorecard](daily-scorecard.md) separately tracks candidate checkpoints; the full-goal weighted baseline remains 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from isolated permission tests.
+
 These percentages measure engineering delivery, **not investment accuracy, probability of profit, or confidence in a model**. This is a new, broader scope; it must not be compared with old experimental scorecards or a previously quoted project percentage.
 
 Each delivery goal has five binary checkpoints. A checkpoint earns its entire weight only when its stated scope is complete; partial work remains visible in the subitems without earning the whole checkpoint.
