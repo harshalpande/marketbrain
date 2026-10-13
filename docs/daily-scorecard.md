@@ -24,7 +24,7 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 Frozen package: restricted writer Stage 1 preparation only. Scope is byte-preserving rule generation, synthetic replacement/recovery and bounded collection of missing selectors for saved firewall candidates. Real HBA staging, ACL preservation, PostgreSQL authentication and writer activation are excluded and remain required later.
 
-E116 repair: E115's spare retry passed40/40 synthetic checks but failed at RULE_LOOKUP before inspecting any rules (8.13s total; exact native cause not captured). Bounded enabled-inbound enumeration replaces multi-name lookup; safe failure codes are retained. Local verification passes40 rule/recovery and290 mocked collector/report assertions. Package remains60%, repair gain0pp; spare collection/acceptance remains pending. No runtime speedup or accuracy percentage is claimed. E115's previous timeout repair is historical, not an accepted runtime milestone.
+E117 repair: current enumeration now works, but two saved IDs are absent (confirmed across756 ActiveStore rules). Missing identities become review findings while current PostgreSQL candidates are fully collected and reconciled. Local verification passes40 rule/recovery and573 mocked comparison/report assertions in20.044s combined. Package remains60%, repair gain0pp; spare comparison/acceptance remains pending. No runtime speedup, prediction gain or project-completion credit is claimed for the repair.
 
 | Area / bounded package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|

@@ -4,12 +4,15 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaperWriterRestriction.ps1')
 . (Join-Path $PSScriptRoot 'PaperWriterAccessReview.ps1')
 $watch=[Diagnostics.Stopwatch]::StartNew();$rows=[Collections.Generic.List[object]]::new()
-$r=[ordered]@{version='PAPER_FIREWALL_SCOPE_V1';status='RUNNING';rules=@();expectedRuleCount=0;inspectedRuleCount=0;activeProfiles=@();listeners=@();listenerProcesses=@();ruleDriftDetected=$false;truncated=$true;configurationChanged=$false;effectiveAccessProven=$false;newRulesAssessed=$false;failureCode=$null;elapsedSeconds=0}
-$r['collectorRevision']=3
+$r=[ordered]@{version='PAPER_FIREWALL_SCOPE_V2';status='RUNNING';rules=@();expectedRuleCount=0;inspectedRuleCount=0;activeProfiles=@();listeners=@();listenerProcesses=@();ruleDriftDetected=$false;truncated=$true;configurationChanged=$false;effectiveAccessProven=$false;newRulesAssessed=$false;failureCode=$null;elapsedSeconds=0}
+$r['collectorRevision']=4
 $r['limits']=@{softSeconds=300;parentSeconds=330;candidateRules=200;inboundRules=2000}
 $r['ruleLookupCalls']=0;$r['filterQueryCalls']=0;$r['queryTimings']=@{}
 $r['phase']='INPUT';$r['activeRuleName']=$null
 $r['inboundRulesEnumerated']=0;$r['missingRuleNames']=@();$r['diagnostic']=$null
+$r['scannedRuleCount']=0;$r['matchedSavedRuleCount']=0;$r['currentRelevantRuleCount']=0
+$r['unbaselinedCandidateNames']=@();$r['currentCandidatesCollected']=$false;$r['ruleSetStableAtEnd']=$false
+$r['snapshotAtomic']=$false
 function Emit {
     $r.rules=$rows.ToArray();$r.inspectedRuleCount=$rows.Count;$r.elapsedSeconds=$watch.Elapsed.TotalSeconds
     $json=$r|ConvertTo-Json -Depth 10 -Compress
@@ -19,6 +22,43 @@ function Emit {
 function Deadline {if($watch.Elapsed.TotalSeconds -gt 300){throw 'SCOPE_TIME_LIMIT'}}
 function One($Values){$items=@($Values);if($items.Count -ne 1){throw 'SCOPE_FILTER_CARDINALITY'};return $items[0]}
 function Field($Object,[string]$Name){if($null -ne $Object.PSObject.Properties[$Name]){return $Object.$Name};return $null}
+function Port-Relevant($Port){
+    # Exclude only known non-TCP protocols/ports. Unknown or dynamic selectors stay candidates.
+    $protocol=[string](Field $Port 'Protocol')
+    if($protocol -match '^\d{1,3}$' -and [int]$protocol -le 255 -and [int]$protocol -ne 6){return $false}
+    if($protocol -in @('UDP','ICMPv4','ICMPv6')){return $false}
+    if($protocol -notin @('TCP','6','Any','256')){return $true}
+    $ports=@(Field $Port 'LocalPort');if(-not $ports.Count){return $true}
+    foreach($value in $ports){
+        $p=[string]$value
+        if($p -match '^\d{1,5}$' -and [int]$p -le 65535){if([int]$p -eq 5432){return $true};continue}
+        if($p -match '^(\d{1,5})-(\d{1,5})$'){
+            $lo=[int]$Matches[1];$hi=[int]$Matches[2]
+            if($lo -gt $hi -or $hi -gt 65535){return $true}
+            if($lo -le 5432 -and $hi -ge 5432){return $true};continue
+        }
+        return $true
+    }
+    return $false
+}
+function Read-InboundRules {
+    Deadline;$r.ruleLookupCalls++;$clock=[Diagnostics.Stopwatch]::StartNew()
+    try {$values=@(Get-NetFirewallRule -PolicyStore ActiveStore -Enabled True -Direction Inbound|Select-Object -First 2001)}
+    finally {
+        if(-not $r.queryTimings.ContainsKey('Get-NetFirewallRule')){$r.queryTimings['Get-NetFirewallRule']=@{calls=0;elapsedSeconds=0.0}}
+        $r.queryTimings['Get-NetFirewallRule'].calls++;$r.queryTimings['Get-NetFirewallRule'].elapsedSeconds+=$clock.Elapsed.TotalSeconds
+    }
+    if($values.Count -gt 2000){throw 'SCOPE_INBOUND_RULE_LIMIT'}
+    $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach($value in $values){
+        if($value.Name -isnot [string] -or -not $value.Name -or $value.Name.Length -gt 512 -or $value.Name -match '[\x00-\x1F]' -or -not $seen.Add($value.Name) -or [string]$value.Enabled -cne 'True' -or [string]$value.Direction -cne 'Inbound'){throw 'SCOPE_RULE_IDENTITY_MISMATCH'}
+    }
+    Deadline
+    return $values
+}
+function Rule-Signature($Rules){
+    return (@($Rules|Sort-Object -Property Name|Select-Object Name,Enabled,Direction,Action,Profile,EdgeTraversalPolicy,PolicyStoreSourceType)|ConvertTo-Json -Depth 4 -Compress)
+}
 function Safe-Diagnostic($Record){
     # Machine codes only. Never capture message, target, command arguments, stack or raw stderr.
     $code=[string]$Record.FullyQualifiedErrorId
@@ -61,31 +101,27 @@ try {
     }
     $r.listenerProcesses=$processes.ToArray()
     $r.phase='RULE_LOOKUP';Emit;Deadline
-    # Enumerate bounded inbound metadata, then match exact names locally. Avoid the
-    # failed multi-name provider query. Keep original CIM objects for associations.
-    $ruleMap=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
-    if($names.Count -gt 0){
-        $r.ruleLookupCalls++
-        $clock=[Diagnostics.Stopwatch]::StartNew()
-        try {$currentRules=@(Get-NetFirewallRule -PolicyStore ActiveStore -Enabled True -Direction Inbound|Select-Object -First 2001)}
-        finally {$r.queryTimings['Get-NetFirewallRule']=@{calls=1;elapsedSeconds=$clock.Elapsed.TotalSeconds}}
-        $r.inboundRulesEnumerated=$currentRules.Count
-        if($currentRules.Count -gt 2000){throw 'SCOPE_INBOUND_RULE_LIMIT'}
-        foreach($rule in $currentRules){
-            if($rule.Name -isnot [string]){throw 'SCOPE_RULE_IDENTITY_MISMATCH'}
-            if($names -cnotcontains $rule.Name){continue}
-            if([string]$rule.Direction -cne 'Inbound' -or $ruleMap.ContainsKey($rule.Name)){throw 'SCOPE_RULE_IDENTITY_MISMATCH'}
-            $ruleMap.Add($rule.Name,$rule)
-        }
-        $r.missingRuleNames=@($names|Where-Object {-not $ruleMap.ContainsKey($_)})
-        if($r.missingRuleNames.Count){throw 'SCOPE_RULE_SET_INCOMPLETE'}
-    }
+    # Inspect all current enabled-inbound port filters, not only stale saved IDs.
+    # Retain actual CIM objects; never substitute a similar-looking replacement rule.
+    $currentRules=@(Read-InboundRules);$initialSignature=Rule-Signature $currentRules
+    $r.inboundRulesEnumerated=$currentRules.Count
+    $currentNames=@($currentRules|ForEach-Object {$_.Name})
+    $r.missingRuleNames=@($names|Where-Object {$currentNames -cnotcontains $_})
+    if($r.missingRuleNames.Count){$r.ruleDriftDetected=$true}
+    $priorMap=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
+    foreach($prior in @($saved.firewall.rules)){$priorMap.Add($prior.name,$prior)}
     Deadline
-    foreach($prior in @($saved.firewall.rules)){
+    foreach($rule in $currentRules){
         Deadline
-        $r.activeRuleName=$prior.name
-        $rule=$ruleMap[$prior.name]
+        $r.activeRuleName=$rule.Name
         $port=Read-ScopedFilter 'Get-NetFirewallPortFilter' $rule
+        $relevant=Port-Relevant $port;$hasPrior=$priorMap.ContainsKey($rule.Name)
+        if(-not $relevant -and -not $hasPrior){
+            $r.scannedRuleCount++
+            if($r.scannedRuleCount%100 -eq 0){Emit}
+            continue
+        }
+        if($rows.Count -ge 200){throw 'SCOPE_CURRENT_CANDIDATE_LIMIT'}
         $addr=Read-ScopedFilter 'Get-NetFirewallAddressFilter' $rule
         $app=Read-ScopedFilter 'Get-NetFirewallApplicationFilter' $rule
         $svc=Read-ScopedFilter 'Get-NetFirewallServiceFilter' $rule
@@ -93,11 +129,15 @@ try {
         $interfaceType=Read-ScopedFilter 'Get-NetFirewallInterfaceTypeFilter' $rule
         $security=Read-ScopedFilter 'Get-NetFirewallSecurityFilter' $rule
         $current=[ordered]@{name=$rule.Name;action=[string]$rule.Action;profile=[string]$rule.Profile;protocol=[string]$port.Protocol;localPort=@($port.LocalPort);remotePort=@($port.RemotePort);localAddress=@($addr.LocalAddress);remoteAddress=@($addr.RemoteAddress);program=$app.Program;service=$svc.Service;edgeTraversal=[string]$rule.EdgeTraversalPolicy;policySourceType=[string]$rule.PolicyStoreSourceType}
-        $drift=[string]$rule.Enabled -ne 'True' -or [string]$rule.Direction -ne 'Inbound'
-        foreach($field in $current.Keys){
-            if((@($current[$field]) -join '|') -cne (@($prior.$field) -join '|')){$drift=$true}
+        $drift=$false
+        if($hasPrior){
+            $prior=$priorMap[$rule.Name]
+            foreach($field in $current.Keys){
+                if((@($current[$field]) -join '|') -cne (@($prior.$field) -join '|')){$drift=$true}
+            }
         }
         if($drift){$r.ruleDriftDetected=$true}
+        $current['presentInSavedCandidates']=$hasPrior;$current['portRelevantNow']=$relevant
         $current['enabled']=[string]$rule.Enabled;$current['direction']=[string]$rule.Direction;$current['driftFromSavedEvidence']=$drift
         $current['package']=Field $app 'Package';$current['packageFieldPresent']=$null -ne $app.PSObject.Properties['Package']
         $current['interfaceAlias']=@(Field $interface 'InterfaceAlias');$current['interfaceType']=@(Field $interfaceType 'InterfaceType')
@@ -108,9 +148,15 @@ try {
             }
         )
         $rows.Add([pscustomobject]$current)
-        if($rows.Count%20 -eq 0){Emit}
+        if($hasPrior){$r.matchedSavedRuleCount++}else{$r.unbaselinedCandidateNames+=@($rule.Name);$r.ruleDriftDetected=$true}
+        if($relevant){$r.currentRelevantRuleCount++}
+        $r.scannedRuleCount++
+        if($rows.Count%20 -eq 0 -or $r.scannedRuleCount%100 -eq 0){Emit}
     }
     Deadline
+    $r.phase='FINAL_RULE_SET_CHECK';$r.activeRuleName=$null;Emit
+    if((Rule-Signature @(Read-InboundRules)) -cne $initialSignature){throw 'SCOPE_RULE_SET_CHANGED_DURING_COLLECTION'}
+    $r.ruleSetStableAtEnd=$true;$r.currentCandidatesCollected=$true
     $r.phase='COMPLETE';$r.activeRuleName=$null
     $r.status='SELECTORS_CAPTURED_REVIEW_REQUIRED';$r.truncated=$false
 }catch{

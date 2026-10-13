@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-13 Current firewall comparison implemented
+
+- E117 records the 4.03-second restriction attempt: enumeration succeeded (264 rules), then strict saved-ID matching stopped with two absent names. The subsequent 3.38-second diagnostic found neither among all756 ActiveStore rules. No configuration changed; neither replacement equivalence nor cause of disappearance is established.
+- Implemented owner-approved current-candidate discovery and explicit comparison instead of requiring an unchanged saved snapshot. Missing old IDs remain review findings; all current inbound port filters are examined, relevant new candidates receive complete association inspection, and present saved candidates remain comparable even after becoming irrelevant. Final metadata drift, query errors, caps and incomplete/tampered reports still fail closed.
+- Passed40 synthetic rule/recovery checks and573 mocked collector/report assertions in20.044s combined. Includes two missing plus two current candidates, empty/all-missing snapshots, port boundaries/dynamic selectors, timeouts, duplicates, end-of-run drift and report reconciliation. Runtime remains spare-only and pending.
+- One unchanged preparation command/input, one output JSON. No rebuild, password, real HBA/firewall edit or writer activation. Documentation skill used to align the handoff, evidence and diagram. Package stays60%, repair gain0pp; roadmap12.4% unchanged. Review the completed comparison before real staging.
+
 ## 2026-10-13 Restriction lookup failure isolated; collector revised
 
 - E116 records the failed E115 spare retry: nine source hashes match, 40 synthetic checks pass, then RULE_LOOKUP fails before inspecting any of 126 rules. Total 8.13s; no timeout or database/configuration/credential changes. The earlier generic catch lost the native error, so the exact cause is unknown. Zero inspected rows do not establish absence of drift.

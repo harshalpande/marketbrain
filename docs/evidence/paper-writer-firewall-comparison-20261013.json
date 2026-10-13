@@ -1,0 +1,77 @@
+{
+  "evidenceId": "E117",
+  "date": "2026-10-13",
+  "status": "CURRENT_COMPARISON_LOCALLY_VERIFIED_SPARE_PENDING",
+  "restrictionReport": {
+    "file": "paper-writer-restriction-20261013-113802-b2d3a46f74df.json",
+    "sha256": "25B6A7942179F53FC0689B3A904A2AB0A1D3F0DB57B940753EB2A6B04F049842",
+    "revision": "5083551ac008e882e9101d0327fe49f3e673b3b1",
+    "status": "FAILED",
+    "failureCode": "SCOPE_RULE_SET_INCOMPLETE",
+    "syntheticChecksPassed": 40,
+    "enabledInboundRulesEnumerated": 264,
+    "savedCandidates": 126,
+    "missingIdentities": 2,
+    "filterQueries": 0,
+    "elapsedSeconds": 4.0333596
+  },
+  "followUp": {
+    "file": "missing-firewall-rules-5b80801a4dcc4b71a712558adabd5da7.json",
+    "sha256": "1A4640767D24CB69CEB1626EFAD0BC5E6E2766B339426D0D4073233C35EBE1B6",
+    "status": "READ_ONLY_CHECK_COMPLETE",
+    "activeStoreRulesEnumerated": 756,
+    "elapsedSeconds": 3.3837385,
+    "bothIdentitiesAbsent": true,
+    "causeOfAbsenceOrReplacementEquivalenceEstablished": false
+  },
+  "missingNames": [
+    "{82890192-17FC-44E0-B356-3A8A8AD96A34}",
+    "{34420FB8-14C8-4036-A83A-DC018F30F92A}"
+  ],
+  "implementation": {
+    "collectorVersion": "PAPER_FIREWALL_SCOPE_V2",
+    "collectorRevision": 4,
+    "inspectEveryCurrentEnabledInboundPortFilter": true,
+    "includeUnknownDynamicSelectors": true,
+    "retainSevenAssociationsForCandidatesAndPresentSavedRules": true,
+    "missingOldIdentitiesAreFindingsNotSilentOmissions": true,
+    "replacementEquivalenceAssumed": false,
+    "finalRuleIdentityAndBasicMetadataCheck": true,
+    "atomicSnapshotClaimed": false,
+    "parentIndependentlyReconcilesCoverageAndIdentitySets": true,
+    "inboundCap": 2000,
+    "detailedRowCap": 200,
+    "softSeconds": 300,
+    "hardSeconds": 330,
+    "oneReportFile": true,
+    "stagingStillBlocked": true
+  },
+  "localVerification": {
+    "powerShell": "5.1.26100.9444",
+    "ruleRecoveryAssertions": 40,
+    "mockedCollectorReportAssertions": 573,
+    "combinedElapsedSeconds": 20.043989,
+    "allPassed": true,
+    "twoMissingTwoUnbaselinedScenario": true,
+    "allMissingAndEmptyBaselines": true,
+    "portPredicateCases": 18,
+    "missingFieldsDuplicatesTimeoutsLimitsQueryFailuresCovered": true,
+    "concurrentRuleSetChangeCannotPass": true,
+    "tamperedIncompleteAndOldContractReportsRejected": true,
+    "runtimeIoMocked": true,
+    "sparePowerShell7WindowsCollectionPending": true
+  },
+  "manifestEncoding": "SHA256 of UTF8 source text with CRLF normalized to LF",
+  "sourceManifest": {
+    "ops/windows/GetPaperWriterRestrictionPreparation.ps1": "BD0463C9C8F18C77D735BADA2B3A4058FEA1E98754649055338203C0707D9878",
+    "ops/windows/PaperWriterFirewallScope.ps1": "C734234F32755FF4C5A7977E67F41D7D621A2E669895B463AF4854AC9BF8C303",
+    "ops/windows/TestPaperWriterRestrictionRunner.ps1": "AA4F67FC20B3C889CB9920A10B25C2DD36A0A68AC0704EB3429593CB90A0466C"
+  },
+  "configurationChanged": false,
+  "databaseContacted": false,
+  "writerLoginAttempted": false,
+  "actionExecutionEnabled": false,
+  "packagePercent": 60,
+  "repairGainPercentagePoints": 0,
+  "fullRoadmapPercent": 12.4
+}
