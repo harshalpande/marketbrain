@@ -1,12 +1,14 @@
 # Guarded paper writer authentication staging
 
+**Accepted E125:** actual spare staging and owner acceptance are complete (100% of this bounded package). The four reviewed rules are in place; PostgreSQL parsing and fresh application connections passed. Retain the private backup. **Do not rerun the Apply commands below**; they are historical recovery/implementation reference, not the current handoff. Next is [targeted read-only network review](paper-writer-network-review.md). Writer remains NOLOGIN and application activation remains blocked.
+
 The accepted read-only plan verified the actual PostgreSQL file and application connection on the spare laptop. This next package backs up and applies only the fixed writer restriction prefix, then verifies new connections. It does not enable writer LOGIN, create credentials, change firewall rules, rebuild the application, or enable trades.
 
 ## Accepted spare rehearsal
 
 E124 accepts `paper-hba-rehearsal-20261013-122150-14a7df604d5f.json`: 434 workflow assertions and 134 separate descriptor checks passed in 34.540s on PowerShell 7.6.6 / .NET 10.0.12. All five script hashes match the reviewed Windows checkout. Legacy permissions were preserved, original bytes were restored and generated fixtures were cleaned up. No real PostgreSQL file or database was touched. The owner authorized actual guarded staging next. Do not repeat this accepted rehearsal for the unchanged scripts.
 
-The frozen staging package remains 60% because actual file staging and fresh database/application connection verification are still pending. The earlier failure and correction below explain the retained safeguards, not a current rehearsal blocker.
+E124 closed the rehearsal only; E125 subsequently closes actual staging after spare verification and owner acceptance. The earlier failure and correction below explain the retained safeguards, not a current blocker.
 
 ## Permission comparison safeguards
 
@@ -43,6 +45,8 @@ E123 local results:434 workflow assertions and134 descriptor checks pass on both
 The proposed rules allow the dedicated writer to authenticate only to `marketbrain` through IPv4 loopback, subject to its credentials and database privileges. Other database/replication and IPv4/IPv6 routes for that role are rejected. NOLOGIN remains in force, so this is not an authentication-success test or writer activation. Existing application/admin rules are retained.
 
 ## Spare laptop handoff
+
+Historical E124 procedure only. E125 proves it has completed. Do not execute Apply again; use the current network-review handoff linked above.
 
 The owner authorized the procedure below after E124 rehearsal review. This changes the real authentication configuration on the spare laptop only; it is not another synthetic test. No development-machine execution is authorized.
 
@@ -107,6 +111,6 @@ This independent recovery path needs no database password or working application
 
 The frozen package covers protected backup, exact prefix replacement, owner/group/DACL preservation, fresh PostgreSQL/application checks, guarded automatic rollback, independent file recovery, and one shareable report. Local tests use actual Windows temporary-file/ACL operations with Docker, PostgreSQL, admin checks and credential input mocked. PowerShell 5.1 verification on the development host does not replace the PowerShell 7 rehearsal and actual runtime validation on the spare.
 
-Live writer LOGIN, effective firewall-access policy, credential activation, application writer wiring and paper execution are separate gates. The file-plan package is accepted at 100%; this staging package earns D/I/V only after local tests pass, with runtime and owner acceptance pending. Full-roadmap completion remains 12.4%, not a prediction-accuracy measure.
+Live writer LOGIN, effective firewall-access policy, credential activation, application writer wiring and paper execution are separate gates. The file-plan package and this bounded staging package are accepted at 100% after E125 runtime review and owner acceptance. Full-roadmap completion remains 12.4%, not a prediction-accuracy measure.
 
 PostgreSQL applies authentication-file edits to subsequent Windows connections immediately, and uses the first matching rule. [PostgreSQL authentication-file documentation](https://www.postgresql.org/docs/18/auth-pg-hba-conf.html). The replacement API can fail; metadata errors are not ignored, and the independently saved original is retained for recovery. [Microsoft file replacement documentation](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilew).

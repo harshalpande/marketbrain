@@ -1,6 +1,6 @@
 # Restricted paper writer access plan
 
-Stage 1 preparation is accepted (E118):40 rehearsal checks,264 scanned inbound rules,126 complete candidates and56.77s runtime. The read-only actual-file plan is also accepted (E120), in23.890s. Next is [guarded backup and staging](paper-writer-hba-staging.md) (E121), authorized for implementation and separately confirmed by the operator before applying on the spare. This does not authorize firewall changes or LOGIN; effective-access policy and writer activation remain separate.
+Stage 1 preparation (E118), actual-file planning (E120) and guarded real HBA staging (E125) are accepted at 100% within their separate scopes. Do not repeat them. E125 verifies four added rules, zero parse errors and fresh application access, with writer still NOLOGIN. Next is [targeted read-only network review](paper-writer-network-review.md) (E126) for two broad address-constrained firewall entries. This does not authorize firewall changes or LOGIN; policy review, credential authentication and application wiring remain separate.
 
 ## Historical preparation handoff on October 13
 
@@ -30,7 +30,7 @@ Stage 1 now has D/I/V/R/A accepted: **100% preparation collection**. E113 access
 
 E113 records the October 12 successful run: 57.98 seconds, 10 successful stages, 14 matching source files, 264 inbound rules inspected and 126 candidates retained. The container diagnostic connected read-only as `marketbrain_app`; PostgreSQL observed client/server `127.0.0.1`. Database identity matched, cleanup succeeded and the dedicated writer remained NOLOGIN. Do not repeat that unchanged diagnostic or the accepted installation/foundation checks.
 
-Current-file HBA metadata contains six local/loopback SCRAM rules with no parse errors or withheld options. This supports the observed route, not a claim that every network path or future configuration is safe. The writer's effective ACL checks report CONNECT on other databases and TEMP on `postgres`. The report does not identify the grant source for those databases.
+Earlier E113 HBA metadata contained six local/loopback SCRAM rules. E125 now verifies ten rules after staging the four writer restrictions, with no parse errors. This supports the observed route and staged configuration, not every network path or future configuration. The earlier effective ACL checks reported CONNECT on other databases and TEMP on `postgres`; HBA restrictions do not revoke those ACLs or identify their grant source.
 
 There are 124 candidate allow rules and two block rules; 79 allow rules show both program and service as Any in the collected fields. The collector did not retain package, interface or security-filter conditions. A PostgreSQL 11 executable also appears in one rule, but its name/path does not prove it is unused. No rule is approved for deletion or disablement based on this report.
 
@@ -65,7 +65,7 @@ If external reachability remains unknown, keep it labelled unknown. No external 
 | 3. Credential and authentication proof | Reviewed credential custody/container handoff, scoped writer login tests, negative permissions and cleanup in one run | Separate authorization is required for LOGIN/credential creation. Tests run from the same application route; successful authentication alone does not wire the application or permit paper execution. |
 | 4. Application review integration | Restricted writer connection, authenticated approval/rejection receipts, retry/idempotency and restart tests | Only reviewed receipt operations become eligible for activation. Cash, reservations, orders, fills, Telegram delivery and live trading remain under their separate gates. |
 
-Stage 1 is complete. The read-only file-plan portion of Stage 2 is the current package; guarded backup/replacement and real rollback remain to implement and authorize after its report. Real staging precedes credential activation, which precedes application review wiring.
+Stages 1 and 2 are complete within their accepted scopes; real staging succeeded without requiring rollback, while recovery paths were rehearsed synthetically. Resolve the remaining network-policy findings before Stage 3 credential activation/authentication proof. Stage 4 application review wiring follows separately.
 
 ## Acceptance matrix for the implementation
 
@@ -82,4 +82,4 @@ Before real staging, independently compare the running cluster/database identity
 
 Access-review package: **80%**, D/I/V/R complete; findings review and owner acceptance remain pending. This is **+20 percentage points** from the last 60% checkpoint, not prediction accuracy or overall writer readiness. Full paper-first roadmap remains **12.4%**. This plan does not earn another implementation/runtime checkpoint.
 
-The current handoff reads the actual HBA file and fresh route/identity metadata without editing them. It does not repeat general firewall/access collection or activate the writer. All real server changes remain separately gated.
+The current handoff maps two saved firewall rules to network interfaces without database access or configuration changes. It does not repeat HBA staging, general firewall/access collection or activate the writer. Any real firewall or credential change remains separately gated.

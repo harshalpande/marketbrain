@@ -1,5 +1,14 @@
 # Daily progress and decision log
 
+## 2026-10-13 Actual HBA staging accepted and targeted network review prepared
+
+- E125 accepts `paper-writer-hba-stage-20261013-183806-e7f2eb4166c8.json`: all 13 subprocesses succeeded, 11 source hashes match the Windows checkout, HBA rules rose from six to ten with zero parse errors, and fresh administrator/application checks passed. The private backup is retained, diagnostic cleanup completed and no ACL metadata exception or rollback was needed. Writer remains NOLOGIN; no database data writes, firewall changes or execution occurred.
+- Total elapsed 2447.284s versus 15.521s measured subprocess time. Do not invent a detailed breakdown of the remaining time. Owner go-ahead after review closes this frozen staging package at 100% (60 to 80 runtime, then 80 to 100 acceptance); full roadmap stays 12.4%.
+- Reviewing the saved 126 firewall candidates found 47 specific-program selectors, 77 Any-program/package-restricted selectors and two Any-program/no-package entries. These two broad allow rules are address/profile constrained; adapter ownership and effective access must not be guessed. No unrelated rule cleanup is authorized.
+- E126 adds one targeted read-only metadata runner with pinned saved evidence, all seven associated filters for those two IDs, literal-address/interface mapping, profiles, listener identity, repeated selected-rule comparison, deadlines/heartbeats and a single checkpointed JSON. No database password, HBA reapply, Docker rebuild, remote probe, LOGIN or firewall edit. Missing/changed identities are review findings rather than an automatic pass or retry.
+- All 225 offline assertions pass on PowerShell 5.1 and 7.6.6, across 17 collector and seven parent scenarios. PS7 total 5.902s including startup. The tests caught an empty-result handling defect before handoff; it is corrected. System calls are mocked and generated report fixtures cleaned up. Spare native collection remains unverified.
+- Documentation skill used to maintain current acceptance, honest package metrics, the next handoff and the single diagram. Access review remains 80%; no new percentage denominator or prediction-performance claim. Next: share one network-review JSON, review policy findings, then separately authorize credential/authentication proof.
+
 ## 2026-10-13 Spare HBA rehearsal accepted
 
 - E124 accepts `paper-hba-rehearsal-20261013-122150-14a7df604d5f.json`: 434 workflow assertions and 134 separate descriptor checks passed in 34.540s on PowerShell 7.6.6 / .NET 10.0.12. All five source hashes match the reviewed Windows checkout of 7a89d66. Do not sum overlapping test counts into a completion percentage.

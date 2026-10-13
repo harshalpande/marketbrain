@@ -1,0 +1,33 @@
+{
+  "evidenceId": "E126",
+  "date": "2026-10-13",
+  "status": "TARGETED_NETWORK_REVIEW_LOCAL_VERIFIED_SPARE_PENDING",
+  "savedRestrictionReport": "paper-writer-restriction-20261013-121046-dbd532c96a9d.json",
+  "savedRestrictionSha256": "9B1B2C9E4B3D87F8C7F6D37BD2C8798AF637A7406AB11A42DF23A841BCA9000E",
+  "savedCandidateCount": 126,
+  "specificProgramSelectorCount": 47,
+  "anyProgramWithPackageSelectorCount": 77,
+  "anyProgramNoPackageSelectorCount": 2,
+  "interpretation": "Selector inventory, not a verdict that the other 124 rules are safe or that either selected rule is externally reachable",
+  "targetRuleNames": ["{974B68F8-3C84-465F-A460-844587E9EB43}", "{AD00E124-1653-417F-B894-E01EA777B23E}"],
+  "scope": "Map two saved broad allow rules to current adapters, addresses, profiles and listener process; inspect all seven associated filters twice. No full firewall audit or reachability probes.",
+  "verification": {
+    "assertionsPerRuntime": 225,
+    "collectorScenarios": 17,
+    "parentScenarios": 7,
+    "windowsPowerShell51Passed": true,
+    "powerShell766Passed": true,
+    "powerShell7TotalSecondsIncludingStartup": 5.9022712,
+    "systemCallsMocked": true,
+    "fixtureCleanupComplete": true,
+    "spareVerified": false
+  },
+  "limits": {"childSoftSeconds": 120, "childProcessSeconds": 150, "ruleIdentityEnumeration": 2000, "detailedRules": 2, "addresses": 256, "adapters": 128, "listeningRows": 2048, "checkpointBytes": 2097152, "checkpointCount": 5},
+  "databaseContacted": false,
+  "configurationChanged": false,
+  "writerActivated": false,
+  "actionExecutionEnabled": false,
+  "existingAccessReviewPercent": 80,
+  "additionalCompletionPercentagePoints": 0,
+  "fullRoadmapPercent": 12.4
+}

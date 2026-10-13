@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-13
 
+E125 accepts actual spare staging: 13/13 subprocesses, 11 matching source hashes, zero parse errors, four added rules, preserved application access and completed diagnostic cleanup. Runtime review moved staging 60% to 80%; the owner's go-ahead closes acceptance at 100% (+40pp since the previous handoff). No real rollback was needed. Total 2447.284s includes 15.521s measured subprocess time; remaining time is not separately attributed. E126's narrow read-only network follow-up is part of outstanding access findings, not a new percentage package. Its 222 offline assertions pass; spare review is pending. Earlier entries below are historical.
+
 E124 update: spare rehearsal correction accepted after 434 workflow assertions and 134 separate descriptor checks in 34.540s, five matching script hashes and successful legacy permission/recovery checks. Owner authorized actual guarded staging. This removes the rehearsal blocker, but does not complete the frozen runtime checkpoint: real HBA staging and fresh PostgreSQL/application connections remain pending. Staging 60%, additional gain 0pp, full roadmap 12.4%. No repeat rehearsal is required for the unchanged reviewed scripts. E123/E122 notes below are historical.
 
 E123 update: the legacy auto-inherited metadata difference is reproduced and a narrow binary comparison correction is implemented with replacement/recovery regressions. Spare correction acceptance is pending; staging stays60%, repair gain0pp, full roadmap12.4%. E122's earlier unknown-cause note below is historical.
@@ -36,11 +38,11 @@ E118 accepts the56.77-second spare comparison:40 checks,264 scanned rules,126 fu
 |---|---:|---:|---:|---|---|
 | Writer restriction preparation, Stage 1 | 0% | 100% | +100 | D/I/V/R/A; E118 runtime evidence and owner go-ahead | Closed for collection; policy findings carry forward |
 | Read-only actual HBA file plan, Stage 2 planning subset | 0% | 100% | +100 | D/I/V/R/A; E119/E120; [scope](paper-writer-hba-plan.md) | Closed; live staging is a distinct package |
-| Guarded actual HBA staging and recovery | 0% | 60% | +60 | D/I/V; E121-E123; E124 accepts corrected spare rehearsal; [scope](paper-writer-hba-staging.md) | Actual guarded apply authorized; runtime staging, fresh connection verification and package acceptance pending |
-| Existing targeted access review | 80% | 80% | 0 | E113 retained | Policy acceptance; no duplicate credit for yesterday's runtime |
+| Guarded actual HBA staging and recovery | 0% | 100% | +100 | D/I/V/R/A; E121-E125; actual staging and owner acceptance complete | Closed for this scope; retain backup, do not reapply; writer activation separate |
+| Existing targeted access review | 80% | 80% | 0 | E113 retained; E126 prepares narrow follow-up | Review two rule/address mappings, then policy acceptance; no duplicate runtime credit |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Integrated application writer and later paper workflow gates |
 
-No real Java/Spring runtime, database, inference or firewall mutation was tested or activated locally. New staging tests use generated files/ACLs and mocked PostgreSQL/Docker. Spare selector collection and actual-file planning are accepted; live staging remains pending. The planning package moved60% to100% (+40pp) since the prior handoff; the daily table retains its original0% opening baseline. Do not average these rows or describe test pass rates as prediction improvement.
+No real application/database/inference/firewall activity was performed locally. E125 records real staging on the spare only, with no database data writes or writer activation. The staging package moved 60% to 100% (+40pp) since its prior handoff; the daily table retains its original 0% opening baseline. E126 tests mock all system calls. Do not average these rows or describe test pass rates as prediction improvement.
 
 ## Opening position: 2026-10-12
 
