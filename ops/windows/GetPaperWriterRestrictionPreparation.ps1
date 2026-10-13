@@ -36,7 +36,7 @@ try {
     if($report.tests.status -cne 'PASSED' -or -not $report.tests.fixtureCleanupComplete){throw 'RESTRICTION_REHEARSAL_FAILED'}
     $report.proposedBlock=New-PaperWriterRestrictionBlock
     Stage 40 'Reading saved candidate-rule selectors and current listener identity; bounded child process, no service restart.'
-    $native=Invoke-PaperCatalogProcess (Join-Path $PSHOME 'pwsh.exe') @('-NoLogo','-NoProfile','-NonInteractive','-File',(Join-Path $PSScriptRoot 'PaperWriterFirewallScope.ps1'),'-AccessReportPath',$inputPath,'-ExpectedHash',$expected) $root 180
+    $native=Invoke-PaperCatalogProcess (Join-Path $PSHOME 'pwsh.exe') @('-NoLogo','-NoProfile','-NonInteractive','-File',(Join-Path $PSScriptRoot 'PaperWriterFirewallScope.ps1'),'-AccessReportPath',$inputPath,'-ExpectedHash',$expected) $root 330
     $report.steps+=@{stage='TARGETED_FIREWALL_SELECTORS';exitCode=$native.exitCode;timedOut=$native.timedOut;elapsedSeconds=$native.elapsedSeconds}
     # Retain the last complete JSON checkpoint even on interruption. No stderr or raw exceptions.
     if($native.stdout.Length -gt 32MB){throw 'RESTRICTION_CHILD_OUTPUT_LIMIT'}

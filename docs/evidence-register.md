@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E115 COLLECTOR_TIMEOUT_REPAIRED / SPARE_RETRY_PENDING:** [repair evidence](evidence/paper-writer-restriction-timeout-fix-20261013.json), [handoff](paper-writer-restricted-access-plan.md). Spare40/40 synthetic checks passed;150s limit interrupted collection at92/126 rules. One exact-name lookup, all seven filters retained, query timings,300/330s limits;40+251 locally verified assertions. No real configuration/credential changes or activation. Package60%, repair gain0pp; full roadmap12.4% unchanged.
+
 - **E114 RESTRICTION_PREPARATION_LOCALLY_VERIFIED / SPARE_PENDING:** [local evidence](evidence/paper-writer-restriction-local-20261013.json), [handoff and frozen scope](paper-writer-restricted-access-plan.md). Stage 1 rule generation/recovery fixtures and targeted selector runner; one JSON, no real HBA read/edit, database login, credentials, firewall change or activation. Local scripts verified using synthetic files/mocked runtime. Package 60%; actual PostgreSQL parsing/authentication and real staging remain separate.
 
 - **E113 ACCESS_RUNTIME_VERIFIED / POLICY_ACCEPTANCE_PENDING:** [spare evidence](evidence/paper-writer-access-spare-verification-20261012.json), [next scoped plan](paper-writer-restricted-access-plan.md). 57.98s, 10 successful stages, 14 matching sources, 264 inbound rules/126 candidates, correlated read-only route and completed cleanup. No writer login or configuration changes. Access review 60% to 80% (+20pp), A pending; full roadmap 12.4%. Do not repeat unchanged diagnostic.

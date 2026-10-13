@@ -24,6 +24,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 Frozen package: restricted writer Stage 1 preparation only. Scope is byte-preserving rule generation, synthetic replacement/recovery and bounded collection of missing selectors for saved firewall candidates. Real HBA staging, ACL preservation, PostgreSQL authentication and writer activation are excluded and remain required later.
 
+E115 repair: spare40/40 synthetic tests passed, but collection stopped at92/126 rules after150.28s. Package remains60%, repair gain0pp. Exact-name batching, complete filter coverage and bounded300/330s deadlines pass40 rule/recovery and251 mocked runner/selector assertions locally. Spare retry/acceptance remains pending; no runtime speedup percentage is claimed.
+
 | Area / bounded package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|
 | Writer restriction preparation, Stage 1 | 0% | 60% | +60 | D/I/V [E114](evidence/paper-writer-restriction-local-20261013.json); [handoff](paper-writer-restricted-access-plan.md) | R spare bundle, A report/owner acceptance |

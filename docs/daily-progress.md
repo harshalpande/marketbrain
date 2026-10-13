@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-13 Restriction collector timeout repaired
+
+- E115 verifies the spare report from revision9d32313: nine source hashes matched, all40 synthetic checks passed and fixtures were removed. Windows metadata collection stopped at150.28s with92/126 complete rows, no missing selector fields or detected drift among those92. Total155.44s; no database/configuration/credential or activation side effects.
+- Changed repeated rule lookup to one exact-name batch with bounded output and strict missing/duplicate/unexpected identity rejection. All seven associated filters per rule remain fresh; no inferred filter-ID joins. Added query counts/timings and last phase/rule. Deadline now300s soft/330s hard, still no automatic retry; partial checkpoint evidence retained.
+- Verified40 rule/recovery and251 mocked selector/runner assertions in18.91s combined, including200 candidates, completion past the old limit, soft timeout at92 rows and hard-timeout checkpoint preservation. Real runtime performance awaits spare rerun. No Java/application code changed.
+- Package stays60%; repair gain0pp, overall12.4%. Retry this bundle only with the original E113 access report, not the failed restriction report. Do not rebuild, rerun general access collection, enable writer LOGIN or change firewall/HBA rules.
+
 ## 2026-10-13 Restricted writer preparation implemented
 
 - Resumed the accepted Stage 1 plan. E114 adds byte-preserving exact-role rule generation, source-drift/complex-layout refusal, synthetic atomic replacement/recovery checks and bounded targeted firewall-selector collection. No real HBA file is accepted as an input to the runner; no database, service restart, credential or LOGIN operation exists in this bundle.
