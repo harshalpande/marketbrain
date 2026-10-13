@@ -4,7 +4,11 @@ The accepted read-only plan verified the actual PostgreSQL file and application 
 
 ## Current rehearsal stop
 
-The spare handoff stopped with `HBA_STAGE_FILE_OR_ACL_DRIFT` inside the generated-file rehearsal, before the real staging command. The old exception did not distinguish a content mismatch from an owner, group or access-permission mismatch. Its precise cause remains unconfirmed; a successful local test is not proof that the spare issue is repaired.
+E123 reviews `paper-hba-rehearsal-20261013-105852-b5f2d5a7f6c5.json`: the spare stopped before real staging, after two assertions in1.498s. Contents, owner and group matched. The temporary descriptor acquired `DiscretionaryAclAutoInherited`; both descriptors had three entries, but the report did not prove entry equality. All four source hashes match the Windows checkout. Generated legacy-file tests now reproduce that flag transition and also show it on the replaced target.
+
+The correction permits only that single Windows-managed descriptor bit to differ during explicit owned replacement, post-validation and recovery checks. After clearing the bit in memory, the **entire binary descriptors must match**. Owner, group, ACE bytes/order, allow/deny, trustee, rights, per-entry inheritance, protection and every other descriptor flag remain checked. No sorting, rights merging or permission rewriting is used. Reviewed-plan hashes, backup fingerprints and pre-first-edit target checks remain exact. Matching entry counts alone never authorize acceptance.
+
+Accepted metadata differences are recorded in `aclMetadataObservations` for staging/recovery and `legacyAclRegression` in the rehearsal. Windows documents the flag as resource-manager-managed inheritance metadata, separately from inheritance protection. [Microsoft control flags](https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.controlflags?view=net-10.0).
 
 Run only the revised rehearsal next. It writes one `paper-hba-rehearsal-*.json` on success or a caught test failure, including runtime versions, source hashes, completed assertions, elapsed time and failure phase. Drift diagnostics compare content, owner, group, access permissions, control flags and access-rule counts without including original file contents, raw security descriptors, credentials or account SIDs. The exact permission comparison remains mandatory. Early output-directory/import failures may prevent report creation.
 
@@ -15,7 +19,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Rehearsal failed. Share its JSON; do not apply
 
 This command needs no database credentials and never opens PostgreSQL or Docker. Expected failure cases in the mocked workflows are assertions, not real configuration changes. Success is `REHEARSAL_PASSED_NO_REAL_CHANGES`. Share the summary even if it passes; actual staging stays paused until that evidence is reviewed. Failed generated fixtures remain in the unique temporary test directory for investigation. Successful fixtures are removed, while the summary is retained. No existing application data is removed.
 
-Local verification passed427 assertions on Windows PowerShell5.1 and PowerShell7.6.6, with20 mocked staging and4 recovery scenarios plus real generated-file permission checks. Elapsed times were76.599s and328.414s respectively; these are local measurements, not a spare-laptop timing guarantee. The original spare mismatch was not reproduced. Existing293 planning and40 restriction regression assertions also passed.
+The revised rehearsal includes the existing20 mocked staging and4 recovery scenarios, descriptor mutation tests and a real generated three-entry legacy ACL. It exercises replacement, independent recovery and automatic rollback after an injected failure. Test-only legacy ACL creation is never imported by production scripts. E123 records the latest local measurements; spare verification of this correction is still required.
+
+E123 local results:434 workflow assertions and134 descriptor checks pass on both PowerShell5.1 and7.6.6, in123.525s and517.521s respectively. Separate293 planning and40 restriction regressions pass. Laptop timings can differ; the tests report progress and measured elapsed time.
 
 ## Why each step is needed
 
@@ -45,6 +51,8 @@ Use elevated PowerShell 7. Leave the existing application and PostgreSQL running
 Success is `HBA_RESTRICTION_STAGED_WRITER_DISABLED`. This closes file staging only after review of spare evidence. It does not resolve the effective firewall-access findings or complete the application writer.
 
 No automatic retry or broad cleanup is performed. A stopped container produces `HBA_STAGE_APPLICATION_NOT_RUNNING`; multiple matches and malformed responses have separate errors. Drift from the accepted plan stops before replacement. Do not bypass the hash/identity checks; review changed evidence first.
+
+After an eventual rollback, Windows may retain the metadata bit even though original permissions and bytes are restored. The next apply still requires an exact reviewed-plan fingerprint; if that changed, refresh and review the plan instead of bypassing its guard. The current failed spare rehearsal did not modify the real file and does not require a new live plan merely because it failed.
 
 ## Backup and recovery
 

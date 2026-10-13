@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-13 Legacy ACL metadata correction
+
+- E123 reviews the1.498s spare rehearsal failure: two assertions, matching content/owner/group, three expected/actual ACEs, added `DiscretionaryAclAutoInherited` metadata. All four source hashes match after Windows line-ending normalization. No real HBA or database change occurred.
+- Generated legacy ACL tests reproduce the flag transition on temporary and replaced files. The narrowly scoped correction compares full binary descriptors after masking only that bit during explicit owned-write/recovery phases. Exact reviewed-plan and pre-first-edit target checks remain; no owner/group, trustee, rights, deny/allow, ACE order/flags or protection change is tolerated.
+- Added negative descriptor tests and legacy replacement, recovery and injected-failure rollback coverage. Test-only legacy ACL setup is isolated from production. Accepted metadata differences are captured in the one-file evidence workflow. Future post-rollback raw fingerprint changes still require a reviewed plan refresh.
+- Final434 workflow assertions and134 descriptor checks pass on both5.1 and7.6.6. Total local runtimes:123.525s and517.521s. Separate293 planning and40 restriction checks pass. The completed7.6.6 report matches all five current script hashes. These are generated-file/mocked-service tests, not spare acceptance or live PostgreSQL verification.
+- The documentation skill keeps the distinction between local correction and pending spare acceptance in the runbook, roadmap and single diagram. Next is rehearsal only; no automatic live apply, credential creation, firewall change or writer activation. Staging60%, roadmap12.4%, additional completion gain0pp.
+
 ## 2026-10-13 Rehearsal failure isolated before live staging
 
 - E122 records the owner's `HBA_STAGE_FILE_OR_ACL_DRIFT` console failure during the generated-file rehearsal. The handoff stopped before the real PostgreSQL command; no live staging is credited. The combined exception did not reveal the mismatch, so the precise cause remains unconfirmed.

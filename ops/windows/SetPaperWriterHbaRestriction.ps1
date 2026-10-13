@@ -86,7 +86,7 @@ try {
             if($after.hbaHash -cne $plan.candidateHash -or $after.hbaBytes -ne $plan.candidateBytes -or $after.hbaRuleCount -ne ($before.hbaRuleCount+4)){throw 'HBA_STAGE_POST_RULES_MISMATCH'}
             $report.routeAfter=Route $after 'APPLICATION_AFTER'
             $journal=Read-PaperHbaBackup $report.backupDirectory
-            Assert-PaperHbaFileState $journal.target $plan.candidateHash $journal.originalSddl
+            Assert-PaperHbaFileState $journal.target $plan.candidateHash $journal.originalSddl 'POST_VALIDATION' -AllowAutoInheritedMetadata -AclObservations $report.aclMetadataObservations
         } $report
         $report.status='HBA_RESTRICTION_STAGED_WRITER_DISABLED'
         Stage 90 'COMPLETE' 'Rules staged and verified. Backup retained. Writer activation and effective firewall access review remain pending.'

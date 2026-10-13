@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-13
 
+E123 update: the legacy auto-inherited metadata difference is reproduced and a narrow binary comparison correction is implemented with replacement/recovery regressions. Spare correction acceptance is pending; staging stays60%, repair gain0pp, full roadmap12.4%. E122's earlier unknown-cause note below is historical.
+
 E122 update: the spare generated-file rehearsal failed before real HBA staging. Exact cause is unconfirmed. Safe mismatch diagnostics and additional permission-layout tests are implemented; the next handoff is rehearsal only. No runtime/owner-acceptance credit is added and repair gain is0pp. The table's E121 local-verification credit remains separate from this failed spare run.
 
 Frozen package: restricted writer Stage 1 preparation only. Scope is byte-preserving rule generation, synthetic replacement/recovery and bounded collection of missing selectors for saved firewall candidates. Real HBA staging, ACL preservation, PostgreSQL authentication and writer activation are excluded and remain required later.

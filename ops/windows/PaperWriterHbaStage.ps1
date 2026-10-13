@@ -48,16 +48,35 @@ function Write-PaperHbaNewFile([string]$Path,[byte[]]$Bytes) {
     try {$stream.Write($Bytes,0,$Bytes.Length);$stream.Flush($true)}finally{$stream.Dispose()}
     Protect-PaperHbaBackupAcl $Path
 }
-function Assert-PaperHbaFileState([string]$Path,[string]$Hash,[string]$Sddl,[string]$Phase='FILE_STATE') {
+function Test-PaperHbaAutoInheritedOnly([string]$ExpectedSddl,[string]$ActualSddl) {
+    # Permit only the resource-manager-owned 0x400 descriptor bit, not ACE inheritance flags.
+    # No sorting, SID translation, rights merging, protection changes or textual stripping.
+    $expected=[Security.AccessControl.RawSecurityDescriptor]::new($ExpectedSddl)
+    $actual=[Security.AccessControl.RawSecurityDescriptor]::new($ActualSddl)
+    $bit=[int][Security.AccessControl.ControlFlags]::DiscretionaryAclAutoInherited
+    if(([int]$expected.ControlFlags -bxor [int]$actual.ControlFlags) -ne $bit){return $false}
+    $expected.SetFlags([Security.AccessControl.ControlFlags]([int]$expected.ControlFlags -band (-bnot $bit)))
+    $actual.SetFlags([Security.AccessControl.ControlFlags]([int]$actual.ControlFlags -band (-bnot $bit)))
+    $left=New-Object byte[] $expected.BinaryLength;$right=New-Object byte[] $actual.BinaryLength
+    $expected.GetBinaryForm($left,0);$actual.GetBinaryForm($right,0)
+    return [Convert]::ToBase64String($left) -ceq [Convert]::ToBase64String($right)
+}
+function Assert-PaperHbaFileState([string]$Path,[string]$Hash,[string]$Sddl,[string]$Phase='FILE_STATE',[switch]$AllowAutoInheritedMetadata,[System.Collections.IList]$AclObservations=$null) {
     $actualHash=Get-PaperRestrictionHash (Read-PaperHbaBytes $Path)
     $actualSddl=Get-PaperHbaSddl $Path
+    $ownedPhases=@('PREPARED_TEMPORARY_FILE','AFTER_REPLACEMENT','POST_VALIDATION','RECOVERY_CANDIDATE','RECOVERY_BEFORE_REPLACEMENT','RECOVERY_ORIGINAL')
+    if($actualHash -ceq $Hash -and $actualSddl -cne $Sddl -and $AllowAutoInheritedMetadata -and $Phase -cin $ownedPhases -and (Test-PaperHbaAutoInheritedOnly $Sddl $actualSddl)){
+        if($null -ne $AclObservations){[void]$AclObservations.Add([ordered]@{phase=$Phase;difference='DACL_AUTO_INHERITED_METADATA_ONLY';allOtherDescriptorBytesMatch=$true;contentMatches=$true})}
+        return
+    }
     if($actualHash -cne $Hash -or $actualSddl -cne $Sddl){
         # Fingerprints and component equality only: never emit private HBA bytes or raw SIDs.
         $expected=[Security.AccessControl.RawSecurityDescriptor]::new($Sddl)
         $actual=[Security.AccessControl.RawSecurityDescriptor]::new($actualSddl)
         $detail=[ordered]@{phase=$Phase;contentMatches=($actualHash -ceq $Hash);sddlMatches=($actualSddl -ceq $Sddl);ownerMatches=($expected.Owner.Value -ceq $actual.Owner.Value);groupMatches=($expected.Group.Value -ceq $actual.Group.Value);daclMatches=($expected.GetSddlForm('Access') -ceq $actual.GetSddlForm('Access'));expectedAclHash=(Get-PaperRestrictionHash ([Text.Encoding]::UTF8.GetBytes($Sddl)));actualAclHash=(Get-PaperRestrictionHash ([Text.Encoding]::UTF8.GetBytes($actualSddl)))}
         $detail.expectedControlFlags=$expected.ControlFlags.ToString();$detail.actualControlFlags=$actual.ControlFlags.ToString()
-        $detail.expectedAceCount=$expected.DiscretionaryAcl.Count;$detail.actualAceCount=$actual.DiscretionaryAcl.Count
+        $detail.expectedAceCount=if($null -eq $expected.DiscretionaryAcl){-1}else{$expected.DiscretionaryAcl.Count}
+        $detail.actualAceCount=if($null -eq $actual.DiscretionaryAcl){-1}else{$actual.DiscretionaryAcl.Count}
         $detail.callers=@(Get-PSCallStack|Select-Object -First 6 FunctionName,ScriptLineNumber)
         $stateError=[InvalidOperationException]::new('HBA_STAGE_FILE_OR_ACL_DRIFT')
         $stateError.Data['fileState']=$detail
@@ -101,44 +120,47 @@ function Read-PaperHbaBackup([string]$Directory) {
     if((Get-PaperRestrictionHash $rebuilt) -cne $j.candidateHash){throw 'HBA_STAGE_BACKUP_INVALID'}
     return $j
 }
-function Set-PaperHbaFileFromBackup([string]$Directory,[switch]$Restore) {
+function Set-PaperHbaFileFromBackup([string]$Directory,[switch]$Restore,[System.Collections.IList]$AclObservations=$null) {
     $j=Read-PaperHbaBackup $Directory
     $expected=if($Restore){$j.candidateHash}else{$j.originalHash}
     $desired=if($Restore){$j.originalHash}else{$j.candidateHash}
     $source=Join-Path $Directory $(if($Restore){'original.bin'}else{'candidate.bin'})
-    Assert-PaperHbaFileState $j.target $expected $j.originalSddl 'BEFORE_REPLACEMENT'
+    $beforePhase=if($Restore){'RECOVERY_CANDIDATE'}else{'BEFORE_REPLACEMENT'}
+    Assert-PaperHbaFileState $j.target $expected $j.originalSddl $beforePhase -AllowAutoInheritedMetadata:$Restore -AclObservations $AclObservations
     # Same parent keeps inherited ACEs comparable to the original target.
     $temp=Join-Path ([IO.Path]::GetDirectoryName($j.target)) ('.mb-hba-replace-'+[Guid]::NewGuid().ToString('N')+'.tmp')
     try {
         Write-PaperHbaNewFile $temp (Read-PaperHbaBytes $source)
         $acl=[Security.AccessControl.FileSecurity]::new();$acl.SetSecurityDescriptorSddlForm($j.originalSddl,[Security.AccessControl.AccessControlSections]'Owner,Group,Access')
         Set-PaperHbaAclObject $temp $acl
-        Assert-PaperHbaFileState $temp $desired $j.originalSddl 'PREPARED_TEMPORARY_FILE'
+        Assert-PaperHbaFileState $temp $desired $j.originalSddl 'PREPARED_TEMPORARY_FILE' -AllowAutoInheritedMetadata -AclObservations $AclObservations
         # Last check immediately before the same-volume replacement. No delete-then-move fallback.
-        Assert-PaperHbaFileState $j.target $expected $j.originalSddl 'IMMEDIATELY_BEFORE_REPLACEMENT'
+        $lastPhase=if($Restore){'RECOVERY_BEFORE_REPLACEMENT'}else{'IMMEDIATELY_BEFORE_REPLACEMENT'}
+        Assert-PaperHbaFileState $j.target $expected $j.originalSddl $lastPhase -AllowAutoInheritedMetadata:$Restore -AclObservations $AclObservations
         [IO.File]::Replace($temp,$j.target,[Management.Automation.Language.NullString]::Value,$false)
-        Assert-PaperHbaFileState $j.target $desired $j.originalSddl 'AFTER_REPLACEMENT'
+        Assert-PaperHbaFileState $j.target $desired $j.originalSddl 'AFTER_REPLACEMENT' -AllowAutoInheritedMetadata -AclObservations $AclObservations
     }finally{if(Test-Path -LiteralPath $temp){$null=Assert-PaperCustodyPath $temp;Remove-Item -LiteralPath $temp}}
 }
-function Restore-PaperHbaBackup([string]$Directory) {
+function Restore-PaperHbaBackup([string]$Directory,[System.Collections.IList]$AclObservations=$null) {
     $j=Read-PaperHbaBackup $Directory
     $current=Get-PaperRestrictionHash (Read-PaperHbaBytes $j.target)
-    if($current -ceq $j.originalHash){Assert-PaperHbaFileState $j.target $j.originalHash $j.originalSddl;return 'ORIGINAL_ALREADY_PRESENT'}
+    if($current -ceq $j.originalHash){Assert-PaperHbaFileState $j.target $j.originalHash $j.originalSddl 'RECOVERY_ORIGINAL' -AllowAutoInheritedMetadata -AclObservations $AclObservations;return 'ORIGINAL_ALREADY_PRESENT'}
     if($current -cne $j.candidateHash){throw 'HBA_STAGE_RECOVERY_OWNERSHIP_LOST'}
     # Unknown ACL changes also require review; never overwrite another administrator's edits.
-    Set-PaperHbaFileFromBackup $Directory -Restore
+    Set-PaperHbaFileFromBackup $Directory -Restore -AclObservations $AclObservations
     return 'ORIGINAL_RESTORED'
 }
 function Invoke-PaperHbaTransaction([string]$Directory,[scriptblock]$Validate,[System.Collections.IDictionary]$State) {
+    $State.aclMetadataObservations=[Collections.ArrayList]::new()
     $State.replacementAttempted=$true
     try {
-        Set-PaperHbaFileFromBackup $Directory
+        Set-PaperHbaFileFromBackup $Directory -AclObservations $State.aclMetadataObservations
         $State.hbaChanged=$true
         & $Validate
         $State.postValidationPassed=$true
     }catch {
         $originalFailure=$_
-        try {$State.recoveryStatus=Restore-PaperHbaBackup $Directory;$State.rollbackFileVerified=$true}
+        try {$State.recoveryStatus=Restore-PaperHbaBackup $Directory -AclObservations $State.aclMetadataObservations;$State.rollbackFileVerified=$true}
         catch {$State.recoveryStatus='MANUAL_RECOVERY_REQUIRED'}
         throw $originalFailure
     }

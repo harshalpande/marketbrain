@@ -7,17 +7,46 @@ $reportRoot=Assert-PaperCustodyPath $OutputDirectory
 [void][IO.Directory]::CreateDirectory($reportRoot)
 $reportPath=Join-Path $reportRoot ('paper-hba-rehearsal-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,12)+'.json')
 $rehearsal=[ordered]@{status='RUNNING';powerShell=$PSVersionTable.PSVersion.ToString();runtime=[Environment]::Version.ToString();phase='SYNTHETIC_BACKUP_AND_REPLACEMENT';assertionsPassed=0;elapsedSeconds=0;failureCode=$null;failureLine=$null;fileState=$null;fixtureCleanupComplete=$false;databaseContacted=$false;realHbaChanged=$false;actionExecutionEnabled=$false;sourceHashes=@{}}
-foreach($source in @('PaperWriterHbaStage.ps1','TestPaperWriterHbaStage.ps1','SetPaperWriterHbaRestriction.ps1','RestorePaperWriterHbaRestriction.ps1')){$rehearsal.sourceHashes[$source]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $source) -Algorithm SHA256).Hash}
+foreach($source in @('PaperWriterHbaStage.ps1','TestPaperWriterHbaStage.ps1','TestPaperHbaAclComparison.ps1','SetPaperWriterHbaRestriction.ps1','RestorePaperWriterHbaRestriction.ps1')){$rehearsal.sourceHashes[$source]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $source) -Algorithm SHA256).Hash}
 $script:checks=0
 function Check([bool]$Value,[string]$Name){if(-not $Value){throw $Name};$script:checks++}
 function Denied([scriptblock]$Action,[string]$Code){$caught=$null;try{& $Action|Out-Null}catch{$caught=$_.Exception.Message};Check ($caught -ceq $Code) ('Expected '+$Code+' got '+$caught)}
 try {
+$rehearsal['aclComparison']=& (Join-Path $PSScriptRoot 'TestPaperHbaAclComparison.ps1')
+Check ($rehearsal.aclComparison.status -ceq 'PASSED') 'Pure security descriptor regression suite'
 Write-Progress -Activity 'Generated-file HBA rehearsal' -Status 'File replacement and permission checks' -PercentComplete 0
 Write-Host '[0%] Generated files only. Testing backup, replacement and exact permission preservation.'
 $work=Join-Path ([IO.Path]::GetTempPath()) ('mb-hba-stage-test-'+[guid]::NewGuid().ToString('N'));[void][IO.Directory]::CreateDirectory($work)
+# Test-only legacy descriptor writer. Never imported by production scripts.
+if(-not ('MarketBrainHbaFixtureNative' -as [type])){
+    Add-Type -TypeDefinition @'
+using System.Runtime.InteropServices;
+public static class MarketBrainHbaFixtureNative {
+    [DllImport("advapi32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetFileSecurity(string name, uint info, byte[] descriptor);
+}
+'@
+}
+function Set-FixtureDacl([string]$Path,[string]$Sddl){
+    $full=Assert-PaperCustodyPath $Path
+    if(-not $full.StartsWith(($work+[IO.Path]::DirectorySeparatorChar),[StringComparison]::OrdinalIgnoreCase)){throw 'Fixture path escaped generated workspace'}
+    $descriptor=[Security.AccessControl.RawSecurityDescriptor]::new($Sddl)
+    if(([int]$descriptor.ControlFlags -band 1024) -ne 0){
+        $acl=[Security.AccessControl.FileSecurity]::new();$acl.SetSecurityDescriptorSddlForm($Sddl,[Security.AccessControl.AccessControlSections]'Owner,Group,Access')
+        Set-PaperHbaAclObject $full $acl
+        return
+    }
+    $binary=New-Object byte[] $descriptor.BinaryLength;$descriptor.GetBinaryForm($binary,0)
+    if(-not [MarketBrainHbaFixtureNative]::SetFileSecurity($full,4,$binary)){throw 'Fixture DACL setup failed'}
+}
 $hba=Join-Path $work 'pg_hba.conf';$backupRoot=Join-Path $work 'backups';$psqlPath=Join-Path $work 'psql.exe'
 $bytes=[Text.Encoding]::UTF8.GetBytes("# PRIVATE_COMMENT_SENTINEL`r`nlocal all all scram-sha-256`r`nhost all all 127.0.0.1/32 scram-sha-256`r`n")
 [IO.File]::WriteAllBytes($hba,$bytes);[IO.File]::WriteAllBytes($psqlPath,@())
+# Main scenarios use a modern descriptor; the explicit legacy fixture below covers the spare layout.
+$initialAcl=Get-Acl -LiteralPath $hba
+$modernAcl=[Security.AccessControl.FileSecurity]::new();$modernAcl.SetSecurityDescriptorSddlForm($initialAcl.GetSecurityDescriptorSddlForm('Owner,Group,Access'),[Security.AccessControl.AccessControlSections]'Owner,Group,Access')
+Set-PaperHbaAclObject $hba $modernAcl
 $script:base=[pscustomobject]@{version='PAPER_HBA_METADATA_V1';database='marketbrain';databaseOid='16389';clusterId='7679149914381758260';serverPort=5432;serverVersion=180006;serverStartEpoch='1790000000.123456';adminSuperuser=$true;writerCount=1;writerLoginEnabled=$false;hbaPath=$hba;hbaBytes=$bytes.Length;hbaHash=(Get-PaperRestrictionHash $bytes);hbaRuleCount=2;hbaErrorCount=0;readOnly=$true}
 $plan=Read-PaperHbaLocalPlan $script:base;$sddl=Get-PaperHbaSddl $hba
 $dir=New-PaperHbaBackup $hba $plan $backupRoot ([Guid]::NewGuid().ToString('N'))
@@ -57,7 +86,7 @@ $diagnostic=$null
 try{Assert-PaperHbaFileState $hba $plan.originalHash $sddl 'TEST_ACL'}catch{$diagnostic=$_.Exception.Data['fileState']}
 Check ($diagnostic -and $diagnostic.contentMatches -and -not $diagnostic.sddlMatches -and -not $diagnostic.daclMatches) 'ACL mismatch evidence'
 Check (($diagnostic|ConvertTo-Json -Depth 8) -notmatch 'PRIVATE_COMMENT_SENTINEL|S-1-5-|originalSddl') 'Safe ACL mismatch evidence'
-$originalAcl=[Security.AccessControl.FileSecurity]::new();$originalAcl.SetSecurityDescriptorSddlForm($sddl,[Security.AccessControl.AccessControlSections]'Owner,Group,Access');Set-PaperHbaAclObject $hba $originalAcl
+Set-FixtureDacl $hba $sddl
 $lock=[IO.File]::Open($hba,'Open','Read','None')
 try{$state=@{};$failed=$false;try{Invoke-PaperHbaTransaction $dir {} $state}catch{$failed=$true};Check ($failed -and -not $state['postValidationPassed']) 'File lock prevents replacement'}finally{$lock.Dispose()}
 Assert-PaperHbaFileState $hba $plan.originalHash $sddl
@@ -73,24 +102,42 @@ foreach($variant in @('LF','UTF8_BOM')){
 [IO.File]::WriteAllBytes($hba,$bytes)
 
 # Cover permission inheritance rather than relying only on this machine's TEMP ACL.
-foreach($aclCase in @('PROTECTED','CREATOR_OWNER','INHERITED_DENY')){
+foreach($aclCase in @('PROTECTED','CREATOR_OWNER','INHERITED_DENY','LEGACY_AUTO_INHERITED')){
     $rehearsal.phase='ACL_FIXTURE_'+$aclCase
     $aclDir=Join-Path $work $aclCase;[void][IO.Directory]::CreateDirectory($aclDir)
     $parentAcl=[Security.AccessControl.DirectorySecurity]::new();$parentAcl.SetAccessRuleProtection($true,$false)
     $userSid=[Security.Principal.WindowsIdentity]::GetCurrent().User
     $parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($userSid,'FullControl','ContainerInherit,ObjectInherit','None','Allow'))
+    if($aclCase -ceq 'LEGACY_AUTO_INHERITED'){
+        foreach($sid in @('S-1-5-18','S-1-5-32-544')){$parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new($sid),'ReadAndExecute','ContainerInherit,ObjectInherit','None','Allow'))}
+    }
     if($aclCase -ceq 'CREATOR_OWNER'){$parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-3-0'),'FullControl','ContainerInherit,ObjectInherit','InheritOnly','Allow'))}
     if($aclCase -ceq 'INHERITED_DENY'){$parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-7'),'WriteData','ObjectInherit','InheritOnly','Deny'))}
     Set-PaperHbaAclObject $aclDir $parentAcl -Directory
     $aclTarget=Join-Path $aclDir 'pg_hba.conf';[IO.File]::WriteAllBytes($aclTarget,$bytes)
     if($aclCase -ceq 'PROTECTED'){Protect-PaperHbaBackupAcl $aclTarget}
+    if($aclCase -ceq 'LEGACY_AUTO_INHERITED'){
+        $legacy=[Security.AccessControl.RawSecurityDescriptor]::new((Get-PaperHbaSddl $aclTarget))
+        $legacy.SetFlags([Security.AccessControl.ControlFlags]([int]$legacy.ControlFlags -band (-bnot 1024)))
+        Set-FixtureDacl $aclTarget ($legacy.GetSddlForm('Owner,Group,Access'))
+        Check (([int]([Security.AccessControl.RawSecurityDescriptor]::new((Get-PaperHbaSddl $aclTarget))).ControlFlags -band 1024) -eq 0) 'Legacy fixture has no auto-inherited descriptor bit'
+    }
     $aclBefore=Get-PaperHbaSddl $aclTarget
     $m=$script:base|ConvertTo-Json|ConvertFrom-Json;$m.hbaPath=$aclTarget
     $p=Read-PaperHbaLocalPlan $m;$b=New-PaperHbaBackup $aclTarget $p $backupRoot ([Guid]::NewGuid().ToString('N'))
-    Set-PaperHbaFileFromBackup $b
-    Check ((Get-PaperHbaSddl $aclTarget) -ceq $aclBefore) ('Apply preserves '+$aclCase)
-    $null=Restore-PaperHbaBackup $b
-    Check ((Get-PaperHbaSddl $aclTarget) -ceq $aclBefore -and (Get-PaperRestrictionHash (Read-PaperHbaBytes $aclTarget)) -ceq $p.originalHash) ('Recovery preserves '+$aclCase)
+    $observations=[Collections.ArrayList]::new()
+    Set-PaperHbaFileFromBackup $b -AclObservations $observations
+    Check (((Get-PaperHbaSddl $aclTarget) -ceq $aclBefore) -or (Test-PaperHbaAutoInheritedOnly $aclBefore (Get-PaperHbaSddl $aclTarget))) ('Apply preserves permissions '+$aclCase)
+    $null=Restore-PaperHbaBackup $b -AclObservations $observations
+    Check ((((Get-PaperHbaSddl $aclTarget) -ceq $aclBefore) -or (Test-PaperHbaAutoInheritedOnly $aclBefore (Get-PaperHbaSddl $aclTarget))) -and (Get-PaperRestrictionHash (Read-PaperHbaBytes $aclTarget)) -ceq $p.originalHash) ('Recovery preserves '+$aclCase)
+    if($aclCase -ceq 'LEGACY_AUTO_INHERITED'){
+        Check ($observations.Count -ge 4) 'Legacy apply and recovery recorded metadata-only differences'
+        $rehearsal['legacyAclRegression']=[ordered]@{passed=$true;metadataDifferences=$observations.ToArray();targetPermissionsPreserved=$true;originalBytesRestored=$true}
+        # Recreate the reviewed pre-apply descriptor, then inject a post-validation failure.
+        Set-FixtureDacl $aclTarget $aclBefore
+        $failedState=@{};Denied {Invoke-PaperHbaTransaction $b {throw 'TEST_LEGACY_POST_FAILURE'} $failedState} 'TEST_LEGACY_POST_FAILURE'
+        Check ($failedState.rollbackFileVerified -and $failedState.recoveryStatus -ceq 'ORIGINAL_RESTORED' -and (Test-PaperHbaAutoInheritedOnly $aclBefore (Get-PaperHbaSddl $aclTarget))) 'Legacy permission-preserving automatic rollback'
+    }
 }
 
 # Exercise complete runner, including actual fixture replacement and rollback.

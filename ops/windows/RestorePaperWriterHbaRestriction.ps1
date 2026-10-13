@@ -24,7 +24,8 @@ try {
     if($j.target -ine $accepted.metadata.hbaPath.Replace('/','\') -or $j.originalHash -cne $accepted.filePlan.originalHash -or $j.candidateHash -cne $accepted.filePlan.candidateHash -or $j.aclFingerprint -cne $accepted.filePlan.aclFingerprint){throw 'HBA_STAGE_RECOVERY_PLAN_MISMATCH'}
     if((Read-Host 'Type RESTORE ORIGINAL HBA to restore only the owned candidate file') -cne 'RESTORE ORIGINAL HBA'){throw 'HBA_STAGE_RECOVERY_NOT_CONFIRMED'}
     Write-Host '[50%] Validating backup, current bytes and permissions before recovery.'
-    $report.recoveryStatus=Restore-PaperHbaBackup $dir
+    $report.aclMetadataObservations=[Collections.ArrayList]::new()
+    $report.recoveryStatus=Restore-PaperHbaBackup $dir -AclObservations $report.aclMetadataObservations
     $report.hbaChanged=($report.recoveryStatus -ceq 'ORIGINAL_RESTORED')
     $report.status='ORIGINAL_FILE_VERIFIED_CONNECTION_RECHECK_REQUIRED'
 }catch {
