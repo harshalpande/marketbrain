@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-13 Spare HBA rehearsal accepted
+
+- E124 accepts `paper-hba-rehearsal-20261013-122150-14a7df604d5f.json`: 434 workflow assertions and 134 separate descriptor checks passed in 34.540s on PowerShell 7.6.6 / .NET 10.0.12. All five source hashes match the reviewed Windows checkout of 7a89d66. Do not sum overlapping test counts into a completion percentage.
+- The legacy ACL regression preserved permissions and restored original bytes; six recorded differences were limited to the permitted metadata bit. Fixture cleanup completed. No database contact, real HBA edit or action execution occurred.
+- Owner go-ahead authorizes the existing guarded actual staging handoff, not writer LOGIN, firewall mutation or paper/live execution. No code change or repeated rehearsal is needed. Fresh original-plan, database, application and file checks must pass before backup/replacement; drift stops the run rather than weakening guards.
+- The documentation skill updates acceptance, the runbook and the current diagram while preserving historical failures. Staging stays 60%, additional package gain 0pp, full roadmap 12.4%: the frozen runtime checkpoint includes actual staging and new database/application connections, which remain pending. Share one stage JSON; retain the private recovery backup locally.
+
 ## 2026-10-13 Legacy ACL metadata correction
 
 - E123 reviews the1.498s spare rehearsal failure: two assertions, matching content/owner/group, three expected/actual ACEs, added `DiscretionaryAclAutoInherited` metadata. All four source hashes match after Windows line-ending normalization. No real HBA or database change occurred.

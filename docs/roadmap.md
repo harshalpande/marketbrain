@@ -4,7 +4,7 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
-2026-10-13 E123: spare evidence isolated the auto-inherited descriptor flag; generated-file regression and narrowly scoped binary comparison correction are implemented. Next is the [rehearsal](paper-writer-hba-staging.md#current-rehearsal-stop), not real apply. No rights/protection checks are waived. E120's preparation and file-plan acceptance remain100% in their separate scopes. Staging60% and full-roadmap12.4% are unchanged. No writer LOGIN, firewall change, money-write grant or execution is enabled. Older handoffs below are historical.
+2026-10-13 E124: the corrected spare rehearsal passed 434 workflow assertions and 134 descriptor checks in 34.540s, with all five source hashes verified. Owner authorized [guarded actual HBA staging](paper-writer-hba-staging.md#spare-laptop-handoff); no repeated rehearsal or rebuild. Backup, replacement and fresh PostgreSQL/application verification are next, subject to exact original-plan checks. Preparation and file planning remain 100% in their separate scopes. Staging 60% and full roadmap 12.4% are unchanged until actual runtime evidence is accepted. No writer LOGIN, firewall change, money-write grant or execution is enabled. Older handoffs below are historical.
 
 2026-10-13 E114: restricted writer **Stage 1 preparation 60%** (D/I/V), spare R and owner A pending. This new package excludes real staging/authentication and earns no completed parent milestone yet. E113 access review remains 80%, full roadmap 12.4%. [Run the preparation bundle](paper-writer-restricted-access-plan.md), not yesterday's general diagnostic.
 
