@@ -5,10 +5,11 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaperWriterAccessReview.ps1')
 $watch=[Diagnostics.Stopwatch]::StartNew();$rows=[Collections.Generic.List[object]]::new()
 $r=[ordered]@{version='PAPER_FIREWALL_SCOPE_V1';status='RUNNING';rules=@();expectedRuleCount=0;inspectedRuleCount=0;activeProfiles=@();listeners=@();listenerProcesses=@();ruleDriftDetected=$false;truncated=$true;configurationChanged=$false;effectiveAccessProven=$false;newRulesAssessed=$false;failureCode=$null;elapsedSeconds=0}
-$r['collectorRevision']=2
-$r['limits']=@{softSeconds=300;parentSeconds=330;candidateRules=200}
+$r['collectorRevision']=3
+$r['limits']=@{softSeconds=300;parentSeconds=330;candidateRules=200;inboundRules=2000}
 $r['ruleLookupCalls']=0;$r['filterQueryCalls']=0;$r['queryTimings']=@{}
 $r['phase']='INPUT';$r['activeRuleName']=$null
+$r['inboundRulesEnumerated']=0;$r['missingRuleNames']=@();$r['diagnostic']=$null
 function Emit {
     $r.rules=$rows.ToArray();$r.inspectedRuleCount=$rows.Count;$r.elapsedSeconds=$watch.Elapsed.TotalSeconds
     $json=$r|ConvertTo-Json -Depth 10 -Compress
@@ -18,6 +19,12 @@ function Emit {
 function Deadline {if($watch.Elapsed.TotalSeconds -gt 300){throw 'SCOPE_TIME_LIMIT'}}
 function One($Values){$items=@($Values);if($items.Count -ne 1){throw 'SCOPE_FILTER_CARDINALITY'};return $items[0]}
 function Field($Object,[string]$Name){if($null -ne $Object.PSObject.Properties[$Name]){return $Object.$Name};return $null}
+function Safe-Diagnostic($Record){
+    # Machine codes only. Never capture message, target, command arguments, stack or raw stderr.
+    $code=[string]$Record.FullyQualifiedErrorId
+    if($code.Length -gt 200 -or $code -cnotmatch '^(?:SCOPE_[A-Z_]+|(?:CimJob_|CmdletizationQuery_|Parameter)[A-Za-z0-9_]+(?:,[A-Za-z0-9_.-]+)?|PropertyNotFoundStrict|InvalidOperation|ArgumentException|MethodInvocationException)$'){$code='REDACTED_NON_CODE_ERROR_ID'}
+    return @{errorId=$code;category=[string]$Record.CategoryInfo.Category;exceptionType=$Record.Exception.GetType().FullName;hresult=$Record.Exception.HResult;scriptLine=$Record.InvocationInfo.ScriptLineNumber}
+}
 function Read-ScopedFilter([string]$Command,$Rule){
     Deadline
     $r.phase=$Command;$r.filterQueryCalls++
@@ -54,19 +61,24 @@ try {
     }
     $r.listenerProcesses=$processes.ToArray()
     $r.phase='RULE_LOOKUP';Emit;Deadline
-    # Name accepts String[]. Keep real CIM association objects; never guess filter IDs
-    # or join by display name. Bound output and validate an exact one-to-one name set.
+    # Enumerate bounded inbound metadata, then match exact names locally. Avoid the
+    # failed multi-name provider query. Keep original CIM objects for associations.
     $ruleMap=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
     if($names.Count -gt 0){
         $r.ruleLookupCalls++
         $clock=[Diagnostics.Stopwatch]::StartNew()
-        try {$currentRules=@(Get-NetFirewallRule -PolicyStore ActiveStore -Name $names|Select-Object -First 201)}
+        try {$currentRules=@(Get-NetFirewallRule -PolicyStore ActiveStore -Enabled True -Direction Inbound|Select-Object -First 2001)}
         finally {$r.queryTimings['Get-NetFirewallRule']=@{calls=1;elapsedSeconds=$clock.Elapsed.TotalSeconds}}
-        if($currentRules.Count -ne $names.Count){throw 'SCOPE_RULE_SET_INCOMPLETE'}
+        $r.inboundRulesEnumerated=$currentRules.Count
+        if($currentRules.Count -gt 2000){throw 'SCOPE_INBOUND_RULE_LIMIT'}
         foreach($rule in $currentRules){
-            if($rule.Name -isnot [string] -or $names -cnotcontains $rule.Name -or $ruleMap.ContainsKey($rule.Name)){throw 'SCOPE_RULE_IDENTITY_MISMATCH'}
+            if($rule.Name -isnot [string]){throw 'SCOPE_RULE_IDENTITY_MISMATCH'}
+            if($names -cnotcontains $rule.Name){continue}
+            if([string]$rule.Direction -cne 'Inbound' -or $ruleMap.ContainsKey($rule.Name)){throw 'SCOPE_RULE_IDENTITY_MISMATCH'}
             $ruleMap.Add($rule.Name,$rule)
         }
+        $r.missingRuleNames=@($names|Where-Object {-not $ruleMap.ContainsKey($_)})
+        if($r.missingRuleNames.Count){throw 'SCOPE_RULE_SET_INCOMPLETE'}
     }
     Deadline
     foreach($prior in @($saved.firewall.rules)){
@@ -103,6 +115,7 @@ try {
     $r.status='SELECTORS_CAPTURED_REVIEW_REQUIRED';$r.truncated=$false
 }catch{
     $r.status='FAILED';$r.failureCode='SCOPE_QUERY_FAILED'
+    $r.diagnostic=Safe-Diagnostic $_
     if($_.Exception.Message -cmatch '^SCOPE_[A-Z_]+$'){$r.failureCode=$_.Exception.Message}
 }
 Emit

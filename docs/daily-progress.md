@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-13 Restriction lookup failure isolated; collector revised
+
+- E116 records the failed E115 spare retry: nine source hashes match, 40 synthetic checks pass, then RULE_LOOKUP fails before inspecting any of 126 rules. Total 8.13s; no timeout or database/configuration/credential changes. The earlier generic catch lost the native error, so the exact cause is unknown. Zero inspected rows do not establish absence of drift.
+- Removed the multi-name provider lookup. The collector now uses bounded enabled-inbound enumeration previously successful in E113, matches exact saved identities locally, retains all seven real associations and fails on missing/duplicate candidates. New safe diagnostics preserve error codes/type/category/HResult/line without raw messages or targets.
+- Verification: 40 synthetic rule/recovery checks and 290 mocked collector/report assertions pass. The mocks cannot prove spare Windows compatibility; this remains an explicit runtime gate. Source/error/test evidence and the architecture handoff are updated using the documentation skill.
+- Retry only the preparation bundle with the accepted E113 input. One JSON, no rebuild, password, HBA/firewall edit or LOGIN. Stage 1 stays60%, repair gain0pp, access review80%, full roadmap12.4%. Real staging and application writer activation remain blocked.
+
 ## 2026-10-13 Restriction collector timeout repaired
 
 - E115 verifies the spare report from revision9d32313: nine source hashes matched, all40 synthetic checks passed and fixtures were removed. Windows metadata collection stopped at150.28s with92/126 complete rows, no missing selector fields or detected drift among those92. Total155.44s; no database/configuration/credential or activation side effects.

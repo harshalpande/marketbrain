@@ -31,13 +31,19 @@ function Read-PaperRestrictionEvidence($Path,$ExpectedHash){
 function Get-NetConnectionProfile {[pscustomobject]@{InterfaceIndex=1;NetworkCategory='Private';IPv4Connectivity='Internet';IPv6Connectivity='NoTraffic'}}
 function Get-NetTCPConnection {param($State,$LocalPort);Check ($State -ceq 'Listen' -and $LocalPort -eq 5432) 'Exact listener only';if($script:mode -eq 'no-listener'){return};[pscustomobject]@{LocalAddress='127.0.0.1';LocalPort=5432;OwningProcess=10}}
 function Get-CimInstance {param($ClassName,$Filter);Check ($ClassName -ceq 'Win32_Process' -and $Filter -ceq 'ProcessId = 10') 'Exact listener process';[pscustomobject]@{Name='postgres.exe';ExecutablePath='C:\synthetic\postgres.exe';CommandLine='SECRET_SENTINEL'}}
-function Get-NetFirewallRule {param($PolicyStore,$Name)
+function Get-NetFirewallRule {[CmdletBinding()]param($PolicyStore,$Enabled,$Direction,$Name)
     $script:queries++
-    Check ($PolicyStore -ceq 'ActiveStore' -and @($Name).Count -eq $script:saved.firewall.rules.Count) 'Exact batched rule names'
-    foreach($n in $Name){
+    if($PSBoundParameters.ContainsKey('Name')){throw 'MULTI_NAME_PROVIDER_QUERY_MUST_NOT_BE_USED'}
+    Check ($PolicyStore -ceq 'ActiveStore' -and $Enabled -ceq 'True' -and $Direction -ceq 'Inbound') 'Bounded enabled inbound enumeration, no multi-name query'
+    if($script:mode -ceq 'provider-error'){
+        $record=[Management.Automation.ErrorRecord]::new([InvalidOperationException]::new('SECRET_SENTINEL'),'CimJob_ProviderFailure',[Management.Automation.ErrorCategory]::InvalidOperation,'SECRET_SENTINEL')
+        $PSCmdlet.ThrowTerminatingError($record)
+    }
+    if($script:mode -ceq 'inbound-limit'){$items=1..2001|ForEach-Object {'extra-'+$_}}else{$items=@($script:saved.firewall.rules.name)+@('unrelated-inbound')}
+    foreach($n in $items){
         if($script:mode -ceq 'missing-rule' -and $n -ceq 'rule-2'){continue}
         $v=[pscustomobject]@{Name=$n;Action='Allow';Profile='Any';Enabled='True';Direction='Inbound';EdgeTraversalPolicy='Block';PolicyStoreSourceType='Local'}
-        if($script:mode -ceq 'drift'){$v.Enabled='False'}
+        if($script:mode -ceq 'drift'){$v.Action='Block'}
         if($script:mode -ceq 'unexpected-rule' -and $n -ceq 'rule-2'){$v.Name='unrelated'}
         if($script:mode -ceq 'duplicate-rule' -and $n -ceq 'rule-2'){$v.Name='rule-1'}
         if($script:mode -ceq 'case-mismatch' -and $n -ceq 'rule-2'){$v.Name='RULE-2'}
@@ -53,7 +59,7 @@ function Get-NetFirewallInterfaceTypeFilter {param($AssociatedNetFirewallRule);[
 function Get-NetFirewallSecurityFilter {param($AssociatedNetFirewallRule);[pscustomobject]@{Authentication='NotRequired';Encryption='NotRequired';OverrideBlockRules=$false;LocalUser='Any';RemoteUser='Any';RemoteMachine='Any'}}
 $maximum=@(1..200|ForEach-Object {[pscustomobject]@{name=('rule-'+$_);action='Allow';profile='Any';protocol='TCP';localPort=@('Any');remotePort=@('Any');localAddress=@('Any');remoteAddress=@('Any');program='Any';service='Any';edgeTraversal='Block';policySourceType='Local'}})
 $normal=@($maximum|Select-Object -First 126)
-foreach($script:mode in @('pass','pass-200','past-old-deadline','drift','missing-rule','ambiguous','duplicate-rule','unexpected-rule','case-mismatch','query-fail','soft-timeout','missing-package','no-listener','unsafe-name','limit')){
+foreach($script:mode in @('pass','pass-200','past-old-deadline','drift','missing-rule','ambiguous','duplicate-rule','unexpected-rule','case-mismatch','query-fail','soft-timeout','missing-package','no-listener','unsafe-name','limit','provider-error','inbound-limit')){
     $script:saved.firewall.rules=$normal;$script:queries=0
     if($script:mode -ceq 'pass-200'){$script:saved.firewall.rules=$maximum}
     if($script:mode -ceq 'unsafe-name'){$script:saved.firewall.rules=@([pscustomobject]@{name='*'})}
@@ -65,7 +71,8 @@ foreach($script:mode in @('pass','pass-200','past-old-deadline','drift','missing
     if($script:mode -in @('pass','pass-200','past-old-deadline','drift','missing-package')){
         Check ($v.status -ceq 'SELECTORS_CAPTURED_REVIEW_REQUIRED' -and $v.inspectedRuleCount -eq $script:saved.firewall.rules.Count -and -not $v.truncated) 'Complete bounded selector collection'
         Check ($v.ruleDriftDetected -eq ($script:mode -ceq 'drift')) 'Drift reported'
-        Check ($script:queries -eq 1 -and $v.ruleLookupCalls -eq 1) 'One batched rule lookup'
+        Check ($script:queries -eq 1 -and $v.ruleLookupCalls -eq 1) 'One bounded rule enumeration'
+        Check ($v.inboundRulesEnumerated -eq $script:saved.firewall.rules.Count+1 -and $v.rules.name -notcontains 'unrelated-inbound') 'Unrelated rule excluded from filter queries and evidence'
         Check ($v.filterQueryCalls -eq 7*$script:saved.firewall.rules.Count) 'All seven fresh association filters retained'
         Check (@($v.queryTimings.PSObject.Properties).Count -eq 8 -and $v.limits.softSeconds -eq 300 -and $v.limits.parentSeconds -eq 330) 'Bounded timing telemetry'
         if($script:mode -ceq 'pass'){
@@ -81,6 +88,12 @@ foreach($script:mode in @('pass','pass-200','past-old-deadline','drift','missing
         if($script:mode -ceq 'query-fail'){Check ($v.rules.Count -eq 21 -and $v.failureCode -ceq 'SCOPE_QUERY_FAILED') 'Partial checkpoints retained'}
         if($script:mode -ceq 'soft-timeout'){Check ($v.rules.Count -eq 92 -and $v.failureCode -ceq 'SCOPE_TIME_LIMIT') 'Soft deadline preserves 92 rows'}
         if($script:mode -in @('duplicate-rule','unexpected-rule','case-mismatch','missing-rule','ambiguous')){Check ($v.filterQueryCalls -eq 0) 'Bad identity set stops before filters'}
+        if($script:mode -in @('unexpected-rule','case-mismatch','missing-rule')){Check ($v.missingRuleNames -contains 'rule-2') 'Exact missing identity retained'}
+        if($script:mode -ceq 'provider-error'){
+            Check ($v.phase -ceq 'RULE_LOOKUP' -and $v.diagnostic.errorId -match '^CimJob_ProviderFailure' -and $v.diagnostic.hresult -lt 0) 'Safe provider codes retained'
+            $script:providerFailureJson=$lines[-1]
+        }
+        if($script:mode -ceq 'inbound-limit'){Check ($v.failureCode -ceq 'SCOPE_INBOUND_RULE_LIMIT' -and $v.filterQueryCalls -eq 0) 'Bounded enumeration stops before filters'}
     }
 }
 function git {$global:LASTEXITCODE=0;if($args -contains 'status' -and $script:mode -ceq 'dirty'){' M own.txt'};if($args -contains 'rev-parse'){'a'*40}}
@@ -91,13 +104,14 @@ function Invoke-PaperCatalogProcess($Executable,$Arguments,$WorkingDirectory,$Li
         'timeout' {$stdout=$script:partialJson+"`n{";$exit=-999;$timedOut=$true}
         'malformed' {$stdout=$script:successJson+"`nnot-json"}
         'failed-child' {$exit=2}
+        'provider-error' {$exit=2;$stdout=$script:providerFailureJson}
         'bad-count' {$v=$stdout|ConvertFrom-Json;$v.inspectedRuleCount=0;$stdout=$v|ConvertTo-Json -Depth 12 -Compress}
         'drift' {$v=$stdout|ConvertFrom-Json;$v.ruleDriftDetected=$true;$stdout=$v|ConvertTo-Json -Depth 12 -Compress}
     }
     [pscustomobject]@{stdout=$stdout;stderr='SECRET_SENTINEL';exitCode=$exit;timedOut=$timedOut;elapsedSeconds=0.01}
 }
 $script:saved.firewall.rules=$normal
-foreach($script:mode in @('pass','drift','dirty','bad-evidence','timeout','malformed','failed-child','bad-count')){
+foreach($script:mode in @('pass','drift','dirty','bad-evidence','timeout','malformed','failed-child','bad-count','provider-error')){
     $script:childCalls=0;$threw=$false;$dir=Join-Path $work $script:mode
     try{& $runner -AccessReportPath (Join-Path $work 'input.json') -OutputDirectory $dir}catch{$threw=$true}
     $files=@(Get-ChildItem -LiteralPath $dir -Filter '*.json');Check ($files.Count -eq 1) 'One compact report'
@@ -111,6 +125,7 @@ foreach($script:mode in @('pass','drift','dirty','bad-evidence','timeout','malfo
     }else{Check ($threw -and $v.status -ceq 'FAILED' -and $v.failureCode) 'Failure report retained'}
     if($script:mode -in @('dirty','bad-evidence')){Check ($script:childCalls -eq 0) 'Preflight stops child'}
     if($script:mode -ceq 'timeout'){Check ($v.firewallScope.inspectedRuleCount -eq 20) 'Timeout retains last full checkpoint'}
+    if($script:mode -ceq 'provider-error'){Check ($v.firewallScope.diagnostic.errorId -match '^CimJob_ProviderFailure') 'Safe failure codes survive parent report'}
     Remove-Item -LiteralPath $files[0].FullName;[IO.Directory]::Delete($dir,$false)
 }
 [IO.Directory]::Delete($work,$false)
