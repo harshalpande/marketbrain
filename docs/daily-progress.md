@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-13 Preparation accepted and actual file planning implemented
+
+- E118 accepts the spare collection: 40/40 rehearsal checks, 264/264 inbound rules, 126 detailed candidates, 124 matched old identities, two missing IDs and two current candidates outside the baseline. No missing selector fields or changed matched rows; nine source hashes match. Total 56.771s, collector 54.857s, no configuration/database changes. Owner go-ahead closes preparation collection at 100%, not firewall safety or activation.
+- Two current allow candidates have no program/service/package restriction and Any remote address, limited to specific local addresses and Domain/Private profiles. External reachability and replacement equivalence remain unproven; no firewall change is proposed automatically.
+- E119 implements a distinct read-only actual-file plan: bounded fresh PostgreSQL identity and HBA hash, fresh application route, local byte/ACL fingerprint, in-memory prefix, repeat drift checks and cleanup. One report; password entered locally only. This reads the real file on the spare but cannot write it. Live backup/replacement/rollback remain future implementation gates.
+- Local 293 plan assertions plus 40 restriction regressions passed in 18.402s. PostgreSQL/Docker are mocked; generated file/ACL reads are real fixtures. SQL bounded-read contracts checked against official PostgreSQL18 documentation, not run against a local server.
+- Documentation skill used to distinguish accepted collection, locally verified planning, and pending live staging. Preparation 100%, new file-plan package 60%, full roadmap 12.4% unchanged. Next command: GetPaperWriterHbaPlan.ps1 with the accepted preparation report, in elevated PowerShell7; no firewall rerun, rebuild, writer password or activation.
+
 ## 2026-10-13 Current firewall comparison implemented
 
 - E117 records the 4.03-second restriction attempt: enumeration succeeded (264 rules), then strict saved-ID matching stopped with two absent names. The subsequent 3.38-second diagnostic found neither among all756 ActiveStore rules. No configuration changed; neither replacement equivalence nor cause of disappearance is established.

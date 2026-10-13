@@ -1,0 +1,36 @@
+{
+  "evidenceId": "E119",
+  "date": "2026-10-13",
+  "status": "READ_ONLY_HBA_PLAN_LOCALLY_VERIFIED_SPARE_PENDING",
+  "scope": "Fresh database and application route, actual HBA byte/hash/ACL plan, drift detection and one report; excludes backup, live replacement, live rollback and activation.",
+  "verification": {
+    "powerShell": "5.1.26100.9444",
+    "hbaPlanAssertions": 293,
+    "restrictionRegressionAssertions": 40,
+    "allPassed": true,
+    "combinedElapsedSeconds": 18.4020682,
+    "actualSyntheticFileAndAclReads": true,
+    "postgresDockerAndCredentialIoMocked": true,
+    "oldPreparationHashPinned": true,
+    "wrongDatabaseAndEnabledWriterBlocked": true,
+    "routeFileServerAndAclDriftBlocked": true,
+    "timeoutAndCleanupFailureBlocked": true,
+    "noPasswordOrOriginalFileTextInReport": true,
+    "sqlVerifiedAgainstPostgresql18Documentation": true,
+    "sqlExecutedAgainstPostgresqlLocally": false,
+    "spareRuntimePending": true
+  },
+  "manifestEncoding": "SHA256 of UTF8 source text with CRLF normalized to LF",
+  "sourceManifest": {
+    "ops/windows/GetPaperWriterHbaPlan.ps1": "61924E9CF7975F39D6B8DD7860EC7539A44B78AD41E6BAD07319FCA133DDA912",
+    "ops/windows/PaperWriterHbaPlan.ps1": "B789A497AE25369CC17051FCF8EC0955F4F8680A6E12096BE4B387BE7164AEE2",
+    "ops/windows/TestPaperWriterHbaPlan.ps1": "805503284A7AF0A3FBB39105DE14F1575D789C651AF2411B1730198C159D1F85"
+  },
+  "localDatabaseContacted": false,
+  "realHbaChanged": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "newFilePlanPackagePercent": 60,
+  "wholeStage2StagingClaimedComplete": false,
+  "fullRoadmapPercent": 12.4
+}

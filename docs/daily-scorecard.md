@@ -24,15 +24,16 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 Frozen package: restricted writer Stage 1 preparation only. Scope is byte-preserving rule generation, synthetic replacement/recovery and bounded collection of missing selectors for saved firewall candidates. Real HBA staging, ACL preservation, PostgreSQL authentication and writer activation are excluded and remain required later.
 
-E117 repair: current enumeration now works, but two saved IDs are absent (confirmed across756 ActiveStore rules). Missing identities become review findings while current PostgreSQL candidates are fully collected and reconciled. Local verification passes40 rule/recovery and573 mocked comparison/report assertions in20.044s combined. Package remains60%, repair gain0pp; spare comparison/acceptance remains pending. No runtime speedup, prediction gain or project-completion credit is claimed for the repair.
+E118 accepts the56.77-second spare comparison:40 checks,264 scanned rules,126 full candidates, no missing fields, nine source matches. Preparation reached80% with runtime verification and100% with the owner's go-ahead after report review. Missing identities and unbaselined candidates remain policy findings, not permission to edit firewall rules. E119 opens the separately bounded read-only actual-file plan package (identity/route, file/ACL hash, proposed prefix, drift/cleanup/report); live replacement and activation are excluded.
 
 | Area / bounded package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|
-| Writer restriction preparation, Stage 1 | 0% | 60% | +60 | D/I/V [E114](evidence/paper-writer-restriction-local-20261013.json); [handoff](paper-writer-restricted-access-plan.md) | R spare bundle, A report/owner acceptance |
+| Writer restriction preparation, Stage 1 | 0% | 100% | +100 | D/I/V/R/A; E118 runtime evidence and owner go-ahead | Closed for collection; policy findings carry forward |
+| Read-only actual HBA file plan, Stage 2 planning subset | 0% | 60% | +60 | D/I/V; E119; [scope](paper-writer-hba-plan.md) | R spare file/route plan, A owner review; not live staging |
 | Existing targeted access review | 80% | 80% | 0 | E113 retained | Policy acceptance; no duplicate credit for yesterday's runtime |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Integrated application writer and later paper workflow gates |
 
-No Java/Spring runtime, database, inference or firewall mutation was tested or activated locally. New script tests use generated files and mocked runtime I/O; spare selector collection is not yet verified. Do not average these rows or describe preparation tests as prediction improvement.
+No Java/Spring runtime, database, inference or firewall mutation was tested or activated locally. New plan tests use generated files/ACLs and mocked PostgreSQL/Docker; spare selector collection is accepted, while actual-file planning remains pending. Do not average these rows or describe preparation tests as prediction improvement.
 
 ## Opening position: 2026-10-12
 

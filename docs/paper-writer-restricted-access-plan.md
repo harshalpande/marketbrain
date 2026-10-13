@@ -1,8 +1,10 @@
 # Restricted paper writer access plan
 
-The access diagnostic has completed successfully. The next milestone is to confine the dedicated writer to the intended database while preserving the existing application connection. Stage 1 preparation is implemented for spare verification (E114); real staging, PostgreSQL/Windows changes and LOGIN remain blocked.
+Stage 1 preparation is accepted (E118):40 rehearsal checks,264 scanned inbound rules,126 complete candidates and56.77s runtime. The owner approved moving forward after review. This closes preparation collection, not firewall effective-access approval or live staging. The next milestone is the [read-only actual authentication-file plan](paper-writer-hba-plan.md) (E119); PostgreSQL/Windows changes and LOGIN remain blocked.
 
-## Current handoff on October 13
+## Historical preparation handoff on October 13
+
+The following collection instructions are retained as history. Do not rerun the accepted preparation bundle; use the E119 handoff above.
 
 E117 replaces strict saved-ID completeness with a current-rule comparison. E116's spare run successfully enumerated 264 enabled-inbound rules but stopped because two of 126 saved IDs were absent (4.03 seconds total). The separate read-only diagnostic found neither ID among all 756 ActiveStore rules in 3.38 seconds. This establishes snapshot identity drift, not why the rules disappeared or whether equivalent replacements exist.
 
@@ -22,7 +24,7 @@ Firewall collection records Program **and Package**, interface/type, authenticat
 
 After report review: implement the guarded real-file plan/diff and staging workflow, with a fresh existing-application connection check and writer still NOLOGIN. Credential activation and application review integration follow separately. A passing preparation bundle does not authorize any of those operations automatically.
 
-Frozen Stage 1 package: D 10 + I 30 + V 20 = **60% locally verified**, from today's opening 0%; spare R 20 and owner A 20 remain pending. E113 access review remains 80%; full roadmap remains 12.4%. These are different scopes, not additive percentages.
+Stage 1 now has D/I/V/R/A accepted: **100% preparation collection**. E113 access review remains80% because broader policy acceptance is separate; full roadmap remains12.4%. These scopes are not additive.
 
 ## Evidence and remaining decisions
 
@@ -63,7 +65,7 @@ If external reachability remains unknown, keep it labelled unknown. No external 
 | 3. Credential and authentication proof | Reviewed credential custody/container handoff, scoped writer login tests, negative permissions and cleanup in one run | Separate authorization is required for LOGIN/credential creation. Tests run from the same application route; successful authentication alone does not wire the application or permit paper execution. |
 | 4. Application review integration | Restricted writer connection, authenticated approval/rejection receipts, retry/idempotency and restart tests | Only reviewed receipt operations become eligible for activation. Cash, reservations, orders, fills, Telegram delivery and live trading remain under their separate gates. |
 
-The first stage is the next implementation package. Firewall-selector analysis and isolated HBA tests can be prepared independently; real staging precedes credential activation, which precedes application review wiring. This groups related checks instead of requesting another general inventory run.
+Stage 1 is complete. The read-only file-plan portion of Stage 2 is the current package; guarded backup/replacement and real rollback remain to implement and authorize after its report. Real staging precedes credential activation, which precedes application review wiring.
 
 ## Acceptance matrix for the implementation
 
@@ -80,4 +82,4 @@ Before real staging, independently compare the running cluster/database identity
 
 Access-review package: **80%**, D/I/V/R complete; findings review and owner acceptance remain pending. This is **+20 percentage points** from the last 60% checkpoint, not prediction accuracy or overall writer readiness. Full paper-first roadmap remains **12.4%**. This plan does not earn another implementation/runtime checkpoint.
 
-The current handoff runs only Stage 1 preparation as described above. It does not repeat general access collection or activate the writer. All real server changes remain separately gated.
+The current handoff reads the actual HBA file and fresh route/identity metadata without editing them. It does not repeat general firewall/access collection or activate the writer. All real server changes remain separately gated.
