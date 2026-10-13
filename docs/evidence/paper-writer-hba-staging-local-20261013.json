@@ -1,0 +1,31 @@
+{
+  "evidenceId": "E121",
+  "date": "2026-10-13",
+  "status": "HBA_STAGING_LOCALLY_VERIFIED_SPARE_PENDING",
+  "scope": "Protected file backup, exact prefix replacement, owner/group/DACL preservation, fresh database/application checks, guarded rollback and standalone file recovery; writer stays NOLOGIN.",
+  "verification": {
+    "powerShell": "5.1.26100.9444",
+    "stagingAssertions": 417,
+    "stagingRunnerScenarios": 20,
+    "recoveryRunnerScenarios": 4,
+    "stagingSuiteSeconds": 43.6110071,
+    "priorPlanRegressionAssertions": 293,
+    "restrictionRegressionAssertions": 40,
+    "restrictionSuiteSeconds": 0.8759997,
+    "allPassed": true,
+    "actualSyntheticFileAndOwnerGroupDaclOperations": true,
+    "dockerPostgresqlAdminChecksCredentialsMocked": true,
+    "powerShell7SpareRehearsalRequiredBeforeApply": true,
+    "realPostgresqlCandidateParseAndConnectionsPending": true,
+    "tests": ["Success", "Preview without apply", "Declined confirmation", "Tampered input and backup", "Wrong database", "Enabled writer", "Pre/post server drift", "Parse errors", "Wrong rule count", "Changed application route", "SQL failure and timeout", "Stopped/multiple/malformed container discovery", "Compile/copy/cleanup failure", "Concurrent content and ACL changes", "File lock", "LF and UTF8 BOM recovery", "Independent recovery and no-op/refusal"]
+  },
+  "localDatabaseContacted": false,
+  "realHbaChanged": false,
+  "firewallChanged": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "stagingPackagePercent": 60,
+  "readOnlyPlanPackagePercent": 100,
+  "fullRoadmapPercent": 12.4,
+  "limitations": ["Spare Windows permissions and PowerShell7 pending", "No effective firewall-access proof", "No writer LOGIN or money-write grant", "No automatic recovery from unknown/missing target", "Not a cross-process configuration transaction or power-loss guarantee", "Owner/group/DACL coverage does not claim audit-SACL validation"]
+}

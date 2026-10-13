@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-13 Actual file plan accepted and guarded staging implemented
+
+- E120 accepts the23.890-second spare HBA plan:10 successful subprocess steps, zero parse errors across6 existing rules, fresh application route, stable file/ACL and complete cleanup. All10 source hashes match after Windows line-ending normalization. The earlier stopped-container failure does not invalidate this successful run; its exit255 cause remains unproven.
+- Owner instruction to proceed after backup explanation closes read-only planning at100% and authorizes implementation of the next guarded file-staging package. No live change was executed on the development machine.
+- E121 implements protected original/candidate/owner-group-DACL backup, exact replacement, PostgreSQL parse/hash/rule-count and fresh connection checks, automatic owned-file rollback, and standalone interrupted-run recovery. No ignored metadata errors or delete-then-move fallback. Runtime confirm and fresh fingerprints are required; writer remains NOLOGIN, no credential creation, firewall edit or money-write grant.
+- Local417 assertions across20 staging and4 independent recovery scenarios passed in43.611s, plus293 plan and40 restriction regressions. Tests exercise real generated-file/ACL operations with DB/Docker/admin/credential calls mocked. They caught and fixed domain account-name resolution and unnecessary audit-privilege requests before handoff. PowerShell7 rehearsal and actual spare PostgreSQL checks remain mandatory; no guarantee of successful live permissions or power-loss recovery is claimed.
+- Documentation skill used to explain why each step is necessary and separate accepted planning100% from new staging60% D/I/V. Full-roadmap12.4% unchanged. Next: run the generated-file rehearsal in a separate PowerShell7 process, then explicitly confirmed staging; share one JSON and keep the private backup local.
+
 ## 2026-10-13 Preparation accepted and actual file planning implemented
 
 - E118 accepts the spare collection: 40/40 rehearsal checks, 264/264 inbound rules, 126 detailed candidates, 124 matched old identities, two missing IDs and two current candidates outside the baseline. No missing selector fields or changed matched rows; nine source hashes match. Total 56.771s, collector 54.857s, no configuration/database changes. Owner go-ahead closes preparation collection at 100%, not firewall safety or activation.

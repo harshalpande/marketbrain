@@ -4,6 +4,8 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
+2026-10-13 E120/E121: preparation collection and the separate actual-file plan are accepted at100% within their frozen scopes. The plan passed ten subprocess steps in23.890s without configuration changes. [Guarded HBA backup/staging](paper-writer-hba-staging.md) is the next bounded package; spare application and owner acceptance remain pending. No writer LOGIN, firewall change, money-write grant or execution is enabled. Full-roadmap12.4% is unchanged. Older handoffs below are historical.
+
 2026-10-13 E114: restricted writer **Stage 1 preparation 60%** (D/I/V), spare R and owner A pending. This new package excludes real staging/authentication and earns no completed parent milestone yet. E113 access review remains 80%, full roadmap 12.4%. [Run the preparation bundle](paper-writer-restricted-access-plan.md), not yesterday's general diagnostic.
 
 Current E113 update: foundation is 100%; targeted application-route/authentication/firewall review is runtime verified at 80% (60% to 80%, +20pp), with policy findings/owner acceptance pending. These are bounded packages, not the whole writer or portal. Full-roadmap 12.4% unchanged; TLS remains deferred. [Next scoped restriction plan](paper-writer-restricted-access-plan.md) is documentation only, not a server change or another test run. Older next-stage text below is historical.

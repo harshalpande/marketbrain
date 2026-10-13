@@ -1,10 +1,10 @@
 # Restricted paper writer access plan
 
-Stage 1 preparation is accepted (E118):40 rehearsal checks,264 scanned inbound rules,126 complete candidates and56.77s runtime. The owner approved moving forward after review. This closes preparation collection, not firewall effective-access approval or live staging. The next milestone is the [read-only actual authentication-file plan](paper-writer-hba-plan.md) (E119); PostgreSQL/Windows changes and LOGIN remain blocked.
+Stage 1 preparation is accepted (E118):40 rehearsal checks,264 scanned inbound rules,126 complete candidates and56.77s runtime. The read-only actual-file plan is also accepted (E120), in23.890s. Next is [guarded backup and staging](paper-writer-hba-staging.md) (E121), authorized for implementation and separately confirmed by the operator before applying on the spare. This does not authorize firewall changes or LOGIN; effective-access policy and writer activation remain separate.
 
 ## Historical preparation handoff on October 13
 
-The following collection instructions are retained as history. Do not rerun the accepted preparation bundle; use the E119 handoff above.
+The following collection instructions are retained as history. Do not rerun the accepted preparation bundle; use the current staging handoff above.
 
 E117 replaces strict saved-ID completeness with a current-rule comparison. E116's spare run successfully enumerated 264 enabled-inbound rules but stopped because two of 126 saved IDs were absent (4.03 seconds total). The separate read-only diagnostic found neither ID among all 756 ActiveStore rules in 3.38 seconds. This establishes snapshot identity drift, not why the rules disappeared or whether equivalent replacements exist.
 

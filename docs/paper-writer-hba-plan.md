@@ -1,6 +1,6 @@
 # Paper writer authentication file plan
 
-The current handoff prepares a read-only plan for the actual PostgreSQL authentication file. It does not stage or apply it. Preparation collection is accepted (E118); this new bounded package is the file-plan portion of Stage 2, not completion of live staging or writer integration.
+The read-only actual-file plan is accepted (E120): the spare run completed in 23.890 seconds with all ten subprocess steps successful, zero parse errors, stable file/permission fingerprints and cleanup complete. The owner's instruction to proceed closes this bounded package at 100%. It did not edit the file or activate the writer. Next is [guarded backup and staging](paper-writer-hba-staging.md); the instructions below describe the completed read-only stage and need not be repeated now.
 
 ## Run and review
 
@@ -37,6 +37,6 @@ Writer LOGIN, credentials, application writer activation, order/fill operations 
 
 ## Verification and progress
 
-This package freezes its scope at fresh identity/route verification, read-only actual-file plan, ACL fingerprint, drift checks, safe cleanup and one report. It excludes real backup/staging/rollback and writer activation. D10 + I30 + V20 gives60% locally verified; spare verification R20 and owner acceptance A20 remain pending. PostgreSQL/Docker calls are mocked in local tests; generated file and ACL reads exercise the local fixture path. No real service/database is run locally.
+This package freezes its scope at fresh identity/route verification, read-only actual-file plan, ACL fingerprint, drift checks, safe cleanup and one report. It excludes real backup/staging/rollback and writer activation. E120 completes spare verification R20 and owner acceptance A20, bringing D/I/V/R/A to 100%. Ten source hashes match the reviewed revision when Windows checkout line endings are accounted for. PostgreSQL/Docker calls were mocked in local tests; the accepted report supplies spare-runtime evidence.
 
 Preparation collection is100% accepted after runtime review and the owner's instruction to proceed. Full-roadmap progress remains12.4%; these package percentages are not additive and do not represent forecast accuracy.
