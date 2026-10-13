@@ -1,0 +1,51 @@
+{
+  "evidenceId": "E122",
+  "date": "2026-10-13",
+  "status": "REHEARSAL_DIAGNOSTICS_IMPLEMENTED_SPARE_CAUSE_UNCONFIRMED",
+  "spareObservation": {
+    "source": "Owner pasted console output after pulling 6058d61",
+    "failure": "HBA_STAGE_FILE_OR_ACL_DRIFT",
+    "phase": "Generated-file rehearsal before actual apply command",
+    "realHbaChangedByFailedHandoff": false,
+    "exactMismatchKnown": false
+  },
+  "changes": [
+    "One rehearsal JSON on success or caught test failure with runtime versions, source hashes, phase, counts and timing",
+    "Retain strict content and SDDL comparison; add owner/group/DACL equality, control flags, ACE counts, fingerprints and safe caller lines",
+    "Preserve mismatch details in staging and independent recovery reports",
+    "Test inherited creator-owner ACEs, inherited deny ACEs and protected DACLs",
+    "Test safe content-versus-ACL diagnostics and reduce mocked-run console noise",
+    "Pause actual apply; next handoff runs only generated-file rehearsal"
+  ],
+  "verification": {
+    "windowsPowerShellVersion": "5.1.26100.9444",
+    "windowsPowerShellAssertions": 427,
+    "windowsPowerShellSeconds": 76.5985216,
+    "powerShell7Version": "7.6.6",
+    "powerShell7Assertions": 427,
+    "powerShell7Runtime": "10.0.12",
+    "powerShell7Seconds": 328.413994,
+    "planRegressionAssertions": 293,
+    "restrictionRegressionAssertions": 40,
+    "restrictionRegressionSeconds": 1.2572578,
+    "finalLocalVariableRenameCheckedOnBothRuntimes": true,
+    "allFinalChecksPassed": true,
+    "powerShell7Source": "https://github.com/PowerShell/PowerShell/releases/tag/v7.6.6",
+    "portableArchiveSha256": "02FE458BE20493FBDF43F61EA20610B811EE6C738AB1676C61B9CFCD1A33C860",
+    "stagingRunnerScenarios": 20,
+    "recoveryRunnerScenarios": 4,
+    "databaseAndDockerMocked": true,
+    "localObservedInterruption": "An intermediate Windows PowerShell run encountered a sharing violation while setting up the intentional file-lock test. It emitted a failure report. A fresh full run passed; no retry or lock bypass was added to production operations.",
+    "spareMismatchReproduced": false,
+    "spareAdministratorPermissionContextVerified": false
+  },
+  "localDatabaseContacted": false,
+  "realHbaChanged": false,
+  "firewallChanged": false,
+  "writerActivated": false,
+  "actionExecutionEnabled": false,
+  "stagingPackagePercent": 60,
+  "repairProgressPercentagePoints": 0,
+  "fullRoadmapPercent": 12.4,
+  "next": "Review the spare rehearsal JSON before attempting actual staging. Do not claim the original failure is fixed until its cause is evidenced."
+}

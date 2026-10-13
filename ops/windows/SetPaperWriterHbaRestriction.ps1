@@ -94,6 +94,7 @@ try {
 }catch {
     $report.status='FAILED';$report.failureCode='HBA_STAGE_FAILED'
     $report.failureDetails=@{exceptionType=$_.Exception.GetType().FullName;hresult=$_.Exception.HResult;line=$_.InvocationInfo.ScriptLineNumber}
+    if($_.Exception.Data.Contains('fileState')){$report.failureDetails.fileState=$_.Exception.Data['fileState']}
     if($_.Exception.Message -cmatch '^(HBA_STAGE|HBA_PLAN|RESTRICTION|CUSTODY)_[A-Z_]+$'){$report.failureCode=$_.Exception.Message}
     if($report.rollbackFileVerified){
         try {$restored=Metadata 'METADATA_AFTER_ROLLBACK';if(($before|ConvertTo-Json -Compress) -cne ($restored|ConvertTo-Json -Compress)){throw 'HBA_STAGE_ROLLBACK_METADATA_CHANGED'};$null=Route $restored 'APPLICATION_AFTER_ROLLBACK';$report.rollbackConnectionsVerified=$true;$report.status='FAILED_ROLLED_BACK'}

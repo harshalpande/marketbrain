@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-13
 
+E122 update: the spare generated-file rehearsal failed before real HBA staging. Exact cause is unconfirmed. Safe mismatch diagnostics and additional permission-layout tests are implemented; the next handoff is rehearsal only. No runtime/owner-acceptance credit is added and repair gain is0pp. The table's E121 local-verification credit remains separate from this failed spare run.
+
 Frozen package: restricted writer Stage 1 preparation only. Scope is byte-preserving rule generation, synthetic replacement/recovery and bounded collection of missing selectors for saved firewall candidates. Real HBA staging, ACL preservation, PostgreSQL authentication and writer activation are excluded and remain required later.
 
 E118 accepts the56.77-second spare comparison:40 checks,264 scanned rules,126 full candidates, no missing fields, nine source matches. Preparation reached80% with runtime verification and100% with the owner's go-ahead after report review. Missing identities and unbaselined candidates remain policy findings, not permission to edit firewall rules. E120 now accepts E119's separately bounded read-only file-plan package after10 successful subprocess steps in23.890s and owner go-ahead. E121 freezes the next package at protected backup, exact replacement, owner/group/DACL preservation, fresh DB/application checks, rollback, independent recovery and one report. Activation and firewall changes are excluded.
@@ -30,7 +32,7 @@ E118 accepts the56.77-second spare comparison:40 checks,264 scanned rules,126 fu
 |---|---:|---:|---:|---|---|
 | Writer restriction preparation, Stage 1 | 0% | 100% | +100 | D/I/V/R/A; E118 runtime evidence and owner go-ahead | Closed for collection; policy findings carry forward |
 | Read-only actual HBA file plan, Stage 2 planning subset | 0% | 100% | +100 | D/I/V/R/A; E119/E120; [scope](paper-writer-hba-plan.md) | Closed; live staging is a distinct package |
-| Guarded actual HBA staging and recovery | 0% | 60% | +60 | D/I/V; E121,417 assertions,20 staging and4 recovery scenarios; [scope](paper-writer-hba-staging.md) | PowerShell7 rehearsal, actual spare apply/connection verification and owner acceptance |
+| Guarded actual HBA staging and recovery | 0% | 60% | +60 | D/I/V; E121; E122 adds mismatch diagnostics and ACL-layout tests; [scope](paper-writer-hba-staging.md) | Spare rehearsal mismatch unresolved; actual apply paused, connection verification and owner acceptance pending |
 | Existing targeted access review | 80% | 80% | 0 | E113 retained | Policy acceptance; no duplicate credit for yesterday's runtime |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Integrated application writer and later paper workflow gates |
 

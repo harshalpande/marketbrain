@@ -4,7 +4,7 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
-2026-10-13 E120/E121: preparation collection and the separate actual-file plan are accepted at100% within their frozen scopes. The plan passed ten subprocess steps in23.890s without configuration changes. [Guarded HBA backup/staging](paper-writer-hba-staging.md) is the next bounded package; spare application and owner acceptance remain pending. No writer LOGIN, firewall change, money-write grant or execution is enabled. Full-roadmap12.4% is unchanged. Older handoffs below are historical.
+2026-10-13 E122: spare generated-file rehearsal failed before live HBA staging. Precise drift cause remains unknown; next is the diagnostic-only [rehearsal](paper-writer-hba-staging.md#current-rehearsal-stop), not real apply. E120's preparation and file-plan acceptance are retained at100% in their separate scopes. Staging60% and full-roadmap12.4% are unchanged. No writer LOGIN, firewall change, money-write grant or execution is enabled. Older handoffs below are historical.
 
 2026-10-13 E114: restricted writer **Stage 1 preparation 60%** (D/I/V), spare R and owner A pending. This new package excludes real staging/authentication and earns no completed parent milestone yet. E113 access review remains 80%, full roadmap 12.4%. [Run the preparation bundle](paper-writer-restricted-access-plan.md), not yesterday's general diagnostic.
 

@@ -1,9 +1,19 @@
 # Offline only: generated files/ACLs; PostgreSQL, Docker, prompts and credentials mocked.
+param([string]$OutputDirectory=(Join-Path ([IO.Path]::GetTempPath()) 'MarketBrainRehearsalReports'))
 $ErrorActionPreference='Stop'
 foreach($file in @('NumericalHistoryEvidence.ps1','PaperWriterCustody.ps1','PaperWriterRestriction.ps1','PaperWriterAccessReview.ps1','PaperWriterHbaPlan.ps1','PaperWriterHbaStage.ps1')){. (Join-Path $PSScriptRoot $file)}
+$timer=[Diagnostics.Stopwatch]::StartNew()
+$reportRoot=Assert-PaperCustodyPath $OutputDirectory
+[void][IO.Directory]::CreateDirectory($reportRoot)
+$reportPath=Join-Path $reportRoot ('paper-hba-rehearsal-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,12)+'.json')
+$rehearsal=[ordered]@{status='RUNNING';powerShell=$PSVersionTable.PSVersion.ToString();runtime=[Environment]::Version.ToString();phase='SYNTHETIC_BACKUP_AND_REPLACEMENT';assertionsPassed=0;elapsedSeconds=0;failureCode=$null;failureLine=$null;fileState=$null;fixtureCleanupComplete=$false;databaseContacted=$false;realHbaChanged=$false;actionExecutionEnabled=$false;sourceHashes=@{}}
+foreach($source in @('PaperWriterHbaStage.ps1','TestPaperWriterHbaStage.ps1','SetPaperWriterHbaRestriction.ps1','RestorePaperWriterHbaRestriction.ps1')){$rehearsal.sourceHashes[$source]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $source) -Algorithm SHA256).Hash}
 $script:checks=0
 function Check([bool]$Value,[string]$Name){if(-not $Value){throw $Name};$script:checks++}
 function Denied([scriptblock]$Action,[string]$Code){$caught=$null;try{& $Action|Out-Null}catch{$caught=$_.Exception.Message};Check ($caught -ceq $Code) ('Expected '+$Code+' got '+$caught)}
+try {
+Write-Progress -Activity 'Generated-file HBA rehearsal' -Status 'File replacement and permission checks' -PercentComplete 0
+Write-Host '[0%] Generated files only. Testing backup, replacement and exact permission preservation.'
 $work=Join-Path ([IO.Path]::GetTempPath()) ('mb-hba-stage-test-'+[guid]::NewGuid().ToString('N'));[void][IO.Directory]::CreateDirectory($work)
 $hba=Join-Path $work 'pg_hba.conf';$backupRoot=Join-Path $work 'backups';$psqlPath=Join-Path $work 'psql.exe'
 $bytes=[Text.Encoding]::UTF8.GetBytes("# PRIVATE_COMMENT_SENTINEL`r`nlocal all all scram-sha-256`r`nhost all all 127.0.0.1/32 scram-sha-256`r`n")
@@ -20,6 +30,11 @@ Check ($state.postValidationPassed -and $state.hbaChanged) 'Apply success flags'
 Check ((Get-PaperHbaSddl $hba) -ceq $sddl) 'Real ACL preserved'
 Check ((Restore-PaperHbaBackup $dir) -ceq 'ORIGINAL_RESTORED') 'Manual recovery from persisted backup'
 Check ((Get-PaperHbaSddl $hba) -ceq $sddl -and (Get-PaperRestrictionHash (Read-PaperHbaBytes $hba)) -ceq $plan.originalHash) 'Original bytes and ACL restored'
+# Verify diagnostic precision without exposing original bytes, raw descriptors or account SIDs.
+$diagnostic=$null
+try{Assert-PaperHbaFileState $hba ('0'*64) $sddl 'TEST_CONTENT'}catch{$diagnostic=$_.Exception.Data['fileState']}
+Check ($diagnostic -and -not $diagnostic.contentMatches -and $diagnostic.sddlMatches -and $diagnostic.phase -ceq 'TEST_CONTENT') 'Content mismatch evidence'
+Check (($diagnostic|ConvertTo-Json -Depth 8) -notmatch 'PRIVATE_COMMENT_SENTINEL|S-1-5-|originalSddl') 'Safe content mismatch evidence'
 $state=@{};Denied {Invoke-PaperHbaTransaction $dir {throw 'TEST_POST_FAILURE'} $state} 'TEST_POST_FAILURE'
 Check ($state.rollbackFileVerified -and $state.recoveryStatus -ceq 'ORIGINAL_RESTORED') 'Automatic rollback after post-check failure'
 [IO.File]::WriteAllText($hba,'external administrator change')
@@ -38,6 +53,10 @@ Check ([IO.File]::ReadAllText($hba) -ceq 'concurrent external edit') 'Unknown co
 [IO.File]::WriteAllBytes($hba,$bytes)
 Protect-PaperHbaBackupAcl $hba
 Denied {Set-PaperHbaFileFromBackup $dir} 'HBA_STAGE_FILE_OR_ACL_DRIFT'
+$diagnostic=$null
+try{Assert-PaperHbaFileState $hba $plan.originalHash $sddl 'TEST_ACL'}catch{$diagnostic=$_.Exception.Data['fileState']}
+Check ($diagnostic -and $diagnostic.contentMatches -and -not $diagnostic.sddlMatches -and -not $diagnostic.daclMatches) 'ACL mismatch evidence'
+Check (($diagnostic|ConvertTo-Json -Depth 8) -notmatch 'PRIVATE_COMMENT_SENTINEL|S-1-5-|originalSddl') 'Safe ACL mismatch evidence'
 $originalAcl=[Security.AccessControl.FileSecurity]::new();$originalAcl.SetSecurityDescriptorSddlForm($sddl,[Security.AccessControl.AccessControlSections]'Owner,Group,Access');Set-PaperHbaAclObject $hba $originalAcl
 $lock=[IO.File]::Open($hba,'Open','Read','None')
 try{$state=@{};$failed=$false;try{Invoke-PaperHbaTransaction $dir {} $state}catch{$failed=$true};Check ($failed -and -not $state['postValidationPassed']) 'File lock prevents replacement'}finally{$lock.Dispose()}
@@ -53,7 +72,31 @@ foreach($variant in @('LF','UTF8_BOM')){
 }
 [IO.File]::WriteAllBytes($hba,$bytes)
 
+# Cover permission inheritance rather than relying only on this machine's TEMP ACL.
+foreach($aclCase in @('PROTECTED','CREATOR_OWNER','INHERITED_DENY')){
+    $rehearsal.phase='ACL_FIXTURE_'+$aclCase
+    $aclDir=Join-Path $work $aclCase;[void][IO.Directory]::CreateDirectory($aclDir)
+    $parentAcl=[Security.AccessControl.DirectorySecurity]::new();$parentAcl.SetAccessRuleProtection($true,$false)
+    $userSid=[Security.Principal.WindowsIdentity]::GetCurrent().User
+    $parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($userSid,'FullControl','ContainerInherit,ObjectInherit','None','Allow'))
+    if($aclCase -ceq 'CREATOR_OWNER'){$parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-3-0'),'FullControl','ContainerInherit,ObjectInherit','InheritOnly','Allow'))}
+    if($aclCase -ceq 'INHERITED_DENY'){$parentAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-7'),'WriteData','ObjectInherit','InheritOnly','Deny'))}
+    Set-PaperHbaAclObject $aclDir $parentAcl -Directory
+    $aclTarget=Join-Path $aclDir 'pg_hba.conf';[IO.File]::WriteAllBytes($aclTarget,$bytes)
+    if($aclCase -ceq 'PROTECTED'){Protect-PaperHbaBackupAcl $aclTarget}
+    $aclBefore=Get-PaperHbaSddl $aclTarget
+    $m=$script:base|ConvertTo-Json|ConvertFrom-Json;$m.hbaPath=$aclTarget
+    $p=Read-PaperHbaLocalPlan $m;$b=New-PaperHbaBackup $aclTarget $p $backupRoot ([Guid]::NewGuid().ToString('N'))
+    Set-PaperHbaFileFromBackup $b
+    Check ((Get-PaperHbaSddl $aclTarget) -ceq $aclBefore) ('Apply preserves '+$aclCase)
+    $null=Restore-PaperHbaBackup $b
+    Check ((Get-PaperHbaSddl $aclTarget) -ceq $aclBefore -and (Get-PaperRestrictionHash (Read-PaperHbaBytes $aclTarget)) -ceq $p.originalHash) ('Recovery preserves '+$aclCase)
+}
+
 # Exercise complete runner, including actual fixture replacement and rollback.
+$rehearsal.phase='MOCKED_STAGING_RUNNERS'
+Write-Progress -Activity 'Generated-file HBA rehearsal' -Status 'Mocked staging workflows' -PercentComplete 25
+Write-Host '[25%] File checks passed; testing mocked staging workflows.'
 $script:backupImplementation=(Get-Item Function:\New-PaperHbaBackup).ScriptBlock
 function New-PaperHbaBackup($Target,$Plan,$BackupRoot,$RunId){& $script:backupImplementation $Target $Plan (Join-Path $work 'runner-backups') $RunId}
 function Read-PaperHbaAcceptedPlan($Path){if($script:mode -ceq 'bad-input'){throw 'HBA_STAGE_EVIDENCE_HASH_MISMATCH'};[pscustomobject]@{metadata=$script:base;filePlan=$plan}}
@@ -98,8 +141,12 @@ $text=$text.Replace('Global\MarketBrainPaperHbaRestrictionV1',('Local\MarketBrai
 $runner=[scriptblock]::Create($text)
 $modes=@('pass','preview','bad-input','dirty','declined','wrong-db','enabled-writer','pre-drift','parse-error','bad-count','post-drift','post-route','sql-error','sql-timeout','no-container','two-containers','bad-container','compile-fail','copy-fail','cleanup-error')
 foreach($script:mode in $modes){
+    $rehearsal.phase='STAGING_'+$script:mode
+    $percent=25+[int](55*[array]::IndexOf($modes,$script:mode)/$modes.Count)
+    Write-Progress -Activity 'Generated-file HBA rehearsal' -Status $rehearsal.phase -PercentComplete $percent
+    Write-Host ('['+$percent+'%] Mocked staging case: '+$script:mode)
     $output=Join-Path $work $script:mode;$script:dbCalls=0;$threw=$false
-    try {& $runner -ReviewedPlanPath $bad -Apply:($script:mode -cne 'preview') -PostgreSqlBin $work -OutputDirectory $output}catch{$threw=$true}
+    try {& $runner -ReviewedPlanPath $bad -Apply:($script:mode -cne 'preview') -PostgreSqlBin $work -OutputDirectory $output 6>$null}catch{$threw=$true}
     $files=@(Get-ChildItem -LiteralPath $output -Filter '*.json');Check ($files.Count -eq 1) 'One shareable report'
     $raw=Get-Content -LiteralPath $files[0].FullName -Raw;$v=$raw|ConvertFrom-Json
     Check ($raw -notmatch 'PASSWORD_SENTINEL|PRIVATE_COMMENT_SENTINEL|originalSddl') 'No credentials or private backup content in report'
@@ -115,6 +162,9 @@ foreach($script:mode in $modes){
     Check ((Get-PaperRestrictionHash (Read-PaperHbaBytes $hba)) -ceq $plan.originalHash -and (Get-PaperHbaSddl $hba) -ceq $sddl) 'Original fixture intact at scenario end'
 }
 # Standalone crash-recovery wrapper: only fixture paths, no application or DB needed.
+$rehearsal.phase='MOCKED_RECOVERY_RUNNERS'
+Write-Progress -Activity 'Generated-file HBA rehearsal' -Status 'Mocked recovery workflows' -PercentComplete 85
+Write-Host '[85%] Testing independent recovery on generated files.'
 $recoveryText=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'RestorePaperWriterHbaRestriction.ps1') -Raw
 Check ($recoveryText.Contains('C:\\MarketBrainData\\Secrets\\PaperWriterHba\\[a-f0-9]{32}')) 'Production recovery root pinned'
 $recoveryText=$recoveryText.Replace('#Requires -Version 7.0','')
@@ -127,10 +177,12 @@ $recoveryText=$recoveryText.Replace('Global\MarketBrainPaperHbaRestrictionV1',('
 $recoveryRunner=[scriptblock]::Create($recoveryText)
 function Read-Host {param($Prompt);if($script:mode -ceq 'recovery-declined'){'NO'}else{'RESTORE ORIGINAL HBA'}}
 foreach($script:mode in @('recovery-pass','recovery-already','recovery-external','recovery-declined')){
+    $rehearsal.phase='RECOVERY_'+$script:mode
+    Write-Host ('[85%] Mocked recovery case: '+$script:mode)
     if($script:mode -ceq 'recovery-pass'){Set-PaperHbaFileFromBackup $dir}
     if($script:mode -ceq 'recovery-external'){[IO.File]::WriteAllText($hba,'unknown change')}
     $output=Join-Path $work $script:mode;$threw=$false
-    try{& $recoveryRunner -ReviewedPlanPath $bad -RecoveryDirectory $dir -OutputDirectory $output}catch{$threw=$true}
+    try{& $recoveryRunner -ReviewedPlanPath $bad -RecoveryDirectory $dir -OutputDirectory $output 6>$null}catch{$threw=$true}
     $files=@(Get-ChildItem -LiteralPath $output -Filter '*.json');Check ($files.Count -eq 1) 'One recovery report'
     $v=Get-Content -LiteralPath $files[0].FullName -Raw|ConvertFrom-Json
     if($script:mode -in @('recovery-pass','recovery-already')){Check (-not $threw -and $v.status -ceq 'ORIGINAL_FILE_VERIFIED_CONNECTION_RECHECK_REQUIRED') 'Standalone recovery success'}
@@ -143,4 +195,20 @@ foreach($file in @('PaperWriterHbaStage.ps1','SetPaperWriterHbaRestriction.ps1',
 $resolved=[IO.Path]::GetFullPath($work);$tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 if(-not $resolved.StartsWith($tempRoot,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($resolved) -notmatch '^mb-hba-stage-test-[a-f0-9]{32}$'){throw 'Unsafe fixture cleanup'}
 Remove-Item -LiteralPath $resolved -Recurse -Force
+$rehearsal.fixtureCleanupComplete=$true
+$rehearsal.status='REHEARSAL_PASSED_NO_REAL_CHANGES'
+$rehearsal.phase='COMPLETE'
 Write-Host "PASS: $script:checks HBA staging assertions; $($modes.Count) staging and 4 recovery runner scenarios; only generated files and mocked services."
+}catch {
+    $rehearsal.status='REHEARSAL_FAILED_APPLY_BLOCKED'
+    $rehearsal.failureCode='SYNTHETIC_REHEARSAL_FAILED'
+    if($_.Exception.Message -cmatch '^(HBA_STAGE|HBA_PLAN|RESTRICTION|CUSTODY)_[A-Z_]+$'){$rehearsal.failureCode=$_.Exception.Message}
+    $rehearsal.failureLine=$_.InvocationInfo.ScriptLineNumber
+    if($_.Exception.Data.Contains('fileState')){$rehearsal.fileState=$_.Exception.Data['fileState']}
+    throw
+}finally {
+    $timer.Stop();$rehearsal.elapsedSeconds=$timer.Elapsed.TotalSeconds;$rehearsal.assertionsPassed=$script:checks
+    [IO.File]::WriteAllText($reportPath,($rehearsal|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
+    Write-Progress -Activity 'Generated-file HBA rehearsal' -Completed
+    Write-Host ('[100%] '+$rehearsal.status+'; share this ONE file: '+$reportPath)
+}

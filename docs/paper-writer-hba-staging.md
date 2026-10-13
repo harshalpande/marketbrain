@@ -2,6 +2,21 @@
 
 The accepted read-only plan verified the actual PostgreSQL file and application connection on the spare laptop. This next package backs up and applies only the fixed writer restriction prefix, then verifies new connections. It does not enable writer LOGIN, create credentials, change firewall rules, rebuild the application, or enable trades.
 
+## Current rehearsal stop
+
+The spare handoff stopped with `HBA_STAGE_FILE_OR_ACL_DRIFT` inside the generated-file rehearsal, before the real staging command. The old exception did not distinguish a content mismatch from an owner, group or access-permission mismatch. Its precise cause remains unconfirmed; a successful local test is not proof that the spare issue is repaired.
+
+Run only the revised rehearsal next. It writes one `paper-hba-rehearsal-*.json` on success or a caught test failure, including runtime versions, source hashes, completed assertions, elapsed time and failure phase. Drift diagnostics compare content, owner, group, access permissions, control flags and access-rule counts without including original file contents, raw security descriptors, credentials or account SIDs. The exact permission comparison remains mandatory. Early output-directory/import failures may prevent report creation.
+
+```powershell
+& (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File '.\ops\windows\TestPaperWriterHbaStage.ps1' -OutputDirectory 'C:\MarketBrainData\Review'
+if ($LASTEXITCODE -ne 0) { throw 'Rehearsal failed. Share its JSON; do not apply the real change.' }
+```
+
+This command needs no database credentials and never opens PostgreSQL or Docker. Expected failure cases in the mocked workflows are assertions, not real configuration changes. Success is `REHEARSAL_PASSED_NO_REAL_CHANGES`. Share the summary even if it passes; actual staging stays paused until that evidence is reviewed. Failed generated fixtures remain in the unique temporary test directory for investigation. Successful fixtures are removed, while the summary is retained. No existing application data is removed.
+
+Local verification passed427 assertions on Windows PowerShell5.1 and PowerShell7.6.6, with20 mocked staging and4 recovery scenarios plus real generated-file permission checks. Elapsed times were76.599s and328.414s respectively; these are local measurements, not a spare-laptop timing guarantee. The original spare mismatch was not reproduced. Existing293 planning and40 restriction regression assertions also passed.
+
 ## Why each step is needed
 
 | Step | Purpose | Success establishes |
@@ -16,6 +31,8 @@ The accepted read-only plan verified the actual PostgreSQL file and application 
 The proposed rules allow the dedicated writer to authenticate only to `marketbrain` through IPv4 loopback, subject to its credentials and database privileges. Other database/replication and IPv4/IPv6 routes for that role are rejected. NOLOGIN remains in force, so this is not an authentication-success test or writer activation. Existing application/admin rules are retained.
 
 ## Spare laptop handoff
+
+The full apply procedure below is deferred while the rehearsal stop above is investigated. Do not append its apply command to this diagnostic retry.
 
 Use elevated PowerShell 7. Leave the existing application and PostgreSQL running. Do not edit PostgreSQL configuration, change permissions, restart services or run another staging/recovery command concurrently. A named mutex prevents overlapping instances of these scripts, not unrelated administrator tools.
 

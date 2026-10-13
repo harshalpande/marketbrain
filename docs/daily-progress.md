@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-13 Rehearsal failure isolated before live staging
+
+- E122 records the owner's `HBA_STAGE_FILE_OR_ACL_DRIFT` console failure during the generated-file rehearsal. The handoff stopped before the real PostgreSQL command; no live staging is credited. The combined exception did not reveal the mismatch, so the precise cause remains unconfirmed.
+- Added one diagnostic summary on success or caught test failure, exact failure phase and safe permission-component comparisons. Content and SDDL equality requirements remain unchanged; no inherited permission, owner, group, deny rule or protection flag is ignored. Staging/recovery reports retain those details too.
+- Expanded generated-file tests to protected ACLs, creator-owner inheritance and inherited deny entries, plus diagnostic redaction checks. Runtime compatibility is tested using an official SHA256-verified portable PowerShell7.6.6 alongside Windows PowerShell5.1; this installs no service and runs no real database, Docker or model.
+- Final suites passed427 assertions on each runtime:76.599s on5.1 and328.414s on7.6.6. Separate293 planning and40 restriction assertions passed. An intermediate5.1 run hit a sharing violation setting up the deliberate file-lock fixture; its failure summary was retained and a later full run passed. No production retry or permission bypass was introduced. The spare mismatch was not reproduced, and its elevated-account context remains unverified.
+- The next spare command runs only the rehearsal and produces one JSON. Existing apply instructions are paused pending review. The documentation skill keeps this limitation explicit in the runbook, roadmap and single architecture diagram. Staging60%, full roadmap12.4%, repair gain0pp; do not count debugging as a completed deployment.
+
 ## 2026-10-13 Actual file plan accepted and guarded staging implemented
 
 - E120 accepts the23.890-second spare HBA plan:10 successful subprocess steps, zero parse errors across6 existing rules, fresh application route, stable file/ACL and complete cleanup. All10 source hashes match after Windows line-ending normalization. The earlier stopped-container failure does not invalidate this successful run; its exit255 cause remains unproven.

@@ -48,8 +48,21 @@ function Write-PaperHbaNewFile([string]$Path,[byte[]]$Bytes) {
     try {$stream.Write($Bytes,0,$Bytes.Length);$stream.Flush($true)}finally{$stream.Dispose()}
     Protect-PaperHbaBackupAcl $Path
 }
-function Assert-PaperHbaFileState([string]$Path,[string]$Hash,[string]$Sddl) {
-    if((Get-PaperRestrictionHash (Read-PaperHbaBytes $Path)) -cne $Hash -or (Get-PaperHbaSddl $Path) -cne $Sddl){throw 'HBA_STAGE_FILE_OR_ACL_DRIFT'}
+function Assert-PaperHbaFileState([string]$Path,[string]$Hash,[string]$Sddl,[string]$Phase='FILE_STATE') {
+    $actualHash=Get-PaperRestrictionHash (Read-PaperHbaBytes $Path)
+    $actualSddl=Get-PaperHbaSddl $Path
+    if($actualHash -cne $Hash -or $actualSddl -cne $Sddl){
+        # Fingerprints and component equality only: never emit private HBA bytes or raw SIDs.
+        $expected=[Security.AccessControl.RawSecurityDescriptor]::new($Sddl)
+        $actual=[Security.AccessControl.RawSecurityDescriptor]::new($actualSddl)
+        $detail=[ordered]@{phase=$Phase;contentMatches=($actualHash -ceq $Hash);sddlMatches=($actualSddl -ceq $Sddl);ownerMatches=($expected.Owner.Value -ceq $actual.Owner.Value);groupMatches=($expected.Group.Value -ceq $actual.Group.Value);daclMatches=($expected.GetSddlForm('Access') -ceq $actual.GetSddlForm('Access'));expectedAclHash=(Get-PaperRestrictionHash ([Text.Encoding]::UTF8.GetBytes($Sddl)));actualAclHash=(Get-PaperRestrictionHash ([Text.Encoding]::UTF8.GetBytes($actualSddl)))}
+        $detail.expectedControlFlags=$expected.ControlFlags.ToString();$detail.actualControlFlags=$actual.ControlFlags.ToString()
+        $detail.expectedAceCount=$expected.DiscretionaryAcl.Count;$detail.actualAceCount=$actual.DiscretionaryAcl.Count
+        $detail.callers=@(Get-PSCallStack|Select-Object -First 6 FunctionName,ScriptLineNumber)
+        $stateError=[InvalidOperationException]::new('HBA_STAGE_FILE_OR_ACL_DRIFT')
+        $stateError.Data['fileState']=$detail
+        throw $stateError
+    }
 }
 function New-PaperHbaBackup([string]$Target,$Plan,[string]$BackupRoot,[string]$RunId) {
     if($RunId -cnotmatch '^[a-f0-9]{32}$'){throw 'HBA_STAGE_RUN_ID_INVALID'}
@@ -93,18 +106,18 @@ function Set-PaperHbaFileFromBackup([string]$Directory,[switch]$Restore) {
     $expected=if($Restore){$j.candidateHash}else{$j.originalHash}
     $desired=if($Restore){$j.originalHash}else{$j.candidateHash}
     $source=Join-Path $Directory $(if($Restore){'original.bin'}else{'candidate.bin'})
-    Assert-PaperHbaFileState $j.target $expected $j.originalSddl
+    Assert-PaperHbaFileState $j.target $expected $j.originalSddl 'BEFORE_REPLACEMENT'
     # Same parent keeps inherited ACEs comparable to the original target.
     $temp=Join-Path ([IO.Path]::GetDirectoryName($j.target)) ('.mb-hba-replace-'+[Guid]::NewGuid().ToString('N')+'.tmp')
     try {
         Write-PaperHbaNewFile $temp (Read-PaperHbaBytes $source)
         $acl=[Security.AccessControl.FileSecurity]::new();$acl.SetSecurityDescriptorSddlForm($j.originalSddl,[Security.AccessControl.AccessControlSections]'Owner,Group,Access')
         Set-PaperHbaAclObject $temp $acl
-        Assert-PaperHbaFileState $temp $desired $j.originalSddl
+        Assert-PaperHbaFileState $temp $desired $j.originalSddl 'PREPARED_TEMPORARY_FILE'
         # Last check immediately before the same-volume replacement. No delete-then-move fallback.
-        Assert-PaperHbaFileState $j.target $expected $j.originalSddl
+        Assert-PaperHbaFileState $j.target $expected $j.originalSddl 'IMMEDIATELY_BEFORE_REPLACEMENT'
         [IO.File]::Replace($temp,$j.target,[Management.Automation.Language.NullString]::Value,$false)
-        Assert-PaperHbaFileState $j.target $desired $j.originalSddl
+        Assert-PaperHbaFileState $j.target $desired $j.originalSddl 'AFTER_REPLACEMENT'
     }finally{if(Test-Path -LiteralPath $temp){$null=Assert-PaperCustodyPath $temp;Remove-Item -LiteralPath $temp}}
 }
 function Restore-PaperHbaBackup([string]$Directory) {

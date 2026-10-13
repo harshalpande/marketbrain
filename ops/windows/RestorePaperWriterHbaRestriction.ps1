@@ -29,6 +29,7 @@ try {
     $report.status='ORIGINAL_FILE_VERIFIED_CONNECTION_RECHECK_REQUIRED'
 }catch {
     $report.status='RECOVERY_REVIEW_REQUIRED';$report.failureCode='HBA_STAGE_RECOVERY_FAILED'
+    if($_.Exception.Data.Contains('fileState')){$report['fileState']=$_.Exception.Data['fileState']}
     if($_.Exception.Message -cmatch '^(HBA_STAGE|HBA_PLAN|RESTRICTION|CUSTODY)_[A-Z_]+$'){$report.failureCode=$_.Exception.Message}
 }finally {
     if($held){$mutex.ReleaseMutex()};if($mutex){$mutex.Dispose()}
