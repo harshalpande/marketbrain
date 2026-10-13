@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-13 Restricted writer preparation implemented
+
+- Resumed the accepted Stage 1 plan. E114 adds byte-preserving exact-role rule generation, source-drift/complex-layout refusal, synthetic atomic replacement/recovery checks and bounded targeted firewall-selector collection. No real HBA file is accepted as an input to the runner; no database, service restart, credential or LOGIN operation exists in this bundle.
+- One spare report embeds check names/counts/timings, source hashes, proposed block, partial selector checkpoints and explicit remaining gates. Package/interface/security selectors and current port listener identity fill specific evidence gaps without repeating the full access diagnostic or deleting old rules. Newly added firewall rules remain unassessed and external reachability remains unknown.
+- New Stage 1 package moves 0% to 60% for D/I/V only. Spare R and owner A pending; E113 remains 80%, full roadmap 12.4% unchanged. Real file identity/ACL-preserving staging and actual authentication tests follow later.
+- Verification: 40 rule/recovery assertions and 182 mocked runner/selector assertions passed in 11.81s combined; 186 existing access-contract and 216 access-runner regression assertions also passed. Local PowerShell 5.1 exercised source through the offline harness; actual PowerShell 7 child launch/Windows metadata await spare. Java/Spring code is unchanged, so Java tests were not rerun. The documentation skill kept current verified scope and pending activation gates separate.
+
 ## 2026-10-12 Access runtime verified and restriction plan prepared
 
 - E113 records successful corrected spare collection: 57.98s, 10/10 stages, 14/14 source matches, 264 inbound rules and 126 candidates. Read-only container route and administrator metadata agree; cleanup complete, zero writes/configuration changes, writer still NOLOGIN. Offline revalidation of the saved report passed without contacting runtime systems.

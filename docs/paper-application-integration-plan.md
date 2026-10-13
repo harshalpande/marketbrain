@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+E114's [restricted writer preparation](paper-writer-restricted-access-plan.md) is now implemented and locally verified at 60%. Run its single-report spare bundle to rehearse rules/recovery and collect missing firewall selectors without changing the real HBA file, logging into PostgreSQL or activating anything. E113 remains 80% pending policy acceptance. Real staging, credential custody and application review wiring remain subsequent gates.
+
 E104 NOLOGIN staging, E107 inventory and E109 foundation are accepted. E113 verifies the corrected access runtime: 10 stages, 14 matching sources, 57.98s; policy findings keep that package at 80%. Next is the [restricted writer access plan](paper-writer-restricted-access-plan.md), not another inventory run. Preserve the current app identity and shared ACLs; review writer-specific connection isolation and missing firewall selectors. TLS stays deferred; connector remains unwired. No LOGIN, credential creation or order execution follows from this plan. Older handoffs below are historical.
 
 Current E101/E102 handoff: catalog preflight accepted; proceed with [guarded NOLOGIN installation](paper-writer-installation.md), not the older preflight/recovery commands below. Administrator permission, exact existing-role TEMP preservation approval, backup and idle confirmations, rollback rehearsal and independent readback are mandatory. This stages permissions only; credentials, application review wiring and orders stay disabled.

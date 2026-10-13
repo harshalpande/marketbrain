@@ -4,6 +4,8 @@ Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Ev
 
 ## How percentages work
 
+2026-10-13 E114: restricted writer **Stage 1 preparation 60%** (D/I/V), spare R and owner A pending. This new package excludes real staging/authentication and earns no completed parent milestone yet. E113 access review remains 80%, full roadmap 12.4%. [Run the preparation bundle](paper-writer-restricted-access-plan.md), not yesterday's general diagnostic.
+
 Current E113 update: foundation is 100%; targeted application-route/authentication/firewall review is runtime verified at 80% (60% to 80%, +20pp), with policy findings/owner acceptance pending. These are bounded packages, not the whole writer or portal. Full-roadmap 12.4% unchanged; TLS remains deferred. [Next scoped restriction plan](paper-writer-restricted-access-plan.md) is documentation only, not a server change or another test run. Older next-stage text below is historical.
 
 2026-10-12: E97 recovery, E99 restricted writer, E101 preflight, E104 NOLOGIN staging and E107 connection inventory are accepted. E108 [local writer foundation](paper-writer-local-foundation.md) implements an unwired connector and synthetic custody with combined local-boundary collection. Owner-approved policy: private single laptop, TLS deferred. Foundation spare verification, actual private route, real credential handoff and application review wiring remain pending. The [daily scorecard](daily-scorecard.md) separates packages; full-goal baseline stays 12.4%. No forecast accuracy or whole G08/G09/G10 completion follows from these checks.

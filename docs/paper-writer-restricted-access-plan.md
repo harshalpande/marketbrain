@@ -1,6 +1,22 @@
 # Restricted paper writer access plan
 
-The access diagnostic has completed successfully. The next milestone is to confine the dedicated writer to the intended database while preserving the existing application connection. This is a proposed implementation and verification plan, not permission to change PostgreSQL or Windows settings or enable LOGIN.
+The access diagnostic has completed successfully. The next milestone is to confine the dedicated writer to the intended database while preserving the existing application connection. Stage 1 preparation is implemented for spare verification (E114); real staging, PostgreSQL/Windows changes and LOGIN remain blocked.
+
+## Current handoff on October 13
+
+Run `ops/windows/GetPaperWriterRestrictionPreparation.ps1` in elevated PowerShell 7 on the spare laptop, with the accepted `paper-writer-access-20261012-220331-62cb2f73e6f0.json` as `AccessReportPath`. No Docker rebuild, database password, model run or application restart is needed. The input must match E113's exact SHA256; do not regenerate yesterday's diagnostic or substitute a different file silently.
+
+Why: test the proposed writer rules and recovery behavior before editing real authentication settings, and collect previously omitted conditions for the 126 saved firewall candidates. Success produces `PREPARATION_CAPTURED_STAGING_BLOCKED` in one `paper-writer-restriction-*.json`. Share that file. It contains checks, timings, source hashes, proposed block, selector metadata, findings and failure checkpoints; no transcript or separate per-check files are needed.
+
+The bundle makes no database connection and never reads or writes the real HBA file. It creates and removes only generated synthetic test files; the evidence JSON is retained. Firewall/listener/process reads require Windows elevation, not PostgreSQL credentials. The child has a 150-second soft deadline and 180-second process limit, with a heartbeat every ten seconds. There is no automatic collection retry. Missing fields are labelled unknown; changed or missing rules are retained as findings/failure, not silently approved. Profile/listener limits and a 200-candidate cap stop excessive work.
+
+The rule generator operates on bytes in memory. It preserves UTF-8 BOM and original LF/CRLF bytes and refuses ambiguous syntax, includes, existing writer blocks, mixed line endings and source drift. The rehearsal uses a small independent policy oracle plus real file replacement/backup/recovery on generated fixtures. This is not PostgreSQL parsing or authentication proof, nor proof that real file ACLs will survive staging. Those checks belong to the separately reviewed real-staging implementation.
+
+Firewall collection targets only the saved candidate names. It records Program **and Package**, interface/type, authentication/encryption/user/machine conditions, active connection profiles and port-5432 listener process identity without process command lines. It does not evaluate newly added rules or certify external reachability. No rule is changed, disabled or deleted. Current metadata and saved route evidence are different observations; live database/cluster identity and an actual HBA hash must be re-established before staging.
+
+After report review: implement the guarded real-file plan/diff and staging workflow, with a fresh existing-application connection check and writer still NOLOGIN. Credential activation and application review integration follow separately. A passing preparation bundle does not authorize any of those operations automatically.
+
+Frozen Stage 1 package: D 10 + I 30 + V 20 = **60% locally verified**, from today's opening 0%; spare R 20 and owner A 20 remain pending. E113 access review remains 80%; full roadmap remains 12.4%. These are different scopes, not additive percentages.
 
 ## Evidence and remaining decisions
 
@@ -58,4 +74,4 @@ Before real staging, independently compare the running cluster/database identity
 
 Access-review package: **80%**, D/I/V/R complete; findings review and owner acceptance remain pending. This is **+20 percentage points** from the last 60% checkpoint, not prediction accuracy or overall writer readiness. Full paper-first roadmap remains **12.4%**. This plan does not earn another implementation/runtime checkpoint.
 
-This handoff only updates repository documentation. No Docker rebuild, administrator password or evidence recollection is needed. The next executable bundle will explain why it runs, what success proves, what it enables, its side effects and what remains blocked. Do not activate the writer from this plan alone.
+The current handoff runs only Stage 1 preparation as described above. It does not repeat general access collection or activate the writer. All real server changes remain separately gated.

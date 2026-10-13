@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E114 RESTRICTION_PREPARATION_LOCALLY_VERIFIED / SPARE_PENDING:** [local evidence](evidence/paper-writer-restriction-local-20261013.json), [handoff and frozen scope](paper-writer-restricted-access-plan.md). Stage 1 rule generation/recovery fixtures and targeted selector runner; one JSON, no real HBA read/edit, database login, credentials, firewall change or activation. Local scripts verified using synthetic files/mocked runtime. Package 60%; actual PostgreSQL parsing/authentication and real staging remain separate.
+
 - **E113 ACCESS_RUNTIME_VERIFIED / POLICY_ACCEPTANCE_PENDING:** [spare evidence](evidence/paper-writer-access-spare-verification-20261012.json), [next scoped plan](paper-writer-restricted-access-plan.md). 57.98s, 10 successful stages, 14 matching sources, 264 inbound rules/126 candidates, correlated read-only route and completed cleanup. No writer login or configuration changes. Access review 60% to 80% (+20pp), A pending; full roadmap 12.4%. Do not repeat unchanged diagnostic.
 
 - **E112 HOST_ADDRESS_VALIDATOR_REPAIRED / SPARE_RETRY_PENDING:** [repair evidence](evidence/paper-writer-address-fix-20261012.json), [handoff](paper-writer-access-review.md). Firewall and both database queries succeeded; explicit `inet::text` yielded `127.0.0.1/32` and failed plain-IP parsing. SQL now emits host text; validator accepts strict full host masks and classifies loopback semantically. 720 Java tests, 186 contract/firewall and 216 runner assertions passed. Successful admin metadata survives later validation failure. No new package-completion credit.

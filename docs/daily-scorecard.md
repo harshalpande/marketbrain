@@ -20,6 +20,18 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 Also report: full-roadmap percentage and change; new versus previously accepted tests; measured runtime; deployments; preserved cash/action restrictions; and the next achievable milestone. Estimates and unverified claims must be labelled.
 
+## Recorded progress on 2026-10-13
+
+Frozen package: restricted writer Stage 1 preparation only. Scope is byte-preserving rule generation, synthetic replacement/recovery and bounded collection of missing selectors for saved firewall candidates. Real HBA staging, ACL preservation, PostgreSQL authentication and writer activation are excluded and remain required later.
+
+| Area / bounded package | Opening % | Current % | Change (pp) | Evidence | Pending |
+|---|---:|---:|---:|---|---|
+| Writer restriction preparation, Stage 1 | 0% | 60% | +60 | D/I/V [E114](evidence/paper-writer-restriction-local-20261013.json); [handoff](paper-writer-restricted-access-plan.md) | R spare bundle, A report/owner acceptance |
+| Existing targeted access review | 80% | 80% | 0 | E113 retained | Policy acceptance; no duplicate credit for yesterday's runtime |
+| Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent checkpoint scope unchanged | Integrated application writer and later paper workflow gates |
+
+No Java/Spring runtime, database, inference or firewall mutation was tested or activated locally. New script tests use generated files and mocked runtime I/O; spare selector collection is not yet verified. Do not average these rows or describe preparation tests as prediction improvement.
+
 ## Opening position: 2026-10-12
 
 - Full paper-first roadmap: **12.4%**, unchanged. This coarse measure excludes the separately gated live-order goal and does not fully describe progress within unfinished parent checkpoints.
