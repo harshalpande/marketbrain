@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-14 Credential acceptance and bounded writer authentication
+
+- E131 accepts `paper-writer-credential-20261014-163918-bfbf37646181.json`: exact report SHA256 retained, five successful database phases, 11 source matches after Windows line-ending normalization, 24.077s total/2.884s database. Both roles remained NOLOGIN, custody matched and was retained, no account rows or actions. Owner's conditional continuation closes staging60% to100%, +40pp; full-roadmap12.4% unchanged.
+- E132 freezes the next bounded package: actual deployed connector authentication from the application container, stdin-only secret transfer, 120-second password lease, correct-secret and negative-access checks, NOLOGIN committed before session cleanup, independent readback, unchanged application access and interruption recovery in one report. No default-on bean, app rebuild, plaintext mount, credential rotation, HBA/firewall edit, Telegram publication or money/order mutation. Persistent runtime handoff and real approval remain later work.
+- Local verification includes762 Java tests (11 new probe tests), 17 mocked runner scenarios and real harmless stdin/deadline child tests. PostgreSQL/Docker are not invoked locally. Java tests validate Boot-jar class loading without Spring/Jackson, selected SQLSTATE handling, connection closure and read-only queries. PowerShell tests inject lost lease response, failed probe/revoke/drain/readback, artifact drift, failed original-app connection, failed cleanup and recovery-only execution. Exact counts/timing are retained in E132.
+- The documentation skill kept acceptance, pending runtime evidence, recovery limitations, scorecard and single architecture diagram aligned. Authentication package60% local; runtime/owner checkpoints pending, access-policy package80%, full roadmap12.4%. These are scope-delivery percentages, never prediction-accuracy estimates.
+
 ## 2026-10-14 Isolated Telegram acceptance and protected credential staging
 
 - E129 accepts the spare report: 18/18 scenarios pass, 250.791s total, 40 Windows-checkout source hashes match, no timeout, startup-readiness retries recover and all three owned containers plus network are removed. Synthetic INR100,000 and zero reserved cash/orders/fills remain intact. No application database, real Telegram, provider or model access. Owner continuation accepts this bounded package at 100%, a further +40pp from its prior D/I/V60; full-roadmap baseline remains12.4%.

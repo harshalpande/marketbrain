@@ -4,7 +4,7 @@
 
 ## Accepted foundations
 
-2026-10-14 E129/E130: the isolated Telegram bundle and owner acceptance close its bounded package at 100%. Proceed to [protected credential staging](paper-writer-credential-staging.md), not another isolated rerun. Custody and a NOLOGIN password can be staged without enabling the application writer. Actual application-route login/denial tests, rotation/revocation, policy limits and controlled Telegram publication/receipt are still required before paper execution integration.
+2026-10-14 E131/E132: credential staging is accepted at100%; do not rerun it. [Bounded authentication/revocation](paper-writer-authentication.md) now combines actual deployed-connector login, wrong-secret/other-database denial, four forbidden-read checks, NOLOGIN/session cleanup, original application-access regression and recovery in one handoff. Local package60%, spare pending. This diagnostic is not persistent application-writer activation. Runtime handoff, rotation, explicit policy limits, controlled Telegram publication/receipt and subsequent simulated execution remain required.
 
 2026-10-14 E127/E128: HBA staging is accepted and targeted network metadata is captured. The owner confirms phone usage is **Telegram only**, not the portal. Next is [default-off Telegram callback/writer wiring and its isolated verification](telegram-paper-review-integration.md), not another permission installation or phone connectivity test. This source-level bridge does not issue real credentials or publish messages. Application writer authentication/custody, controlled real Telegram round trip and later paper fills remain pending; keep Tailscale unchanged. Older handoffs below are historical.
 

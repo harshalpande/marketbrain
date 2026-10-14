@@ -1,5 +1,7 @@
 # Protected writer credential staging
 
+Accepted E131, 2026-10-14: all five database stages succeeded, 11 source hashes matched, custody verified, both roles NOLOGIN, 24.077s. Owner continuation closes this package at100%. Do not rerun Stage. Continue with [bounded application authentication and revocation](paper-writer-authentication.md); the historical staging instructions below remain for reference only.
+
 2026-10-14. The isolated Telegram/writer bundle is accepted: 18/18 checks, zero failures, 250.791 seconds, with no real Telegram calls or application database access. Its bounded package is 100% after owner acceptance (E129). Do not repeat it.
 
 The next package creates a dedicated writer credential without allowing the writer to log in. It combines protected Windows storage, fresh installed-permission checks, rollback rehearsal, narrowly scoped password staging and independent readback. This is preparation for application-route authentication, not Telegram or trading activation.

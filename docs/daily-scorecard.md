@@ -25,11 +25,12 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 | Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|
 | Default-off Telegram review wiring and isolated bundle | 0% | 100% | +100 | E128/E129; D/I/V/R/A; 18/18 spare checks, 250.791s, 40 source matches, owner accepted | Complete within isolated scope; real Telegram activation separate |
-| Protected credential staging with NOLOGIN preserved | 0% | 60% | +60 | E130; D/I/V; target-bound custody, guarded rollback/readback, offline contracts | Spare credential staging and owner acceptance; no real login yet |
+| Protected credential staging with NOLOGIN preserved | 0% | 100% | +100 | E130/E131; D/I/V/R/A; five stages, 11 source matches, 24.077s, owner conditional continuation accepted | Complete within staging scope; actual login is separate |
+| Bounded deployed-connector authentication and revocation | 0% | 60% | +60 | E132; D/I/V; temporary lease, negative access tests, durable revocation/recovery, offline verification | Spare authentication/recovery evidence and owner acceptance |
 | Existing targeted access review | 80% | 80% | 0 | E127 accepts metadata collection, not effective-access policy | Real credential/route proof; network policy finding retained; phone portal is not a gate |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent milestone criteria unchanged | Real Telegram approval integration and subsequent paper execution |
 
-The +60pp is only the new bounded source-wiring/test package. No actual application login, Telegram message, paper order or predictor improvement is credited. Maven full regression elapsed158.713s; actual fixture runtime is unknown until the spare report. The previously supplied network report took15.696s on October13; recording it today does not earn a second runtime gain. No completed package is being rerun unchanged. The documentation-only phone workflow clarification has no invented percentage denominator.
+Latest acceptance gain is +40pp for credential staging (60% to100%); the table retains its daily0% opening. The new authentication/revocation package has its own60% local checkpoint, not runtime credit. Do not add/average these different package percentages. E131 elapsed24.077s includes2.884s in five database steps; remaining time is not separately attributed. No actual writer login, Telegram message, paper order or predictor improvement is credited. E132 records offline verification; spare runtime is still unknown. No completed package is being rerun unchanged. The earlier network-report time belongs toOctober13, not today's new progress.
 
 ## Recorded progress on 2026-10-13
 

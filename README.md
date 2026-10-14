@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current handoff, 2026-10-14: [protected writer credential staging](docs/paper-writer-credential-staging.md). The isolated Telegram/writer bundle is accepted: 18/18 checks and cleanup passed. Next is protected credential creation and guarded password staging with writer/helper still NOLOGIN, rollback rehearsal and independent readback; one shareable JSON, no application restart or account writes. Application-route authentication, real Telegram delivery and paper execution remain gated. Phone approvals use Telegram, not the portal; Tailscale remains unchanged. Do not repeat accepted HBA staging or the isolated bundle. October feature reconciliation is closed (E84).
+Current handoff, 2026-10-14: [bounded writer authentication and revocation](docs/paper-writer-authentication.md). Credential staging is accepted: five successful database stages, 11 source matches, 24.077 seconds, both roles NOLOGIN. Next: one explicitly confirmed temporary login test through the existing application container, correct/wrong-secret checks, committed NOLOGIN restoration, session cleanup and recovery; one shareable JSON. No application rebuild, Telegram activation, account writes or orders. Do not repeat accepted installation, HBA or credential staging. Phone approvals use Telegram; Tailscale remains unchanged. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 
