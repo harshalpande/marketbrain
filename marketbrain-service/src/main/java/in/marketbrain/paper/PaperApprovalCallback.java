@@ -3,7 +3,7 @@ package in.marketbrain.paper;
 import java.sql.SQLException;
 import java.util.Objects;
 
-/** Trusted long-poll adapter only. Deliberately not registered as a runtime bean yet. */
+/** Trusted long-poll adapter only. Registered only by explicit, default-off review configuration. */
 public final class PaperApprovalCallback {
     private final PaperApprovalReview review;
     public PaperApprovalCallback(PaperApprovalReview review){this.review=Objects.requireNonNull(review);}

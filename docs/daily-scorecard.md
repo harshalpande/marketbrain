@@ -20,6 +20,16 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 Also report: full-roadmap percentage and change; new versus previously accepted tests; measured runtime; deployments; preserved cash/action restrictions; and the next achievable milestone. Estimates and unverified claims must be labelled.
 
+## Recorded progress on 2026-10-14
+
+| Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |
+|---|---:|---:|---:|---|---|
+| Default-off Telegram review wiring and isolated bundle | 0% | 60% | +60 | E128; D/I/V; 751 Java tests and mocked PowerShell workflow | 18-scenario spare database run, then review/owner acceptance |
+| Existing targeted access review | 80% | 80% | 0 | E127 accepts metadata collection, not effective-access policy | Real credential/route proof; network policy finding retained; phone portal is not a gate |
+| Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent milestone criteria unchanged | Real Telegram approval integration and subsequent paper execution |
+
+The +60pp is only the new bounded source-wiring/test package. No actual application login, Telegram message, paper order or predictor improvement is credited. Maven full regression elapsed158.713s; actual fixture runtime is unknown until the spare report. The previously supplied network report took15.696s on October13; recording it today does not earn a second runtime gain. No completed package is being rerun unchanged. The documentation-only phone workflow clarification has no invented percentage denominator.
+
 ## Recorded progress on 2026-10-13
 
 E125 accepts actual spare staging: 13/13 subprocesses, 11 matching source hashes, zero parse errors, four added rules, preserved application access and completed diagnostic cleanup. Runtime review moved staging 60% to 80%; the owner's go-ahead closes acceptance at 100% (+40pp since the previous handoff). No real rollback was needed. Total 2447.284s includes 15.521s measured subprocess time; remaining time is not separately attributed. E126's narrow read-only network follow-up is part of outstanding access findings, not a new percentage package. Its 222 offline assertions pass; spare review is pending. Earlier entries below are historical.

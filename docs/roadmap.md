@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-14 E127/E128: phone interaction is Telegram only; smartphone portal access is removed from the critical path. [Default-off Telegram review wiring](telegram-paper-review-integration.md) is locally verified; its frozen package is D/I/V 60%, with isolated spare R and owner A pending. Application credential custody/route proof, real message/callback receipt, paper execution and predictor validation remain separate unfinished work. Network metadata collection is captured, but access-policy acceptance remains 80%; no Tailscale uninstall/firewall edit is authorized by this handoff. Full-roadmap baseline remains 12.4%, with no predictor-performance gain claimed. Earlier handoffs below are historical.
+
 Baseline: MB-PLAN-2026-09-18-V2. Authority: [documentation index](README.md). Evidence: [register](evidence-register.md). Daily changes: [progress log](daily-progress.md). PG1 is the complete intelligence/eventual live product; PG2 is its mandatory paper-first deployment. Goal IDs remain stable when scope is corrected.
 
 ## How percentages work

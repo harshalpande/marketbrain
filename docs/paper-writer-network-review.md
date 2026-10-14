@@ -1,5 +1,7 @@
 # Targeted paper writer network review
 
+**Captured, E127 (reviewed 2026-10-14):** the 2026-10-13 spare report completed in 15.696s with six source hashes matching Windows CRLF checkout bytes. Both unchanged broad rules map to the Tailscale interface. No configuration changed. Do not repeat this collector merely to pursue phone portal access: the owner uses Telegram only on the phone. External reachability/VPN ACLs remain unproven, and effective-access policy is not marked complete. Next is [isolated Telegram/writer integration](telegram-paper-review-integration.md); real credential activation remains gated. The older next-script text below is historical.
+
 HBA staging is accepted at 100% within its bounded scope (E125): the four writer rules were applied, PostgreSQL reported zero parse errors, and a fresh application connection succeeded. The writer remains NOLOGIN. **Do not rerun Apply, remove the private backup or restart the service for this step.**
 
 The remaining access review concerns two broad firewall allow entries in the saved restriction report. They permit Any program/service, Any protocol/port and Any remote address, limited to particular local IPv4/IPv6 addresses and Domain/Private profiles. The report does not identify the adapters owning those addresses. Do not infer a public exposure, Tailscale ownership or safe exclusion from the address strings alone.

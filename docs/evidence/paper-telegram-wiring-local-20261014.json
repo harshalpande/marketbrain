@@ -1,0 +1,62 @@
+{
+  "evidenceId": "E128",
+  "date": "2026-10-14",
+  "status": "LOCAL_VERIFIED_SPARE_PENDING",
+  "baseRevision": "431c9238c15538cfe63a5c81b5c9cf41821e44f9",
+  "scope": "Default-off Telegram callback to restricted writer wiring and isolated authentication/callback/restart bundle",
+  "java": {
+    "command": "mvn -q test",
+    "tests": 751,
+    "newTests": 31,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsedSeconds": 158.7134332,
+    "runtime": "OpenLogic JDK 22, Java 21 compilation target",
+    "externalServices": "Mocks only; no application or fixture database started locally"
+  },
+  "powershell": {
+    "script": "ops/windows/TestPaperTelegramWorkflow.ps1",
+    "runtime": "Windows PowerShell 5.1",
+    "assertions": 115,
+    "newAssertions": 59,
+    "elapsedSeconds": 51.1662577,
+    "docker": "All calls replaced in memory; includes deliberate failure scenarios",
+    "sparePowerShell7": "Pending"
+  },
+  "spareBundle": {
+    "command": "TestPaperPersistenceBundle.ps1 -TelegramReview",
+    "databaseMajor": 18,
+    "prepareChecks": 15,
+    "restartChecks": 3,
+    "executedLocally": false,
+    "expectedStatus": "ISOLATED_TELEGRAM_WIRING_PASSED_ACTIVATION_PENDING",
+    "realTelegramVerified": false,
+    "fixtureTransport": "Synthetic quotes and identities; no Telegram or provider API calls"
+  },
+  "sharedRunnerRegression": {
+    "script": "ops/windows/TestPaperWriterWorkflow.ps1",
+    "assertions": 93,
+    "includesSharedPersistenceAssertions": true,
+    "doNotAddToTelegramSuiteAsIndependentCount": true,
+    "result": "PASS"
+  },
+  "applicationDeployed": false,
+  "applicationWriterActivated": false,
+  "realCredentialsCreated": false,
+  "databaseConfigurationChanged": false,
+  "tailscaleChanged": false,
+  "firewallChanged": false,
+  "actionExecutionEnabled": false,
+  "modelCalls": 0,
+  "packageCompletionPercent": 60,
+  "fullRoadmapPercent": 12.4,
+  "remaining": [
+    "Spare isolated database verification and owner acceptance",
+    "Real writer credential custody, revocation and application-route authentication proof",
+    "Approved versioned review limits",
+    "Controlled Telegram proposal publication, delivery reconciliation and callback receipt",
+    "Durable outcome notifications",
+    "Paper risk, reservations, fills, fees and P&L integration"
+  ]
+}

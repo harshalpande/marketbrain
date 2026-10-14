@@ -7,7 +7,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 
-/** Candidate only: no Spring registration, environment binding or automatic activation.
+/** Dedicated connector: no automatic activation or general datasource fallback.
+ * The default-off Telegram review configuration may explicitly construct it after deployment review.
  * Owns a dedicated connection, never the general application datasource.
  * Private route/HBA review and credential provisioning require separate acceptance.
  */

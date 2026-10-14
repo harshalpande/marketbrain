@@ -2,6 +2,8 @@
 
 ## Current application integration boundary
 
+2026-10-14 E127/E128: [Telegram-first review wiring](telegram-paper-review-integration.md) supersedes the phone-portal dependency. The phone uses Telegram only; the laptop portal is for account/history/report review. `PaperTelegramReviewConfiguration` registers the callback only after explicit opt-in with a dedicated credential file, fixed writer identity and full policy; default application/Compose configuration is unchanged. General datasource use is restricted to instrument-key lookup, not review writes. No publisher/dispatch worker, money writer or execution API is registered. An 18-case isolated fixture verifies authentication, callbacks, denied writes and restart recovery; real application credentials and live transport still require acceptance. Tailscale is unchanged and optional, not an approval prerequisite. E127 records interface mappings, not external-access certification. Historical statements that no callback bean configuration exists are superseded only at source level; no real deployment is claimed.
+
 E114 implements [Stage 1 restriction preparation](paper-writer-restricted-access-plan.md): a pure byte-based generator plus synthetic recovery fixtures and a bounded read-only selector collector. No Spring bean, datasource, migration, worker or API changed. The existing application connection remains untouched. Saved evidence drives the proposal, not a claim of current database identity; real staging and credential activation are still blocked pending their verification gates.
 
 E113 verifies the [access review](paper-writer-access-review.md) runtime: read-only application-container route and administrator metadata correlate, 10 stages succeed and cleanup completes. Policy acceptance remains pending at 80%. The [restricted access plan](paper-writer-restricted-access-plan.md) proposes exact-writer authentication isolation without global PUBLIC revokes, plus targeted review of missing firewall conditions. HBA denial is not ACL removal. No LOGIN, real credential, Spring wiring or server-policy changes are authorized by the plan. TLS remains deferred; collection does not certify external reachability. Older handoffs below are historical.
@@ -227,7 +229,7 @@ All limits must be approved/versioned before the trial; runtime switches cannot 
 
 ## Operations, security and evidence
 
-Private access and operator identity must be verified before exposing approval endpoints. Tailscale/private access is the starting access boundary to review; it does not replace application authorization, session protection or TLS where required. Do not open public ports as a side effect of this documentation.
+Operator identity must be verified for approvals. The owner's phone workflow uses private Telegram buttons retrieved by outbound polling, not browser approval endpoints. Smartphone portal access and Tailscale are not prerequisites. Keep the laptop portal private; any future remote portal access needs its own authentication/session/network review. Existing Tailscale installation and firewall rules remain unchanged pending a separate dependency/removal decision. Do not open public ports or expose PostgreSQL to the phone.
 
 Telegram is the intended durable unattended approval channel. WhatsApp sandbox capability is not production readiness; production setup/template permissions require separate evidence. WhatsApp failure must not block or duplicate Telegram. Secrets stay outside Git, responses, screenshots and exported evidence.
 

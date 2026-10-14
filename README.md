@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current implementation: [paper account integration plan](docs/paper-application-integration-plan.md). Storage/key attachment, synthetic recovery, the restricted writer candidate (26/26, E99) and catalog preflight (E101) are accepted. Next: [guarded writer permission installation](docs/paper-writer-installation.md), preserving approved existing TEMP access and staging NOLOGIN roles after rollback rehearsal. One JSON; no application restart, usable writer credential or trading activation. Real review transport and paper execution remain gated. October feature reconciliation is closed (E84).
+Current handoff, 2026-10-14: [Telegram-first paper review wiring](docs/telegram-paper-review-integration.md). Phone approvals use Telegram; smartphone portal access and Tailscale are not prerequisites. HBA staging is accepted and the targeted network report is captured; do not repeat installation or staging. New default-off callback/writer wiring has offline verification and an 18-scenario isolated spare bundle, with one shareable JSON. No application restart, real credential activation, message, quote or order occurs in this handoff. Real writer custody/route proof, Telegram delivery and paper execution remain gated. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 
