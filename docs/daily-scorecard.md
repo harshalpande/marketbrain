@@ -20,6 +20,16 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 Also report: full-roadmap percentage and change; new versus previously accepted tests; measured runtime; deployments; preserved cash/action restrictions; and the next achievable milestone. Estimates and unverified claims must be labelled.
 
+## Recorded progress on 2026-10-15
+
+| Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |
+|---|---:|---:|---:|---|---|
+| Runtime custody, approved policy and locked callback handling | 0% | 60% | +60 | E134; D/I/V;779 Java tests and112 offline PowerShell assertions | R20/A20: isolated spare handoff/restart evidence and owner acceptance |
+| Existing effective-access review | 80% | 80% | 0 | Earlier accepted collection, policy findings retained | Separate effective-access acceptance |
+| Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent criteria unchanged | Actual review integration, subsequent execution and pilot |
+
+This package excludes actual publication privileges, real credential unlock/deployment, Telegram round-trip receipts and accounting reconciliation. Its18 Linux checks are authored, not runtime-passed. These next gates are not hidden inside the remaining40% of this smaller package. Authentication100% was already accepted onOctober14 and is not counted again. No new prediction-quality number is available. See the [handoff](paper-runtime-credential-handoff.md).
+
 ## Recorded progress on 2026-10-14
 
 | Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |

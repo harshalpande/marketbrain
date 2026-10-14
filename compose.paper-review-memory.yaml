@@ -1,0 +1,24 @@
+# Candidate overlay only. Requires accepted fixture evidence and the guarded activation handoff.
+# Always combine with compose.yaml AND compose.paper-storage.yaml; never replace existing storage/key mounts.
+# This does not enable database LOGIN or publish any proposals.
+services:
+  marketbrain-service:
+    environment:
+      MARKETBRAIN_PAPER_REVIEW_ENABLED: "true"
+      MARKETBRAIN_PAPER_REVIEW_ACTIVATION: REVIEW_ONLY
+      MARKETBRAIN_PAPER_REVIEW_TRANSPORT: PRIVATE_SAME_MACHINE
+      MARKETBRAIN_PAPER_REVIEW_CREDENTIAL_MODE: PROCESS_MEMORY
+      MARKETBRAIN_PAPER_REVIEW_HOST: host.docker.internal
+      MARKETBRAIN_PAPER_REVIEW_PORT: "5432"
+      MARKETBRAIN_PAPER_REVIEW_DATABASE: marketbrain
+      MARKETBRAIN_PAPER_REVIEW_DATABASE_OID: ${MARKETBRAIN_PAPER_REVIEW_DATABASE_OID:?Use reviewed target identity}
+      MARKETBRAIN_PAPER_REVIEW_POLICY_ID: PAPER_TELEGRAM_TEST_100S_V1
+      MARKETBRAIN_PAPER_REVIEW_MAX_QUOTE_AGE_MILLIS: "15000"
+      MARKETBRAIN_PAPER_REVIEW_MAX_SLIPPAGE_BPS: "50"
+      MARKETBRAIN_PAPER_REVIEW_MAX_QUANTITY: "1"
+      MARKETBRAIN_PAPER_REVIEW_MAX_ORDER_NOTIONAL_PAISE: "500000"
+      MARKETBRAIN_PAPER_REVIEW_MAX_APPROVALS: "2"
+      MARKETBRAIN_PAPER_REVIEW_MAX_FILLS: "1"
+      MARKETBRAIN_PAPER_REVIEW_MAX_PROPOSAL_LIFETIME_SECONDS: "100"
+    tmpfs:
+      - /run/marketbrain-writer:rw,noexec,nosuid,nodev,size=65536,mode=0700,uid=0,gid=0

@@ -110,6 +110,7 @@ class TelegramUpdateHandler {
             if(paperApproval==null){client.answerCallback(callback.callbackId(),"PAPER approval integration is not enabled. No trade created.",true);return;}
             String message;
             try {message=paperApproval.handle(callback.callbackId(),callback.userId(),callback.chatId(),callback.chatType(),callback.data());}
+            catch(in.marketbrain.paper.PaperRuntimeCredential.Locked locked){message="PAPER review is locked. This click was not processed. Retry after local unlock if the proposal is still valid. No trade created.";}
             catch(IllegalArgumentException invalid){message="Invalid or unauthorized PAPER proposal. No trade created.";}
             catch(java.sql.SQLException unavailable){throw new IllegalStateException("PAPER review temporarily unavailable; callback not acknowledged.");}
             client.answerCallback(callback.callbackId(),message,true);return;

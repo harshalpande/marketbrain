@@ -4,6 +4,8 @@
 
 ## Accepted foundations
 
+2026-10-15 E134: owner-approved policy and restart custody are implemented and locally verified; the [isolated synthetic handoff](paper-runtime-credential-handoff.md) is next. Package60%, spare pending. Do not deploy the candidate memory overlay yet. Actual local unlock/application rollout, bounded proposal publication, durable private Telegram outcomes and accounting reconciliation follow; no money/order authority is added. Earlier policy-choice questions below are resolved, not repeated.
+
 2026-10-14 E133: deployed authentication/revocation is accepted at100%; do not repeat it. No persistent worker is active. Follow the [runtime review implementation sequence](paper-runtime-review-plan.md): decide restart custody and test limits, then verify bounded publication, private Telegram receipts and unchanged accounting. These unresolved choices block activation, not the already completed authentication milestone.
 
 2026-10-14 E131/E132: credential staging is accepted at100%; do not rerun it. [Bounded authentication/revocation](paper-writer-authentication.md) now combines actual deployed-connector login, wrong-secret/other-database denial, four forbidden-read checks, NOLOGIN/session cleanup, original application-access regression and recovery in one handoff. Local package60%, spare pending. This diagnostic is not persistent application-writer activation. Runtime handoff, rotation, explicit policy limits, controlled Telegram publication/receipt and subsequent simulated execution remain required.

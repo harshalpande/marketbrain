@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-10-15 Approved runtime custody and policy implementation
+
+- E134 records owner-approved100-second expiry,15-second quote age,50bps slippage, quantity1,500000paise notional and Windows protected custody with local unlock after restart. This is review-only. Policy answers are settled; publication authority and real runtime integration remain separate.
+- Implemented clearable process-memory credentials, private owner-only Unix socket, stdin-only helper, explicit lock/unlock/status, immutable unlocked credential, locked restart and exact versioned policy validation. Locked Telegram clicks explicitly report not processed and require retry after unlock; no false ACCEPT/REJECT receipt. Existing daily notification and SQL-failure paths retain regression coverage. Lock does not revoke in-flight sessions; no password-file or public unlock endpoint added.
+- Local full suite779 tests/153 suites passes with zero failures/errors/skips.112 PowerShell assertions include eight mocked full-runner success/failure paths, real harmless stdin/deadline checks and JSON integer compatibility. Restart evidence requires a fresh per-JVM boot ID, preventing old log reuse.18 Linux fixture checks are authored, not locally executed. No actual deployment, database, credential, Docker/model runtime or Telegram call occurred locally.
+- The [one-report spare bundle](paper-runtime-credential-handoff.md) verifies synthetic DPAPI handoff, Linux Spring startup, lock/replay/restart and owned-fixture cleanup. Existing application is untouched. Success enables review for guarded real deployment/unlock and later restricted proposal/receipt integration; it does not itself activate them.
+- Frozen package0% to60% (D10/I30/V20); R20/A20 await spare evidence/owner acceptance. Roadmap12.4% and access-policy80% unchanged. Documentation skill kept scope, current handoff, evidence, scorecard and architecture consistent; no predictor-performance claim.
+
 ## 2026-10-14 Authentication accepted and next activation decisions
 
 - E133 records the reviewed deployment/authentication pair:12/12 isolated storage checks,19/19 authentication steps,3/3 probes and17/17 source fingerprints. Reports agree apart from equivalent UTC timestamp formatting. The missing-connector deployment problem is resolved. Deployment365.718s includes fixture175.721s; authentication adds57.009s. No rerun needed.

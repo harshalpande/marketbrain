@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-**Latest E133, 2026-10-14:** deployed writer authentication is accepted; NOLOGIN restored and account preserved. Do not rerun the historical handoff below. Next: [runtime credential and Telegram review plan](docs/paper-runtime-review-plan.md), awaiting test-policy and restart/unlock decisions before activation.
+**Latest E134, 2026-10-15:** approved100-second policy and explicit restart unlock are implemented and locally verified. Run the [single isolated credential/policy bundle](docs/paper-runtime-credential-handoff.md) next: synthetic Windows DPAPI-to-Java handoff, lock/restart checks, one JSON. No real credential, application rebuild/restart, database or Telegram call. Local package60%; spare verification pending. E133 authentication remains accepted; older handoffs below are historical and must not be rerun. Actual publication/activation and trading remain off.
 
 Current handoff, 2026-10-14: [bounded writer authentication and revocation](docs/paper-writer-authentication.md). Credential staging is accepted: five successful database stages, 11 source matches, 24.077 seconds, both roles NOLOGIN. Next: one explicitly confirmed temporary login test through the existing application container, correct/wrong-secret checks, committed NOLOGIN restoration, session cleanup and recovery; one shareable JSON. No application rebuild, Telegram activation, account writes or orders. Do not repeat accepted installation, HBA or credential staging. Phone approvals use Telegram; Tailscale remains unchanged. October feature reconciliation is closed (E84).
 

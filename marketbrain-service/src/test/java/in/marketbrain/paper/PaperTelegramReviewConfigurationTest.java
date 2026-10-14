@@ -44,6 +44,29 @@ class PaperTelegramReviewConfigurationTest {
             verifyNoInteractions(source);
         });
     }
+    @Test void memorySettingAloneCannotActivateDisabledReview() {
+        context(app("PAPER",true,true)).withPropertyValues("marketbrain.paper.review.credential-mode=PROCESS_MEMORY").run(c->{
+            assertThat(c).hasNotFailed().doesNotHaveBean(PaperRuntimeCredential.class).doesNotHaveBean(PaperRuntimeControlServer.class);
+            verifyNoInteractions(source);
+        });
+    }
+    @Test void memoryPolicyRequiresExactApprovedValuesAndNoPasswordFile() {
+        var env=new org.springframework.mock.env.MockEnvironment();
+        PaperRuntimeReviewVerification.properties().forEach((k,v)->env.setProperty(k,v.toString()));
+        var config=new PaperTelegramReviewConfiguration();
+        var accepted=config.paperReviewSettings(env,app("PAPER",true,true));
+        assertTrue(accepted.processMemory());assertNull(accepted.credentialFile());
+        PaperReviewTestPolicy.requireExact(accepted.policy());
+        for(String field:List.of("policy-id","max-quote-age-millis","max-slippage-bps","max-quantity","max-order-notional-paise","max-proposal-lifetime-seconds")){
+            var bad=new org.springframework.mock.env.MockEnvironment();
+            PaperRuntimeReviewVerification.properties().forEach((k,v)->bad.setProperty(k,v.toString()));
+            bad.setProperty("marketbrain.paper.review."+field,field.equals("policy-id")?"OTHER":"999");
+            assertThrows(IllegalStateException.class,()->config.paperReviewSettings(bad,app("PAPER",true,true)));
+        }
+        env.setProperty("marketbrain.paper.review.credential-file",directory.resolve("unused").toString());
+        assertThrows(IllegalStateException.class,()->config.paperReviewSettings(env,app("PAPER",true,true)));
+        verifyNoInteractions(source);
+    }
     @Test void explicitOptInConstructsOnlyReviewCallbackWithoutDatabaseCalls() throws Exception {
         context(app("PAPER", true, true)).withPropertyValues(settings()).run(c -> {
             assertThat(c).hasNotFailed().hasSingleBean(PaperApprovalCallback.class).hasSingleBean(DataSource.class);

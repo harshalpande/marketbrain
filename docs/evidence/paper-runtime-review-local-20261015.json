@@ -1,0 +1,24 @@
+{
+  "evidenceId": "E134",
+  "date": "2026-10-15",
+  "status": "LOCAL_VERIFIED_SPARE_PENDING",
+  "baselineRevision": "91fb424",
+  "scope": "Runtime credential custody, approved review policy, locked callback behavior and isolated spare verifier; no actual deployment or publisher",
+  "policy": {"id": "PAPER_TELEGRAM_TEST_100S_V1", "lifetimeSeconds": 100, "quoteAgeMillis": 15000, "slippageBps": 50, "quantity": 1, "maxNotionalPaise": 500000},
+  "localVerification": {
+    "javaTests": 779, "javaSuites": 153, "failures": 0, "errors": 0, "skipped": 0,
+    "powerShellAssertions": 112, "mockedRunnerScenarios": 8,
+    "linuxFixtureChecksAuthoredNotExecutedLocally": 18,
+    "commands": ["mvn -q test", "pwsh -NoProfile -File ops/windows/TestPaperRuntimeReviewWorkflow.ps1"]
+  },
+  "checkpoints": {"design": 10, "implementation": 30, "offlineVerification": 20, "spareVerification": 0, "ownerAcceptance": 0},
+  "boundedPackagePercent": 60,
+  "fullRoadmapPercent": 12.4,
+  "realCredentialRead": false,
+  "applicationDatabaseAccessed": false,
+  "localDockerRun": false,
+  "actualDeploymentPerformed": false,
+  "realTelegramVerified": false,
+  "actionExecutionEnabled": false,
+  "remaining": ["Isolated Linux/DPAPI spare evidence and acceptance", "Guarded actual deployment and real credential unlock", "Restricted publication and durable real Telegram round trip", "Independent account reconciliation", "Existing effective-access findings", "Later paper execution and numerical validation"]
+}

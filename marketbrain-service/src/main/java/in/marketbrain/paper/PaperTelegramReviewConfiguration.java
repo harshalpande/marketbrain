@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.time.*;
 import java.util.Arrays;
+import org.springframework.beans.factory.ObjectProvider;
 
 /** Default off. Enabling requires separately reviewed credential, route and policy deployment.
  * No Tailscale, browser access or public webhook is required. No publisher or order executor is registered here.
@@ -16,7 +17,8 @@ import java.util.Arrays;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(prefix = "marketbrain.paper.review", name = "enabled", havingValue = "true")
 public class PaperTelegramReviewConfiguration {
-    record Settings(PaperWriterConnector.Target target, Path credentialFile, PaperApprovalReview.PolicyVersion policy) {}
+    record Settings(PaperWriterConnector.Target target, Path credentialFile, PaperApprovalReview.PolicyVersion policy,
+                    boolean processMemory) {}
 
     @Bean Settings paperReviewSettings(Environment environment, MarketBrainProperties app) {
         try {
@@ -28,20 +30,39 @@ public class PaperTelegramReviewConfiguration {
             var target = new PaperWriterConnector.Target(required(environment, "host"),
                     Integer.parseInt(required(environment, "port")), required(environment, "database"),
                     Long.parseLong(required(environment, "database-oid")), PaperWriterConnector.Transport.PRIVATE_SAME_MACHINE, null);
-            var path = Path.of(required(environment, "credential-file"));
-            // Fail an explicit opt-in before polling if the mount is missing/malformed. No DB connection here.
-            char[] credential = PaperReviewWiring.readCredential(path);
-            Arrays.fill(credential, '\0');
+            String mode = environment.getProperty("marketbrain.paper.review.credential-mode", "FILE");
+            if (!java.util.Set.of("FILE", "PROCESS_MEMORY").contains(mode)) throw new IllegalArgumentException();
+            boolean memory = mode.equals("PROCESS_MEMORY");
+            Path path = null;
+            if (memory) {
+                if (environment.getProperty("marketbrain.paper.review.credential-file") != null)
+                    throw new IllegalArgumentException(); // Never silently fall back to a password file.
+            } else {
+                path = Path.of(required(environment, "credential-file"));
+                char[] credential = PaperReviewWiring.readCredential(path);
+                Arrays.fill(credential, '\0');
+            }
             var limits = new PaperAccountEngineering.Policy(number(environment, "max-quote-age-millis"),
                     Math.toIntExact(number(environment, "max-slippage-bps")), number(environment, "max-quantity"),
                     number(environment, "max-order-notional-paise"), Math.toIntExact(number(environment, "max-approvals")),
                     Math.toIntExact(number(environment, "max-fills")));
             var policy = new PaperApprovalReview.PolicyVersion(required(environment, "policy-id"), "UPSTOX", limits,
                     Duration.ofSeconds(number(environment, "max-proposal-lifetime-seconds")));
-            return new Settings(target, path, policy);
+            if (memory) PaperReviewTestPolicy.requireExact(policy);
+            return new Settings(target, path, policy, memory);
         } catch (Exception invalid) {
             throw new IllegalStateException("Paper Telegram review opt-in configuration is incomplete or invalid; no review activated");
         }
+    }
+
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "marketbrain.paper.review", name = "credential-mode", havingValue = "PROCESS_MEMORY")
+    PaperRuntimeCredential paperRuntimeCredential(Settings settings) { return new PaperRuntimeCredential(); }
+
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "marketbrain.paper.review", name = "credential-mode", havingValue = "PROCESS_MEMORY")
+    PaperRuntimeControlServer paperRuntimeControlServer(PaperRuntimeCredential credential) throws java.io.IOException {
+        return new PaperRuntimeControlServer(credential, PaperRuntimeControl.DIRECTORY);
     }
 
     @Bean(destroyMethod = "close") PaperApprovalHttp.BoundedTransport paperReviewTransport(Settings settings) {
@@ -49,12 +70,18 @@ public class PaperTelegramReviewConfiguration {
     }
 
     @Bean PaperApprovalCallback paperApprovalCallback(Settings settings, PaperApprovalHttp.BoundedTransport transport,
-            MarketBrainProperties app, DataSource applicationReadSource) {
+            MarketBrainProperties app, DataSource applicationReadSource, ObjectProvider<PaperRuntimeCredential> runtime) {
         Clock clock = Clock.systemUTC();
         // General datasource is used ONLY for the existing read-only instrument-key lookup, never review writes.
         var quotes = PaperApprovalHttp.upstox(transport,
                 PaperApprovalHttp.jdbcInstrumentKeys(applicationReadSource::getConnection),
                 () -> app.upstox().analyticsToken(), clock);
+        if (settings.processMemory()) {
+            PaperRuntimeCredential credential = runtime.getObject();
+            var connector = new PaperWriterConnector(settings.target(), credential, true);
+            return new PaperApprovalCallback(PaperApprovalReview.restrictedWriter(connector, quotes, clock, settings.policy()),
+                    credential::ready);
+        }
         return PaperReviewWiring.callback(settings.target(), settings.credentialFile(), quotes, clock, settings.policy());
     }
 
