@@ -24,7 +24,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 | Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|
-| Default-off Telegram review wiring and isolated bundle | 0% | 60% | +60 | E128; D/I/V; 751 Java tests and mocked PowerShell workflow | 18-scenario spare database run, then review/owner acceptance |
+| Default-off Telegram review wiring and isolated bundle | 0% | 100% | +100 | E128/E129; D/I/V/R/A; 18/18 spare checks, 250.791s, 40 source matches, owner accepted | Complete within isolated scope; real Telegram activation separate |
+| Protected credential staging with NOLOGIN preserved | 0% | 60% | +60 | E130; D/I/V; target-bound custody, guarded rollback/readback, offline contracts | Spare credential staging and owner acceptance; no real login yet |
 | Existing targeted access review | 80% | 80% | 0 | E127 accepts metadata collection, not effective-access policy | Real credential/route proof; network policy finding retained; phone portal is not a gate |
 | Full paper-first roadmap | 12.4% | 12.4% | 0 | Parent milestone criteria unchanged | Real Telegram approval integration and subsequent paper execution |
 

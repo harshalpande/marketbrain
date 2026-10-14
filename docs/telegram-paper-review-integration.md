@@ -1,5 +1,7 @@
 # Telegram first paper review integration
 
+**Accepted E129, 2026-10-14:** spare verification passed all 18 checks in 250.791 seconds; all 40 source hashes match the Windows checkout, test resources were cleaned up and the owner accepted this bounded milestone. Package 100%; real writer activation and Telegram round trip remain pending. Do not rerun the isolated bundle. Current handoff: [protected writer credential staging](paper-writer-credential-staging.md).
+
 2026-10-14. Phone interaction is **Telegram only**: receive a BUY/SELL proposal, ACCEPT or REJECT it, and receive its outcome. HOLD has no execution button. The portal is for laptop account/history/report review; smartphone portal access is not a release gate. Tailscale is not a dependency of the outbound Telegram polling path. Its removal is a separate, reversible dependency-review task; this package does not stop or uninstall it or change firewall rules.
 
 ## This milestone

@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-Current handoff, 2026-10-14: [Telegram-first paper review wiring](docs/telegram-paper-review-integration.md). Phone approvals use Telegram; smartphone portal access and Tailscale are not prerequisites. HBA staging is accepted and the targeted network report is captured; do not repeat installation or staging. New default-off callback/writer wiring has offline verification and an 18-scenario isolated spare bundle, with one shareable JSON. No application restart, real credential activation, message, quote or order occurs in this handoff. Real writer custody/route proof, Telegram delivery and paper execution remain gated. October feature reconciliation is closed (E84).
+Current handoff, 2026-10-14: [protected writer credential staging](docs/paper-writer-credential-staging.md). The isolated Telegram/writer bundle is accepted: 18/18 checks and cleanup passed. Next is protected credential creation and guarded password staging with writer/helper still NOLOGIN, rollback rehearsal and independent readback; one shareable JSON, no application restart or account writes. Application-route authentication, real Telegram delivery and paper execution remain gated. Phone approvals use Telegram, not the portal; Tailscale remains unchanged. Do not repeat accepted HBA staging or the isolated bundle. October feature reconciliation is closed (E84).
 
 [Canonical documentation](docs/README.md) is the single entry point for scope, goals, evidence, timelines and daily progress.
 
