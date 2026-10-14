@@ -1,5 +1,7 @@
 # Bounded application-container writer authentication
 
+**Accepted E133, 2026-10-14:** redeployment resolved the missing deployed connector. All 19 authentication stages, three probes and 17 source fingerprints pass; NOLOGIN is restored, zero writer sessions remain and diagnostic cleanup completed. Authentication took 57.009s. The owner accepted the result: this bounded package is 100%. Do not rerun it. Next is the [runtime credential and controlled Telegram plan](paper-runtime-review-plan.md), pending explicit test-policy and restart-custody choices. The original handoff below is historical, not the next command.
+
 2026-10-14. E131 accepts protected credential staging: five database stages, 11 source matches, 24.077 seconds, both roles NOLOGIN. That bounded package is complete. Do not rerun installation, HBA staging or password creation.
 
 ## Purpose and frozen scope

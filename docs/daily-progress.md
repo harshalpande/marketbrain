@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-14 Authentication accepted and next activation decisions
+
+- E133 records the reviewed deployment/authentication pair:12/12 isolated storage checks,19/19 authentication steps,3/3 probes and17/17 source fingerprints. Reports agree apart from equivalent UTC timestamp formatting. The missing-connector deployment problem is resolved. Deployment365.718s includes fixture175.721s; authentication adds57.009s. No rerun needed.
+- Owner continuation after review closes authentication60% to80% for runtime and80% to100% for acceptance: +40 percentage points since the prior handoff, not model accuracy or whole-project completion. Account INR100,000, reserved zero, revision0 retained. Writer/helper NOLOGIN, zero writer sessions, successful cleanup; persistent worker and actions remain off.
+- Source inspection for the next implementation found two decisions: explicit test-only risk limits and restart/unlock custody. Windows DPAPI is not directly consumable by the Linux service. Docker tmpfs can swap; do not promise guaranteed RAM-only handling. The existing restricted reviewer cannot publish proposals, and SQL failure retains the polling cursor. These must be handled deliberately in the [runtime review plan](paper-runtime-review-plan.md), not by granting owner datasource access or dropping callbacks.
+- This continuation records acceptance and the implementation sequence only. No source/runtime configuration, database permission, credential, service, Telegram message or trading action changed. Runtime implementation is paused for the two owner choices; no next-package percentage earned. Documentation skill kept evidence, current handoff, scorecard and architecture boundaries aligned. Full-roadmap12.4% unchanged.
+
 ## 2026-10-14 Credential acceptance and bounded writer authentication
 
 - E131 accepts `paper-writer-credential-20261014-163918-bfbf37646181.json`: exact report SHA256 retained, five successful database phases, 11 source matches after Windows line-ending normalization, 24.077s total/2.884s database. Both roles remained NOLOGIN, custody matched and was retained, no account rows or actions. Owner's conditional continuation closes staging60% to100%, +40pp; full-roadmap12.4% unchanged.

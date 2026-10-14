@@ -1,0 +1,42 @@
+{
+  "evidenceId": "E133",
+  "date": "2026-10-14",
+  "status": "AUTHENTICATION_ACCEPTED_RUNTIME_ACTIVATION_PENDING",
+  "sourceReports": {
+    "deployment-and-authentication.json": "70255F42A768BC603AFB5D891BD98905D01E5E53B605EB1703C148DDE4C24806",
+    "paper-writer-authentication-20261014-181335-56878d56ce19.json": "589269EDC87974AF5110E715CC5147363EE4089450CA124B99D1B57B4DB7EF6C"
+  },
+  "sourceRevision": "e87e59fcc5c2060ff6a40585dbf4d88e94dbcf26",
+  "reportedStatus": "WRITER_AUTHENTICATION_PASSED_LOGIN_DISABLED",
+  "successfulAuthenticationSteps": 19,
+  "successfulAuthenticationProbes": 3,
+  "sourceMatchesAfterWindowsLineEndingNormalization": 17,
+  "sourceMismatches": 0,
+  "authenticationElapsedSeconds": 57.0087027,
+  "deploymentElapsedSeconds": 365.7181126,
+  "isolatedStorageChecksPassed": 12,
+  "isolatedStorageElapsedSecondsIncludedInDeployment": 175.7210897,
+  "reportConsistency": "Same authentication fields except equivalent trailing-zero UTC timestamp serialization",
+  "cashRupees": "100000.00",
+  "reservedCashRupees": "0.00",
+  "ledgerRevision": 0,
+  "writerLoginEnabled": false,
+  "helperLoginEnabled": false,
+  "writerSessions": 0,
+  "revocationVerified": true,
+  "cleanupComplete": true,
+  "authenticationAccountRowsWritten": false,
+  "applicationWriterActivated": false,
+  "actionExecutionEnabled": false,
+  "ownerAcceptance": "Owner instructed continuation after successful report review",
+  "packagePercentBeforeRuntimeReview": 60,
+  "packagePercentAfterRuntimeReview": 80,
+  "packagePercentAfterOwnerAcceptance": 100,
+  "fullRoadmapPercent": 12.4,
+  "limitations": [
+    "Selected authentication and privilege checks, not external firewall certification",
+    "No persistent runtime writer credential or worker activation",
+    "No real Telegram proposal or callback round trip",
+    "No simulated execution or predictive-performance credit"
+  ]
+}

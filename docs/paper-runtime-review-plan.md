@@ -1,0 +1,27 @@
+# Runtime credentials and Telegram review
+
+2026-10-14. E133 accepts the deployed writer authentication test. The next stage connects runtime credential custody, explicit review policy and controlled Telegram publication/receipts. Execution must remain disabled. This plan does not authorize a persistent LOGIN, plaintext credential export, new publisher privileges or real messages by itself.
+
+## Decisions before activation
+
+Two questions are awaiting the owner's answer:
+
+1. **Test-only review policy:** proposed 120-second lifetime, maximum quote age 15 seconds, maximum slippage 50 basis points (0.5%), quantity one and maximum notional INR5,000. These are proposed limits for review testing, not approved trading limits. The quote, acceptable price zone and account revision must be recorded at publication and rechecked on ACCEPT. Missing/stale quotes block acceptance; do not widen limits to obtain a passing test. SELL requires owned shares; never manufacture holdings in the existing account.
+2. **Restart behavior:** prefer explicit local unlock after each container/application restart, instead of placing an unencrypted password on Windows for automatic startup. Windows CurrentUser DPAPI custody is not directly readable by Linux Java. Choose and verify the transport before enabling review. A temporary container file is not a guarantee that the secret never reaches disk: Docker documents possible swap persistence for [tmpfs mounts](https://docs.docker.com/engine/storage/tmpfs/). Process memory is also not protection against an administrator, memory dump or host paging. Unattended recovery needs a separately approved custody design.
+
+No answer or a preselected option is not approval. Continue safe offline development only within settled contracts; do not publish or enable database login while these decisions are outstanding.
+
+## Implementation sequence
+
+1. **Runtime handoff and lock state.** Reuse the existing credential, never rotate it implicitly or confuse it with the approval encryption key. No password in arguments, logs, Git, evidence or browser storage. Start locked; define explicit unlock, lock, shutdown and restart behavior. A locked review must not be reported as a rejection or acceptance. Preserve existing daily notifications. Test callback backlog/cursor behavior: the present SQL-failure path deliberately retains the update for retry, which can delay later polled commands; do not promise all polling is unaffected until this is addressed.
+2. **Versioned policy and restricted publication.** Validate the agreed policy at startup and publication. Keep the existing review role's cash/order restrictions. It cannot currently publish proposals or read delivery keys; do not use the general application datasource or administrator credentials as a shortcut. Implement separately bounded publication authority and audit it before a real message can be sent. Use the existing private Telegram binding, durable encrypted tokens and one-time proposal identity. The portal read token must remain read-only.
+3. **Controlled round trip.** Publish a clearly marked test proposal only after explicit local confirmation. Verify ACCEPT and REJECT on distinct proposals, duplicate/opposing clicks, expiry and quote/risk blocking. Use the existing poller, not a second getUpdates consumer. A callback popup alone is insufficient: inspect the saved terminal receipt and reconcile uncertain sends without automatic republishing.
+4. **Close and reconcile.** Verify unchanged cash, reservations, ledger revision, orders and fills; confirm no broker/model calls. Lock review access, commit NOLOGIN before closing writer sessions and verify continued original application access. Preserve partial evidence on failure and provide a reviewed recovery path. Do not equate password expiry with terminating existing sessions.
+
+## Verification and handoff
+
+Offline tests cover missing/malformed/incorrect secrets, startup opt-out, locked restart, concurrent unlock/callback, timeouts, SQL failures, lost acknowledgement, duplicate tokens, identity mismatch, expiry, policy mismatch and forbidden money writes. Verify Spring registration and ordinary daily-alert regressions. Use synthetic data and mocked external services locally; real application and Telegram checks occur only on the spare laptop.
+
+The spare script must show progress and deadlines, persist one compact report with version/source hashes, measured timings, individual checks, final safety state and an explicit recovery result. Do not automatically retry a send or unknown database commit. A successful rehearsal is not proof of a real Telegram interaction.
+
+Acceptance requires the agreed custody behavior, observed real transport and durable receipts, independent final account reconciliation and owner review. Paper fills, fees, positions and P&L follow separately. Network-policy findings and numerical predictive validation remain open. No completion percentage is assigned to this next package until its design and acceptance criteria are frozen with the two decisions above.
