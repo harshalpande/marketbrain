@@ -54,7 +54,7 @@ class PaperTelegramReviewConfigurationTest {
         var env=new org.springframework.mock.env.MockEnvironment();
         PaperRuntimeReviewVerification.properties().forEach((k,v)->env.setProperty(k,v.toString()));
         var config=new PaperTelegramReviewConfiguration();
-        var accepted=config.paperReviewSettings(env,app("PAPER",true,true));
+        var accepted=config.paperReviewSettings(env,PaperRuntimeReviewVerification.app());
         assertTrue(accepted.processMemory());assertNull(accepted.credentialFile());
         PaperReviewTestPolicy.requireExact(accepted.policy());
         for(String field:List.of("policy-id","max-quote-age-millis","max-slippage-bps","max-quantity","max-order-notional-paise","max-proposal-lifetime-seconds")){
@@ -65,6 +65,33 @@ class PaperTelegramReviewConfigurationTest {
         }
         env.setProperty("marketbrain.paper.review.credential-file",directory.resolve("unused").toString());
         assertThrows(IllegalStateException.class,()->config.paperReviewSettings(env,app("PAPER",true,true)));
+        verifyNoInteractions(source);
+    }
+    @Test void exactRuntimeFixtureConfigurationPassesBeforeSocketOrDatabaseAccess() {
+        var fixture=PaperRuntimeReviewVerification.app();
+        assertTrue(fixture.telegram().isConfigured(), "Runtime fixture pairing code must meet the real configuration contract");
+        assertTrue(fixture.upstox().isConfigured());
+        var env=new org.springframework.mock.env.MockEnvironment();
+        PaperRuntimeReviewVerification.properties().forEach((k,v)->env.setProperty(k,v.toString()));
+        var accepted=assertDoesNotThrow(()->new PaperTelegramReviewConfiguration().paperReviewSettings(env,fixture));
+        assertTrue(accepted.processMemory());assertNull(accepted.credentialFile());
+        PaperReviewTestPolicy.requireExact(accepted.policy());
+        verifyNoInteractions(source);
+    }
+    @Test void fixtureRepairDoesNotRelaxPairingCodeMinimum() {
+        var fixture=PaperRuntimeReviewVerification.app();
+        var env=new org.springframework.mock.env.MockEnvironment();
+        PaperRuntimeReviewVerification.properties().forEach((k,v)->env.setProperty(k,v.toString()));
+        for(String pair:List.of("SYNTHETIC","x".repeat(15),"x".repeat(16))){
+            var app=new MarketBrainProperties(fixture.executionMode(),null,null,null,null,fixture.upstox(),
+                    new MarketBrainProperties.Telegram(true,"synthetic-never-sent",pair,20,1000,false));
+            if(pair.length()<16){
+                assertFalse(app.telegram().isConfigured());
+                assertThrows(IllegalStateException.class,()->new PaperTelegramReviewConfiguration().paperReviewSettings(env,app));
+            }else{
+                assertDoesNotThrow(()->new PaperTelegramReviewConfiguration().paperReviewSettings(env,app));
+            }
+        }
         verifyNoInteractions(source);
     }
     @Test void explicitOptInConstructsOnlyReviewCallbackWithoutDatabaseCalls() throws Exception {

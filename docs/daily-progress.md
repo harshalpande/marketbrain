@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-15 Runtime fixture startup repair
+
+- E135 records `paper-runtime-review-20261015-134051-495d3e570678.json`, revision39b1525:112.116s total,81.679s image build, isolation checks passed, Spring settings rejected before any runtime-check receipt or DPAPI handoff. Source inspection and a failing regression reproduce the cause:9-character synthetic pairing code where16 is required. Earlier unit tests used a different valid dummy code.
+- Corrected only the fixture code, connected the existing policy test to the actual fixture factory, and added exact-configuration and9/15/16-character boundary regressions. Production validation remains unchanged. The regression failed before the fix; the full verification result is recorded in E135's evidence file.
+- The report records no real credential, application database, Telegram or trading action. Owned-fixture stop returned exit0; failed fixture retained intentionally, no cleanup failure. Retry only the isolated bundle after pulling; do not repeat authentication, HBA staging or application deployment. Documentation skill keeps this failed-run evidence separate from completed milestones. Package60%, repair gain0pp, roadmap12.4%; spare success remains pending.
+
 ## 2026-10-15 Approved runtime custody and policy implementation
 
 - E134 records owner-approved100-second expiry,15-second quote age,50bps slippage, quantity1,500000paise notional and Windows protected custody with local unlock after restart. This is review-only. Policy answers are settled; publication authority and real runtime integration remain separate.

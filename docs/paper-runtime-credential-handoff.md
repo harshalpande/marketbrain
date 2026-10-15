@@ -2,6 +2,16 @@
 
 2026-10-15, E134. Current handoff: one isolated spare-laptop test. E133 authentication acceptance remains valid; do not repeat installation, HBA staging or authentication.
 
+## Fixture startup correction
+
+E135: the first spare run at revision39b1525 stopped after112.116s with `RUNTIME_FIXTURE_NOT_READY`. The image build and isolation checks succeeded. Spring rejected the fixture's9-character dummy pairing code; the real configuration requires at least16. No credential handoff or Linux check receipt completed. The owned fixture stop command succeeded; the failed container was deliberately retained, so cleanupComplete=false is not a cleanup-command failure.
+
+The dummy code is now `SYNTHETIC_PAIR_CODE`. Regression coverage calls the fixture's exact application and property factories, reproduces the old failure, and checks rejection at9/15 characters and acceptance at16. The real validator and real Telegram credentials are unchanged. These tests are in the verifier image's existing build test list, so this defect is now caught before container startup.
+
+The new exact-configuration test failed before the correction. After the correction, the full Java suite passed781 tests across153 suites, with zero failures, errors or skips. No local Docker or real-service execution was performed for this repair. The779-test baseline below is the earlier E134 run, not an additional test total.
+
+Use the script below after pulling the correction. It creates a new uniquely named fixture; do not restart the failed container or prune Docker resources. Share the new single JSON. Passing local regression tests does not establish a successful Linux handoff; package60% and full-roadmap12.4% remain unchanged.
+
 ## Purpose and scope
 
 Prove the approved Windows-to-Java credential handoff can unlock, lock and restart safely before involving the real writer password or Telegram proposals. The default application configuration remains off. The candidate `compose.paper-review-memory.yaml` is not deployed by this test and must not be applied independently.

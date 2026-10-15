@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-15 E135: isolated runtime verification failed on the synthetic pairing-code length, not real credentials. The [fixture correction and retry](paper-runtime-credential-handoff.md) retain package60%, full-roadmap12.4% and access-policy80%; repair gain0pp. Actual handoff/restart proof and owner acceptance remain pending. Do not count the passed image build as completed runtime verification.
+
 2026-10-15 E134: approved policy/custody implementation is locally verified60% within the [bounded runtime handoff package](paper-runtime-credential-handoff.md).779 Java tests and112 offline PowerShell assertions pass;18 isolated Linux checks await the spare. No real credential or runtime deployment. Full-roadmap12.4% and access-policy80% remain unchanged. Actual guarded activation/publication, durable Telegram outcomes, paper execution and numerical validation are still separate gates. Older unresolved policy-choice statements below are superseded.
 
 2026-10-14 E133: bounded deployed authentication/revocation accepted at100% (60% to80% runtime, then100% owner acceptance).19 successful stages, three probes and17 source matches; writer/helper NOLOGIN and zero sessions restored. Full-roadmap12.4% and access-policy80% unchanged. [Next runtime review implementation](paper-runtime-review-plan.md) awaits test-limit and restart-custody choices; no next-package completion credit. The E131/E132 handoff below is historical.

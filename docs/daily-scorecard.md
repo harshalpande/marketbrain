@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-15
 
+E135 repair update: first isolated spare run failed fixture configuration after112.116s, before any handoff or completed Linux-check report. The short dummy pairing code is corrected and its exact configuration now has regression coverage. No R/A credit is earned: package60%, repair gain0pp, full-roadmap12.4%. The stopped failed fixture is retained; no real credential, database or Telegram action occurred. Rerun only the corrected isolated bundle. E134 counts below describe the original local baseline.
+
 | Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |
 |---|---:|---:|---:|---|---|
 | Runtime custody, approved policy and locked callback handling | 0% | 60% | +60 | E134; D/I/V;779 Java tests and112 offline PowerShell assertions | R20/A20: isolated spare handoff/restart evidence and owner acceptance |

@@ -39,7 +39,7 @@ public final class PaperRuntimeReviewVerification {
     static MarketBrainProperties app() {
         return new MarketBrainProperties("PAPER",null,null,null,null,
                 new MarketBrainProperties.Upstox("https://api.upstox.com","unused",true,"synthetic-never-sent"),
-                new MarketBrainProperties.Telegram(true,"synthetic-never-sent","SYNTHETIC",20,1000,false));
+                new MarketBrainProperties.Telegram(true,"synthetic-never-sent","SYNTHETIC_PAIR_CODE",20,1000,false));
     }
     static AnnotationConfigApplicationContext context() {
         var c=new AnnotationConfigApplicationContext();
