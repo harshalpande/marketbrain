@@ -22,6 +22,17 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-15
 
+### Current E136/E137 checkpoint
+
+| Bounded package | Opening | Current | Change | Evidence / remaining |
+|---|---:|---:|---:|---|
+| Isolated custody/policy package, owner acceptance |80%|100%|+20pp|E136;18 unique Linux checks repeated after restart;91.716s; closed |
+| Guarded application deployment and real custody, ending LOCKED/NOLOGIN |0%|60%|+60pp|E137; D/I/V;236 offline assertions/12 mocked scenarios; spare R20 and owner A20 pending |
+| Effective-access policy review |80%|80%|0pp|Separate findings retained |
+| Full roadmap |12.4%|12.4%|0pp|Parent-goal release criteria not yet met |
+
+The earlier isolated runtime gain60% to80% was reviewed before this implementation turn; do not count it again. The next package excludes LOGIN, publication, Telegram outcomes and accounting writes. These package percentages must not be averaged. Historical failed-run/local-baseline entries below remain for audit, not current instructions.
+
 E135 repair update: first isolated spare run failed fixture configuration after112.116s, before any handoff or completed Linux-check report. The short dummy pairing code is corrected and its exact configuration now has regression coverage. No R/A credit is earned: package60%, repair gain0pp, full-roadmap12.4%. The stopped failed fixture is retained; no real credential, database or Telegram action occurred. Rerun only the corrected isolated bundle. E134 counts below describe the original local baseline.
 
 | Area / frozen package | Opening % | Current % | Change (pp) | Evidence | Pending |

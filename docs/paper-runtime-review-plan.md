@@ -1,5 +1,7 @@
 # Runtime credentials and Telegram review
 
+2026-10-15 E136/E137: the isolated runtime test is accepted at100%:18 unique Linux checks repeated after restart, protected synthetic handoff, final LOCKED and cleanup verified in91.716s. Do not rerun it. Next is the [guarded application handoff](paper-runtime-application-handoff.md), locally verified60% with236 offline assertions/12 mocked scenarios. It rebuilds/recreates only the service, briefly hands over the existing protected credential, verifies locked restart and re-locks. PostgreSQL remains NOLOGIN; no proposal publication or account writes. Real deployment verification and owner acceptance are pending; full-roadmap12.4% and effective-access review80% remain unchanged. Earlier next-action paragraphs below are historical.
+
 2026-10-14. E133 accepts the deployed writer authentication test. The next stage connects runtime credential custody, explicit review policy and controlled Telegram publication/receipts. Execution must remain disabled. This plan does not authorize a persistent LOGIN, plaintext credential export, new publisher privileges or real messages by itself.
 
 ## Approved decisions and current boundary

@@ -1,5 +1,7 @@
 # Paper account application integration
 
+2026-10-15 E136/E137: the isolated runtime test is accepted at100%:18 unique Linux checks repeated after restart, protected synthetic handoff, final LOCKED and cleanup verified in91.716s. Do not rerun it. Next is the [guarded application handoff](paper-runtime-application-handoff.md), locally verified60% with236 offline assertions/12 mocked scenarios. It rebuilds/recreates only the service, briefly hands over the existing protected credential, verifies locked restart and re-locks. PostgreSQL remains NOLOGIN; no proposal publication or account writes. Real deployment verification and owner acceptance are pending; full-roadmap12.4% and effective-access review80% remain unchanged. Earlier next-action paragraphs below are historical.
+
 2026-10-09. Owner authorized the plan and next implementation phase. Target: one preserved INR100,000 virtual account connected to proposals, authenticated approval, deterministic risk, simulated execution and a usable portal. No Paytm live execution is authorized. Development/offline verification stay here; deployment/database/model runtime stay on the spare laptop. Retain private access; this phase does not configure Tailscale or expose public ports.
 
 ## Accepted foundations

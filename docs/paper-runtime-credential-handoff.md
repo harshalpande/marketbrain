@@ -1,5 +1,7 @@
 # Runtime credential and policy verification
 
+E136: this isolated package is now accepted at100%. Do not rerun the historical script below. Proceed only with the [guarded application handoff](paper-runtime-application-handoff.md); never apply the memory overlay manually. E137 permits the bounded real credential handoff with NOLOGIN unchanged, not Telegram publication or review writes.
+
 2026-10-15, E134. Current handoff: one isolated spare-laptop test. E133 authentication acceptance remains valid; do not repeat installation, HBA staging or authentication.
 
 ## Fixture startup correction

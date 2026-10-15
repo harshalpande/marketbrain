@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-15 Isolated acceptance and guarded application handoff
+
+- E136 accepts revision e5c541a's spare report:18 unique Linux checks repeated after restart, different JVM boot IDs, DPAPI and stdin handoff passed, final LOCKED, cleanup complete;25 successful native stages and12 matching normalized source hashes. Total91.716s includes72.057s build and1.873s restart. No real credential, application database or real Telegram verification. Owner continuation closes this bounded package from80% to100% (+20pp); runtime60% to80% was already reviewed.
+- E137 implements a separate application rollout/custody package: exact accepted evidence, existing two-file stack/environment/mount checks, preserved approval key/read token, unique service image, no new migrations, read-only NOLOGIN verification before every unlock, protected credential handoff, real application restart, final lock and unchanged pristine account/storage checks. Its frozen scope excludes LOGIN, publication and accounting writes. One JSON includes stages, durations and failure/recovery codes, not secret-bearing inspect/config output.
+-236 offline assertions cover12 mocked full-runner scenarios, including configuration drift, build/deployment/health/image failures, stale restart, lost unlock, failed lock, account drift and lock-only recovery. The existing isolated workflow also passed its112-assertion/eight-scenario offline regression again; counts are reported separately. Real spare execution is pending. Package D10/I30/V20=60%; R20/A20 pending. No Java source changed; prior781-test Java result is not a new run.
+- Next: owner runs [application handoff](paper-runtime-application-handoff.md) under the Windows custody owner during idle maintenance. It briefly restarts the service twice; UI is not rebuilt. Local PostgreSQL administrator credentials are used only for read-only role/identity verification. No automatic redeployment after an unknown result. Full roadmap12.4%, access-policy80% unchanged; actual publication/review permissions and execution remain separate.
+
 ## 2026-10-15 Runtime fixture startup repair
 
 - E135 records `paper-runtime-review-20261015-134051-495d3e570678.json`, revision39b1525:112.116s total,81.679s image build, isolation checks passed, Spring settings rejected before any runtime-check receipt or DPAPI handoff. Source inspection and a failing regression reproduce the cause:9-character synthetic pairing code where16 is required. Earlier unit tests used a different valid dummy code.

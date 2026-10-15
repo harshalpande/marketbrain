@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E137",
+  "status": "LOCAL_VERIFIED_SPARE_PENDING",
+  "scope": "Actual application rollout and real protected credential handoff ending LOCKED and NOLOGIN",
+  "testScript": "ops/windows/TestPaperRuntimeDeploymentWorkflow.ps1",
+  "offlineAssertionsPassed": 236,
+  "mockedRunnerScenarios": 12,
+  "existingIsolatedWorkflowRegressionAssertionsPassed": 112,
+  "existingIsolatedWorkflowMockedScenarios": 8,
+  "runner": "ops/windows/DeployPaperRuntimeReview.ps1",
+  "expectedSpareStatus": "APPLICATION_RUNTIME_HANDOFF_PASSED_LOCKED_NOLOGIN",
+  "localDockerOrApplicationExecution": false,
+  "localRealCredentialRead": false,
+  "localDatabaseAccess": false,
+  "javaSourceChanged": false,
+  "boundedPackagePercent": 60,
+  "checkpoints": {"design": 10, "implementation": 30, "offlineVerification": 20, "spareVerification": 0, "ownerAcceptance": 0},
+  "roleChangesAuthorized": false,
+  "proposalPublicationAuthorized": false,
+  "accountWritesAuthorized": false,
+  "tradingAuthorized": false,
+  "fullRoadmapPercent": 12.4
+}

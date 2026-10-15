@@ -3,6 +3,7 @@
 # This does not enable database LOGIN or publish any proposals.
 services:
   marketbrain-service:
+    image: ${MARKETBRAIN_PAPER_REVIEW_IMAGE:?Use the guarded runtime deployment script}
     environment:
       MARKETBRAIN_PAPER_REVIEW_ENABLED: "true"
       MARKETBRAIN_PAPER_REVIEW_ACTIVATION: REVIEW_ONLY
