@@ -2,6 +2,16 @@
 
 2026-10-15, E136/E137. This is the next deployment checkpoint, not permission to publish proposals or execute paper trades.
 
+## Configuration guard correction
+
+E138: the first spare run stopped before build/deployment after12.655s with `DEPLOY_UNREVIEWED_CONTAINER_SETTING`. NOLOGIN verification and the prerequisite account/storage reads passed. It did not restart the service or hand off the credential. The old report did not record which field caused rejection.
+
+The guard incorrectly rejected optional field presence, including null/false defaults. This was reproduced in a failing regression. The correction accepts absent/null fields, Boolean false for privileged, and empty device/capability lists. It still rejects actual overrides and invalid types. Null command/entrypoint means inherit the image, but empty strings or arrays replace those defaults and remain prohibited ([Docker service specification](https://docs.docker.com/reference/compose-file/services/#entrypoint)).
+
+Failures now name only the fixed setting, for example `DEPLOY_UNREVIEWED_CONTAINER_SETTING_COMMAND`, never its value.314 offline assertions across14 mocked runner scenarios pass, including serialized defaults and two new unsafe-setting full-runner checks. The236-test figure below is the earlier baseline. No new spare completion is claimed.
+
+Pull the correction and run the script below once. This retry is appropriate because the reviewed report confirms deploymentAttempted=false and secretHandoffAttempted=false. Do not delete keys, regenerate passwords, repeat isolated verification, manually apply Compose or automatically retry a later unknown outcome.
+
 ## Why this step exists
 
 The accepted isolated test proved memory custody and locked restart with a synthetic password. It did not prove that the actual application, existing Windows-protected credential, approval key and account configuration work together. This package verifies that integration while PostgreSQL still denies writer login.

@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Current guarded writer installation
 
+- **E138 APPLICATION_CONFIG_GUARD_REPAIR / SPARE_RETRY_PENDING:** [evidence](evidence/paper-runtime-config-guard-repair-20261015.json), [retry](paper-runtime-application-handoff.md). Run11ea43feef77 stopped after12.655s before build/deployment/handoff. NOLOGIN and prerequisite account/storage checks passed. The old guard's rejection of null/false defaults is reproduced and fixed; exact old triggering field is unknown.314 offline assertions/14 mocked scenarios pass; real overrides remain blocked with value-free field-specific errors. Package60%, repair gain0pp, full-roadmap12.4%.
+
 - **E137 APPLICATION_RUNTIME_HANDOFF / LOCAL_VERIFIED_SPARE_PENDING:** [local evidence](evidence/paper-runtime-application-local-20261015.json), [handoff](paper-runtime-application-handoff.md).236 assertions/12 mocked runner scenarios; real credential and application deployment not executed locally. Bounded package60%, no LOGIN/publication/account writes. One guarded service rebuild/recreate plus restart; final lock/NOLOGIN/account reconciliation required.
 
 - **E136 ISOLATED_RUNTIME_CUSTODY / SPARE_ACCEPTED:** [acceptance](evidence/paper-runtime-review-spare-acceptance-20261015.json).18 unique Linux checks repeated after restart, distinct boots, synthetic DPAPI handoff, final LOCKED, cleanup complete,25 successful native stages,12 normalized source matches,91.716s. Owner continuation closes package100%; no real application deployment, credential or Telegram proof. E135 retry-pending wording is superseded.

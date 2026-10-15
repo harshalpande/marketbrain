@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+2026-10-15 E138: the application deployment guard distinguishes absent/null optional settings from effective overrides. Boolean false is permitted only for privileged; empty arrays only for additive devices/cap_add. Empty command/entrypoint strings or arrays still override image defaults and are rejected. Errors contain the fixed field name, never the value. Other environment, port, mount, NOLOGIN, lock and account checks are unchanged; spare deployment remains pending.
+
 2026-10-15 E136/E137: isolated runtime custody/restart is spare-accepted. The [guarded application handoff](paper-runtime-application-handoff.md) now permits a bounded service rebuild/recreate and actual protected credential transfer, followed by restart and final lock. Existing environment, account and approval-key mounts must match; no new migration is allowed. The writer stays NOLOGIN throughout, independently checked before each unlock and after completion. Enabling the review component does not grant database access, publisher authority or execution. Spare application verification remains pending. Earlier candidate-do-not-deploy wording below is superseded only by this exact guarded runner; manual overlay activation remains prohibited.
 
 ## Current application integration boundary

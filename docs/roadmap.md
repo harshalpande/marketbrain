@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-15 E138: application handoff remains60% after a pre-build configuration rejection on spare. [Corrected retry](paper-runtime-application-handoff.md) has314 offline assertions/14 mocked scenarios, not spare deployment proof. Repair gain0pp; isolated custody100%, access-policy80% and full-roadmap12.4% unchanged. No role, approval or order authority added.
+
 2026-10-15 E136/E137: the isolated runtime test is accepted at100%:18 unique Linux checks repeated after restart, protected synthetic handoff, final LOCKED and cleanup verified in91.716s. Do not rerun it. Next is the [guarded application handoff](paper-runtime-application-handoff.md), locally verified60% with236 offline assertions/12 mocked scenarios. It rebuilds/recreates only the service, briefly hands over the existing protected credential, verifies locked restart and re-locks. PostgreSQL remains NOLOGIN; no proposal publication or account writes. Real deployment verification and owner acceptance are pending; full-roadmap12.4% and effective-access review80% remain unchanged. Earlier next-action paragraphs below are historical.
 
 2026-10-15 E135: isolated runtime verification failed on the synthetic pairing-code length, not real credentials. The [fixture correction and retry](paper-runtime-credential-handoff.md) retain package60%, full-roadmap12.4% and access-policy80%; repair gain0pp. Actual handoff/restart proof and owner acceptance remain pending. Do not count the passed image build as completed runtime verification.

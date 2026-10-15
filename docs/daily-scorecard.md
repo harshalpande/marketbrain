@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-15
 
+E138 correction: application handoff stopped before deployment after12.655s. The reproduced optional-setting guard defect is corrected and314 offline assertions/14 mocked scenarios pass. The exact prior triggering field was not captured. Application package stays60% (repair gain0pp); no R/A credit, full roadmap12.4% unchanged. E137's236-assertion total below is the previous baseline, not an additional suite to add to314.
+
 ### Current E136/E137 checkpoint
 
 | Bounded package | Opening | Current | Change | Evidence / remaining |

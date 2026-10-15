@@ -19,6 +19,33 @@ function Plan($Before,[string]$Image) {
 }
 $v=Container;Assert-PaperRuntimeContainer $v $repo;Assert-PaperRuntimeContainer (Container -Memory) $repo -Memory;Check $true 'base and memory container contracts'
 Assert-PaperRuntimeCompose (Plan $v 'image') $v '123' 'image';Assert-PaperRuntimePreserved $v (Container -Memory);Check $true 'planned/applied preservation'
+$normalized=Plan $v 'image'
+foreach($key in @('command','entrypoint','network_mode','pid','user')){$normalized.services.'marketbrain-service'|Add-Member $key $null}
+$normalized.services.'marketbrain-service'|Add-Member privileged $false
+foreach($key in @('devices','cap_add')){$normalized.services.'marketbrain-service'|Add-Member $key @()}
+Assert-PaperRuntimeCompose ($normalized|ConvertTo-Json -Depth 10|ConvertFrom-Json) $v '123' 'image'
+Check $true 'normalized null false and empty additive lists accepted'
+foreach($key in @('privileged','network_mode','pid','devices','cap_add','entrypoint','command','user')){
+    $p=Plan $v 'image';$p.services.'marketbrain-service'|Add-Member $key $null
+    Assert-PaperRuntimeCompose ($p|ConvertTo-Json -Depth 10|ConvertFrom-Json) $v '123' 'image'
+    Check $true ('null default accepted: '+$key)
+}
+$invalid=@(
+    @{key='privileged';value=$true},@{key='privileged';value='false'},@{key='privileged';value=0},
+    @{key='network_mode';value='host'},@{key='network_mode';value=''},
+    @{key='pid';value='host'},@{key='pid';value=''},
+    @{key='devices';value=@('/dev/sda:/dev/sda')},@{key='devices';value=''},@{key='devices';value=@($null)},
+    @{key='cap_add';value=@('SYS_ADMIN')},@{key='cap_add';value=''},@{key='cap_add';value=@{}},
+    @{key='command';value='do-not-record-secret-value'},@{key='command';value=''},@{key='command';value=@()},@{key='command';value=$false},
+    @{key='entrypoint';value=@('/bin/sh','do-not-record-secret-value')},@{key='entrypoint';value=''},@{key='entrypoint';value=@()},
+    @{key='user';value='root'},@{key='user';value=''},@{key='user';value=@()}
+)
+foreach($case in $invalid){
+    $p=Plan $v 'image';$p.services.'marketbrain-service'|Add-Member $case.key $case.value
+    $failure=$null
+    try{Assert-PaperRuntimeCompose ($p|ConvertTo-Json -Depth 10|ConvertFrom-Json) $v '123' 'image'}catch{$failure=$_.Exception.Message}
+    Check ($failure -ceq ('DEPLOY_UNREVIEWED_CONTAINER_SETTING_'+$case.key.ToUpperInvariant())) ('reject typed override and name only: '+$case.key)
+}
 foreach($bad in @('C:/x/../y','/tmp/key','\\host\share')){Reject {ConvertTo-PaperHostMount $bad} 'unsafe mount rejected'}
 foreach($p in @('C:\MarketBrainData\Review','/run/desktop/mnt/host/c/MarketBrainData/Review','/host_mnt/c/MarketBrainData/Review')){Check ((ConvertTo-PaperHostMount $p) -ceq 'c:/marketbraindata/review') 'Windows bind aliases'}
 Reject {ConvertTo-PaperRuntimeEnvironment @('A=one','A=two')} 'duplicate environment'
@@ -78,7 +105,17 @@ function Test-Runner([string]$Scenario){
                 $text=ConvertTo-Json -InputObject @($v) -Depth 10 -Compress
             }
             'compose' {
-                if($Arguments -contains 'config'){$p=Plan (Container) $env:MARKETBRAIN_PAPER_REVIEW_IMAGE;if($Scenario -ceq 'config-drift'){$p.services.'marketbrain-service'.environment.MARKETBRAIN_DB_PASSWORD='different'};$text=$p|ConvertTo-Json -Depth 10 -Compress}
+                if($Arguments -contains 'config'){
+                    $p=Plan (Container) $env:MARKETBRAIN_PAPER_REVIEW_IMAGE
+                    # Exercise serialized Compose defaults through every full-runner path.
+                    foreach($key in @('command','entrypoint','network_mode','pid','user')){$p.services.'marketbrain-service'|Add-Member $key $null}
+                    $p.services.'marketbrain-service'|Add-Member privileged $false
+                    foreach($key in @('devices','cap_add')){$p.services.'marketbrain-service'|Add-Member $key @()}
+                    if($Scenario -ceq 'config-drift'){$p.services.'marketbrain-service'.environment.MARKETBRAIN_DB_PASSWORD='different'}
+                    if($Scenario -ceq 'unsafe-command'){$p.services.'marketbrain-service'.command='do-not-record-secret-value'}
+                    if($Scenario -ceq 'unsafe-privileged'){$p.services.'marketbrain-service'.privileged=$true}
+                    $text=$p|ConvertTo-Json -Depth 10 -Compress
+                }
                 elseif($Arguments -contains 'up'){$script:mock.deploys++;$script:mock.deployed=$true;if($Scenario -ceq 'unknown-deploy'){$exit=1}}
                 else{throw 'Unexpected compose'}
             }
@@ -99,7 +136,7 @@ function Test-Runner([string]$Scenario){
     $failed=$false;try{& ([scriptblock]::Create($runner)) -RuntimeReportPath $runtimePath -InstallationReportPath $installPath -PostgreSqlBin $dir -OutputDirectory $dir -LockOnly:($Scenario -ceq 'lock-only')}catch{$failed=$true}
     $files=@(Get-ChildItem -LiteralPath $dir -Filter 'paper-runtime-application-*.json');Check ($files.Count -eq 1) 'one report'
     $raw=Get-Content $files[0].FullName -Raw;$r=$raw|ConvertFrom-Json
-    foreach($secretValue in @(('t'*64),('0'*64),'never-record-this-password','synthetic-admin-password','synthetic-verifier')){Check (-not $raw.Contains($secretValue)) 'no secret in evidence'}
+    foreach($secretValue in @(('t'*64),('0'*64),'never-record-this-password','synthetic-admin-password','synthetic-verifier','do-not-record-secret-value')){Check (-not $raw.Contains($secretValue)) 'no secret in evidence'}
     Check ([Environment]::GetEnvironmentVariable('MARKETBRAIN_PAPER_READ_TOKEN','Process') -ceq $beforeEnv) 'process environment restored'
     if($Scenario -ceq 'success'){
         Check (-not $failed -and $r.status -ceq 'APPLICATION_RUNTIME_HANDOFF_PASSED_LOCKED_NOLOGIN') ('success '+$r.failureCode)
@@ -108,11 +145,16 @@ function Test-Runner([string]$Scenario){
         Check (-not $failed -and $r.status -ceq 'APPLICATION_RUNTIME_LOCKED_REVIEW_REQUIRED' -and -not $script:mock.ready) 'lock recovery'
         Check ($script:mock.credentialReads -eq 0 -and $script:mock.builds -eq 0 -and $script:mock.dbChecks -eq 0) 'recovery no custody build database'
     }else{Check ($failed -and $r.status -cin @('STOPPED_REVIEW_REQUIRED','RECOVERY_REQUIRED_DO_NOT_REDEPLOY')) ('failure '+$Scenario)}
-    if($Scenario -cin @('config-drift','nologin-failure')){Check ($script:mock.builds -eq 0 -and $script:mock.deploys -eq 0) 'preflight failure never builds or deploys'}
+    if($Scenario -cin @('config-drift','nologin-failure','unsafe-command','unsafe-privileged')){Check ($script:mock.builds -eq 0 -and $script:mock.deploys -eq 0) 'preflight failure never builds or deploys'}
+    if($Scenario -clike 'unsafe-*'){
+        $key=($Scenario -replace '^unsafe-','').ToUpperInvariant()
+        Check ($r.failureCode -ceq ('DEPLOY_UNREVIEWED_CONTAINER_SETTING_'+$key)) 'safe field-specific error persisted'
+        Check (-not $r.secretHandoffAttempted) 'rejected override never handed off credential'
+    }
     if($Scenario -ceq 'build-failure'){Check ($script:mock.deploys -eq 0) 'build failure never deploys'}
     if($Scenario -ceq 'lost-unlock'){Check ($r.finalLockVerified -and -not $script:mock.ready) 'unknown unlock locked'}
     if($Scenario -ceq 'lock-failure'){Check ($r.status -ceq 'RECOVERY_REQUIRED_DO_NOT_REDEPLOY' -and -not $r.finalLockVerified) 'unknown final lock blocks completion'}
     Check (-not $r.databaseRoleChangesRequested -and -not $r.accountWritesRequested -and -not $r.proposalPublicationRequested -and -not $r.actionExecutionEnabled) 'scope unchanged'
 }
-foreach($case in @('success','config-drift','nologin-failure','build-failure','unknown-deploy','health-failure','wrong-image','stale-restart','lost-unlock','lock-failure','account-drift','lock-only')){Test-Runner $case}
-Write-Host "PASS: $count assertions; 12 mocked application deployment scenarios. No real service, database, credentials or Docker."
+foreach($case in @('success','config-drift','unsafe-command','unsafe-privileged','nologin-failure','build-failure','unknown-deploy','health-failure','wrong-image','stale-restart','lost-unlock','lock-failure','account-drift','lock-only')){Test-Runner $case}
+Write-Host "PASS: $count assertions; 14 mocked application deployment scenarios. No real service, database, credentials or Docker."

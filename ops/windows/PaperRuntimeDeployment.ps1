@@ -52,7 +52,17 @@ function Assert-PaperRuntimeContainer($Value,[string]$Repo,[switch]$Memory) {
 }
 function Assert-PaperRuntimeCompose($Plan,$Before,[string]$Oid,[string]$Image) {
     $service=$Plan.services.'marketbrain-service';$old=ConvertTo-PaperRuntimeEnvironment $Before.Config.Env
-    foreach($setting in @('privileged','network_mode','pid','devices','cap_add','entrypoint','command','user')){if($service.PSObject.Properties[$setting]){throw 'DEPLOY_UNREVIEWED_CONTAINER_SETTING'}}
+    foreach($setting in @('privileged','network_mode','pid','devices','cap_add','entrypoint','command','user')){
+        $property=$service.PSObject.Properties[$setting]
+        # Compose's resolved JSON can retain null values. Null means no override.
+        if($null -eq $property -or $null -eq $property.Value){continue}
+        $value=$property.Value
+        if($setting -ceq 'privileged' -and $value -is [bool] -and -not $value){continue}
+        if($setting -cin @('devices','cap_add') -and $value -is [array] -and $value.Count -eq 0){continue}
+        # In particular, command/entrypoint "" and [] override the image defaults.
+        # Only the fixed field name is reported; never export a command or its value.
+        throw ('DEPLOY_UNREVIEWED_CONTAINER_SETTING_'+$setting.ToUpperInvariant())
+    }
     $desired=@{};foreach($p in $service.environment.PSObject.Properties){$desired[$p.Name]=[string]$p.Value}
     $policy=Get-PaperRuntimePolicyEnvironment $Oid
     foreach($key in $policy.Keys){if($desired[$key] -cne $policy[$key]){throw 'DEPLOY_PLANNED_POLICY_MISMATCH'}}

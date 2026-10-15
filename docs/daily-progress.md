@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-15 Application configuration guard correction
+
+- E138 reviews run11ea43feef77 at revision2c7ec2e: STOPPED_REVIEW_REQUIRED after12.655s; INITIAL_NOLOGIN and CONFIG_COMPARE subprocesses succeeded. The guard rejected an optional container setting before any build/deployment or credential handoff. Prerequisite account read showed INR100,000, reserved0, revision0; storage key verified. No role/account writes or publication requested. This is not a completed post-deployment reconciliation.
+- The old guard rejected property presence, including harmless null/false values. A regression reproduced its error before correction. The exact field emitted by the spare remains unknown because the previous report only held the generic code. Corrected behavior accepts null defaults, strict Boolean false for privileged and empty arrays for devices/cap_add; real overrides, invalid types and empty command/entrypoint overrides remain blocked.
+-314 offline assertions/14 mocked full-runner scenarios pass. All runner scenarios now include serialized optional defaults; unsafe command/privilege scenarios verify pre-build rejection, no handoff, safe field-specific error persistence and no secret-value leakage. No Java/Docker/application/database runtime was run locally.
+- Pull and retry the same guarded application runner during idle maintenance. The old run made no deployment attempt, so this is a reviewed retry, not recovery from an unknown deployment. Any new failure must be reviewed rather than looped. Package60%, repair gain0pp, full roadmap12.4%; isolated package100% remains accepted.
+
 ## 2026-10-15 Isolated acceptance and guarded application handoff
 
 - E136 accepts revision e5c541a's spare report:18 unique Linux checks repeated after restart, different JVM boot IDs, DPAPI and stdin handoff passed, final LOCKED, cleanup complete;25 successful native stages and12 matching normalized source hashes. Total91.716s includes72.057s build and1.873s restart. No real credential, application database or real Telegram verification. Owner continuation closes this bounded package from80% to100% (+20pp); runtime60% to80% was already reviewed.
