@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E149",
+  "date": "2026-10-21",
+  "status": "LOCAL_COMBINED_TUNNEL_BUNDLE_VERIFIED_RUNTIME_PENDING",
+  "powerShellHelperAssertions": 97,
+  "bashGuardCleanupAssertions": 15,
+  "mockedWholeRunScenarios": 6,
+  "scenarios": ["pass", "preflight_authentication_failure", "wrong_target_authentication_failure", "forbidden_host_unexpectedly_allowed", "invalid_server_evidence", "gateway_key_removal_unconfirmed"],
+  "localNativeChildCaptureAndTimeoutTested": true,
+  "realSshOrProxyTested": false,
+  "realSystemdWatchdogTested": false,
+  "vpsChangedByAgent": false,
+  "priorInstallationLogReviewed": false,
+  "runtimeEvidencePending": true,
+  "applicationContainerRoutingVerified": false,
+  "egressReobserved": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false,
+  "parentGoalPercentageChanged": false,
+  "scope": "Temporary interactive spare-to-VPS batch only. Current server policy/key/config checks and owner fresh-admin confirmation replace the old-log review as the immediate prerequisite, not as retrospective proof.",
+  "providerRoot503": "Still unresolved; recorded independently from successful CONNECT/TLS."
+}

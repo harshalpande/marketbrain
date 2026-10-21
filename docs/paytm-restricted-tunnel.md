@@ -1,5 +1,7 @@
 # Paytm restricted tunnel: separate client identity
 
+**Current E149:** owner authorized the [combined tunnel verification runner](paytm-tunnel-verification.md). Do not rerun installation. The new batch checks current installed identity/policy/configuration and asks for a fresh admin-login/sudo confirmation. This replaces the old-log request below as the immediate prerequisite, but does not claim that historical log was reviewed. [Full testing roadmap](paytm-integration-verification-plan.md).
+
 ## E148: owner reports installation success; evidence review pending
 
 The owner replied "It worked as expected" after the b922159 installation handoff. Record this as owner-reported success, not as an independently reviewed installer log or explicit confirmation of every fresh-login check. **Do not rerun the installer or generate another key.** Request the existing one `/tmp/marketbrain-tunnel-identity-XXXXXXXX.log` and confirmation that the fresh administrator session returned `marketbrain-admin` and `sudo whoami` returned `root`. No need to repeat successful checks; share their existing result. [Evidence](evidence/paytm-tunnel-identity-owner-report-20261021.json).

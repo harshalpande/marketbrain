@@ -162,7 +162,7 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
-E147: [separate tunnel public key](paytm-restricted-tunnel.md) received and verified different from administrator identity. Guarded account/restriction installer prepared (128 offline assertions/eight mocked clipboard assertions). VPS execution, fresh admin login, combined tunnel tests, actual-container fail-closed behavior and restart custody remain pending. E146 proxy transport accepted; Paytm root503 and real token/quote access remain unresolved. No G05 percentage increase inferred.
+E149: [combined tunnel verification](paytm-tunnel-verification.md) implemented and locally verified (97 PowerShell assertions,15 Bash guards,six mocked workflows). Owner reports E147 installation success; current installed key/policy/config recheck plus fresh-admin confirmation gate temporary activation. Actual spare/VPS tunnel execution, container fail-closed routing, restart custody and token/quote access remain pending. E146 proxy transport accepted; Paytm root503 unresolved. No G05 percentage increase inferred. [Ordered tests and return-to-paper boundary](paytm-integration-verification-plan.md).
 
 E144 accepts human administrator key login/sudo. E145 prepares [loopback proxy staging](paytm-loopback-gateway.md); no live-data credit. VPS runtime tests, restricted SSH transport, actual-container proxy/fail-closed verification and authentication remain separate pending gates. Do not enable the existing direct historical client based on VPS-only evidence.
 

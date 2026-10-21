@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E149 (2026-10-21): combined tunnel runner implemented and locally verified (97 PowerShell assertions,15 Bash guards, six mocked workflows). Runtime/owner acceptance pending; no whole-gateway or parent-goal percentage increase. Current-state prerequisite checks supersede requesting the old installer log as the immediate next task, not as retrospective installer verification. [Evidence](evidence/paytm-tunnel-verification-local-20261021.json), [handoff](paytm-tunnel-verification.md).
+
 E148 owner update (2026-10-21): installation success reported in conversation; log review and explicit fresh-admin/sudo confirmation pending. No additional runtime or owner-acceptance checkpoint percentage awarded from an ambiguous short confirmation. No tests rerun or application deployed. [Evidence](evidence/paytm-tunnel-identity-owner-report-20261021.json).
 
 Current E147 (2026-10-21): distinct gateway public key accepted; restricted-account installer prepared with128 offline assertions/eight clipboard assertions. Runtime installation/fresh-admin login and allowed/denied tunnel traffic are **pending**, so no runtime or whole-gateway completion credit. No new package denominator or full-roadmap percentage asserted. [Evidence](evidence/paytm-tunnel-identity-local-20261021.json), [handoff](paytm-restricted-tunnel.md).

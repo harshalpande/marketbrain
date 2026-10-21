@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-21 Combined restricted tunnel verification prepared
+
+- E149: owner authorized proceeding. Added one interactive Windows runner with nine progress stages, per-process/stage timings and one JSON. Temporary Pageant gateway-key unlock; pinned host and public-key selector; no private-key/password arguments. No installer rerun, application deployment, SSH/firewall/routing edits or broker credentials.
+- Current VPS identity/key/effective policy and unchanged proxy hashes are checked before temporary activation. A run-specific20-minute stop timer backs up normal cleanup. Allowed TLS, authenticated denials, proxy restrictions, reconnect, stopped tunnel/backend and exact owned-process cleanup run together. Unknown failures cannot become passing denials.
+- Local validation:97 PowerShell helper assertions,15 Bash guard/cleanup assertions, six mocked whole-run scenarios. These are not actual SSH/systemd/network execution evidence. Root503 remains unresolved. E148 old installer log stays unreviewed; current-state checks plus fresh-admin confirmation are the explicit alternative next gate.
+- [Handoff](paytm-tunnel-verification.md), [integration roadmap](paytm-integration-verification-plan.md), [evidence](evidence/paytm-tunnel-verification-local-20261021.json). No runtime or whole-project percentage credit until evidence arrives; return to paper integration after real read-only quotes and combined Telegram review, not after live orders.
+
 ## 2026-10-21 Restricted identity: owner-reported success
 
 - E148 records the owner's "It worked as expected" response to b922159. Installation log not supplied; fresh administrator/sudo outcomes are not individually explicit. Do not convert the short confirmation into machine-verified acceptance or rerun the installer.
