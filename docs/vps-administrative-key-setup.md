@@ -1,5 +1,7 @@
 # VPS administrative key setup — preserve existing access
 
+E143 update: owner supplied the public key and confirmed PPK storage outside the repository. Do not generate another key. Next is [installation and independent second-login verification](vps-admin-installation.md), including an owner check that the PPK is passphrase protected. The creation-only instructions below are historical.
+
 E142, 2026-10-21. Baseline capture completed in1 second with the expected host key, Debian13,708MiB available RAM,8.1GB free storage, TUN present, forwarding disabled and only TCP22 listed. Tailscale/UFW/iptables were unavailable; nft table inventory was empty. Base SSH settings allow public keys and passwords/root login, with syntax test passing. These observations do not establish external firewall policy or gateway readiness. The pasted command echo is garbled; the result section is complete. No byte-for-byte executed-script attestation is claimed.
 
 ## Current action: generate the user's key locally

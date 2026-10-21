@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E143 VPS_ADMIN_INSTALLATION_PREPARED_RUNTIME_PENDING:** [handoff](vps-admin-installation.md), [local evidence](evidence/vps-admin-installation-local-20261021.json). Owner targeted inspection exit0; public key supplied. 20 offline guard cases and six mocked clipboard assertions pass. No real package/account installation, second login, gateway or Paytm authentication tested. PPK passphrase and actual sudo policy need owner verification; preserve root recovery.
+
 - **E142 BASELINE_REVIEWED_ADMIN_KEY_CREATION_PENDING:** [evidence](evidence/vps-baseline-review-20261021.json), [handoff](vps-administrative-key-setup.md). Complete owner-run baseline result reviewed, exit0/1s; garbled command echo is not byte attestation. Three mocked PuTTYgen launcher scenarios pass. No actual key generated or installed by agent, no VPS changes, no effective external firewall or gateway approval. Next input is the owner's public login key only; root/password access is preserved.
 
 - **E141 VPS_IDENTITY_MATCH / BASELINE_EXECUTION_PENDING:** [evidence](evidence/paytm-gateway-baseline-local-20261021.json), [handoff](paytm-gateway-preflight.md). Owner-provided RSA3072 SHA256 fingerprints match across provider console/PuTTY. Eight offline Bash scenarios and four clipboard assertions pass, plus syntax and Windows-stdin rejection checks. No actual VPS baseline, configuration change or real authentication. A captured inventory is not effective-firewall/egress approval.

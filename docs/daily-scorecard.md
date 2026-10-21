@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-21 — Paytm preparation
 
+E143: named administrator installation prepared after the owner-supplied public key and targeted inspection. 20 guard tests and six mocked clipboard assertions pass; Debian installation, key-only second login and sudo verification remain pending. These test counts are not model quality or full-project completion. No package percentage denominator or roadmap percentage is newly asserted. [Handoff](vps-admin-installation.md).
+
 E142: the owner-run VPS baseline is reviewed (exit0,1s); the earlier execution-pending note below is superseded. The admin-key launcher passes three mocked scenarios, but actual key creation, installation and second-login verification remain pending. No gateway or live-authentication credit is awarded. [Evidence](evidence/vps-baseline-review-20261021.json), [next handoff](vps-administrative-key-setup.md). Full-roadmap percentages have not been recalculated.
 
 E141: identity-comparison gate is complete using matching console/PuTTY fingerprints. Read-only VPS baseline is implemented and offline-tested (eight Bash scenarios/four clipboard assertions), but real execution is pending. This is not an accepted gateway or a new full-project percentage. The accepted synthetic-login package stays100%.

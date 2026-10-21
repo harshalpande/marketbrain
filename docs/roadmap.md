@@ -162,6 +162,8 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
+E143: [VPS administrator installation](vps-admin-installation.md) prepared with collision/policy guards and retained root recovery. Real key login and administrative verification are pending. This is infrastructure preparation, not gateway or G05 live-data completion; no percentage increase.
+
 E142: VPS baseline reviewed; [local administrative key creation](vps-administrative-key-setup.md) is next. Three launcher scenarios pass offline; real key installation/second login, gateway routing and Paytm authentication remain pending. No G05 percentage increase is inferred from inventory or launcher tests. The baseline-pending note below is historical.
 
 E141: independent-console/PuTTY host-key comparison is accepted; [read-only VPS baseline](paytm-gateway-preflight.md) is next. Actual baseline, gateway configuration and application-path routing tests are still pending. Identity verification alone grants no live-authentication or G05 completion credit.

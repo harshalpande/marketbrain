@@ -1,5 +1,7 @@
 # Paytm VPS gateway: identity check before configuration
 
+E143 current handoff: [install the named administrator and verify a second key login](vps-admin-installation.md). Public key and targeted inspection received. No gateway/network changes are bundled with account setup. Earlier capture/key-generation actions below are historical and need not be repeated.
+
 ## Current: baseline reviewed; create the client login key
 
 E142, 2026-10-21: the owner supplied the complete baseline result (exit0,1s). Review is recorded in [evidence](evidence/vps-baseline-review-20261021.json). Next: [create a protected administrative key locally](vps-administrative-key-setup.md), then separately install and prove a second login. Do not rerun the capture below or change SSH/password/network settings yet. No gateway readiness is inferred.

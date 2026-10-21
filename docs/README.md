@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-21 E143: owner supplied the public login key and confirmed local PPK storage; targeted VPS inspection passed. Next is [named administrator installation and second-login verification](vps-admin-installation.md). The one-time installer creates a sudo-capable account and installs sudo if missing, preserving root/SSH/network settings. 20 offline guard cases and six mocked clipboard assertions pass; real installation/login remain pending. No gateway or live-authentication credit is implied.
+
 2026-10-21 E142: the VPS baseline has been reviewed; no repeat capture is needed. Next is [local administrative key creation](vps-administrative-key-setup.md) on the spare laptop using PuTTYgen. Three mocked launcher scenarios pass. Only the public key is shared; installation and a second verified login remain pending. Existing root/password access stays unchanged. Gateway routing and real Paytm authentication remain unverified. Earlier baseline-pending wording below is historical.
 
 2026-10-21 E141: VPS RSA host-key fingerprints from provider console and PuTTY match. Next is the [read-only gateway baseline](paytm-gateway-preflight.md): prepare the command in spare PowerShell, paste into verified PuTTY, share one report/output. No network configuration, installation, password/SSH change or restart. Eight offline Bash scenarios and four clipboard assertions pass; actual VPS baseline is pending. This supersedes the identity-pending next action below, not any real-authentication gate.

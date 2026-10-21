@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-21 Named VPS administrator installation prepared
+
+- E143: owner-provided targeted inspection shows root access, absent marketbrain-admin/home, existing sudo group but no sudo executable on system PATH, standard authorized-key paths, public-key authentication enabled and exit0. Public Ed25519 key received; PPK storage outside repo confirmed. Passphrase protection remains an owner pre-apply check, not machine-verified evidence.
+- Authorized installation is staged in [one handoff](vps-admin-installation.md): named full administrator, public key, conditional sudo package installation, private setup log, explicit INSTALL confirmation and separate private passwd command. Existing-account/path collisions and unexpected selected SSH policies stop rather than overwrite or weaken controls. No automatic partial-failure rollback/retry; root access retained.
+- 20 offline guard tests and six mocked clipboard assertions pass; shell/PowerShell syntax checked. These are not a full Debian installation rehearsal. No VPS mutation or real login was performed by the agent. Owner second-login and sudo checks remain pending; gateway routing and Paytm remain blocked. No parent-goal percentage change.
+
 ## 2026-10-21 VPS baseline reviewed; local admin-key handoff
 
 - E142: owner transcript contains the complete baseline result, exit0, elapsed1s: expected RSA fingerprint, Debian13, TUN present, forwarding disabled, only TCP22 listed and SSH syntax passing. No nft tables were listed; external firewall reachability and effective Match policy are not established. The command echo was garbled; executed-script byte identity is not claimed.

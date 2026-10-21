@@ -1,0 +1,33 @@
+{
+  "evidenceId": "E143",
+  "date": "2026-10-21",
+  "status": "VPS_ADMIN_INSTALLATION_PREPARED_RUNTIME_PENDING",
+  "ownerInspection": {
+    "sshInspectionExit": 0,
+    "namedAccountPresent": false,
+    "namedHomePresent": false,
+    "sudoGroupPresent": true,
+    "sudoCommandFoundOnSystemPath": false,
+    "publicKeyAuthentication": true,
+    "existingRootAccessPreserved": true,
+    "source": "Owner pasted terminal output, not byte-for-byte script attestation"
+  },
+  "clientPublicKeyFingerprint": "SHA256:xIUVGfImY7tqFFh+VCm/0CmcdVBYyl0fZyFL7bKIxrs",
+  "privateKeyStorageOutsideRepoOwnerConfirmed": true,
+  "privateKeyPassphraseMachineVerified": false,
+  "offlineVerification": {
+    "guardCasesPassed": 20,
+    "mockedClipboardAssertionsPassed": 6,
+    "bashSyntaxPassed": true,
+    "powerShellSyntaxPassed": true,
+    "fullInstallerMocked": false,
+    "debianPackageOrAccountOperationsTested": false
+  },
+  "vpsChangedByAgent": false,
+  "actualInstallationAccepted": false,
+  "independentPublicKeyLoginVerified": false,
+  "sudoPrivilegeVerified": false,
+  "gatewayReady": false,
+  "realPaytmAuthenticationVerified": false,
+  "fullRoadmapPercentRecalculated": false
+}
