@@ -162,6 +162,8 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
+E142: VPS baseline reviewed; [local administrative key creation](vps-administrative-key-setup.md) is next. Three launcher scenarios pass offline; real key installation/second login, gateway routing and Paytm authentication remain pending. No G05 percentage increase is inferred from inventory or launcher tests. The baseline-pending note below is historical.
+
 E141: independent-console/PuTTY host-key comparison is accepted; [read-only VPS baseline](paytm-gateway-preflight.md) is next. Actual baseline, gateway configuration and application-path routing tests are still pending. Identity verification alone grants no live-authentication or G05 completion credit.
 
 E140: the synthetic login subpackage is now accepted100% after38 spare checks and owner continuation. No G05/live-authentication percentage is inferred. Next is [provider-console identity verification](paytm-gateway-preflight.md); the OS-configuration reply did not establish the SSH fingerprint. Actual gateway, callback ingress, token exchange and quotes remain pending.

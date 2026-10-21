@@ -1,6 +1,10 @@
 # Paytm VPS gateway: identity check before configuration
 
-## Current: identity matched; run the read-only baseline
+## Current: baseline reviewed; create the client login key
+
+E142, 2026-10-21: the owner supplied the complete baseline result (exit0,1s). Review is recorded in [evidence](evidence/vps-baseline-review-20261021.json). Next: [create a protected administrative key locally](vps-administrative-key-setup.md), then separately install and prove a second login. Do not rerun the capture below or change SSH/password/network settings yet. No gateway readiness is inferred.
+
+## Historical E141 baseline handoff — completed
 
 E141, 2026-10-21: the owner-provided provider-console screenshot and PuTTY Event Log show the same 3072-bit RSA fingerprint:
 

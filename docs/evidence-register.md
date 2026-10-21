@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E142 BASELINE_REVIEWED_ADMIN_KEY_CREATION_PENDING:** [evidence](evidence/vps-baseline-review-20261021.json), [handoff](vps-administrative-key-setup.md). Complete owner-run baseline result reviewed, exit0/1s; garbled command echo is not byte attestation. Three mocked PuTTYgen launcher scenarios pass. No actual key generated or installed by agent, no VPS changes, no effective external firewall or gateway approval. Next input is the owner's public login key only; root/password access is preserved.
+
 - **E141 VPS_IDENTITY_MATCH / BASELINE_EXECUTION_PENDING:** [evidence](evidence/paytm-gateway-baseline-local-20261021.json), [handoff](paytm-gateway-preflight.md). Owner-provided RSA3072 SHA256 fingerprints match across provider console/PuTTY. Eight offline Bash scenarios and four clipboard assertions pass, plus syntax and Windows-stdin rejection checks. No actual VPS baseline, configuration change or real authentication. A captured inventory is not effective-firewall/egress approval.
 
 - **E140 SYNTHETIC_REHEARSAL / SPARE_ACCEPTED:** [acceptance](evidence/paytm-login-preparation-spare-acceptance-20261021.json).38/38 unique checks, four successful stages,8.290s, eight source hashes matching Windows CRLF. No failure/cleanup issue; embedded output matches summary. Owner continuation closes this bounded package100%. No real login, quote, deployed callback or gateway claim. [Provider-console identity check](paytm-gateway-preflight.md) is next; the provider's reply did not supply a fingerprint. E139 spare-pending wording is superseded only for the synthetic core package.

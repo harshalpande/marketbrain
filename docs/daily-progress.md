@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-21 VPS baseline reviewed; local admin-key handoff
+
+- E142: owner transcript contains the complete baseline result, exit0, elapsed1s: expected RSA fingerprint, Debian13, TUN present, forwarding disabled, only TCP22 listed and SSH syntax passing. No nft tables were listed; external firewall reachability and effective Match policy are not established. The command echo was garbled; executed-script byte identity is not claimed.
+- Added a PuTTYgen launcher and staged [key-creation handoff](vps-administrative-key-setup.md). Three mocked scenarios verify PATH resolution, standard-install fallback and missing-tool rejection without opening a GUI. No real key, VPS account, SSH setting, gateway or credential was changed locally.
+- [Evidence](evidence/vps-baseline-review-20261021.json). Owner generates a passphrase-protected client key on spare and shares only its public line. Installation and independent second-login verification follow separately, preserving current access. Synthetic rehearsal remains100%; no new full-roadmap percentage is claimed.
+
 ## 2026-10-21 VPS identity matched; baseline prepared
 
 - E141 accepts the owner-provided matching3072-bit RSA SHA256 fingerprints from the provider console and PuTTY log. No private key, password or console-session URL is retained. This closes identity comparison only.
