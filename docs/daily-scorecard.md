@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E148 owner update (2026-10-21): installation success reported in conversation; log review and explicit fresh-admin/sudo confirmation pending. No additional runtime or owner-acceptance checkpoint percentage awarded from an ambiguous short confirmation. No tests rerun or application deployed. [Evidence](evidence/paytm-tunnel-identity-owner-report-20261021.json).
+
 Current E147 (2026-10-21): distinct gateway public key accepted; restricted-account installer prepared with128 offline assertions/eight clipboard assertions. Runtime installation/fresh-admin login and allowed/denied tunnel traffic are **pending**, so no runtime or whole-gateway completion credit. No new package denominator or full-roadmap percentage asserted. [Evidence](evidence/paytm-tunnel-identity-local-20261021.json), [handoff](paytm-restricted-tunnel.md).
 
 1. Before implementing a bounded work package, freeze its scope, acceptance criteria and five checkpoints: design accepted (10%), implementation complete (30%), offline verification passed (20%), spare-runtime verification passed (20%), owner acceptance (20%). Award each checkpoint only when all its declared criteria are met; otherwise report partial work without its percentage credit. A package can remain at 0% while its design is being prepared.

@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-21 Restricted identity: owner-reported success
+
+- E148 records the owner's "It worked as expected" response to b922159. Installation log not supplied; fresh administrator/sudo outcomes are not individually explicit. Do not convert the short confirmation into machine-verified acceptance or rerun the installer.
+- Next evidence: existing installation log and confirmation of the already requested fresh-admin/sudo checks. Prepared the [combined tunnel verification matrix](paytm-restricted-tunnel.md); no new runtime script, remote operation, proxy activation or credential handling in this documentation update.
+- Runtime/whole-roadmap percentage unchanged pending evidence review. [Owner report record](evidence/paytm-tunnel-identity-owner-report-20261021.json).
+
 ## 2026-10-21 Separate gateway public key verified; restricted installation prepared
 
 - E147: owner key is valid Ed25519, fingerprint fRekz3jjaYJxnK5dDXMzq9mDEB4Z3BEHhjfNJCx07UI, different from administrator identity. No private key received/generated; passphrase/storage remain owner prerequisites.

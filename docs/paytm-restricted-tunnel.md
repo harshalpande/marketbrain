@@ -1,5 +1,22 @@
 # Paytm restricted tunnel: separate client identity
 
+## E148: owner reports installation success; evidence review pending
+
+The owner replied "It worked as expected" after the b922159 installation handoff. Record this as owner-reported success, not as an independently reviewed installer log or explicit confirmation of every fresh-login check. **Do not rerun the installer or generate another key.** Request the existing one `/tmp/marketbrain-tunnel-identity-XXXXXXXX.log` and confirmation that the fresh administrator session returned `marketbrain-admin` and `sudo whoami` returned `root`. No need to repeat successful checks; share their existing result. [Evidence](evidence/paytm-tunnel-identity-owner-report-20261021.json).
+
+Next combined verification scope, after that review:
+
+| Check | Required evidence |
+|---|---|
+| Correct identity | Pinned server host fingerprint; separate gateway key authenticates without granting a shell |
+| Allowed route | Windows-loopback-only tunnel reaches VPS127.0.0.1:18888; Paytm CONNECT/TLS observed without credentials |
+| Denied routes | Shell/PTY, remote forwarding and a wrong destination explicitly denied after successful authentication; an authentication failure is not a passing restriction test |
+| Proxy restrictions | Disallowed destination/port and plaintext request remain blocked through the tunnel |
+| Reconnect and failure | Reconnect restores the permitted route; stopping proxy/tunnel makes the explicit-proxy request fail without direct fallback |
+| Final cleanup | Test-owned tunnel closed and VPS proxy stopped; preserve unrelated SSH sessions/processes |
+
+This matrix is a plan, not an executed batch or authorization to start the proxy now. Interactive private-key use remains on the spare laptop. Keep one consolidated report with timings, progress, per-check outcomes and cleanup state. Actual application-container routing, unattended key custody, unresolved Paytm root503 and broker authentication remain separate pending gates.
+
 E146, 2026-10-21. [VPS proxy-stage acceptance](evidence/paytm-loopback-proxy-spare-20261021.json) reviews owner report X68o2U8c: exit0,10seconds, all three generated configuration hashes match, both proxy starts were non-root/loopback-only, expected denials passed, public egress matched130.250.191.137, diagnostic host removed/denied and final service stopped. No rerun of proxy staging or administrator setup is required.
 
 Both root HEAD probes returned `200|0|503`: CONNECT succeeded, TLS verification passed, Paytm root returned HTTP503. This closes transport-stage criteria only. The cause of503 (root path, edge policy or provider availability) is not established. Do not claim successful authentication, entitlement or quote access, and do not retry using credentials to work around it. Actual documented read-only API behavior must be validated in the later authentication stage.

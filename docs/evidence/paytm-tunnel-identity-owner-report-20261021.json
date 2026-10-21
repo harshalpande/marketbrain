@@ -1,0 +1,19 @@
+{
+  "evidenceId": "E148",
+  "date": "2026-10-21",
+  "status": "OWNER_REPORTED_SUCCESS_INSTALLATION_LOG_REVIEW_PENDING",
+  "source": "Owner conversation response following b922159 installation handoff",
+  "ownerStatement": "It worked as expected",
+  "interpretation": "Owner reports success; individual installer and fresh-login checks are not independently established by this short response",
+  "installationLogReceived": false,
+  "installationExitCodeVerified": false,
+  "freshAdministratorLoginExplicitlyConfirmed": false,
+  "freshSudoCheckExplicitlyConfirmed": false,
+  "gatewayAuthenticationOrForwardingVerified": false,
+  "remoteCommandsExecutedByAgent": false,
+  "next": "Review existing installation log and confirm fresh administrator login/sudo; then prepare one combined bounded tunnel verification run",
+  "doNotRerunInstaller": true,
+  "proxyActivationAuthorizedByThisRecord": false,
+  "brokerCredentialsOrTradingEnabled": false,
+  "fullRoadmapPercentageRecalculated": false
+}
