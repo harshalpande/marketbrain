@@ -1,5 +1,7 @@
 # Paytm gateway: VPS-local proxy staging
 
+E146 update: owner run X68o2U8c completed with exit0 in10seconds; all three final configuration hashes match. This transport stage is accepted and must not be rerun. Paytm root HTTP503 remains unresolved; no API/authentication readiness is claimed. Next: [separate tunnel identity](paytm-restricted-tunnel.md). The staging instructions below are historical, not an instruction to reinstall.
+
 E144 accepts the owner's second-window screenshot: public-key/passphrase login as marketbrain-admin, sudo group membership, fresh sudo password prompt after sudo -k, and sudo whoami=root. This verifies the bounded administrator-access step, not the full installer transcript, VPS hardening, gateway or Paytm authentication. Do not repeat account creation or disable root/password access now.
 
 E145 prepares the next bounded stage: install and test a **VPS-loopback-only** CONNECT proxy, then leave it stopped. Existing laptop/application networking is not changed.

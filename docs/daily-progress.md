@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-21 VPS proxy stage accepted; separate tunnel identity next
+
+- E146 [owner transcript review](evidence/paytm-loopback-proxy-spare-20261021.json): stage exit0,10s, Tinyproxy1.11.2-1, curl8.14.1-2+deb13u4. Three reported SHA256 values match current config/filter/unit generators exactly. Both starts non-root/loopback-only; arbitrary/lookalike/wrong-port/IPv4/IPv6/plaintext denied; observed proxy egress130.250.191.137; diagnostic host removed and rejected after restart; stopped-proxy request refused with exit7; final stopped/static checks passed.
+- Both Paytm root HEAD responses were503 with CONNECT200/TLS0. Accepted transport criteria do not establish healthy API/authentication.503 cause remains unknown; no credentialed workaround or quote/order activation. The package output lists71 packages not upgraded, requiring separate security/maintenance review, not an inferred vulnerability count.
+- Prepared [separate tunnel-key handoff](paytm-restricted-tunnel.md) by extending the existing PuTTYgen launcher with validated Gateway purpose; default administrator flow remains unchanged. Five mocked scenarios and syntax pass. No actual key, account, SSH configuration, tunnel, service activation or application changes performed locally.
+- Next owner action: generate a NEW passphrase-protected gateway key on spare and share only its public line. Existing administrator key/access retained. Server restriction installation and actual-container networking remain pending; do not rerun accepted stages. No full-roadmap percentage recalculation.
+
 ## 2026-10-21 Administrator accepted; VPS-local gateway staging prepared
 
 - E144: [owner screenshot accepted](evidence/vps-admin-second-login-20261021.json): public-key login/passphrase prompt, named identity/sudo group, sudo -k followed by password validation and sudo whoami=root. No full installation log reviewed; no claim that all VPS hardening is complete. Owner requested continuation.

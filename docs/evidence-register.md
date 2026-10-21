@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E146 VPS_PROXY_STAGE_ACCEPTED_PROVIDER_HTTP_503_UNRESOLVED:** [evidence](evidence/paytm-loopback-proxy-spare-20261021.json), [next handoff](paytm-restricted-tunnel.md). Owner stage exit0/10s, three independently regenerated matching hashes, expected egress and restriction/restart/stop checks. CONNECT/TLS passed but root HTTP503 twice; no API/authentication claim. Five next-step mocked launcher scenarios pass; restricted tunnel/new public key still pending.
+
 - **E145 VPS_LOOPBACK_PROXY_STAGING_PREPARED_RUNTIME_PENDING:** [local evidence](evidence/paytm-loopback-proxy-local-20261021.json), [handoff](paytm-loopback-gateway.md). 59 offline cases/seven mocked clipboard assertions, syntax checks. No real Linux proxy/systemd or full installer test; local Docker API unavailable. Owner-run stage ends stopped; actual tunnel/application routing/authentication remain pending.
 - **E144 ADMIN_PUBLIC_KEY_LOGIN_AND_SUDO_ACCEPTED:** [evidence](evidence/vps-admin-second-login-20261021.json). Owner screenshot shows second-session public-key authentication, passphrase, named identity, sudo membership, fresh account-password challenge and root via sudo. Owner continuation accepts this bounded gate, not broad VPS security or gateway readiness.
 

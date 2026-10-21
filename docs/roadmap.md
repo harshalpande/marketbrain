@@ -162,6 +162,8 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
+E146: VPS-only transport stage accepted (exit0/10s/three matching config hashes). Paytm root503 remains unresolved; token/quote access unverified. [Separate tunnel identity](paytm-restricted-tunnel.md) now awaits owner-generated public key. Restricted SSH installation, actual-container fail-closed behavior, restart custody and real authentication remain pending; no G05 percentage increase inferred.
+
 E144 accepts human administrator key login/sudo. E145 prepares [loopback proxy staging](paytm-loopback-gateway.md); no live-data credit. VPS runtime tests, restricted SSH transport, actual-container proxy/fail-closed verification and authentication remain separate pending gates. Do not enable the existing direct historical client based on VPS-only evidence.
 
 E143: [VPS administrator installation](vps-admin-installation.md) prepared with collision/policy guards and retained root recovery. Real key login and administrative verification are pending. This is infrastructure preparation, not gateway or G05 live-data completion; no percentage increase.

@@ -14,4 +14,10 @@ $capture.Present=$false
 $rejected=$false
 try { & $runner } catch { if($_.Exception.Message -notlike 'PuTTYgen was not found*'){throw};$rejected=$true }
 if(-not $rejected -or $capture.Calls -ne 2){throw 'Missing tool launched a process.'}
-Write-Host 'PASS: three mocked launcher scenarios. No GUI launched, no keys generated, no VPS access.'
+$capture.Present=$true
+$gatewayOutput=(& $runner -Purpose Gateway 6>&1 | Out-String)
+if($capture.Calls -ne 3 -or ($capture.Arguments -join ' ') -cne '-t ed25519 -E sha256' -or $gatewayOutput -notlike '*marketbrain-paytm-gateway.ppk*' -or $gatewayOutput -notlike '*Do not load, overwrite or reuse*'){throw 'Gateway purpose or identity separation missing.'}
+$invalidRejected=$false
+try { & $runner -Purpose Invalid } catch { $invalidRejected=$true }
+if(-not $invalidRejected -or $capture.Calls -ne 3){throw 'Invalid purpose opened a process.'}
+Write-Host 'PASS: five mocked launcher scenarios. No GUI launched, no keys generated, no VPS access.'

@@ -1,0 +1,50 @@
+{
+  "evidenceId": "E146",
+  "date": "2026-10-21",
+  "status": "VPS_PROXY_STAGE_ACCEPTED_PROVIDER_HTTP_503_UNRESOLVED",
+  "source": "Owner pasted PuTTY transcript",
+  "sourceSha256": "C7C3C8AD122B771C1A007BBF613F99FA3D5C3A051B735A63BF636607B4257D2B",
+  "reportPathOnVps": "/tmp/marketbrain-paytm-proxy-X68o2U8c.log",
+  "reportedUtc": "2026-10-21T13:56:49Z",
+  "exitCode": 0,
+  "elapsedSeconds": 10,
+  "tinyproxyPackageVersion": "1.11.2-1",
+  "curlPackageVersion": "8.14.1-2+deb13u4",
+  "configurationHashesMatchReviewedGenerators": 3,
+  "configurationSha256": "3d51baadfd8c07e22d30402ae2bf4210a9ae7d2eebf2ee19f834b65e5547b747",
+  "finalAllowlistSha256": "d4a4b864c4d43bc452b6e8383fc0cf4085e0eab413ae6a1af983111cd5cd9ba1",
+  "unitSha256": "ff80c68c452b9b5891a979296eb60f4a339bfccd76e5ac7063f6569901c7eaf2",
+  "checks": {
+    "nonRootLoopbackStarts": 2,
+    "initialDeniedConnectRequests": 5,
+    "plaintextDeniedBeforeAndAfterRestart": true,
+    "observedProxyIpv4": "130.250.191.137",
+    "temporaryDiagnosticHostDeniedAfterRemoval": true,
+    "arbitraryHostDeniedAfterRestart": true,
+    "paytmConnectStatus": [200, 200],
+    "paytmTlsVerifyResult": [0, 0],
+    "paytmRootHeadStatus": [503, 503],
+    "stoppedProxyCurlExit": 7,
+    "finalStoppedMarkerPresent": true,
+    "finalNoBootEnablementCheckPassedByRunner": true
+  },
+  "limits": {
+    "pasteEchoGarbledButResultComplete": true,
+    "executedScriptByteAttestation": false,
+    "provider503CauseKnown": false,
+    "brokerAuthenticationVerified": false,
+    "actualApiAvailabilityVerified": false,
+    "restrictedTunnelInstalled": false,
+    "applicationConnected": false,
+    "unattendedOperationVerified": false
+  },
+  "ownerContinuationConditionSatisfiedForTransportOnly": true,
+  "packagesReportedNotUpgraded": 71,
+  "securityUpdateReviewPending": true,
+  "localNextHandoff": {
+    "action": "Generate a separate passphrase-protected tunnel key on spare; public half only shared",
+    "launcherMockedScenariosPassed": 5,
+    "realPrivateKeyGeneratedByAgent": false
+  },
+  "fullRoadmapPercentageRecalculated": false
+}

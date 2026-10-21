@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-21 — Paytm preparation
 
+E146: bounded VPS proxy **transport stage accepted** from owner report (exit0,10s, three matching configuration hashes), not end-to-end gateway readiness. The two root HTTP503 responses keep provider/API readiness unverified. Next identity launcher has five mocked cases; these replace the previous three-case launcher suite, not an extra eight. No real tunnel/application-path credit or newly invented percentage. [Evidence](evidence/paytm-loopback-proxy-spare-20261021.json), [next](paytm-restricted-tunnel.md).
+
 E144 closes the human administrator key-login/sudo acceptance gate from owner screenshot and continuation. E145 prepares a distinct VPS-local proxy stage: 59 offline cases/seven clipboard assertions pass, real Linux stage pending. Local Docker API unavailable; no runtime credit awarded. [Handoff](paytm-loopback-gateway.md). No new package denominator or full-roadmap percentage is invented; synthetic-login rehearsal remains100% within its older limited scope. Account creation must not be repeated.
 
 E143: named administrator installation prepared after the owner-supplied public key and targeted inspection. 20 guard tests and six mocked clipboard assertions pass; Debian installation, key-only second login and sudo verification remain pending. These test counts are not model quality or full-project completion. No package percentage denominator or roadmap percentage is newly asserted. [Handoff](vps-admin-installation.md).
