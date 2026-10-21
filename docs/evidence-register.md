@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E141 VPS_IDENTITY_MATCH / BASELINE_EXECUTION_PENDING:** [evidence](evidence/paytm-gateway-baseline-local-20261021.json), [handoff](paytm-gateway-preflight.md). Owner-provided RSA3072 SHA256 fingerprints match across provider console/PuTTY. Eight offline Bash scenarios and four clipboard assertions pass, plus syntax and Windows-stdin rejection checks. No actual VPS baseline, configuration change or real authentication. A captured inventory is not effective-firewall/egress approval.
+
 - **E140 SYNTHETIC_REHEARSAL / SPARE_ACCEPTED:** [acceptance](evidence/paytm-login-preparation-spare-acceptance-20261021.json).38/38 unique checks, four successful stages,8.290s, eight source hashes matching Windows CRLF. No failure/cleanup issue; embedded output matches summary. Owner continuation closes this bounded package100%. No real login, quote, deployed callback or gateway claim. [Provider-console identity check](paytm-gateway-preflight.md) is next; the provider's reply did not supply a fingerprint. E139 spare-pending wording is superseded only for the synthetic core package.
 
 - **E139 PAYTM_SYNTHETIC_LOGIN_PREPARATION / SPARE_PENDING:** [local evidence](evidence/paytm-login-preparation-local-20261021.json), [handoff](paytm-login-preparation.md). Screenshots establish app registration, not authentication. Native core verification and local HTTP tests are distinct; spare script verifies the core only. No live token exchange, callback deployment, VPS/network changes, quotes or orders. SSH identity and actual fixed egress remain separate gates.

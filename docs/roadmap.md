@@ -162,6 +162,8 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
+E141: independent-console/PuTTY host-key comparison is accepted; [read-only VPS baseline](paytm-gateway-preflight.md) is next. Actual baseline, gateway configuration and application-path routing tests are still pending. Identity verification alone grants no live-authentication or G05 completion credit.
+
 E140: the synthetic login subpackage is now accepted100% after38 spare checks and owner continuation. No G05/live-authentication percentage is inferred. Next is [provider-console identity verification](paytm-gateway-preflight.md); the OS-configuration reply did not establish the SSH fingerprint. Actual gateway, callback ingress, token exchange and quotes remain pending.
 
 2026-10-21 E139: app registration is Active per screenshot. [Synthetic login/callback preparation](paytm-login-preparation.md) is a bounded subpackage, not completion of authentication or G05. Native spare rehearsal needs no keys or restart. VPS identity, actual application egress, live callback contract, token exchange and quotes remain pending; no parent-goal percentage credit is inferred.

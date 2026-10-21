@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-21 — Paytm preparation
 
+E141: identity-comparison gate is complete using matching console/PuTTY fingerprints. Read-only VPS baseline is implemented and offline-tested (eight Bash scenarios/four clipboard assertions), but real execution is pending. This is not an accepted gateway or a new full-project percentage. The accepted synthetic-login package stays100%.
+
 Latest E140: [spare acceptance](evidence/paytm-login-preparation-spare-acceptance-20261021.json) closes the bounded rehearsal at100%. Runtime review previously advanced60% to80%; this owner's continuation adds20pp acceptance,80% to100%.38 checks passed in8.290s, no side effects. No live-authentication/gateway or parent-goal credit is implied. The initial60% row below is retained as historical evidence.
 
 | Bounded package | Opening | Current | Change | Evidence / remaining |

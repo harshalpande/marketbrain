@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+2026-10-21 E141: provider-console and PuTTY host keys match. A [read-only gateway baseline](paytm-gateway-preflight.md) now collects bounded local inventory and selected SSH base settings, with one private temporary log. It does not test effective external firewall policy or configure routing. Tailscale, default routes, SSH settings, credentials and application deployment remain unchanged.
+
 2026-10-21 E140: the synthetic core rehearsal is spare-accepted, not a deployed authentication integration. [Gateway preflight](paytm-gateway-preflight.md) first compares the existing SSH host key from a protected provider console with PuTTY. No default-route, Tailscale exit-node, firewall, SSH or credential change is performed. Narrow Paytm-only egress remains to be designed and tested from the actual application container.
 
 2026-10-21 E139: [Paytm login preparation](paytm-login-preparation.md) adds a dependency-free one-time state/browser-binding guard and disabled-by-default synthetic callback controller. It accepts only fixture tokens, discards them and never authenticates or exchanges them. No transport to the VPS/Paytm, callback deployment or order authority is added. The registered browser-loopback redirect is not evidence of container reachability; real ingress, verified egress and secret custody remain gated separately.

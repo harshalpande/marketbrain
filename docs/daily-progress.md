@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-21 VPS identity matched; baseline prepared
+
+- E141 accepts the owner-provided matching3072-bit RSA SHA256 fingerprints from the provider console and PuTTY log. No private key, password or console-session URL is retained. This closes identity comparison only.
+- Added a bounded read-only VPS baseline and Windows clipboard handoff. Eight mocked Bash scenarios, four mocked clipboard assertions, syntax checks and Windows stdin rejection pass. Actual Debian execution is pending; no VPS command was run from this workspace. Only the future private temporary report is written; no configuration, installs, restarts or broker actions.
+- [Next handoff](paytm-gateway-preflight.md), [local evidence](evidence/paytm-gateway-baseline-local-20261021.json). Capture status never means firewall/gateway readiness; Match rules and external/provider-level controls require separate review. Synthetic rehearsal remains100%; no additional full-roadmap percentage claimed.
+
 ## 2026-10-21 Spare acceptance and gateway preflight
 
 - E140: reviewed run ec256b4bfdda at49159a7 passed all38 named checks and four native stages in8.290s, with eight matching CRLF source hashes, matching embedded results, no stderr/failure/cleanup problem. PowerShell7.6.6 and javac25.0.4.1, compiling release21. Spring HTTP tests were not executed on spare. No real authentication, restart, database writes or orders.

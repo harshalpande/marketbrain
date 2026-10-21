@@ -1,0 +1,2 @@
+# Linux handoff scripts must remain runnable after a Windows checkout/upload.
+ops/linux/*.sh text eol=lf
