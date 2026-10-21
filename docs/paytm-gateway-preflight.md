@@ -1,5 +1,7 @@
 # Paytm VPS gateway: identity check before configuration
 
+E147 current: distinct gateway public key received; [restricted account installation](paytm-restricted-tunnel.md) prepared. No repeat baseline/key generation/proxy staging. Owner-run SSH installation and fresh administrator login are next, with proxy remaining stopped; real tunnel/application verification follows.
+
 E146 current: VPS-local proxy stage accepted, final stopped, three matching hashes. Next is [separate tunnel-key preparation](paytm-restricted-tunnel.md); no proxy/account baseline rerun. TLS succeeded but Paytm root HTTP503 remains unresolved, so real API/authentication is not accepted.
 
 E144/E145 current: owner second-login/sudo verification is accepted. [VPS-local proxy staging](paytm-loopback-gateway.md) is next, ending stopped with no application connection. Earlier identity/baseline/account handoffs below are historical; do not repeat them.

@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-21 Separate gateway public key verified; restricted installation prepared
+
+- E147: owner key is valid Ed25519, fingerprint fRekz3jjaYJxnK5dDXMzq9mDEB4Z3BEHhjfNJCx07UI, different from administrator identity. No private key received/generated; passphrase/storage remain owner prerequisites.
+- Prepared one-time guarded installer plus spare clipboard helper. New nologin identity, root-owned key, exact local-forward destination127.0.0.1:18888, remote/socket/agent/X11/PTY/shell restrictions. Standard-layout preflight, syntax/effective-policy comparison, private backup, atomic replacement/reload and drift-aware recovery. Proxy remains stopped; no routes/firewall/credentials/application changes. Explicit SSH_CONNECTION handoff survives sudo environment filtering.
+-128 offline assertions and eight mocked clipboard assertions pass; syntax checked. Covers weakened-policy, failed-inspection and recovery refusal paths. Not a real Debian installation/reload or tunnel test. [Evidence](evidence/paytm-tunnel-identity-local-20261021.json).
+- Next: [installation handoff](paytm-restricted-tunnel.md), retain old sessions, verify fresh original-key administrator login/sudo, share one log. Then batch allowed/denied tunnel checks and actual-container integration. Root HTTP503 and credential readiness remain unresolved. No new full-roadmap percentage inferred.
+
 ## 2026-10-21 VPS proxy stage accepted; separate tunnel identity next
 
 - E146 [owner transcript review](evidence/paytm-loopback-proxy-spare-20261021.json): stage exit0,10s, Tinyproxy1.11.2-1, curl8.14.1-2+deb13u4. Three reported SHA256 values match current config/filter/unit generators exactly. Both starts non-root/loopback-only; arbitrary/lookalike/wrong-port/IPv4/IPv6/plaintext denied; observed proxy egress130.250.191.137; diagnostic host removed and rejected after restart; stopped-proxy request refused with exit7; final stopped/static checks passed.

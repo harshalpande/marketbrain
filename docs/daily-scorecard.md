@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+Current E147 (2026-10-21): distinct gateway public key accepted; restricted-account installer prepared with128 offline assertions/eight clipboard assertions. Runtime installation/fresh-admin login and allowed/denied tunnel traffic are **pending**, so no runtime or whole-gateway completion credit. No new package denominator or full-roadmap percentage asserted. [Evidence](evidence/paytm-tunnel-identity-local-20261021.json), [handoff](paytm-restricted-tunnel.md).
+
 1. Before implementing a bounded work package, freeze its scope, acceptance criteria and five checkpoints: design accepted (10%), implementation complete (30%), offline verification passed (20%), spare-runtime verification passed (20%), owner acceptance (20%). Award each checkpoint only when all its declared criteria are met; otherwise report partial work without its percentage credit. A package can remain at 0% while its design is being prepared.
 2. Record the opening percentage, closing percentage and difference in **percentage points**, with evidence references. A rise from 40% to 60% is +20 percentage points, not a claim of 20% better predictions.
 3. Keep work-package progress separate from the roadmap's weighted parent-goal checkpoints. Never average packages of unequal scope or transfer a small package's completion to its whole parent area. Publish any scope/weight revision explicitly; do not silently change denominators.

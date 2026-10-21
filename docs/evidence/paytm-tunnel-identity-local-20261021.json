@@ -1,0 +1,60 @@
+{
+  "evidenceId": "E147",
+  "date": "2026-10-21",
+  "status": "LOCAL_TUNNEL_IDENTITY_HANDOFF_PREPARED_VPS_EXECUTION_PENDING",
+  "scope": "Separate forwarding-only SSH account and guarded account-scoped configuration installation",
+  "publicKey": {
+    "source": "Owner supplied SSH2 public key in conversation",
+    "type": "ssh-ed25519",
+    "wireBytes": 51,
+    "fingerprint": "SHA256:fRekz3jjaYJxnK5dDXMzq9mDEB4Z3BEHhjfNJCx07UI",
+    "differsFromAcceptedAdministratorKey": true,
+    "privateKeyReceivedOrGenerated": false,
+    "privateKeyStorageAndPassphraseVerified": false
+  },
+  "localChecks": {
+    "bashGuardAssertionsPassed": 128,
+    "mockedClipboardAssertionsPassed": 8,
+    "bashSyntaxPassed": true,
+    "powershellSyntaxPassed": true,
+    "realDebianDaemonRehearsal": false,
+    "fullInstallerRuntimeTest": false
+  },
+  "verificationCoverage": [
+    "Exact gateway policy plus each missing and weakened control",
+    "Different public key and account-specific policy generator",
+    "Existing Match, custom Include, custom SSH default flags rejected",
+    "Absent versus failed NSS lookup and ownership/write-permission guards",
+    "Root/admin effective-policy comparison and command failure",
+    "Stopped proxy versus active/listening/failed inspection",
+    "Mocked recovery refusal on file/include drift or validation/copy/move/reload failure",
+    "Clipboard preserves remote SSH_CONNECTION and heredoc without remote execution"
+  ],
+  "plannedRuntimeSideEffects": [
+    "One system account with nologin shell, invalid password and only its own group",
+    "One root-owned public-key directory/file",
+    "Private backup of original SSH configuration retained",
+    "Append one trailing Match User block after syntax/effective-policy comparisons",
+    "Atomic configuration replacement and SSH reload, not restart",
+    "Withdraw exact new key and attempt guarded restoration if a later check fails"
+  ],
+  "runtimeVerified": {
+    "accountInstalled": false,
+    "sshReload": false,
+    "freshAdministratorLogin": false,
+    "gatewayKeyLogin": false,
+    "allowedAndDeniedTunnelTraffic": false,
+    "actualApplicationProxyPath": false,
+    "brokerAuthentication": false
+  },
+  "unchangedBoundaries": {
+    "proxyMustRemainStopped": true,
+    "noFirewallOrDefaultRouteChanges": true,
+    "noRootOrAdministratorLoginRestriction": true,
+    "noPrivateKeyOrBrokerCredentialHandling": true,
+    "noApplicationDeploymentOrTrading": true
+  },
+  "nextEvidence": "One VPS installation log plus fresh administrator key login and sudo validation; then combined tunnel traffic verification",
+  "providerRootHttp503StillUnresolved": true,
+  "fullRoadmapPercentageRecalculated": false
+}
