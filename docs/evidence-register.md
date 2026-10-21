@@ -4,6 +4,10 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ## Evidence vocabulary
 
+### Paytm login preparation
+
+- **E139 PAYTM_SYNTHETIC_LOGIN_PREPARATION / SPARE_PENDING:** [local evidence](evidence/paytm-login-preparation-local-20261021.json), [handoff](paytm-login-preparation.md). Screenshots establish app registration, not authentication. Native core verification and local HTTP tests are distinct; spare script verifies the core only. No live token exchange, callback deployment, VPS/network changes, quotes or orders. SSH identity and actual fixed egress remain separate gates.
+
 ### Current guarded writer installation
 
 - **E138 APPLICATION_CONFIG_GUARD_REPAIR / SPARE_RETRY_PENDING:** [evidence](evidence/paper-runtime-config-guard-repair-20261015.json), [retry](paper-runtime-application-handoff.md). Run11ea43feef77 stopped after12.655s before build/deployment/handoff. NOLOGIN and prerequisite account/storage checks passed. The old guard's rejection of null/false defaults is reproduced and fixed; exact old triggering field is unknown.314 offline assertions/14 mocked scenarios pass; real overrides remain blocked with value-free field-specific errors. Package60%, repair gain0pp, full-roadmap12.4%.

@@ -1,0 +1,79 @@
+{
+  "version": "PAYTM_LOGIN_PREPARATION_LOCAL_V1",
+  "date": "2026-10-21",
+  "status": "LOCAL_VERIFIED_SPARE_CORE_PENDING",
+  "evidenceId": "E139",
+  "baseRevision": "cf501f7d0b624b42e8e90a933efab787f63fb135",
+  "revisionNote": "Verification includes new working-tree files on this base; this evidence is committed with those changes.",
+  "boundedPackage": {
+    "scope": "Synthetic login core and disabled callback rehearsal preparation; not real authentication",
+    "openingPercent": 0,
+    "currentPercent": 60,
+    "changePercentagePoints": 60,
+    "completed": ["design_10", "implementation_30", "offline_verification_20"],
+    "pending": ["spare_native_core_verification_20", "owner_acceptance_20"],
+    "parentGoalPercentRecalculated": false
+  },
+  "javaRegression": {
+    "command": "mvn -q -f marketbrain-service/pom.xml test",
+    "exitCode": 0,
+    "testSuites": 155,
+    "tests": 792,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "sumSuiteSeconds": 32.561,
+    "timingNote": "Sum of Surefire suite times; not full build wall time.",
+    "newJUnitTests": 11,
+    "httpAndContextTests": 10,
+    "coreVerifierChecksWithinOneJUnitTest": 38,
+    "doNotAddNestedChecksToJUnitTotal": true
+  },
+  "nativeRunner": {
+    "runId": "9fc567982e6441bf972b0ece38f2e923",
+    "status": "SYNTHETIC_CORE_PASSED_REAL_AUTHENTICATION_BLOCKED",
+    "powerShellVersion": "5.1.26100.9444",
+    "jdkMajor": 22,
+    "javacRelease": 21,
+    "elapsedSeconds": 4.8984091,
+    "coreChecks": 38,
+    "failedChecks": 0,
+    "nativeStages": 4,
+    "allNativeExitCodesZero": true,
+    "temporaryClassesRemoved": true,
+    "reportCountPerRun": 1,
+    "springHttpTestsRunBySpareScript": false,
+    "missingJdkCase": "Expected terminating failure with one diagnostic report preserved",
+    "missingJdkRunId": "f8f0dad3444a",
+    "negativeCaseNote": "Expected failure verified against the final runner; no compilation or application action followed."
+  },
+  "rawLocalSourceSha256": {
+    "PaytmLoginPreparation.java": "A645195112E4E8EA79450F319C0038AA9D17C8323B95E72E7BF9F6FC20C7B2EA",
+    "PaytmLoginPreparationVerification.java": "1F1F911C8C4A9EC2B6FE862B71222A872A8B12C09A5464E0C061B492146D6F11",
+    "PaytmCallbackRehearsalController.java": "B1A34E53C2347DAA9182AB62A56B60F8A00E7E78951B325A800CE20DBB387779",
+    "PaytmLoginPreparationTest.java": "2FD9EE7209219188F67207188238B59DF72B6A47729145DF74405CC69FE233FB",
+    "PaytmCallbackRehearsalControllerTest.java": "C9459C44EF7A022B5E3A3802A2E7F9884E01F5E117BB21C06C738E62FD0F2490",
+    "TestPaytmLoginPreparation.ps1": "C037F672A11B3FBC8DF5ABEF423C6E12F077EB039E9D74C27ACE731AA3C85A4B"
+  },
+  "staticChecks": ["PowerShell AST parsed", "Architecture SVG XML parsed", "git diff --check passed"],
+  "safety": {
+    "rehearsalControllerEnabledByDefault": false,
+    "realCredentialsRequested": false,
+    "providerCallsPerformed": false,
+    "vpsChanged": false,
+    "applicationDeployed": false,
+    "databaseWritesPerformed": false,
+    "ordersCreated": 0,
+    "actualPaytmAuthenticationVerified": false,
+    "actualCallbackWireContractVerified": false
+  },
+  "remainingGates": [
+    "spare_core_evidence_review",
+    "independent_vps_host_key_verification",
+    "actual_container_static_egress_and_fail_closed_tests",
+    "reviewed_local_callback_ingress_and_port_mapping",
+    "real_state_echo_and_callback_field_names",
+    "credential_custody_and_bounded_token_exchange",
+    "read_only_quote_entitlements_freshness_and_mapping"
+  ]
+}

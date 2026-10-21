@@ -162,6 +162,8 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
+2026-10-21 E139: app registration is Active per screenshot. [Synthetic login/callback preparation](paytm-login-preparation.md) is a bounded subpackage, not completion of authentication or G05. Native spare rehearsal needs no keys or restart. VPS identity, actual application egress, live callback contract, token exchange and quotes remain pending; no parent-goal percentage credit is inferred.
+
 - G05.1 `PARTIAL`: historical price-chart client exists; this is not live-data or order integration; E05.
 - G05.2 `PENDING`: obtain current official account-specific auth, market-feed contract, exchange entitlement, rate limits and static-egress requirements; no secrets in documentation.
 - G05.3 `DESIGNED`: normalized read-only adapter, source provenance, explicit preference/failover policy and divergence alarms.

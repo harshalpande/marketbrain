@@ -20,7 +20,15 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 Also report: full-roadmap percentage and change; new versus previously accepted tests; measured runtime; deployments; preserved cash/action restrictions; and the next achievable milestone. Estimates and unverified claims must be labelled.
 
-## Recorded progress on 2026-10-15
+## Recorded progress on 2026-10-21 — Paytm preparation
+
+| Bounded package | Opening | Current | Change | Evidence / remaining |
+|---|---:|---:|---:|---|
+| Synthetic login core and disabled callback rehearsal |0%|60%|+60pp|[E139](evidence/paytm-login-preparation-local-20261021.json): D/I/V; 792 regression tests pass, including 11 new JUnit tests. One of those exercises 38 core checks. Native PowerShell run passed in4.898s. R20 is spare core execution; A20 is owner acceptance. |
+
+This does not award G05/live-authentication credit or recalculate the full roadmap. The last published full-roadmap baseline below is historical, not a refreshed audit. No credentials, real authentication, gateway deployment, quote collection, orders or profit evidence were produced. [Next gates](paytm-login-preparation.md).
+
+## Recorded progress on 2026-10-15 (historical)
 
 E138 correction: application handoff stopped before deployment after12.655s. The reproduced optional-setting guard defect is corrected and314 offline assertions/14 mocked scenarios pass. The exact prior triggering field was not captured. Application package stays60% (repair gain0pp); no R/A credit, full roadmap12.4% unchanged. E137's236-assertion total below is the previous baseline, not an additional suite to add to314.
 

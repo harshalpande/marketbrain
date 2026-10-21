@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-21 Paytm authentication preparation
+
+- E139: owner authorized local callback/authentication preparation with offline checks while independent VPS identity confirmation is pending. App creation is Active per screenshot; registered localhost callback and disabled postback retained. Registration does not prove gateway routing, entitlement or real authentication.
+- Added disconnected login-state guard and disabled-by-default synthetic callback routes. No real key/secret/token is requested or exchanged. Spare script compiles/runs only the 38-check native core, producing one JSON; local Spring tests cover HTTP/default-off wiring separately.
+- [Local evidence and timing](evidence/paytm-login-preparation-local-20261021.json); [handoff and gates](paytm-login-preparation.md). No provider, database, model, VPS or runtime deployment work is part of this package. Existing paper restrictions remain; no real Telegram review or live trade is enabled.
+
 ## 2026-10-15 Application configuration guard correction
 
 - E138 reviews run11ea43feef77 at revision2c7ec2e: STOPPED_REVIEW_REQUIRED after12.655s; INITIAL_NOLOGIN and CONFIG_COMPARE subprocesses succeeded. The guard rejected an optional container setting before any build/deployment or credential handoff. Prerequisite account read showed INR100,000, reserved0, revision0; storage key verified. No role/account writes or publication requested. This is not a completed post-deployment reconciliation.
