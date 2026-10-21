@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-21 E140: [spare rehearsal accepted](evidence/paytm-login-preparation-spare-acceptance-20261021.json):38/38 checks,8.290s, eight matching Windows source hashes and no failures. Owner continuation closes the bounded rehearsal at100%; not real Paytm authentication. Next: [provider-console SSH identity verification](paytm-gateway-preflight.md). HosterDaddy's OS-configuration reply contains no fingerprint. No core rerun, Docker rebuild, gateway installation or broker credential entry yet.
+
 2026-10-21 E139: [Paytm login/callback preparation](paytm-login-preparation.md) is synthetic-only and disabled by default. App registration is Active per owner screenshot; real authentication, gateway egress and quotes are unverified. Run the native-JDK core rehearsal and share one JSON; no rebuild, keys or service restart. HosterDaddy identity verification remains pending. Earlier writer milestones below are historical, not prerequisites to rerun for this package.
 
 2026-10-15 E138: [application handoff retry](paper-runtime-application-handoff.md). The spare run stopped before build/deployment at the configuration guard, after successful NOLOGIN verification. A reproduced presence-only check defect is corrected: null defaults and typed false/empty additive lists pass; actual overrides still fail with a field-specific, value-free error. 314 offline assertions/14 mocked scenarios pass. The old report does not identify its triggering field. Package60%, roadmap12.4%, repair gain0pp; isolated package100% remains accepted.

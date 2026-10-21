@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-21 Spare acceptance and gateway preflight
+
+- E140: reviewed run ec256b4bfdda at49159a7 passed all38 named checks and four native stages in8.290s, with eight matching CRLF source hashes, matching embedded results, no stderr/failure/cleanup problem. PowerShell7.6.6 and javac25.0.4.1, compiling release21. Spring HTTP tests were not executed on spare. No real authentication, restart, database writes or orders.
+- Owner requested continuation after review: rehearsal80% to100% (+20pp acceptance); the prior runtime gain60% to80% is not counted again. Parent-goal/full-roadmap progress is not recalculated.
+- HosterDaddy's reply concerns OS-level configuration and does not provide SSH identity evidence. [Next step](paytm-gateway-preflight.md) obtains existing public fingerprints through a protected provider console, then compares PuTTY. No key generation, firewall/network changes or VPS execution performed locally.
+
 ## 2026-10-21 Paytm authentication preparation
 
 - E139: owner authorized local callback/authentication preparation with offline checks while independent VPS identity confirmation is pending. App creation is Active per screenshot; registered localhost callback and disabled postback retained. Registration does not prove gateway routing, entitlement or real authentication.

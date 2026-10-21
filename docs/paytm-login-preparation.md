@@ -1,5 +1,7 @@
 # Paytm login preparation — synthetic only
 
+E140 update: [spare core evidence accepted](evidence/paytm-login-preparation-spare-acceptance-20261021.json), owner continuation received; bounded rehearsal100%. Do not rerun it. Next is [VPS identity preflight](paytm-gateway-preflight.md), not real authentication activation. Original scope and instructions below are retained for reference.
+
 ## Scope and acceptance
 
 2026-10-21, E139. This bounded package prepares login-state handling and a **disabled-by-default synthetic callback controller**. It does not authenticate with Paytm, exchange tokens, fetch quotes, deploy callbacks on the spare, change the VPS, or place orders. The spare handoff tests the dependency-free core; Spring HTTP behavior is verified separately by local MockMvc/context tests. Neither is a real browser/broker integration test.

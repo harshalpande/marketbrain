@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-21 — Paytm preparation
 
+Latest E140: [spare acceptance](evidence/paytm-login-preparation-spare-acceptance-20261021.json) closes the bounded rehearsal at100%. Runtime review previously advanced60% to80%; this owner's continuation adds20pp acceptance,80% to100%.38 checks passed in8.290s, no side effects. No live-authentication/gateway or parent-goal credit is implied. The initial60% row below is retained as historical evidence.
+
 | Bounded package | Opening | Current | Change | Evidence / remaining |
 |---|---:|---:|---:|---|
 | Synthetic login core and disabled callback rehearsal |0%|60%|+60pp|[E139](evidence/paytm-login-preparation-local-20261021.json): D/I/V; 792 regression tests pass, including 11 new JUnit tests. One of those exercises 38 core checks. Native PowerShell run passed in4.898s. R20 is spare core execution; A20 is owner acceptance. |
