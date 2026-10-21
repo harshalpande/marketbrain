@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-21 Administrator accepted; VPS-local gateway staging prepared
+
+- E144: [owner screenshot accepted](evidence/vps-admin-second-login-20261021.json): public-key login/passphrase prompt, named identity/sudo group, sudo -k followed by password validation and sudo whoami=root. No full installation log reviewed; no claim that all VPS hardening is complete. Owner requested continuation.
+- E145: [loopback proxy stage](paytm-loopback-gateway.md) installs executable-only Tinyproxy/curl when missing, uses a new DynamicUser systemd unit, exact CONNECT authority filtering and explicit IPv4 binding. One batch tests denied names/ports/IPs/plaintext, temporary IP lookup, TLS, restart with final allowlist and stopped-proxy refusal, then leaves the service stopped/static. No SSH/firewall/default-route/app or secret changes.
+- 59 offline policy/guard/probe cases and seven mocked clipboard assertions pass; syntax checked. Error-path tests caught and fixed masked curl failures. Unit-not-found return-code handling is explicit. Local Docker daemon is unavailable, so no real Tinyproxy/systemd or full installer runtime is claimed. [Local evidence](evidence/paytm-loopback-proxy-local-20261021.json).
+- Next owner action: run the one VPS staging handoff and share one log. Restricted tunnel identity, actual-container explicit-proxy/fail-closed tests and real Paytm authentication remain pending; no new full-roadmap/prediction-quality percentage is inferred.
+
 ## 2026-10-21 Named VPS administrator installation prepared
 
 - E143: owner-provided targeted inspection shows root access, absent marketbrain-admin/home, existing sudo group but no sudo executable on system PATH, standard authorized-key paths, public-key authentication enabled and exit0. Public Ed25519 key received; PPK storage outside repo confirmed. Passphrase protection remains an owner pre-apply check, not machine-verified evidence.

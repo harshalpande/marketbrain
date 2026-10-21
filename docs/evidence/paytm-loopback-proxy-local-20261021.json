@@ -1,0 +1,39 @@
+{
+  "evidenceId": "E145",
+  "date": "2026-10-21",
+  "status": "VPS_LOOPBACK_PROXY_STAGING_PREPARED_RUNTIME_PENDING",
+  "scope": "One-time VPS-local proxy package/configuration and no-credential verification; final service stopped",
+  "offlineVerification": {
+    "bashPolicyGuardAndProbeCasesPassed": 59,
+    "mockedClipboardAssertionsPassed": 7,
+    "bashSyntaxPassed": true,
+    "powerShellSyntaxPassed": true,
+    "fullInstallerMocked": false,
+    "realTinyproxySystemdTested": false,
+    "dockerAvailable": false,
+    "dockerLimitation": "Local Docker API pipe unavailable; daemon was not started"
+  },
+  "sourcesReviewed": [
+    "https://packages.debian.org/trixie/tinyproxy-bin",
+    "https://manpages.debian.org/trixie/tinyproxy/tinyproxy.conf.5.en.html",
+    "https://github.com/tinyproxy/tinyproxy/blob/1.11.2/src/reqs.c",
+    "https://github.com/tinyproxy/tinyproxy/blob/1.11.2/src/sock.c",
+    "https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html",
+    "https://github.com/paytmmoney/pyPMClient/blob/master/pmClient/constants.py"
+  ],
+  "plannedRuntime": {
+    "listen": "127.0.0.1:18888",
+    "outgoingBind": "130.250.191.137",
+    "finalConnectAllowlist": ["developer.paytmmoney.com:443"],
+    "temporaryDiagnosticOnly": "api.ipify.org:443",
+    "credentialUse": false,
+    "expectedFinalServiceState": "inactive, static unit not enabled at boot"
+  },
+  "vpsChangedByAgent": false,
+  "applicationChanged": false,
+  "realEgressObservedByAgent": false,
+  "restrictedSshTunnelInstalled": false,
+  "actualApplicationProxyPathVerified": false,
+  "realPaytmAuthenticationVerified": false,
+  "fullRoadmapPercentageRecalculated": false
+}

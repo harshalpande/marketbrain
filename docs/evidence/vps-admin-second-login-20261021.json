@@ -1,0 +1,18 @@
+{
+  "evidenceId": "E144",
+  "date": "2026-10-21",
+  "source": "Owner-provided second PuTTY window screenshot",
+  "status": "ADMIN_PUBLIC_KEY_LOGIN_AND_SUDO_ACCEPTED",
+  "publicKeyAuthenticationShown": true,
+  "privateKeyPassphrasePromptShown": true,
+  "whoami": "marketbrain-admin",
+  "sudoGroupShown": true,
+  "sudoCacheClearedBeforeValidation": true,
+  "sudoAccountPasswordPromptShown": true,
+  "sudoWhoami": "root",
+  "ownerRequestedContinuation": true,
+  "fullInstallationLogReviewed": false,
+  "gatewayVerified": false,
+  "realPaytmAuthenticationVerified": false,
+  "fullRoadmapPercentageRecalculated": false
+}

@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-21 E144/E145: second key-based admin login and password-protected sudo are accepted from the owner screenshot. Next is [VPS-loopback Paytm proxy staging](paytm-loopback-gateway.md): one batch tests restrictions, TLS, static egress, restart and stopped behavior, then leaves the new service stopped. No SSH/firewall/laptop application changes or broker credentials. Actual VPS proxy execution and later restricted tunnel/application integration remain pending; do not repeat admin setup.
+
 2026-10-21 E143: owner supplied the public login key and confirmed local PPK storage; targeted VPS inspection passed. Next is [named administrator installation and second-login verification](vps-admin-installation.md). The one-time installer creates a sudo-capable account and installs sudo if missing, preserving root/SSH/network settings. 20 offline guard cases and six mocked clipboard assertions pass; real installation/login remain pending. No gateway or live-authentication credit is implied.
 
 2026-10-21 E142: the VPS baseline has been reviewed; no repeat capture is needed. Next is [local administrative key creation](vps-administrative-key-setup.md) on the spare laptop using PuTTYgen. Three mocked launcher scenarios pass. Only the public key is shared; installation and a second verified login remain pending. Existing root/password access stays unchanged. Gateway routing and real Paytm authentication remain unverified. Earlier baseline-pending wording below is historical.

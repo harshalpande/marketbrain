@@ -162,6 +162,8 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
+E144 accepts human administrator key login/sudo. E145 prepares [loopback proxy staging](paytm-loopback-gateway.md); no live-data credit. VPS runtime tests, restricted SSH transport, actual-container proxy/fail-closed verification and authentication remain separate pending gates. Do not enable the existing direct historical client based on VPS-only evidence.
+
 E143: [VPS administrator installation](vps-admin-installation.md) prepared with collision/policy guards and retained root recovery. Real key login and administrative verification are pending. This is infrastructure preparation, not gateway or G05 live-data completion; no percentage increase.
 
 E142: VPS baseline reviewed; [local administrative key creation](vps-administrative-key-setup.md) is next. Three launcher scenarios pass offline; real key installation/second login, gateway routing and Paytm authentication remain pending. No G05 percentage increase is inferred from inventory or launcher tests. The baseline-pending note below is historical.

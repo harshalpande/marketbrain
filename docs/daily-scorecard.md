@@ -22,6 +22,8 @@ Also report: full-roadmap percentage and change; new versus previously accepted 
 
 ## Recorded progress on 2026-10-21 — Paytm preparation
 
+E144 closes the human administrator key-login/sudo acceptance gate from owner screenshot and continuation. E145 prepares a distinct VPS-local proxy stage: 59 offline cases/seven clipboard assertions pass, real Linux stage pending. Local Docker API unavailable; no runtime credit awarded. [Handoff](paytm-loopback-gateway.md). No new package denominator or full-roadmap percentage is invented; synthetic-login rehearsal remains100% within its older limited scope. Account creation must not be repeated.
+
 E143: named administrator installation prepared after the owner-supplied public key and targeted inspection. 20 guard tests and six mocked clipboard assertions pass; Debian installation, key-only second login and sudo verification remain pending. These test counts are not model quality or full-project completion. No package percentage denominator or roadmap percentage is newly asserted. [Handoff](vps-admin-installation.md).
 
 E142: the owner-run VPS baseline is reviewed (exit0,1s); the earlier execution-pending note below is superseded. The admin-key launcher passes three mocked scenarios, but actual key creation, installation and second-login verification remain pending. No gateway or live-authentication credit is awarded. [Evidence](evidence/vps-baseline-review-20261021.json), [next handoff](vps-administrative-key-setup.md). Full-roadmap percentages have not been recalculated.

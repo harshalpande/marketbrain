@@ -1,5 +1,7 @@
 # VPS named administrator installation and second-login acceptance
 
+E144 update: owner's screenshot shows public-key/passphrase login, marketbrain-admin identity/sudo group, a fresh sudo password challenge and final root identity. Owner continuation accepts this bounded login/privilege gate. Full installer log is not reviewed; no broader hardening claim. Do not rerun installation. Next is [loopback gateway staging](paytm-loopback-gateway.md).
+
 E143, 2026-10-21. Owner authorized continuation after the read-only check: root session works, named account/home absent, sudo group exists but sudo executable is absent, standard key files and public-key authentication enabled, SSH inspection exit0. Initial password denial was followed by successful login; it is not evidence about the uninstalled key. Garbled paste echo is not executed-source attestation.
 
 ## Scope and effects

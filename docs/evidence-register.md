@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E145 VPS_LOOPBACK_PROXY_STAGING_PREPARED_RUNTIME_PENDING:** [local evidence](evidence/paytm-loopback-proxy-local-20261021.json), [handoff](paytm-loopback-gateway.md). 59 offline cases/seven mocked clipboard assertions, syntax checks. No real Linux proxy/systemd or full installer test; local Docker API unavailable. Owner-run stage ends stopped; actual tunnel/application routing/authentication remain pending.
+- **E144 ADMIN_PUBLIC_KEY_LOGIN_AND_SUDO_ACCEPTED:** [evidence](evidence/vps-admin-second-login-20261021.json). Owner screenshot shows second-session public-key authentication, passphrase, named identity, sudo membership, fresh account-password challenge and root via sudo. Owner continuation accepts this bounded gate, not broad VPS security or gateway readiness.
+
 - **E143 VPS_ADMIN_INSTALLATION_PREPARED_RUNTIME_PENDING:** [handoff](vps-admin-installation.md), [local evidence](evidence/vps-admin-installation-local-20261021.json). Owner targeted inspection exit0; public key supplied. 20 offline guard cases and six mocked clipboard assertions pass. No real package/account installation, second login, gateway or Paytm authentication tested. PPK passphrase and actual sudo policy need owner verification; preserve root recovery.
 
 - **E142 BASELINE_REVIEWED_ADMIN_KEY_CREATION_PENDING:** [evidence](evidence/vps-baseline-review-20261021.json), [handoff](vps-administrative-key-setup.md). Complete owner-run baseline result reviewed, exit0/1s; garbled command echo is not byte attestation. Three mocked PuTTYgen launcher scenarios pass. No actual key generated or installed by agent, no VPS changes, no effective external firewall or gateway approval. Next input is the owner's public login key only; root/password access is preserved.
