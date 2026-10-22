@@ -16,7 +16,14 @@ $fixtureDirs=New-Object 'Collections.Generic.List[string]'
 $script:fixtureState=$null
 function MockResult([int]$Code,[string]$Out,[string]$Err='', [bool]$Stopped=$false){[pscustomobject]@{ExitCode=$Code;Stdout=$Out;Stderr=$Err;StoppedByRunner=$Stopped;ElapsedSeconds=0.01}}
 function Get-TunnelListeners([int]$Port) {
-    if($fixtureState.Listener){[pscustomobject]@{LocalAddress='127.0.0.1';LocalPort=$Port;OwningProcess=$fixtureState.Listener}}
+    if($fixtureState.Listener){
+        if($fixtureState.Case -eq 'ListenerQueryFailure'){throw 'fixture TCP query failed'}
+        $row=[pscustomobject]@{LocalAddress='127.0.0.1';LocalPort=$Port;OwningProcess=$fixtureState.Listener}
+        if($fixtureState.Case -eq 'ListenerWrongOwner'){$row.OwningProcess=99999}
+        if($fixtureState.Case -eq 'ListenerExposed'){$row.LocalAddress='0.0.0.0'}
+        $row
+        if($fixtureState.Case -eq 'ListenerDuplicate'){$row}
+    }
 }
 function Get-ItemProperty {param($LiteralPath) $null}
 function Set-Clipboard {param($Value) $fixtureState.Payload=$Value}
@@ -85,7 +92,7 @@ function Complete-TunnelProcess($Handle,[int]$LimitSeconds=20,[switch]$StopNow) 
 }
 $count=0
 try {
-    foreach($case in @('Pass','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady')) {
+    foreach($case in @('Pass','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure')) {
         $script:fixtureState=[pscustomobject]@{Case=$case;Run='';Proxy=$false;Listener=0;NextId=1000;Payload='';Clipboard='';PageantCalls=0}
         $folder=Join-Path $fixtureRoot $case
         $fixtureDirs.Add($folder)
@@ -105,6 +112,16 @@ try {
         if($case -in @('BadServerEvidence','InputTimeoutBeforeReady') -and ($data.serverEvidenceVerified -or -not $data.serverEvidence)){throw 'Failed server evidence lost or incorrectly verified'}
         if($case -eq 'InputTimeoutBeforeReady' -and @($data.processes | Where-Object label -eq 'Allowed tunnel').Count){throw 'Tunnel opened without readiness'}
         if($data.launcherRevision -ne 'FILE_WITH_TERMINAL_STDIN_V2'){throw 'Launcher revision missing'}
+        if($data.listenerValidationRevision -ne 'OBSERVED_ENDPOINT_AND_OWNER_V1'){throw 'Listener revision missing'}
+        if($case -like 'Listener*') {
+            if($data.listenerEvidence.Count -ne 1 -or $data.providerRootStatuses.Count -ne 0 -or -not $data.localCleanupConfirmed){throw 'Listener failure capture or safe cleanup broken'}
+            if($case -eq 'ListenerQueryFailure'){
+                if($data.listenerEvidence[0].queryError -ne 'fixture TCP query failed'){throw 'Query error not preserved'}
+            } else {
+                $reason=switch($case){ListenerWrongOwner {'OWNER_PID_MISMATCH'};ListenerExposed {'NON_LOOPBACK_ADDRESS'};ListenerDuplicate {'MULTIPLE_LISTENERS'}}
+                if($data.listenerEvidence[0].reasons -notcontains $reason -or $data.listenerEvidence[0].expectedProcessId -le 0){throw 'Expected listener failure detail absent'}
+            }
+        }
         $count++
     }
     Write-Host "PASS: $count mocked whole-run workflows; one report per run, no real network, Pageant or VPS changes."

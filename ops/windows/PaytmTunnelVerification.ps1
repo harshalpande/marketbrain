@@ -91,15 +91,47 @@ function Get-TunnelListeners([int]$Port) {
     # Query all listeners: missing-port lookup errors must not masquerade as inspection failure.
     @(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object {$_.LocalPort -eq $Port})
 }
-function Assert-TunnelListenerRows($Rows,[int]$ProcessId) {
-    $items=@($Rows)
-    if($items.Count -ne 1 -or $items[0].LocalAddress -ne '127.0.0.1' -or $items[0].OwningProcess -ne $ProcessId){throw 'Listener missing, exposed, duplicated or owned by another process'}
+function Get-TunnelListenerAssessment($Rows,[int]$ProcessId,[int]$Port=0,[string]$Label='Listener') {
+    $items=@($Rows | Where-Object {$null -ne $_})
+    $observed=@(foreach($item in $items){
+        [pscustomobject]@{
+            localAddress=[string]$item.LocalAddress
+            localPort=if($item.PSObject.Properties['LocalPort']){[int]$item.LocalPort}else{$null}
+            owningProcess=[long]$item.OwningProcess
+            state=if($item.PSObject.Properties['State']){[string]$item.State}else{$null}
+        }
+    })
+    $reasons=@()
+    if($items.Count -eq 0){$reasons+='MISSING'}
+    if($items.Count -gt 1){$reasons+='MULTIPLE_LISTENERS'}
+    foreach($row in $observed){
+        if($row.localAddress -cne '127.0.0.1'){$reasons+='NON_LOOPBACK_ADDRESS'}
+        if($row.owningProcess -ne $ProcessId){$reasons+='OWNER_PID_MISMATCH'}
+        if($Port -gt 0 -and $row.localPort -ne $Port){$reasons+='PORT_MISMATCH'}
+    }
+    [pscustomobject]@{label=$Label;observedUtc=[DateTime]::UtcNow.ToString('o');expectedAddress='127.0.0.1';expectedPort=$Port;expectedProcessId=$ProcessId;rowCount=$items.Count;rows=$observed;reasons=@($reasons | Select-Object -Unique);valid=($reasons.Count -eq 0)}
 }
-function Wait-TunnelListener($Handle,[int]$Port) {
+function Assert-TunnelListenerAssessment($Assessment) {
+    if(-not $Assessment.valid){
+        throw ('Tunnel listener validation failed: '+($Assessment | ConvertTo-Json -Depth 5 -Compress))
+    }
+}
+function Assert-TunnelListenerRows($Rows,[int]$ProcessId,[int]$Port=0,$Evidence=$null,[string]$Label='Listener') {
+    $assessment=Get-TunnelListenerAssessment $Rows $ProcessId $Port $Label
+    if($null -ne $Evidence){[void]$Evidence.Add($assessment)}
+    Assert-TunnelListenerAssessment $assessment
+}
+function Wait-TunnelListener($Handle,[int]$Port,$Evidence=$null,[string]$Label='Listener readiness') {
     for($i=0;$i -lt 30;$i++) {
         if($Handle.Process.HasExited){throw 'Tunnel exited before listener became ready'}
-        $rows=@(Get-TunnelListeners $Port)
-        if($rows.Count){Assert-TunnelListenerRows $rows $Handle.Process.Id; return}
+        try {$rows=@(Get-TunnelListeners $Port)} catch {
+            if($null -ne $Evidence){[void]$Evidence.Add([pscustomobject]@{label=$Label;observedUtc=[DateTime]::UtcNow.ToString('o');expectedPort=$Port;expectedProcessId=$Handle.Process.Id;queryError=$_.Exception.Message;valid=$false})}
+            throw
+        }
+        $assessment=Get-TunnelListenerAssessment $rows $Handle.Process.Id $Port $Label
+        if($null -ne $Evidence){[void]$Evidence.Add($assessment)}
+        # Only absence is retried. An unexpected address, extra row or owner fails immediately.
+        if($rows.Count){Assert-TunnelListenerAssessment $assessment; return}
         Start-Sleep -Milliseconds 500
     }
     throw 'Tunnel listener readiness timeout'

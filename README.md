@@ -6,6 +6,8 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
+**Current E151, 2026-10-22:** [restricted Paytm tunnel retry](docs/paytm-tunnel-verification.md). Terminal correction verified; Windows listener validation still needs review. New one-file diagnostics capture actual versus expected endpoint/process ownership without relaxing safety. No broker login, quotes or trades enabled. Older handoffs below are historical.
+
 **Latest E138, 2026-10-15:** the first application handoff stopped safely before build/deployment because the configuration guard rejected field presence rather than effective overrides. The guard now accepts null/default values and reports only the name of a rejected field; 314 offline assertions across 14 mocked runner scenarios pass. The exact triggering field in the old spare report was not captured. Pull and retry the [guarded application handoff](docs/paper-runtime-application-handoff.md), not the already accepted isolated test. Package60%, roadmap12.4%; no new runtime completion credit.
 
 **Latest E136/E137, 2026-10-15:** isolated custody/restart verification is accepted at100%; do not rerun it. The next [guarded application handoff](docs/paper-runtime-application-handoff.md) is locally verified with236 assertions. It rebuilds/recreates the service, tests the existing protected credential in memory, verifies locked restart and finishes locked with PostgreSQL NOLOGIN. No publication, order, reservation or fill. Spare deployment/acceptance pending; full roadmap12.4%. Older handoffs below are historical.

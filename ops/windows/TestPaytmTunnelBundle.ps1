@@ -11,6 +11,9 @@ $report=[ordered]@{schemaVersion=1;runId=$runId;startedUtc=[DateTime]::UtcNow.To
 $session=[ordered]@{ServerRequested=$false;PageantRequested=$false;Tunnel=$null}; $passed=$false
 $report.egressReobserved=$false
 $report.launcherRevision='FILE_WITH_TERMINAL_STDIN_V2'
+$report.listenerValidationRevision='OBSERVED_ENDPOINT_AND_OWNER_V1'
+$report.listenerEvidence=New-Object 'Collections.Generic.List[object]'
+$report.powerShellVersion=$PSVersionTable.PSVersion.ToString()
 $reportPath=$null
 function Save-Report {
     if($reportPath){$report.elapsedSeconds=[math]::Round($watch.Elapsed.TotalSeconds,3); [IO.File]::WriteAllText($reportPath,($report | ConvertTo-Json -Depth 12),(New-Object Text.UTF8Encoding($false)))}
@@ -42,9 +45,14 @@ function Probe([string]$Label,[string]$Executable,[string[]]$Arguments,[int]$Lim
     Complete-TunnelProcess $handle $Limit
 }
 function Start-Forward([string]$Label) {
-    if(@(Get-TunnelListeners $LocalPort).Count){throw 'Local test port occupied; no process will be displaced'}
+    $existing=@(Get-TunnelListeners $LocalPort)
+    if($existing.Count){
+        [void]$report.listenerEvidence.Add((Get-TunnelListenerAssessment $existing 0 $LocalPort "$Label pre-start occupied port"))
+        throw 'Local test port occupied; no process will be displaced'
+    }
     $handle=Start-Owned $Label $plink ($sshArgs+@('-T','-N','-L',"127.0.0.1:${LocalPort}:127.0.0.1:18888",'130.250.191.137'))
-    Wait-TunnelListener $handle $LocalPort
+    try {Wait-TunnelListener $handle $LocalPort -Evidence $report.listenerEvidence -Label $Label}
+    finally {Save-Report}
     $handle
 }
 function Curl-Probe([string]$Label,[string]$Url,[string]$Kind) {
@@ -83,7 +91,11 @@ try {
     $sha=[Security.Cryptography.SHA256]::Create()
     try {$report.serverPayloadSha256=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($serverPayload)))).Replace('-','').ToLowerInvariant()} finally {$sha.Dispose()}
     Stage 'Local tools, settings and fresh-admin prerequisite' 5 {
-        if(@(Get-TunnelListeners $LocalPort).Count){throw 'Local test port already occupied'}
+        $existing=@(Get-TunnelListeners $LocalPort)
+        if($existing.Count){
+            [void]$report.listenerEvidence.Add((Get-TunnelListenerAssessment $existing 0 $LocalPort 'Initial occupied port'))
+            throw 'Local test port already occupied; no process will be displaced'
+        }
         $settingsPath='HKCU:\Software\SimonTatham\PuTTY\Sessions\Default%20Settings'
         $settings=$null
         if(Test-Path -LiteralPath $settingsPath){$settings=Get-ItemProperty -LiteralPath $settingsPath}
@@ -143,7 +155,7 @@ try {
     Stage 'Stop VPS proxy and capture consolidated server evidence' 80 { Collect-ServerStop }
     Stage 'Stopped backend cannot fall back; local tunnel cleanup' 90 {
         if($session.Tunnel.Process.HasExited){throw 'Tunnel unexpectedly exited; stopped-backend test is inconclusive'}
-        Assert-TunnelListenerRows @(Get-TunnelListeners $LocalPort) $session.Tunnel.Process.Id
+        Assert-TunnelListenerRows @(Get-TunnelListeners $LocalPort) $session.Tunnel.Process.Id -Port $LocalPort -Evidence $report.listenerEvidence -Label 'Stopped-backend listener'
         Curl-Probe 'Stopped VPS backend' 'https://developer.paytmmoney.com/' ProxyStopped
         $result=Complete-TunnelProcess $session.Tunnel -StopNow
         Assert-TunnelAuthenticated $result

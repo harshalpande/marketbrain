@@ -42,6 +42,22 @@ $row=[pscustomobject]@{LocalAddress='127.0.0.1';OwningProcess=123}
 Assert-TunnelListenerRows @($row) 123;$checks++
 Reject {Assert-TunnelListenerRows @() 123}; Reject {Assert-TunnelListenerRows @($row,$row) 123}; Reject {Assert-TunnelListenerRows @($row) 456}
 foreach($address in @('0.0.0.0','::','::1','192.168.1.2')){Reject {Assert-TunnelListenerRows @([pscustomobject]@{LocalAddress=$address;OwningProcess=123}) 123}}
+$detailedRow=[pscustomobject]@{LocalAddress='127.0.0.1';LocalPort=18889;OwningProcess=[uint32]123;State='Listen'}
+$assessment=Get-TunnelListenerAssessment @($detailedRow) 123 18889
+Check ($assessment.valid -and $assessment.rowCount -eq 1 -and $assessment.rows[0].owningProcess -eq 123) 'Typed Windows PID rejected'
+$evidence=New-Object 'Collections.Generic.List[object]'
+Reject {Assert-TunnelListenerRows @($detailedRow) 456 -Port 18889 -Evidence $evidence}
+Check ($evidence.Count -eq 1 -and $evidence[0].expectedProcessId -eq 456 -and $evidence[0].rows[0].owningProcess -eq 123 -and $evidence[0].reasons -contains 'OWNER_PID_MISMATCH') 'Failure owner evidence lost'
+Reject {Assert-TunnelListenerRows @($detailedRow) 123 -Port 18890}
+Check ((Get-TunnelListenerAssessment @() 123 18889).reasons -contains 'MISSING') 'Missing reason lost'
+Check ((Get-TunnelListenerAssessment @($detailedRow,$detailedRow) 123 18889).reasons -contains 'MULTIPLE_LISTENERS') 'Duplicate reason lost'
+try {Assert-TunnelListenerRows @($detailedRow) 456 -Port 18889}catch{Check ($_.Exception.Message -match 'OWNER_PID_MISMATCH' -and $_.Exception.Message -match '456' -and $_.Exception.Message -match '123') 'Console diagnosis lacks observed and expected owners'}
+& {
+    function Get-TunnelListeners([int]$Port){throw 'fixture TCP inventory failure'}
+    $queryEvidence=New-Object 'Collections.Generic.List[object]'
+    try {Wait-TunnelListener ([pscustomobject]@{Process=[pscustomobject]@{HasExited=$false;Id=123}}) 18889 -Evidence $queryEvidence; throw 'Query unexpectedly passed'}
+    catch {if($queryEvidence.Count -ne 1 -or $queryEvidence[0].queryError -ne 'fixture TCP inventory failure'){throw 'Query failure evidence lost'}}
+}; $checks++
 $run='0123456789abcdef0123456789abcdef'
 $payload=Get-TunnelServerPayload $run
 Check ($payload.StartsWith('sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash -c ')) 'sudo must receive a command argument, not a stdin script'

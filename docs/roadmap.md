@@ -162,7 +162,7 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
-E150: [combined tunnel verification retry](paytm-tunnel-verification.md). Owner reached current key/policy/config checks but redirected terminal input timed out before activation; direct input worked. Corrected private-file/terminal-stdin launcher locally verified with110 helper assertions,21 Bash checks,five native launcher checks,seven mocked workflows. Corrected spare/VPS tunnel execution, container fail-closed routing, restart custody and token/quote access remain pending. E146 proxy transport accepted; Paytm root503 unresolved. No G05 percentage increase. [Ordered tests and return-to-paper boundary](paytm-integration-verification-plan.md).
+E151: [combined tunnel verification retry](paytm-tunnel-verification.md). Owner terminal confirmation and proxy start/stop verified; Windows listener failed before Paytm HTTPS. Exact mismatch unknown. Added one-file endpoint/PID diagnostics;118 helpers, seven real Windows checks,11 mocked workflows, five native launcher checks and21 Bash guards pass locally. Complete spare tunnel, actual-container routing, restart custody and token/quote access remain pending. E146 proxy transport accepted; Paytm root503 unresolved. No G05 percentage increase. [Ordered tests and return-to-paper boundary](paytm-integration-verification-plan.md).
 
 E144 accepts human administrator key login/sudo. E145 prepares [loopback proxy staging](paytm-loopback-gateway.md); no live-data credit. VPS runtime tests, restricted SSH transport, actual-container proxy/fail-closed verification and authentication remain separate pending gates. Do not enable the existing direct historical client based on VPS-only evidence.
 

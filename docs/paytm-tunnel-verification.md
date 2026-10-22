@@ -1,6 +1,18 @@
 # Paytm restricted tunnel: combined verification
 
-## Current correction E150, 2026-10-22
+## Current listener diagnostic E151, 2026-10-22
+
+Owner run `cd2bf87d9de34fefaa5d5bbc59201320` verifies the terminal correction: START/STOP accepted, proxy started non-root/loopback-only and shutdown confirmed. Overall `REVIEW_REQUIRED`: Windows listener validation failed before any Paytm HTTPS request. Plink reported a127.0.0.1:18889 forward, but the generic error omitted the observed TCP rows and expected PID. The exact cause is **not established**; neither user error nor exposed networking is proven.
+
+`OBSERVED_ENDPOINT_AND_OWNER_V1` records bounded readiness observations in `listenerEvidence`: UTC time, label, expected address/port/PID, observed row count/address/port/PID/state, separate failure reasons and query errors. Evidence is checkpointed before cleanup in the same JSON. Exactly one owned127.0.0.1 listener remains required, with an explicit requested-port check. Only an absent listener is retried; unexpected owners, extra rows or addresses fail immediately. No foreign process is stopped; no broker credentials or process command lines are collected.
+
+Local verification:118 helper assertions, seven real Windows loopback/owned-child checks,11 mocked complete workflows, five native Git Bash launcher checks and21 unchanged Bash guard checks. The spare failure did not reproduce locally. **This fixes diagnostic coverage, not an established underlying network defect.** [Evidence](evidence/paytm-tunnel-listener-diagnostics-20261022.json). The new spare run remains pending.
+
+The `marketbrain-tunnel-stop-<run>.service not loaded` warning concerns the watchdog target, not the proxy. Cleanup ignores its stop error after verified proxy shutdown; an absent unused transient target is consistent with this message, but final timer state was not independently established. VPS code is unchanged in E151. Before retrying, require inactive proxy, empty18888 listener and no pending timer as described below.
+
+## Historical correction E150, 2026-10-22
+
+The pending terminal-execution status below describes the E150 checkpoint. The E151 owner report above now verifies terminal input and proxy start/stop, but not the complete tunnel batch.
 
 Owner run dbf8758ff3c24498867be577d20f7fcd passed identity/key/configuration checks but timed out at the START-TEST read (exit142,181seconds), before watchdog creation or proxy activation. A small reproduction also timed out through the redirected launcher; the owner then reported DIRECT_INPUT_OK with direct terminal input. This isolates the failing launch path, not a typing error. The exact installed sudo pseudo-terminal mechanism was not independently measured.
 
@@ -38,6 +50,9 @@ $ProgressPreference = 'Continue'
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed. Stop here.' }
+if (-not (Select-String -LiteralPath '.\ops\windows\TestPaytmTunnelBundle.ps1' -Pattern 'OBSERVED_ENDPOINT_AND_OWNER_V1' -SimpleMatch -Quiet)) {
+    throw 'Listener diagnostic update missing. Do not run an old test.'
+}
 & '.\ops\windows\TestPaytmTunnelBundle.ps1'
 ```
 
@@ -69,6 +84,8 @@ Success: `TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING`. Anything 
 If PuTTY returns to `marketbrain-admin@...$` without printing SERVER_READY, the script has ended. START-TEST and STOP are prompt responses, **not Linux commands**. Type `FAILED` at the PowerShell readiness question, copy the failed current-run report block when asked, and complete the gateway-key removal prompt. A red REVIEW_REQUIRED result is expected. Do not claim KEY-REMOVED until you actually remove the gateway key from Pageant. If no complete server report was produced, retain the visible error and report that missing evidence; never substitute an older run.
 
 ## Boundaries and remaining work
+
+If the retry fails, finish the prompted STOP/report/key-removal cleanup and share the one JSON. Do not rerun repeatedly; the observed listener details are needed for the next diagnosis.
 
 - Root HEAD503 may coexist with a passing transport test. It remains unresolved API-readiness evidence, not successful login or market-data entitlement.
 - No external IP lookup is reopened. E146 observed fixed egress; this batch checks the unchanged binding/configuration, not a fresh independently observed public IP.

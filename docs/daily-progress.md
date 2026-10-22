@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 Terminal fix accepted; listener evidence added
+
+- E151: owner report cd2bf87d9de34fefaa5d5bbc59201320 verifies terminal confirmation, proxy start/stop and SSH authentication. Overall REVIEW_REQUIRED: three stages passed, Windows listener check failed before Paytm HTTP. Exact mismatch unknown; local real Windows reproduction passes. Watchdog target warning is separate; check final timer state before retry.
+- Added expected/observed endpoint/PID snapshots, individual reasons and query failures in the same checkpointed JSON. Strict single-owned-loopback validation retained; no foreign process termination or mismatch retries. No VPS script, installer, credential or application changes.
+-118 helper assertions, seven real Windows loopback/child checks,11 mocked workflows, five native launcher checks and21 Bash guards pass. Diagnostic spare run pending; parent-goal gain0pp. [Evidence](evidence/paytm-tunnel-listener-diagnostics-20261022.json), [complete retry](paytm-tunnel-verification.md).
+
 ## 2026-10-22 Interactive tunnel launcher correction
 
 - E150: two owner runs timed out at the180-second confirmation read before service/watchdog creation. The smaller redirected-input reproduction failed too; owner reported DIRECT_INPUT_OK for direct terminal input. Treat as an integration gap in our launcher, not confirmed user error. Exact VPS sudo internals remain inferred.
