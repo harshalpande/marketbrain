@@ -1,5 +1,9 @@
 # Paytm restricted tunnel: combined verification
 
+## Accepted E153; next handoff E154
+
+Owner run8e80a1be628b47b9a66c893b235146aa passed9/9 stages in214.141seconds, including TLS, authenticated restrictions, proxy allowlist, disconnect/reconnect, stopped-backend refusal and proxy/local cleanup. Both root HEAD responses were503: transport accepted, API readiness unresolved. Key removal owner-confirmed; final watchdog timer state not independently recorded. [Acceptance evidence](evidence/paytm-tunnel-spare-acceptance-20261022.json). Do not repeat this accepted batch merely for documentation. Next: [credential-free probe in the existing application container](paytm-container-route.md), not broker login or main-process routing activation. Older retry material below is historical.
+
 ## Current loopback-pair correction E152, 2026-10-22
 
 Owner run `82c6bf8518444fb08ecf8ba5d1a555de` identifies the failure precisely: Plink PID19392 owned both127.0.0.1:18889 and[::1]:18889. Both are loopback. The old single-row validator rejected normal dual-family forwarding and incorrectly labelled IPv6 loopback as NON_LOOPBACK_ADDRESS. No foreign owner or externally exposed bind was observed. Three stages passed; no Paytm HTTPS probe ran. Proxy stop and local cleanup were confirmed. This is a test-validator defect, not a user error.

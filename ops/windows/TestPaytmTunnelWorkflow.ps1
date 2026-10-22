@@ -2,10 +2,12 @@
 # Real runner control flow with fake local processes, Pageant, network and clipboard.
 $ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'PaytmTunnelVerification.ps1')
+. (Join-Path $PSScriptRoot 'PaytmContainerRoute.ps1')
 $runner=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'TestPaytmTunnelBundle.ps1'))
 $import=". (Join-Path `$PSScriptRoot 'PaytmTunnelVerification.ps1')"
 if(-not $runner.Contains($import)){throw 'Runner import changed; review fixture'}
 $runner=$runner.Replace($import,'# Real helpers already loaded; external operations mocked by fixture.')
+$runner=$runner.Replace(". (Join-Path `$PSScriptRoot 'PaytmContainerRoute.ps1')",'# Route external operations mocked; actual observation assertion loaded.')
 # The trusted repository runner is evaluated, not attachment content. Preserve its own PSScriptRoot.
 $runner=$runner.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))
 $block=[scriptblock]::Create($runner)
@@ -98,14 +100,31 @@ function Complete-TunnelProcess($Handle,[int]$LimitSeconds=20,[switch]$StopNow) 
     }
     $Handle.Result
 }
+function Initialize-PaytmContainerProbe {
+    if($fixtureState.Case -eq 'RoutePreparationFailure'){throw 'fixture preparation refused'}
+    $report.acceptedTunnelEvidence=@{runId='fixture'}
+}
+function Invoke-PaytmContainerHead([string]$Label,[bool]$ExpectTls) {
+    $tls=[bool]($fixtureState.Listener -and $fixtureState.Proxy)
+    if($fixtureState.Case -eq 'RouteHostUnreachable'){$tls=$false}
+    if($fixtureState.Case -eq 'RouteDirectFallback'){$tls=$true}
+    $observation=[pscustomobject]@{version='PAYTM_CONTAINER_ROUTE_V1';proxyHost='host.docker.internal';proxyPort=18889;applicationProcessVerified=$false;credentialsUsed=$false;ordersEnabled=$false;elapsedMillis=1;status=$(if($tls){'TLS_RESPONSE'}else{'TRANSPORT_FAILED'});httpStatus=$(if($tls){503}else{0});tlsVerified=$tls;failureType=$(if($tls){'NONE'}else{'ConnectException'})}
+    [void]$report.containerRouteObservations.Add([ordered]@{label=$Label;expectedTls=$ExpectTls;observation=$observation})
+    Assert-PaytmRouteObservation $observation $ExpectTls
+}
+function Complete-PaytmContainerProbe {
+    if($fixtureState.Case -eq 'RouteCleanupFailure'){throw 'fixture cleanup failed'}
+    $report.containerProbeCleanupConfirmed=$true
+    $report.applicationUnchanged=$true
+}
 $count=0
 try {
-    foreach($case in @('Pass','PassDualLoopback','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure','ListenerDualForeignOwner','ListenerDualWildcard','ListenerDualWrongPort','ListenerDualDuplicate')) {
+    foreach($case in @('Pass','PassDualLoopback','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure','ListenerDualForeignOwner','ListenerDualWildcard','ListenerDualWrongPort','ListenerDualDuplicate','RoutePass','RoutePreparationFailure','RouteHostUnreachable','RouteDirectFallback','RouteCleanupFailure')) {
         $script:fixtureState=[pscustomobject]@{Case=$case;Run='';Proxy=$false;Listener=0;NextId=1000;Payload='';Clipboard='';PageantCalls=0}
         $folder=Join-Path $fixtureRoot $case
         $fixtureDirs.Add($folder)
         $failed=$false
-        try {& $block -OutputDirectory $folder -LocalPort 18889}catch{$failed=$true}
+        try {& $block -OutputDirectory $folder -LocalPort 18889 -ContainerRoute:($case -like 'Route*')}catch{$failed=$true}
         $files=@(Get-ChildItem -LiteralPath $folder -Filter '*.json')
         if($files.Count -ne 1){throw "Expected one report for $case"}
         $fixtureReports.Add($files[0].FullName)
@@ -115,7 +134,10 @@ try {
             if($data.steps.Count -ne 9 -or @($data.steps | Where-Object status -ne PASS).Count){throw 'Incomplete stage ledger'}
             if($data.providerRootStatuses.Count -ne 2 -or $data.providerRootStatuses[0] -ne 503){throw '503 was lost or treated as API health'}
             if($case -eq 'PassDualLoopback' -and @($data.listenerEvidence | Where-Object {$_.rowCount -ne 2 -or -not $_.valid}).Count){throw 'Dual-loopback path lost listener evidence'}
+        } elseif($case -eq 'RoutePass') {
+            if($failed -or $data.status -ne 'CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING' -or $data.steps.Count -ne 7 -or $data.containerRouteObservations.Count -ne 4 -or -not $data.containerJvmRouteVerified -or $data.applicationProcessVerified -or $data.applicationContainerVerified){throw "Route happy path misreported: $($data.failure)"}
         } elseif(-not $failed -or $data.status -ne 'REVIEW_REQUIRED'){throw "Failure incorrectly passed: $case"}
+        if($case -eq 'RoutePreparationFailure' -and $fixtureState.Payload){throw 'VPS handoff occurred after container preparation failure'}
         if($fixtureState.Listener -ne 0 -or $data.ordersEnabled -or $data.brokerAuthenticationEnabled){throw 'Cleanup/safety boundary violated'}
         if($case -eq 'PreflightAuthFailure' -and $fixtureState.Payload){throw 'Proxy start payload exposed despite failed authentication preflight'}
         if($case -in @('BadServerEvidence','InputTimeoutBeforeReady') -and ($data.serverEvidenceVerified -or -not $data.serverEvidence)){throw 'Failed server evidence lost or incorrectly verified'}

@@ -4,7 +4,7 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
-E152 (2026-10-22): exact listener mismatch identified and validator corrected for the owned IPv4/IPv6 loopback pair.132 helpers,10 real Windows checks,16 mocked workflows, five native launcher checks and21 Bash guards pass. Full tunnel spare acceptance pending; parent-goal gain0pp. [Record](evidence/paytm-tunnel-loopback-pair-20261022.json). E151's unknown cause is superseded; historical evidence remains unchanged.
+E153/E154 (2026-10-22): **nine-stage tunnel test100% accepted (9/9),214.141s**, not100% of Paytm integration. Next separate-JVM container-route probe locally verified:18 Java assertions,14 targeted JUnit tests,20 PowerShell helper checks,21 mocked workflows and native packaging. Real container execution and main Spring wiring remain pending. No inferred whole-product percentage or profitability gain. [Acceptance](evidence/paytm-tunnel-spare-acceptance-20261022.json), [next package](paytm-container-route.md).
 
 E149 (2026-10-21): combined tunnel runner implemented and locally verified (97 PowerShell assertions,15 Bash guards, six mocked workflows). Runtime/owner acceptance pending; no whole-gateway or parent-goal percentage increase. Current-state prerequisite checks supersede requesting the old installer log as the immediate next task, not as retrospective installer verification. [Evidence](evidence/paytm-tunnel-verification-local-20261021.json), [handoff](paytm-tunnel-verification.md).
 

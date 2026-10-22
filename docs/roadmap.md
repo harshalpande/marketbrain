@@ -162,7 +162,7 @@ Independent engineering packages are spare verified through E60: **47/47 checks,
 
 ### G05 — Paytm live data only
 
-E152: [combined tunnel verification retry](paytm-tunnel-verification.md). Same-owner IPv4/IPv6 loopback rejection identified and validator corrected.132 helpers,10 real Windows checks,16 mocked workflows, five native launcher checks and21 Bash guards pass locally. Corrected spare tunnel, actual-container routing, restart custody and token/quote access remain pending. E146 proxy transport accepted; Paytm root503 unresolved. No G05 percentage increase. [Ordered tests and return-to-paper boundary](paytm-integration-verification-plan.md).
+E153/E154: [tunnel acceptance](evidence/paytm-tunnel-spare-acceptance-20261022.json):9/9 stages in214.141s. [Next container-network probe](paytm-container-route.md) is locally verified, runtime pending; it is a separate JVM and does not prove main Spring client routing.18 Java checks,14 targeted JUnit tests,20 helper assertions,21 mocked workflows and native packaging pass. Actual application wiring, fresh egress observation, restart custody/maintenance and token/quote access remain pending; Paytm root503 unresolved. No inferred G05 percentage increase from transport-only success. [Ordered tests and return-to-paper boundary](paytm-integration-verification-plan.md).
 
 E144 accepts human administrator key login/sudo. E145 prepares [loopback proxy staging](paytm-loopback-gateway.md); no live-data credit. VPS runtime tests, restricted SSH transport, actual-container proxy/fail-closed verification and authentication remain separate pending gates. Do not enable the existing direct historical client based on VPS-only evidence.
 

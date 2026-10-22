@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 Tunnel accepted; existing-container route probe prepared
+
+- E153: owner run8e80a1be628b47b9a66c893b235146aa passed9/9 stages in214.141s. Windows loopback, TLS, authenticated denials, proxy restrictions, reconnect and stop/refusal/cleanup verified. HEAD503 twice remains API-readiness warning. Key removal owner-confirmed. Transient stop-service warning retained; final timer state needs pre-run check. [Acceptance](evidence/paytm-tunnel-spare-acceptance-20261022.json).
+- E154: inspected existing direct historical client and Docker/Windows boundary. Added a dependency-free explicit-required-proxy HEAD transport and separate-JVM probe, not Spring beans. No rebuild, app restart, historical-client activation, Compose/firewall/VPS policy change, credentials or trades. One bounded runner validates prior evidence, pins selected application identity, compiles/hashes a temporary probe, tests four connectivity states and verifies unchanged application JAR/start identity before cleanup. [Handoff](paytm-container-route.md).
+- Local verification:18 Java proxy assertions,14 targeted JUnit tests,20 PowerShell helper assertions,21 mocked workflows, native JDK preparation/four-class packaging/cleanup with mocked Docker. Docker API unavailable locally; real existing-container execution pending. Tunnel milestone complete; broader gateway/main-process readiness not inflated. [E154](evidence/paytm-container-route-local-20261022.json).
+
 ## 2026-10-22 Dual-loopback validator defect corrected
 
 - E152: owner run82c6bf8518444fb08ecf8ba5d1a555de captured both127.0.0.1:18889 and[::1]:18889 owned by expected PID19392. Our single-row validator, not user input, caused the rejection. The NON_LOOPBACK_ADDRESS label for ::1 was wrong. No external bind/foreign PID was observed, and no Paytm HTTPS probe ran. Proxy/local cleanup confirmed; watchdog-target warning remains separate.

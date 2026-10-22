@@ -1,6 +1,7 @@
 #Requires -Version 5.1
 [CmdletBinding()]
-param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidateRange(1024,65535)][int]$LocalPort=18889)
+param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidateRange(1024,65535)][int]$LocalPort=18889,
+    [switch]$ContainerRoute,[string]$TunnelEvidencePath,[string]$ApplicationContainerId,[string]$JavaBinDirectory)
 $ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'PaytmTunnelVerification.ps1')
 $runId=[guid]::NewGuid().ToString('N')
@@ -14,6 +15,16 @@ $report.launcherRevision='FILE_WITH_TERMINAL_STDIN_V2'
 $report.listenerValidationRevision='OWNED_LOOPBACK_PAIR_V2'
 $report.listenerEvidence=New-Object 'Collections.Generic.List[object]'
 $report.powerShellVersion=$PSVersionTable.PSVersion.ToString()
+$route=[ordered]@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path;Docker=$null;Id=$null;Identity=$null;AppHash=$null;Work=$null;WorkCreated=$false;RemoteCreated=$false;RemoteDirectory=$null;Jar=$null;SourceHashes=@()}
+if($ContainerRoute){
+    . (Join-Path $PSScriptRoot 'PaytmContainerRoute.ps1')
+    $report.scope='EXISTING_CONTAINER_SEPARATE_JVM_ROUTE_ONLY'
+    $report.containerRouteObservations=New-Object 'Collections.Generic.List[object]'
+    $report.containerProbeCleanupConfirmed=$false
+    $report.applicationUnchanged=$false
+    $report.containerJvmRouteVerified=$false
+    $report.applicationProcessVerified=$false
+}
 $reportPath=$null
 function Save-Report {
     if($reportPath){$report.elapsedSeconds=[math]::Round($watch.Elapsed.TotalSeconds,3); [IO.File]::WriteAllText($reportPath,($report | ConvertTo-Json -Depth 12),(New-Object Text.UTF8Encoding($false)))}
@@ -80,7 +91,8 @@ function Collect-ServerStop {
 try {
     if($env:OS -ne 'Windows_NT'){throw 'Run on spare Windows laptop only'}
     [void][IO.Directory]::CreateDirectory($OutputDirectory)
-    $reportPath=Join-Path ([IO.Path]::GetFullPath($OutputDirectory)) ('paytm-tunnel-verification-{0}-{1}.json' -f (Get-Date -Format yyyyMMdd-HHmmss),$runId)
+    $reportPrefix=if($ContainerRoute){'paytm-container-route'}else{'paytm-tunnel-verification'}
+    $reportPath=Join-Path ([IO.Path]::GetFullPath($OutputDirectory)) ('{0}-{1}-{2}.json' -f $reportPrefix,(Get-Date -Format yyyyMMdd-HHmmss),$runId)
     $file=[IO.File]::Open($reportPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None); $file.Dispose()
     Save-Report
     $plink=Find-Tool 'plink.exe'; $pageant=Find-Tool 'pageant.exe'; $curl=Find-Tool 'curl.exe'
@@ -91,6 +103,10 @@ try {
     $sha=[Security.Cryptography.SHA256]::Create()
     try {$report.serverPayloadSha256=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($serverPayload)))).Replace('-','').ToLowerInvariant()} finally {$sha.Dispose()}
     Stage 'Local tools, settings and fresh-admin prerequisite' 5 {
+        if($ContainerRoute){
+            Write-Host 'Credential-free separate JVM inside the existing container. No Spring wiring, rebuild, restart or database access.'
+            Initialize-PaytmContainerProbe
+        }
         $existing=@(Get-TunnelListeners $LocalPort)
         if($existing.Count){
             [void]$report.listenerEvidence.Add((Get-TunnelListenerAssessment $existing 0 $LocalPort 'Initial occupied port'))
@@ -131,7 +147,9 @@ try {
     Stage 'Loopback-only allowed tunnel and Paytm TLS' 30 {
         $session.Tunnel=Start-Forward 'Allowed tunnel'
         Curl-Probe 'Allowed Paytm HEAD' 'https://developer.paytmmoney.com/' Tls
+        if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java allowed Paytm HEAD' $true}
     }
+    if(-not $ContainerRoute){
     Stage 'PTY-requested session, wrong target and remote-forward denials' 45 {
         $result=Probe 'PTY-requested session denial' $plink ($sshArgs+@('-t','130.250.191.137','/usr/bin/true')) 20
         Assert-TunnelDenied $result Session
@@ -144,19 +162,23 @@ try {
         foreach($url in @('https://example.com/','https://developer.paytmmoney.com.invalid/','https://developer.paytmmoney.com:80/','https://api.ipify.org/')){Curl-Probe "Denied $url" $url ConnectDenied}
         Curl-Probe 'Plain HTTP denied' 'http://developer.paytmmoney.com/' HttpDenied
     }
+    }
     Stage 'Closed tunnel refusal and fresh reconnect' 70 {
         $result=Complete-TunnelProcess $session.Tunnel -StopNow
         Assert-TunnelAuthenticated $result
         if(@(Get-TunnelListeners $LocalPort).Count){throw 'Listener remains after closing owned tunnel'}
         Curl-Probe 'Closed tunnel must refuse' 'https://developer.paytmmoney.com/' TunnelStopped
+        if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java closed tunnel refusal' $false}
         $session.Tunnel=Start-Forward 'Reconnected tunnel'
         Curl-Probe 'Paytm HEAD after reconnect' 'https://developer.paytmmoney.com/' Tls
+        if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java TLS after reconnect' $true}
     }
     Stage 'Stop VPS proxy and capture consolidated server evidence' 80 { Collect-ServerStop }
     Stage 'Stopped backend cannot fall back; local tunnel cleanup' 90 {
         if($session.Tunnel.Process.HasExited){throw 'Tunnel unexpectedly exited; stopped-backend test is inconclusive'}
         Assert-TunnelListenerRows @(Get-TunnelListeners $LocalPort) $session.Tunnel.Process.Id -Port $LocalPort -Evidence $report.listenerEvidence -Label 'Stopped-backend listener'
         Curl-Probe 'Stopped VPS backend' 'https://developer.paytmmoney.com/' ProxyStopped
+        if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java stopped proxy refusal' $false}
         $result=Complete-TunnelProcess $session.Tunnel -StopNow
         Assert-TunnelAuthenticated $result
         if($result.Stderr -notmatch '(?i)Forwarded connection refused by remote.*Connection refused'){throw 'Explicit backend connection-refused evidence missing'}
@@ -178,12 +200,27 @@ finally {
         Write-Host 'In Pageant View Keys, remove ONLY the gateway key used for this test. Keep its encrypted PPK file and any unrelated keys.'
         try {$report.ownerGatewayKeyRemoved=((Read-Host 'Type KEY-REMOVED once done') -ceq 'KEY-REMOVED')} catch {$report.ownerGatewayKeyRemoved=$false}
     }
+    if($ContainerRoute){
+        try {Complete-PaytmContainerProbe} catch {$passed=$false;$report.containerProbeCleanupConfirmed=$false;$report.failure="$($report.failure); Container probe cleanup: $($_.Exception.Message)"}
+        # Include the cleanup/identity commands added after the earlier owned-process sweep.
+        $report.processes=@()
+        foreach($handle in $handles){
+            try {$result=Complete-TunnelProcess $handle -StopNow; $report.processes+=[ordered]@{label=$handle.Label;result=$result}}
+            catch {$passed=$false;$report.failure="$($report.failure); Route capture failed"}
+        }
+    }
     try {if(@(Get-TunnelListeners $LocalPort).Count -eq 0){$report.localCleanupConfirmed=$true}} catch {$report.localCleanupConfirmed=$false}
     $report.status=if($passed -and $report.serverEvidenceVerified -and $report.localCleanupConfirmed -and $report.ownerGatewayKeyRemoved){'TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING'}else{'REVIEW_REQUIRED'}
+    if($ContainerRoute -and $report.status -ne 'REVIEW_REQUIRED'){
+        if($report.containerProbeCleanupConfirmed -and $report.applicationUnchanged){
+            $report.containerJvmRouteVerified=$true
+            $report.status='CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING'
+        }else{$report.status='REVIEW_REQUIRED'}
+    }
     $watch.Stop(); Save-Report
     Write-Progress -Activity 'Paytm restricted tunnel verification' -Completed
     Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
     Write-Host "Share this ONE file: $reportPath"
-    Write-Host 'Root HEAD 503, if observed, remains an API-readiness warning. No credentials, application routing or trades were tested.'
+    Write-Host 'Root HEAD 503, if observed, remains an API-readiness warning. No credentials, main application wiring or trades were tested.'
 }
-if($report.status -ne 'TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING'){throw "Review report: $($report.failure)"}
+if($report.status -notin @('TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING','CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING')){throw "Review report: $($report.failure)"}
