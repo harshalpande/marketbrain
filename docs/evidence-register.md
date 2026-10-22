@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E157 MAIN_APPLICATION_ROUTE_SPARE_ACCEPTED:** [owner evidence](evidence/paytm-application-route-spare-20261022.json),8/8 stages in456.253s. Real main-process failure/restart locking, reconnect and account preservation verified. Supersedes E156's runtime-pending state; root503, operational review, credentials and quotes remain open.
+- **E158 READ_ONLY_OPERATIONS_COLLECTOR_LOCAL_PASS:** [local evidence](evidence/paytm-operations-review-local-20261022.json), [handoff](paytm-operations-review.md).52 PowerShell assertions including4 mocked collection workflows,20 Bash assertions; actual VPS execution pending. No services/configuration/credentials changed. Bound-VPS IP and cached package state are not end-to-end egress or patch-currency proof.
+
 - **E155 CONTAINER_JVM_ROUTE_ACCEPTED:** [owner evidence](evidence/paytm-container-route-spare-20261022.json), 7/7 stages in137.68s. Four transport observations and unchanged application/cleanup confirmed. Main Spring process not exercised by that run.
 - **E156 MAIN_APPLICATION_ROUTE_LOCAL_PASS_SPARE_DEPLOYMENT_PENDING:** [local evidence](evidence/paytm-application-route-local-20261022.json), [handoff](paytm-application-route.md). 24 Paytm JUnit tests,28 mocked runner workflows,10 deployment scenarios; actual Docker deployment unverified. Main component starts locked, fixed diagnostic HEAD only; old direct history path retired. Operational readiness/authentication/data/trades remain gated.
 

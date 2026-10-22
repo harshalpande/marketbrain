@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-**Current E155/E156, 2026-10-22:** container route accepted 7/7 stages in 137.68s. Next: [main Spring application route and restart test](docs/paytm-application-route.md), locally verified and awaiting spare deployment. One guarded service rebuild/recreation and restart; existing environment, storage and paper account preserved. Credential-free diagnostic only; legacy direct historical requests blocked. Root503, fresh egress/operational readiness, login and quotes remain pending; no trades. Older handoffs below are historical.
+**Current E157/E158, 2026-10-22:** main Spring route accepted **8/8 stages in456.253s**, including transport-failure locks, reconnect and new-boot restart lock; INR100000 account preserved. Next: [one read-only VPS operations snapshot](docs/paytm-operations-review.md), locally tested; no rebuild/restart/proxy activation. Root503, operational review, real login and quotes remain open; no trades. Older handoffs below are historical.
 
 **Latest E138, 2026-10-15:** the first application handoff stopped safely before build/deployment because the configuration guard rejected field presence rather than effective overrides. The guard now accepts null/default values and reports only the name of a rejected field; 314 offline assertions across 14 mocked runner scenarios pass. The exact triggering field in the old spare report was not captured. Pull and retry the [guarded application handoff](docs/paper-runtime-application-handoff.md), not the already accepted isolated test. Package60%, roadmap12.4%; no new runtime completion credit.
 

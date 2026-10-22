@@ -1,0 +1,16 @@
+{
+  "evidenceId": "E158",
+  "date": "2026-10-22",
+  "status": "READ_ONLY_OPERATIONS_COLLECTOR_LOCAL_PASS_VPS_EXECUTION_PENDING",
+  "powerShellAssertions": 52,
+  "includedMockedCollectionWorkflows": 4,
+  "existingTunnelRegressionWorkflows": 28,
+  "bashOfflineAssertions": 20,
+  "realVpsExecutionPerformedLocally": false,
+  "realExternalIpRequestPerformedLocally": false,
+  "applicationOrServerConfigurationChanged": false,
+  "credentialAccessEnabled": false,
+  "ordersEnabled": false,
+  "unattendedCustodyDecision": "Owner chose unattended gateway design before login testing. Proposed Windows-account-scoped agent/supervisor and managed VPS proxy; capability/custody/cold-boot verification pending. No activation or persistent private key introduced.",
+  "next": "One read-only VPS snapshot: known configuration hashes/stopped service/watchdog inventory, bound public IPv4, NTP and manual clock interval, cached update count/metadata age and reboot marker. Review findings together before real login."
+}

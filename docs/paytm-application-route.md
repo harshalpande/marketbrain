@@ -1,5 +1,7 @@
 # Paytm main-application route and restart verification
 
+**Accepted update, E157 (2026-10-22):** owner run223cdc084de64c90a80c527032ac6879 passed8/8 stages in456.253s, including real main-process restart locking and account preservation. [Evidence](evidence/paytm-application-route-spare-20261022.json). Do not repeat the deployment below: next is the [read-only operations snapshot](paytm-operations-review.md). Earlier pending wording is retained as package history; authentication/quotes/operational acceptance are still open.
+
 2026-10-22, E155/E156. Owner container probe accepted 7/7 stages in 137.68 seconds; temporary probe cleanup and unchanged app artifact confirmed. It was not the running Spring process. This package is the next portion of integration gate 2, not completion of all operational gates or broker authentication.
 
 ## Implementation and authority

@@ -1,0 +1,37 @@
+# Unattended Paytm gateway: proposed design and acceptance
+
+2026-10-22 owner decision: **design unattended gateway operation before login testing**, instead of proceeding with manually unlocked initial sessions. This changes the next-stage ordering. Design below is proposed; it does not install a service, persist a private key, change the VPS's current20-minute window or enable broker login/trades. E157 remains accepted diagnostic transport evidence. E158 collects operational facts and local Windows OpenSSH capability without starting anything.
+
+## Target and boundaries
+
+The target is a managed transport connection that recovers from ordinary network/process interruption without PuTTY prompts. Planned cold-boot/logoff recovery must be demonstrated under the exact Windows task identity, not inferred from interactive Pageant success. Laptop sleep, loss of power/internet or the VPS being unavailable cannot be hidden: report unavailable, never direct-connect to Paytm or treat stale data as live. No new paid service is proposed.
+
+Connectivity recovery must not restore a broker token, diagnostic ARM lease, paper-writer unlock, approval, pending trade or order authority. Actual broker login/MFA/token expiry still follow Paytm's requirements; unattended gateway does not mean unattended authentication or trading. The accepted application's startup/failure locks remain in force until a separately reviewed authenticated transport design exists.
+
+## Proposed components
+
+| Component | Proposed responsibility | Guard / verification needed |
+|---|---|---|
+| Windows gateway supervisor | One owner-scoped scheduled background process; single-instance lock; fixed local127.0.0.1:18889 forwarding to VPS127.0.0.1:18888; bounded reconnect backoff; health and last failure without secrets | Check executable/version, same task/agent identity, existing port ownership, actual process exit and upstream TLS; never wildcard listener or broad proxy |
+| Windows credential custody | Candidate: Microsoft Windows OpenSSH agent under a dedicated non-admin local account, with a separately restricted gateway identity; encrypted offline backup stays outside repo | One-time private provisioning under exact account; prove access controls, logoff/reboot persistence and revocation before activation. Never remove PPK passphrase or put secrets in task arguments, environment, logs or the VPS |
+| VPS proxy service | Retain non-root/loopback-only fixed-egress proxy and destination/port allowlist; reviewed systemd restart policy and boot activation for managed operation | Existing temporary test-window lifecycle is NOT reused unchanged. Capture backup/hash, rehearse rollback and administrator recovery, then apply explicit reviewed service changes |
+| Application transport | Preserve explicit fixed proxy, HTTPS validation, no redirect/direct fallback; expose disconnected versus transport-ready separately from authenticated-data readiness | Transport reconnect cannot auto-arm the current diagnostic component, unlock paper writer, replay requests or submit orders |
+| Health/alerts | Local status command plus bounded redacted JSON events, reconnect counts/downtime/last success/version; Telegram outage/recovery later through existing channel with deduplication | SSH keepalive alone is not endpoint health. Root503 remains unavailable API evidence, not quote readiness. No tokens or full HTTP headers/bodies in health logs |
+
+Microsoft documents account-scoped key custody via [Windows ssh-agent](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement). This supports investigation of that candidate, not an assertion that a scheduled task or a different identity can already use the current Pageant PPK. Do not install Windows OpenSSH Server; only client/agent capability is relevant. If the installed client/agent cannot meet custody and no-interactive-session requirements, stop for a reviewed alternative rather than silently weakening key protection.
+
+Use strict host-key verification against the accepted fingerprint, public-key-only noninteractive authentication and one fixed forwarding target. Select only the approved public identity, never all available agent keys. [OpenSSH controls](https://man.openbsd.org/ssh_config) include forwarding failure and server-alive checks, but a successfully bound listener does not prove the forwarding destination works. Recheck effective VPS restrictions with the chosen client; a client migration is not covered by earlier Plink tests.
+
+Proposed reconnect policy:5/10/20/40/60-second backoff capped at60seconds, with a health notification after repeated failures; each connection attempt bounded. Security/configuration failures (host-key change, key denial, unexpected listener owner or altered destination) latch blocked for review, not endless retries. Cancellation must stop child processes. [systemd restart/rate-limit controls](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html) apply to the proxy process independently; a deliberate disable/kill switch must survive service recovery and boot. Exact defaults need tests before deployment.
+
+## Bundled acceptance matrix
+
+1. **Provisioning/custody:** accepted task identity, no plaintext key export, wrong-user denial, no agent forwarding, no shell/PTY/remote forwarding, exact host pin and destination, revocation and rollback. Preserve administrator access and existing unrelated keys/tasks/services.
+2. **Lifecycle/recovery:** normal startup, supervisor child exit, duplicate start, Wi-Fi interruption/restoration, VPS proxy crash/restart, graceful stop, stopped supervisor, Windows logoff and cold reboot. Schedule disruptive tests with jobs idle. Docker Desktop/application cold-boot behavior is a separate dependency: a restored tunnel is not a restored whole application.
+3. **Fail-closed routing:** wrong host/key, conflicting local listener, stopped backend, blocked destination, TLS failure, missing agent credential and expired/revoked credential. No DIRECT fallback, wildcard listener, automatic account/writer unlock or approval replay.
+4. **Observability:** actual first-ready time, reconnect count, outage duration, resource use, last-good/last-error state, no-secret JSON report and notification deduplication. Distinguish transport recovery from API503 or broker/token failure.
+5. **Operational readiness:** review current public IP/configuration, NTP and maintenance findings; verify effective source egress via a separately reviewed bounded check, not an unannounced proxy allowlist relaxation. Test explicit disable and recovery before removing manual test-window safeguards.
+
+Implement offline supervision/custody adapters and adversarial tests together; perform reviewed owner provisioning and one combined on-machine lifecycle/negative-case run next. Cold reboot requires a separate checkpoint if needed to preserve a single report across restart, not redoing all already accepted transport tests. Service and account changes need exact inventory-based targets and a rollback path before the owner runs them.
+
+Only after this operational acceptance do we proceed with real Paytm callback/token lifecycle, read-only quotes and the combined Telegram review test. Live orders remain disabled and are not a prerequisite for returning to paper-account integration.

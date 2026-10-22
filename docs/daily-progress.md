@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-22 Main application accepted; combined operational snapshot
+
+- E157: reviewed owner run223cdc084de64c90a80c527032ac6879 (SHA256 e7ad80d611b693ff892dd3765c87ff333e554a4343e2647c08d7725f5a804973).8/8 stages in456.253s, four main-JVM transport checks, failure locks, changed boot UUID/locked restart, final lock and INR100000 account preservation. RootHEAD503 remains provider-readiness warning; no broker credentials/orders. [Acceptance](evidence/paytm-application-route-spare-20261022.json).
+- E158: one read-only VPS collector bundles identity/config hashes, stopped service/listener/watchdog inventory, source-bound public IPv4, NTP/manual clock interval, cached upgrade count/metadata date and reboot marker. No rebuild, restart, service activation, package refresh/install, firewall, credential or application change. Exact prior evidence hash and current-run receipt enforced. [Handoff](paytm-operations-review.md).
+- Local52 PowerShell assertions include4 whole mocked collection workflows;20 Bash offline assertions pass. No live VPS/external IP lookup performed locally. Runtime acceptance pending; unknowns/findings remain explicit and do not cause automatic remediation. Single JSON carries findings/timing/safety boundaries.
+- Owner selected unattended gateway design before login, superseding the manual initial-session proposal. [Design and bundled acceptance](paytm-unattended-gateway-plan.md) propose Windows-account-scoped client/agent supervision and managed VPS proxy; no unattended custody/service activated. Snapshot adds read-only Windows client/agent metadata, no key inspection. Next: operational findings and unattended implementation/acceptance, then callback/token lifecycle, quotes, combined Telegram review and paper execution. No whole-roadmap percentage or guaranteed retry count asserted. Existing28 mocked tunnel workflows also pass as regression.
+
 ## 2026-10-22 Container accepted; main application route and restart package
 
 - E155: owner run79e1a66d722c44c0ad9e8c3fcbf4b4d7 accepted 7/7 stages in137.68s: Java TLS503, closed tunnel refusal, restored TLS503, stopped-proxy refusal. Application unchanged and temporary cleanup confirmed. No further standalone tunnel/container repetition. [Evidence](evidence/paytm-container-route-spare-20261022.json).
