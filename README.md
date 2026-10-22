@@ -6,7 +6,7 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
-**Current E153/E154, 2026-10-22:** restricted tunnel accepted:9/9 stages in214.141s. Next: [credential-free Java probe in the existing container](docs/paytm-container-route.md). No rebuild/restart or main Spring wiring yet. The probe tests required-proxy connectivity/recovery and preserves one JSON; container execution pending. Root503 remains API warning; broker login and trades stay off. Older handoffs below are historical.
+**Current E155/E156, 2026-10-22:** container route accepted 7/7 stages in 137.68s. Next: [main Spring application route and restart test](docs/paytm-application-route.md), locally verified and awaiting spare deployment. One guarded service rebuild/recreation and restart; existing environment, storage and paper account preserved. Credential-free diagnostic only; legacy direct historical requests blocked. Root503, fresh egress/operational readiness, login and quotes remain pending; no trades. Older handoffs below are historical.
 
 **Latest E138, 2026-10-15:** the first application handoff stopped safely before build/deployment because the configuration guard rejected field presence rather than effective overrides. The guard now accepts null/default values and reports only the name of a rejected field; 314 offline assertions across 14 mocked runner scenarios pass. The exact triggering field in the old spare report was not captured. Pull and retry the [guarded application handoff](docs/paper-runtime-application-handoff.md), not the already accepted isolated test. Package60%, roadmap12.4%; no new runtime completion credit.
 

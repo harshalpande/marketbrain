@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E155",
+  "date": "2026-10-22",
+  "ownerRunId": "79e1a66d722c44c0ad9e8c3fcbf4b4d7",
+  "sourceSha256": "2655d12de31c25dc3f24022f5e67f7e3b98b84a280b3793dd37a68f0715966c2",
+  "status": "CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING",
+  "stagesPassed": 7,
+  "stagesTotal": 7,
+  "elapsedSeconds": 137.68,
+  "javaObservations": ["TLS_RESPONSE_503", "ConnectException_LOCKED_TUNNEL", "TLS_RESPONSE_503", "IOException_STOPPED_PROXY"],
+  "containerProbeCleanupConfirmed": true,
+  "applicationUnchanged": true,
+  "serverEvidenceVerified": true,
+  "localCleanupConfirmed": true,
+  "gatewayKeyRemovalOwnerConfirmed": true,
+  "applicationProcessVerified": false,
+  "brokerAuthenticationEnabled": false,
+  "ordersEnabled": false,
+  "remaining": "Actual Spring process routing/restart, operational egress/key custody/maintenance, authentication, real quotes and Telegram review. No repeat of the accepted standalone tunnel or container probe is required."
+}

@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E155 CONTAINER_JVM_ROUTE_ACCEPTED:** [owner evidence](evidence/paytm-container-route-spare-20261022.json), 7/7 stages in137.68s. Four transport observations and unchanged application/cleanup confirmed. Main Spring process not exercised by that run.
+- **E156 MAIN_APPLICATION_ROUTE_LOCAL_PASS_SPARE_DEPLOYMENT_PENDING:** [local evidence](evidence/paytm-application-route-local-20261022.json), [handoff](paytm-application-route.md). 24 Paytm JUnit tests,28 mocked runner workflows,10 deployment scenarios; actual Docker deployment unverified. Main component starts locked, fixed diagnostic HEAD only; old direct history path retired. Operational readiness/authentication/data/trades remain gated.
+
 - **E153 RESTRICTED_WINDOWS_TO_VPS_TUNNEL_ACCEPTED:** [evidence](evidence/paytm-tunnel-spare-acceptance-20261022.json).9/9 stages passed in214.141s; both TLS root requests returned503. Restrictions/reconnect/proxy shutdown/local cleanup verified. Final watchdog timer state not independently observed; key removal owner-confirmed. No main-container, broker-authentication or trade acceptance.
 - **E154 CONTAINER_ROUTE_PROBE_LOCAL_PASS_SPARE_PENDING:** [evidence](evidence/paytm-container-route-local-20261022.json), [handoff](paytm-container-route.md). Temporary separate JVM in the existing container; explicit proxy, fixed credential-free HEAD, no redirects/direct fallback.18 Java proxy assertions,14 targeted JUnit tests,20 helper assertions,21 mocked workflows and native JDK preparation pass; Docker unavailable locally. Main Spring wiring remains unchanged/unverified.
 

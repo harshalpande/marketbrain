@@ -1,5 +1,7 @@
 # Paytm existing-container route probe
 
+Update E155: owner run79e1a66d722c44c0ad9e8c3fcbf4b4d7 accepted7/7 in137.68s. [Acceptance](evidence/paytm-container-route-spare-20261022.json). Do not rerun this standalone probe. Proceed to [main application routing/restart](paytm-application-route.md). The original preparation/handoff below is retained as historical evidence.
+
 2026-10-22, E154. Prerequisite E153: all nine Windows-to-VPS tunnel stages accepted in owner run8e80a1be628b47b9a66c893b235146aa (214.141seconds). No repeat of the accepted restrictions matrix is needed. This next package reuses its pinned tunnel and guarded VPS test window for a different question: **can Java in the existing application container reach the Windows loopback gateway?**
 
 ## Scope and why this comes before wiring

@@ -8,6 +8,7 @@ $import=". (Join-Path `$PSScriptRoot 'PaytmTunnelVerification.ps1')"
 if(-not $runner.Contains($import)){throw 'Runner import changed; review fixture'}
 $runner=$runner.Replace($import,'# Real helpers already loaded; external operations mocked by fixture.')
 $runner=$runner.Replace(". (Join-Path `$PSScriptRoot 'PaytmContainerRoute.ps1')",'# Route external operations mocked; actual observation assertion loaded.')
+$runner=$runner.Replace(". (Join-Path `$PSScriptRoot 'PaytmApplicationRoute.ps1')",'# Application external operations mocked.')
 # The trusted repository runner is evaluated, not attachment content. Preserve its own PSScriptRoot.
 $runner=$runner.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))
 $block=[scriptblock]::Create($runner)
@@ -45,6 +46,8 @@ function Read-Host([string]$Prompt) {
     if($Prompt -match 'SERVER_READY=([a-f0-9]{32})'){
         $fixtureState.Run=$Matches[1]
         if($fixtureState.Case -eq 'InputTimeoutBeforeReady'){return 'FAILED'}
+        if($fixtureState.Case -eq 'ReadyRetry' -and -not $fixtureState.ReadyAttempt++){return 'wrong-line'}
+        if($fixtureState.Case -eq 'ReadyWhitespace'){$fixtureState.Proxy=$true;return " SERVER_READY=$($fixtureState.Run) "}
         $fixtureState.Proxy=$true;return "SERVER_READY=$($fixtureState.Run)"
     }
     if($Prompt -like '*server report is copied*') {
@@ -117,26 +120,47 @@ function Complete-PaytmContainerProbe {
     $report.containerProbeCleanupConfirmed=$true
     $report.applicationUnchanged=$true
 }
+function Initialize-PaytmApplicationProbe {
+    if($fixtureState.Case -eq 'AppPreflightFailure'){throw 'fixture deployment preflight rejected'}
+    $report.deploymentAttempted=$true;$report.startupLockedVerified=$true
+}
+function Invoke-PaytmApplicationHead([string]$Label,[bool]$ExpectTls) {
+    if($fixtureState.Case -eq 'AppTransportFailure'){throw 'fixture application TLS failed'}
+    if([bool]($fixtureState.Listener -and $fixtureState.Proxy) -ne $ExpectTls){throw 'fixture application transport mismatch'}
+    [void]$report.applicationRouteChecks.Add(@{label=$Label;passed=$true})
+}
+function Test-PaytmApplicationRestart {
+    if($fixtureState.Case -eq 'AppRestartFailure'){throw 'fixture restart failed'}
+    $report.restartLockedVerified=$true
+}
+function Complete-PaytmApplicationProbe {
+    if($fixtureState.Case -eq 'AppFinalLockFailure'){throw 'fixture final lock failed'}
+    $report.finalApplicationLockVerified=$true;$report.accountPreserved=$true
+}
 $count=0
 try {
-    foreach($case in @('Pass','PassDualLoopback','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure','ListenerDualForeignOwner','ListenerDualWildcard','ListenerDualWrongPort','ListenerDualDuplicate','RoutePass','RoutePreparationFailure','RouteHostUnreachable','RouteDirectFallback','RouteCleanupFailure')) {
-        $script:fixtureState=[pscustomobject]@{Case=$case;Run='';Proxy=$false;Listener=0;NextId=1000;Payload='';Clipboard='';PageantCalls=0}
+    foreach($case in @('Pass','PassDualLoopback','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure','ListenerDualForeignOwner','ListenerDualWildcard','ListenerDualWrongPort','ListenerDualDuplicate','RoutePass','RoutePreparationFailure','RouteHostUnreachable','RouteDirectFallback','RouteCleanupFailure','ReadyRetry','ReadyWhitespace','AppPass','AppPreflightFailure','AppTransportFailure','AppRestartFailure','AppFinalLockFailure')) {
+        $script:fixtureState=[pscustomobject]@{Case=$case;Run='';Proxy=$false;Listener=0;NextId=1000;Payload='';Clipboard='';PageantCalls=0;ReadyAttempt=0}
         $folder=Join-Path $fixtureRoot $case
         $fixtureDirs.Add($folder)
         $failed=$false
-        try {& $block -OutputDirectory $folder -LocalPort 18889 -ContainerRoute:($case -like 'Route*')}catch{$failed=$true}
+        try {& $block -OutputDirectory $folder -LocalPort 18889 -ContainerRoute:($case -like 'Route*') -ApplicationRoute:($case -like 'App*')}catch{$failed=$true}
         $files=@(Get-ChildItem -LiteralPath $folder -Filter '*.json')
         if($files.Count -ne 1){throw "Expected one report for $case"}
         $fixtureReports.Add($files[0].FullName)
         $data=Get-Content -LiteralPath $files[0].FullName -Raw | ConvertFrom-Json
-        if($case -in @('Pass','PassDualLoopback')) {
+        if($case -in @('Pass','PassDualLoopback','ReadyRetry','ReadyWhitespace')) {
             if($failed -or $data.status -ne 'TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING' -or -not $data.serverEvidenceVerified -or -not $data.ownerGatewayKeyRemoved){throw "Happy path failed: $($data.failure)"}
             if($data.steps.Count -ne 9 -or @($data.steps | Where-Object status -ne PASS).Count){throw 'Incomplete stage ledger'}
             if($data.providerRootStatuses.Count -ne 2 -or $data.providerRootStatuses[0] -ne 503){throw '503 was lost or treated as API health'}
             if($case -eq 'PassDualLoopback' -and @($data.listenerEvidence | Where-Object {$_.rowCount -ne 2 -or -not $_.valid}).Count){throw 'Dual-loopback path lost listener evidence'}
         } elseif($case -eq 'RoutePass') {
             if($failed -or $data.status -ne 'CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING' -or $data.steps.Count -ne 7 -or $data.containerRouteObservations.Count -ne 4 -or -not $data.containerJvmRouteVerified -or $data.applicationProcessVerified -or $data.applicationContainerVerified){throw "Route happy path misreported: $($data.failure)"}
+        } elseif($case -eq 'AppPass') {
+            if($failed -or $data.status -ne 'APPLICATION_ROUTE_PASSED_AUTHENTICATION_AND_OPERATIONS_PENDING' -or $data.steps.Count -ne 8 -or $data.applicationRouteChecks.Count -ne 4 -or -not $data.applicationProcessVerified -or -not $data.restartLockedVerified){throw "Application happy path failed: $($data.failure)"}
         } elseif(-not $failed -or $data.status -ne 'REVIEW_REQUIRED'){throw "Failure incorrectly passed: $case"}
+        if($case -eq 'ReadyRetry' -and $data.readinessInputAttempts -ne 2){throw 'Readiness retry not exercised'}
+        if($case -eq 'AppPreflightFailure' -and $fixtureState.Payload){throw 'VPS activated after deployment rejection'}
         if($case -eq 'RoutePreparationFailure' -and $fixtureState.Payload){throw 'VPS handoff occurred after container preparation failure'}
         if($fixtureState.Listener -ne 0 -or $data.ordersEnabled -or $data.brokerAuthenticationEnabled){throw 'Cleanup/safety boundary violated'}
         if($case -eq 'PreflightAuthFailure' -and $fixtureState.Payload){throw 'Proxy start payload exposed despite failed authentication preflight'}

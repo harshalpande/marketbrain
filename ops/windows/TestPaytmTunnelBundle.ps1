@@ -1,7 +1,8 @@
 #Requires -Version 5.1
 [CmdletBinding()]
 param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidateRange(1024,65535)][int]$LocalPort=18889,
-    [switch]$ContainerRoute,[string]$TunnelEvidencePath,[string]$ApplicationContainerId,[string]$JavaBinDirectory)
+    [switch]$ContainerRoute,[string]$TunnelEvidencePath,[string]$ApplicationContainerId,[string]$JavaBinDirectory,
+    [switch]$ApplicationRoute,[string]$ContainerEvidencePath)
 $ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'PaytmTunnelVerification.ps1')
 $runId=[guid]::NewGuid().ToString('N')
@@ -16,6 +17,15 @@ $report.listenerValidationRevision='OWNED_LOOPBACK_PAIR_V2'
 $report.listenerEvidence=New-Object 'Collections.Generic.List[object]'
 $report.powerShellVersion=$PSVersionTable.PSVersion.ToString()
 $route=[ordered]@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path;Docker=$null;Id=$null;Identity=$null;AppHash=$null;Work=$null;WorkCreated=$false;RemoteCreated=$false;RemoteDirectory=$null;Jar=$null;SourceHashes=@()}
+if($ApplicationRoute -and $ContainerRoute){throw 'Select only one route test mode'}
+$application=[ordered]@{Docker=$null;Id=$null;Token=$null;BeforeAccount=$null;Before=$null;BootId=$null;Ready=$false}
+if($ApplicationRoute){
+    . (Join-Path $PSScriptRoot 'PaytmContainerRoute.ps1')
+    . (Join-Path $PSScriptRoot 'PaytmApplicationRoute.ps1')
+    $report.scope='MAIN_SPRING_PROCESS_CREDENTIAL_FREE_ROUTE_ONLY'
+    foreach($key in @('applicationCommands','applicationObservations','applicationRouteChecks')){$report[$key]=New-Object 'Collections.Generic.List[object]'}
+    foreach($key in @('deploymentAttempted','startupLockedVerified','restartLockedVerified','finalApplicationLockVerified','accountPreserved','applicationProcessVerified')){$report[$key]=$false}
+}
 if($ContainerRoute){
     . (Join-Path $PSScriptRoot 'PaytmContainerRoute.ps1')
     $report.scope='EXISTING_CONTAINER_SEPARATE_JVM_ROUTE_ONLY'
@@ -91,7 +101,7 @@ function Collect-ServerStop {
 try {
     if($env:OS -ne 'Windows_NT'){throw 'Run on spare Windows laptop only'}
     [void][IO.Directory]::CreateDirectory($OutputDirectory)
-    $reportPrefix=if($ContainerRoute){'paytm-container-route'}else{'paytm-tunnel-verification'}
+    $reportPrefix=if($ApplicationRoute){'paytm-application-route'}elseif($ContainerRoute){'paytm-container-route'}else{'paytm-tunnel-verification'}
     $reportPath=Join-Path ([IO.Path]::GetFullPath($OutputDirectory)) ('{0}-{1}-{2}.json' -f $reportPrefix,(Get-Date -Format yyyyMMdd-HHmmss),$runId)
     $file=[IO.File]::Open($reportPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None); $file.Dispose()
     Save-Report
@@ -103,6 +113,7 @@ try {
     $sha=[Security.Cryptography.SHA256]::Create()
     try {$report.serverPayloadSha256=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($serverPayload)))).Replace('-','').ToLowerInvariant()} finally {$sha.Dispose()}
     Stage 'Local tools, settings and fresh-admin prerequisite' 5 {
+        if($ApplicationRoute){Initialize-PaytmApplicationProbe}
         if($ContainerRoute){
             Write-Host 'Credential-free separate JVM inside the existing container. No Spring wiring, rebuild, restart or database access.'
             Initialize-PaytmContainerProbe
@@ -142,14 +153,23 @@ try {
         Write-Host 'PUTTY: when asked, type START-TEST and press ENTER there. Wait for START-TEST accepted and then SERVER_READY=...'
         Write-Host 'Only AFTER PuTTY prints SERVER_READY, copy that full output line into the PowerShell prompt below. Never run SERVER_READY as a PuTTY command.'
         $session.ServerRequested=$true
-        if((Read-Host "POWERSHELL waiting: paste SERVER_READY=$runId only after PUTTY prints it (or type FAILED if the VPS test ends)") -cne "SERVER_READY=$runId"){throw 'Server readiness not confirmed'}
+        $ready=$false
+        for($attempt=1;$attempt -le 3;$attempt++){
+            $answer=Read-Host "POWERSHELL waiting: paste SERVER_READY=$runId only after PUTTY prints it (or type FAILED if the VPS test ends)"
+            if($answer -and $answer.Trim() -ceq "SERVER_READY=$runId"){$ready=$true;break}
+            if($answer -and $answer.Trim() -ceq 'FAILED'){break}
+            Write-Warning 'Readiness line did not match this run. Copy only the newly printed SERVER_READY line from PuTTY. Do not restart the VPS test.'
+        }
+        $report.readinessInputAttempts=$attempt;$report.readinessInputMatched=$ready;Save-Report
+        if(-not $ready){throw 'Server readiness not confirmed'}
     }
     Stage 'Loopback-only allowed tunnel and Paytm TLS' 30 {
         $session.Tunnel=Start-Forward 'Allowed tunnel'
         Curl-Probe 'Allowed Paytm HEAD' 'https://developer.paytmmoney.com/' Tls
         if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java allowed Paytm HEAD' $true}
+        if($ApplicationRoute){Invoke-PaytmApplicationHead 'Application allowed Paytm HEAD' $true}
     }
-    if(-not $ContainerRoute){
+    if(-not $ContainerRoute -and -not $ApplicationRoute){
     Stage 'PTY-requested session, wrong target and remote-forward denials' 45 {
         $result=Probe 'PTY-requested session denial' $plink ($sshArgs+@('-t','130.250.191.137','/usr/bin/true')) 20
         Assert-TunnelDenied $result Session
@@ -169,9 +189,11 @@ try {
         if(@(Get-TunnelListeners $LocalPort).Count){throw 'Listener remains after closing owned tunnel'}
         Curl-Probe 'Closed tunnel must refuse' 'https://developer.paytmmoney.com/' TunnelStopped
         if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java closed tunnel refusal' $false}
+        if($ApplicationRoute){Invoke-PaytmApplicationHead 'Application closed tunnel refusal' $false}
         $session.Tunnel=Start-Forward 'Reconnected tunnel'
         Curl-Probe 'Paytm HEAD after reconnect' 'https://developer.paytmmoney.com/' Tls
         if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java TLS after reconnect' $true}
+        if($ApplicationRoute){Invoke-PaytmApplicationHead 'Application TLS after reconnect' $true}
     }
     Stage 'Stop VPS proxy and capture consolidated server evidence' 80 { Collect-ServerStop }
     Stage 'Stopped backend cannot fall back; local tunnel cleanup' 90 {
@@ -179,12 +201,14 @@ try {
         Assert-TunnelListenerRows @(Get-TunnelListeners $LocalPort) $session.Tunnel.Process.Id -Port $LocalPort -Evidence $report.listenerEvidence -Label 'Stopped-backend listener'
         Curl-Probe 'Stopped VPS backend' 'https://developer.paytmmoney.com/' ProxyStopped
         if($ContainerRoute){Invoke-PaytmContainerHead 'Container Java stopped proxy refusal' $false}
+        if($ApplicationRoute){Invoke-PaytmApplicationHead 'Application stopped proxy refusal' $false}
         $result=Complete-TunnelProcess $session.Tunnel -StopNow
         Assert-TunnelAuthenticated $result
         if($result.Stderr -notmatch '(?i)Forwarded connection refused by remote.*Connection refused'){throw 'Explicit backend connection-refused evidence missing'}
         if(@(Get-TunnelListeners $LocalPort).Count){throw 'Local listener remains'}
         $report.localCleanupConfirmed=$true
     }
+    if($ApplicationRoute){Stage 'Main application restart discards diagnostic lease' 95 {Test-PaytmApplicationRestart}}
     $passed=$true
 } catch { $report.failure=$_.Exception.Message }
 finally {
@@ -199,6 +223,9 @@ finally {
     if($session.PageantRequested) {
         Write-Host 'In Pageant View Keys, remove ONLY the gateway key used for this test. Keep its encrypted PPK file and any unrelated keys.'
         try {$report.ownerGatewayKeyRemoved=((Read-Host 'Type KEY-REMOVED once done') -ceq 'KEY-REMOVED')} catch {$report.ownerGatewayKeyRemoved=$false}
+    }
+    if($ApplicationRoute){
+        try {Complete-PaytmApplicationProbe} catch {$passed=$false;$report.failure="$($report.failure); Application final verification: $($_.Exception.Message)"}
     }
     if($ContainerRoute){
         try {Complete-PaytmContainerProbe} catch {$passed=$false;$report.containerProbeCleanupConfirmed=$false;$report.failure="$($report.failure); Container probe cleanup: $($_.Exception.Message)"}
@@ -217,10 +244,17 @@ finally {
             $report.status='CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING'
         }else{$report.status='REVIEW_REQUIRED'}
     }
+    if($ApplicationRoute -and $report.status -ne 'REVIEW_REQUIRED'){
+        if($report.startupLockedVerified -and $report.restartLockedVerified -and $report.finalApplicationLockVerified -and $report.accountPreserved -and $report.applicationRouteChecks.Count -eq 4){
+            $report.applicationProcessVerified=$true
+            $report.applicationContainerVerified=$true
+            $report.status='APPLICATION_ROUTE_PASSED_AUTHENTICATION_AND_OPERATIONS_PENDING'
+        }else{$report.status='REVIEW_REQUIRED'}
+    }
     $watch.Stop(); Save-Report
     Write-Progress -Activity 'Paytm restricted tunnel verification' -Completed
     Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
     Write-Host "Share this ONE file: $reportPath"
-    Write-Host 'Root HEAD 503, if observed, remains an API-readiness warning. No credentials, main application wiring or trades were tested.'
+    Write-Host 'Root HEAD 503, if observed, remains an API-readiness warning. No broker credentials, login, quotes or trades were tested.'
 }
-if($report.status -notin @('TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING','CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING')){throw "Review report: $($report.failure)"}
+if($report.status -notin @('TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING','CONTAINER_JVM_ROUTE_PASSED_APPLICATION_WIRING_PENDING','APPLICATION_ROUTE_PASSED_AUTHENTICATION_AND_OPERATIONS_PENDING')){throw "Review report: $($report.failure)"}

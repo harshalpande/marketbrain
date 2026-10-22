@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-22 Container accepted; main application route and restart package
+
+- E155: owner run79e1a66d722c44c0ad9e8c3fcbf4b4d7 accepted 7/7 stages in137.68s: Java TLS503, closed tunnel refusal, restored TLS503, stopped-proxy refusal. Application unchanged and temporary cleanup confirmed. No further standalone tunnel/container repetition. [Evidence](evidence/paytm-container-route-spare-20261022.json).
+- E156: actual Spring diagnostic component/controller starts locked, permits only fixed credential-free HEAD with bounded manual lease, locks on failure/restart; old direct historical RestClient removed and data calls blocked. Guarded deployment preserves existing three-file Compose policy, storage, environment and paper account; rejects unlocked writer/configuration drift before mutation. No schema/Compose/VPS changes. [Handoff](paytm-application-route.md).
+- Local verification: 24 Paytm JUnit tests including 10 new main-route tests; 28 mocked complete tunnel/application workflows; 10 deployment orchestration cases with mocked Docker/HTTP and secret-free evidence. Actual Docker deployment remains spare-only and unverified. Readiness prompt now trims whitespace and permits three attempts without accepting stale identifiers.
+- Only bundle completion counts advance: container7/7 accepted, main-process8-stage spare bundle pending. No parent-goal percentage increase or production readiness claim. Operational egress, unattended custody and maintenance remain pending alongside login, quotes and real-quote Telegram review. The 4-6-round estimate remains contingent, not a guarantee.
+
 ## 2026-10-22 Tunnel accepted; existing-container route probe prepared
 
 - E153: owner run8e80a1be628b47b9a66c893b235146aa passed9/9 stages in214.141s. Windows loopback, TLS, authenticated denials, proxy restrictions, reconnect and stop/refusal/cleanup verified. HEAD503 twice remains API-readiness warning. Key removal owner-confirmed. Transient stop-service warning retained; final timer state needs pre-run check. [Acceptance](evidence/paytm-tunnel-spare-acceptance-20261022.json).
