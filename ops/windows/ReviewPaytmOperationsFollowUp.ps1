@@ -45,6 +45,9 @@ try{
     $report.status=if($report.observations.findings.Count){'FOLLOWUP_CAPTURED_WITH_FINDINGS'}else{'FOLLOWUP_CAPTURED_UNATTENDED_PROVISIONING_PENDING'}
 }catch{
     $report.failure=if($_.Exception.Message -cmatch '^OPS_[A-Z_]+$'){$_.Exception.Message}else{'OPS_FOLLOWUP_CAPTURE_FAILED'}
+    if($report.failure -eq 'OPS_ADMIN_POWERSHELL_REQUIRED'){
+        Write-Host 'No correction started. Use StartPaytmOperationsFollowUp.ps1 with the same evidence path, approve Windows UAC, and continue in its NEW administrator PowerShell 7 window.' -ForegroundColor Yellow
+    }
 }finally{
     $timer.Stop();$report.elapsedSeconds=[math]::Round($timer.Elapsed.TotalSeconds,3)
     $stream=[IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)

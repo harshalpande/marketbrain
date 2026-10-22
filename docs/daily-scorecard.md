@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E161 (2026-10-22): follow-up blocked before changes in 0.009s by missing process elevation. UAC handoff corrected and locally tested (22 PS7/21 PS5.1 launcher assertions; 44/52 existing regressions). **No new runtime completion credit**; accepted main-route 8/8 unchanged. [Retry](paytm-operations-followup.md).
+
 E159/E160 (2026-10-22): operations evidence captured/reviewed in **134.148 seconds**, not operational release acceptance. Four findings retained; proxy-version UNKNOWN is a collector defect, now corrected. Local follow-up: 44 new PowerShell assertions/eight workflows, 52 existing operations assertions, current 31 Bash assertions (superseding 20). Windows resync/VPS index refresh not yet run on spare. Main application-route acceptance remains **8/8, 100% of that bounded bundle**; no whole-project percentage increase or clock accuracy claim. [Handoff](paytm-operations-followup.md).
 
 E157/E158 (2026-10-22): **main-process route bundle100% accepted (8/8),456.253s**, previously0/8 runtime accepted. Four transport states, failure locks, new-boot restart lock, final lock and preserved INR100000 account verified. This is acceptance of diagnostic route wiring, not broker authentication or all operations. [Evidence](evidence/paytm-application-route-spare-20261022.json). Next read-only operational collector is locally verified (52 PowerShell assertions including4 mocked workflows;20 Bash assertions), VPS execution pending. No whole-project percentage recalculated or prediction-quality gain claimed. Prior E155/E156 pending text below is historical.

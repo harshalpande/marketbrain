@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E161 ELEVATION_HANDOFF_CORRECTED_RUNTIME_PENDING:** [evidence](evidence/paytm-operations-elevation-20261022.json). Owner follow-up stopped in 0.009s at the non-elevated process guard, before confirmation or changes. Explicit UAC launcher now opens PowerShell 7; no guard bypass. 22 PS7/21 PS5.1 mocked launcher assertions and existing 44/52 assertions pass. [Updated handoff](paytm-operations-followup.md); actual correction remains pending.
+
 - **E159 OPERATIONS_SNAPSHOT_REVIEWED_WITH_FINDINGS:** [owner evidence](evidence/paytm-operations-spare-review-20261022.json), 134.148 seconds. Configuration/identity/IP/stopped state verified; clock disagreement and cached maintenance findings retained. Proxy UNKNOWN caused by collector querying wrong package. Owner requests Windows-first clock correction, VPS clock unchanged.
 - **E160 OPERATIONS_FOLLOWUP_LOCAL_PASS:** [local evidence](evidence/paytm-operations-followup-local-20261022.json), [handoff](paytm-operations-followup.md). 44 new PowerShell assertions/eight workflows, 52 existing assertions, current 31 Bash assertions. Owner-confirmed Windows resync and verified VPS index refresh/simulation only; no upgrades, reboot, broker activation or unattended provisioning. Spare execution pending.
 

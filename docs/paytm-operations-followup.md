@@ -1,5 +1,7 @@
 # Windows clock and VPS maintenance follow-up
 
+**E161 correction:** owner run `f5b7892d6d0049cd82703ce431fa4d53` stopped at `OPS_ADMIN_POWERSHELL_REQUIRED` in 0.009 seconds, before confirmation or changes. Use the new UAC launcher below instead of invoking the runner directly. Administrator-account membership is not an elevated process. The launcher uses [Start-Process -Verb RunAs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process?view=powershell-7.5), never bypasses UAC or execution policy, and opens a visible PowerShell 7 window. Launch success is not review success. No runtime progress credit is added.
+
 2026-10-22, E159/E160. [Reviewed snapshot](evidence/paytm-operations-spare-review-20261022.json) completed in 134.148 seconds: host/config hashes matched, expected VPS-bound public IP, proxy inactive, no listeners/watchdogs, VPS reported NTP synchronized. Findings: clock disagreement, 70 cached upgrade candidates, old Release metadata and an incorrect proxy-package lookup. Windows OpenSSH exists; its agent is stopped/disabled. This is not a failed application-route test and does not require repeating E157's accepted 8/8 stages.
 
 The owner says the spare laptop's clock may be wrong and agrees to correct it. **Treat the VPS as the provisional reference and leave its clock unchanged.** NTP=true is useful evidence, not absolute accuracy proof. Windows' clock/source must be checked rather than assuming the VPS is at fault.
@@ -17,7 +19,7 @@ These operations follow [Microsoft's W32Time command guidance](https://learn.mic
 
 ## Complete spare-laptop handoff
 
-Keep clock-sensitive jobs, active approvals and tests idle. Open **PowerShell 7 as Administrator** on the spare, and a verified **marketbrain-admin PuTTY** session. Do not load the gateway PPK or start a tunnel.
+Keep clock-sensitive jobs, active approvals and tests idle. Open ordinary **PowerShell (5.1 or 7)** on the spare, and a verified **marketbrain-admin PuTTY** session. PowerShell 7 must already be installed and discoverable. The launcher requests elevation for you. Do not load the gateway PPK or start a tunnel.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -31,16 +33,18 @@ git -c gc.auto=0 -c maintenance.auto=false pull --ff-only
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 $evidence = 'C:\MarketBrainData\Review\paytm-operations-20261022-192224-b5f4ea70636047d6ad6ab4dc378a505f.json'
 if (-not (Test-Path -LiteralPath $evidence -PathType Leaf)) { throw 'Reviewed operations report missing.' }
-& '.\ops\windows\ReviewPaytmOperationsFollowUp.ps1' -OperationsEvidencePath $evidence
+& '.\ops\windows\StartPaytmOperationsFollowUp.ps1' -OperationsEvidencePath $evidence
 ```
 
-1. In PowerShell, type `SYNC_AND_REFRESH` only when the stated jobs are idle. Windows time checks/resync run first. Do not rerun automatically if they fail; the report will preserve their outcome while collecting VPS evidence.
+1. Approve the Windows UAC prompt. Continue in the **NEW administrator PowerShell 7 window**, not the original launcher window. If UAC is cancelled, no review starts. All references to PowerShell below mean this new window. Type `SYNC_AND_REFRESH` only when the stated jobs are idle. Windows time checks/resync run first. Do not rerun automatically if they fail; the report will preserve their outcome while collecting VPS evidence.
 2. At the next prompt, manually run `sudo -v` in **PuTTY**, enter the sudo password there, then return to **PowerShell** and press Enter. The VPS command is copied after this step.
 3. Paste into **PuTTY**. Index refresh and inspection run automatically. **No START-TEST, STOP or SERVER_READY prompts.** Allow the heartbeat to run; do not interrupt a package-index refresh just because download speed is slow. It is bounded.
 4. Copy only `BEGIN_PAYTM_OPERATIONS_<current ID>` through `END_PAYTM_OPERATIONS_<current ID>` when printed, excluding the earlier progress lines. Return to **PowerShell** and press Enter within 20 minutes. If no complete block was produced, return the visible error text through that prompt for a failure report; do not launch a second refresh blindly.
 5. Share the ONE `paytm-operations-followup-...json`. `FOLLOWUP_CAPTURED_WITH_FINDINGS` can be the correct result when upgrades remain; it does not mean the refresh failed. No updates are automatically applied.
 
 ## Verification and next milestone
+
+E161 launcher: 22 mocked assertions under PowerShell 7 and 21 under Windows PowerShell 5.1, covering explicit RunAs, quoted/Unicode paths, no command injection, missing inputs/runtime, cancelled/failed elevation and clear handoff. No real UAC or resync was invoked locally. The existing 44 and 52 assertion suites were rerun successfully. Real UAC and corrected runtime acceptance remain pending owner execution.
 
 44 new PowerShell assertions include eight mocked follow-up workflows: clean, upgrade findings, time failure, refresh failure, cancellation, missing elevation, incorrect prior evidence and malformed receipt. Windows helper fixtures cover start/disabled service, configured-source-only resync, command failure/timeout and post-query capture. Existing 52 operations assertions remain passing. The current Bash suite has 31 assertions (supersedes its previous 20), including exact tinyproxy-bin lookup, refresh mode guards, failure exit capture and safe candidate extraction. Actual Windows resync and VPS refresh have **not** run locally.
 

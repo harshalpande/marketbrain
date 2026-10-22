@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 Follow-up elevation handoff correction
+
+- E161 owner run f5b7892d6d0049cd82703ce431fa4d53 stopped in 0.009s: OPS_ADMIN_POWERSHELL_REQUIRED. No owner confirmation, Windows resync or VPS refresh preparation occurred. This does not invalidate accepted application-route evidence.
+- Added explicit Windows UAC launcher usable from ordinary PowerShell 5.1/7; starts one visible administrator PowerShell 7 window with safely encoded literal paths, preserves confirmation and elevation guards, and reports cancellation without pretending completion. No automatic credentials, consent or execution-policy bypass.
+- 22 PS7/21 PS5.1 mocked launcher assertions and existing 44 follow-up/52 operations assertions pass. Actual UAC/spare execution pending. No runtime progress percentage added. [Retry instructions](paytm-operations-followup.md).
+
 ## 2026-10-22 Operations findings and Windows-first clock correction
 
 - E159 owner report b5f4ea70636047d6ad6ab4dc378a505f reviewed: 134.148 seconds; pinned identity/configuration, expected VPS-bound public IP, inactive proxy/no listeners/watchdog units, NTP=yes. Clock disagreement, 70 cached upgrade candidates and 40.248-day oldest metadata age need qualified review. Wrong tinyproxy-package query is our collector defect; installer uses tinyproxy-bin. Windows client 9.5.4.1 exists, SSH agent stopped/disabled.
