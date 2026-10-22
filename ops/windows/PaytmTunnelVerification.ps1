@@ -104,6 +104,33 @@ function Wait-TunnelListener($Handle,[int]$Port) {
     }
     throw 'Tunnel listener readiness timeout'
 }
+function New-TunnelFileLauncher([string]$Body) {
+    if(-not $Body.EndsWith("`n") -or $Body.Length -gt 80000 -or $Body.Contains([char]0) -or $Body.Contains("`r") -or $Body.Contains('MARKETBRAIN_TUNNEL_FILE')){throw 'Unsafe staged script body'}
+    $sha=[Security.Cryptography.SHA256]::Create()
+    try {$digest=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($Body)))).Replace('-','').ToLowerInvariant()} finally {$sha.Dispose()}
+    # The here-document belongs to cat INSIDE bash -c, never to sudo's stdin.
+    # Preserve stdin as a terminal through sudo/use_pty and the file execution.
+    $prepare=@'
+set -Eeuo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C
+umask 077
+[ "$(id -u)" = 0 ] || { printf 'LAUNCHER_ERROR: root required\n' >&2; exit 1; }
+[ "${SUDO_USER:-}" = marketbrain-admin ] || { printf 'LAUNCHER_ERROR: use the administrator session\n' >&2; exit 1; }
+[ -t 0 ] || { printf 'LAUNCHER_ERROR: stdin must be the PuTTY terminal\n' >&2; exit 1; }
+mb_script_dir=$(mktemp -d /tmp/marketbrain-tunnel-script-XXXXXXXX)
+cat >"$mb_script_dir/window.sh" <<'MARKETBRAIN_TUNNEL_FILE'
+'@
+    $prepare=$prepare.Replace("`r`n","`n") # Git's Windows checkout may use CRLF inside the here-string.
+    $prepare=$prepare+"`n"+$Body+"MARKETBRAIN_TUNNEL_FILE`n"+
+        "printf '%s  %s\n' '$digest' "+'"$mb_script_dir/window.sh" | sha256sum --check --status'+"`n"+
+        'chmod 400 "$mb_script_dir/window.sh"'+"`n"+
+        'printf "Private script verified: %s/window.sh\n" "$mb_script_dir"'+"`n"+
+        'bash "$mb_script_dir/window.sh" </dev/tty'+"`n"
+    # POSIX single-quote encoding: a literal apostrophe becomes '"'"'.
+    $escapedQuote="'"+'"'+"'"+'"'+"'"
+    $quoted="'"+$prepare.Replace("'",$escapedQuote)+"'"
+    'sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash -c '+$quoted+' </dev/tty'+"`n"
+}
 function Get-TunnelServerPayload([string]$RunId) {
     if($RunId -cnotmatch '^[a-f0-9]{32}$'){throw 'Invalid run ID'}
     $parts=@()
@@ -120,7 +147,7 @@ function Get-TunnelServerPayload([string]$RunId) {
     }
     $body=($parts -join "`n")+"`ntw_main '$RunId'`n"
     if($body.Length -gt 80000){throw 'Unexpected payload size'}
-    'sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash '+"<<'MARKETBRAIN_TUNNEL_WINDOW'`n"+$body+"MARKETBRAIN_TUNNEL_WINDOW`n"
+    New-TunnelFileLauncher $body
 }
 function Read-TunnelServerEvidence([string]$Clipboard,[string]$RunId) {
     if($RunId -cnotmatch '^[a-f0-9]{32}$' -or $Clipboard.Length -gt 32768){throw 'Invalid server evidence size/run'}
@@ -129,7 +156,7 @@ function Read-TunnelServerEvidence([string]$Clipboard,[string]$RunId) {
     $start=$text.IndexOf($begin,[StringComparison]::Ordinal); $finish=$text.IndexOf($end,[StringComparison]::Ordinal)
     if($start -lt 0 -or $finish -le $start){throw 'Copy the complete bounded server report, not terminal history'}
     $block=$text.Substring($start,$finish+$end.Length-$start)
-    foreach($name in @('SERVER_BEGIN','SERVER_HOST_IDENTITY_OK','SERVER_GATEWAY_POLICY_AND_KEY_OK','SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED','SERVER_REMOTE_TEST_PORT_FREE','SERVER_READY','SERVER_STOPPED')) {
+    foreach($name in @('SERVER_BEGIN','SERVER_TERMINAL_INPUT_OK','SERVER_START_CONFIRMED','SERVER_STOP_CONFIRMED','SERVER_HOST_IDENTITY_OK','SERVER_GATEWAY_POLICY_AND_KEY_OK','SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED','SERVER_REMOTE_TEST_PORT_FREE','SERVER_READY','SERVER_STOPPED')) {
         if($block -cnotmatch "(?m)^$name=$RunId`$"){throw "Missing server evidence marker: $name"}
     }
     if($block -cnotmatch "(?m)^SERVER_EXIT=0 RUN=$RunId`$" -or $block -cnotmatch "(?m)^SERVER_REPORT_END=$RunId WORKER_EXIT=0 LOG_EXIT=0 ELAPSED=\d+`$"){throw 'Server worker or log capture did not pass'}

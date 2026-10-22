@@ -10,6 +10,7 @@ $steps=New-Object 'Collections.Generic.List[object]'
 $report=[ordered]@{schemaVersion=1;runId=$runId;startedUtc=[DateTime]::UtcNow.ToString('o');status='RUNNING';scope='SPARE_TO_VPS_TUNNEL_ONLY';steps=$steps;processes=@();serverEvidence=$null;serverEvidenceVerified=$false;priorInstallationLogReviewed=$false;ownerFreshAdminConfirmed=$false;ownerGatewayKeyRemoved=$false;localCleanupConfirmed=$false;providerRootStatuses=@();failure=$null;elapsedSeconds=0;applicationContainerVerified=$false;brokerAuthenticationEnabled=$false;ordersEnabled=$false}
 $session=[ordered]@{ServerRequested=$false;PageantRequested=$false;Tunnel=$null}; $passed=$false
 $report.egressReobserved=$false
+$report.launcherRevision='FILE_WITH_TERMINAL_STDIN_V2'
 $reportPath=$null
 function Save-Report {
     if($reportPath){$report.elapsedSeconds=[math]::Round($watch.Elapsed.TotalSeconds,3); [IO.File]::WriteAllText($reportPath,($report | ConvertTo-Json -Depth 12),(New-Object Text.UTF8Encoding($false)))}
@@ -52,10 +53,18 @@ function Curl-Probe([string]$Label,[string]$Url,[string]$Kind) {
     if($Kind -eq 'Tls'){$report.providerRootStatuses+= [int]($result.Stdout.Trim().Split('|')[2])}
 }
 function Collect-ServerStop {
-    Write-Host 'In the VPS PuTTY window type STOP. Wait for the full BEGIN_SERVER_REPORT...END_SERVER_REPORT block.'
+    Write-Host 'PUTTY: if the test is still waiting for STOP, type STOP there and press ENTER.'
+    Write-Host 'If PuTTY has returned to marketbrain-admin@...$, the test ended: do NOT type STOP as a Linux command.'
+    Write-Host 'Copy the current run report, even if it reports failure: BEGIN_SERVER_REPORT through END_SERVER_REPORT.'
     Write-Host 'Select/copy ONLY that complete report block (not earlier terminal history) to the Windows clipboard.'
     [void](Read-Host 'Press Enter here AFTER the server report is copied')
     $clipboard=Get-Clipboard -Raw
+    # Preserve bounded current-run failure evidence too; never save unrelated clipboard history.
+    if($clipboard -and $clipboard.Length -le 32768) {
+        $begin="BEGIN_SERVER_REPORT_$runId"; $end="END_SERVER_REPORT_$runId"
+        $first=$clipboard.IndexOf($begin,[StringComparison]::Ordinal); $last=$clipboard.IndexOf($end,[StringComparison]::Ordinal)
+        if($first -ge 0 -and $last -gt $first){$report.serverEvidence=$clipboard.Substring($first,$last+$end.Length-$first);Save-Report}
+    }
     $report.serverEvidence=Read-TunnelServerEvidence $clipboard $runId
     $report.serverEvidenceVerified=$true
     Save-Report
@@ -99,10 +108,13 @@ try {
     }
     Stage 'Guarded VPS window and independent stop timer' 20 {
         Set-Clipboard -Value $serverPayload
-        Write-Host 'Installer is NOT rerun. In the fresh verified admin PuTTY window run sudo -v, then paste the copied test-window command.'
-        Write-Host 'The VPS checks current identity/key/policy/configuration, then asks START-TEST. It starts the proxy for at most 20 minutes.'
+        Write-Host 'POWERSHELL: leave this window waiting. The VPS command is now on your clipboard.'
+        Write-Host 'PUTTY: manually type sudo -v (do not copy it), then paste the clipboard command. Installer is NOT rerun.'
+        Write-Host 'The corrected launcher verifies a private script file and preserves terminal input.'
+        Write-Host 'PUTTY: when asked, type START-TEST and press ENTER there. Wait for START-TEST accepted and then SERVER_READY=...'
+        Write-Host 'Only AFTER PuTTY prints SERVER_READY, copy that full output line into the PowerShell prompt below. Never run SERVER_READY as a PuTTY command.'
         $session.ServerRequested=$true
-        if((Read-Host "Paste the exact SERVER_READY=$runId line once the VPS prints it") -cne "SERVER_READY=$runId"){throw 'Server readiness not confirmed'}
+        if((Read-Host "POWERSHELL waiting: paste SERVER_READY=$runId only after PUTTY prints it (or type FAILED if the VPS test ends)") -cne "SERVER_READY=$runId"){throw 'Server readiness not confirmed'}
     }
     Stage 'Loopback-only allowed tunnel and Paytm TLS' 30 {
         $session.Tunnel=Start-Forward 'Allowed tunnel'
@@ -147,7 +159,7 @@ finally {
         catch {$passed=$false;$report.failure="Cleanup/capture: $($_.Exception.Message)"}
     }
     if($session.ServerRequested -and -not $report.serverEvidenceVerified) {
-        Write-Warning 'Server cleanup needs confirmation. Stop the test window with STOP; do not restart the proxy. Watchdog is a backstop, not proof of cleanup.'
+        Write-Warning 'Server completion needs review. STOP applies only to a still-running test prompt, not the Linux shell. Do not restart the proxy.'
         try {Collect-ServerStop} catch {$report.failure="$($report.failure); Server evidence: $($_.Exception.Message)"}
     }
     if($session.PageantRequested) {

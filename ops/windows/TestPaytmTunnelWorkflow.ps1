@@ -25,15 +25,23 @@ function Start-Process {param($FilePath,$WindowStyle) $fixtureState.PageantCalls
 function Read-Host([string]$Prompt) {
     if($Prompt -like '*ADMIN-VERIFIED*'){return 'ADMIN-VERIFIED'}
     if($Prompt -like '*KEY-READY*'){return 'KEY-READY'}
-    if($Prompt -match 'SERVER_READY=([a-f0-9]{32})'){$fixtureState.Run=$Matches[1];$fixtureState.Proxy=$true;return "SERVER_READY=$($fixtureState.Run)"}
+    if($Prompt -match 'SERVER_READY=([a-f0-9]{32})'){
+        $fixtureState.Run=$Matches[1]
+        if($fixtureState.Case -eq 'InputTimeoutBeforeReady'){return 'FAILED'}
+        $fixtureState.Proxy=$true;return "SERVER_READY=$($fixtureState.Run)"
+    }
     if($Prompt -like '*server report is copied*') {
         $fixtureState.Proxy=$false
         $id=$fixtureState.Run
         $lines=@("BEGIN_SERVER_REPORT_$id")
-        foreach($name in @('SERVER_BEGIN','SERVER_HOST_IDENTITY_OK','SERVER_GATEWAY_POLICY_AND_KEY_OK','SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED','SERVER_REMOTE_TEST_PORT_FREE','SERVER_READY','SERVER_STOPPED')){$lines+="$name=$id"}
+        foreach($name in @('SERVER_BEGIN','SERVER_TERMINAL_INPUT_OK','SERVER_START_CONFIRMED','SERVER_STOP_CONFIRMED','SERVER_HOST_IDENTITY_OK','SERVER_GATEWAY_POLICY_AND_KEY_OK','SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED','SERVER_REMOTE_TEST_PORT_FREE','SERVER_READY','SERVER_STOPPED')){$lines+="$name=$id"}
         $lines+="SERVER_EXIT=0 RUN=$id"; $lines+="SERVER_REPORT_END=$id WORKER_EXIT=0 LOG_EXIT=0 ELAPSED=25"; $lines+="END_SERVER_REPORT_$id"
         $fixtureState.Clipboard=$lines -join "`n"
         if($fixtureState.Case -eq 'BadServerEvidence'){$fixtureState.Clipboard=$fixtureState.Clipboard.Replace('SERVER_EXIT=0','SERVER_EXIT=1')}
+        if($fixtureState.Case -eq 'InputTimeoutBeforeReady'){
+            foreach($marker in @('SERVER_START_CONFIRMED','SERVER_STOP_CONFIRMED','SERVER_READY','SERVER_STOPPED')){$fixtureState.Clipboard=$fixtureState.Clipboard.Replace("$marker=$id",'')}
+            $fixtureState.Clipboard=$fixtureState.Clipboard.Replace('SERVER_EXIT=0','SERVER_EXIT=142').Replace('WORKER_EXIT=0','WORKER_EXIT=142')
+        }
         return ''
     }
     if($Prompt -like '*KEY-REMOVED*'){if($fixtureState.Case -eq 'KeyNotRemoved'){return ''}; return 'KEY-REMOVED'}
@@ -77,7 +85,7 @@ function Complete-TunnelProcess($Handle,[int]$LimitSeconds=20,[switch]$StopNow) 
 }
 $count=0
 try {
-    foreach($case in @('Pass','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved')) {
+    foreach($case in @('Pass','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady')) {
         $script:fixtureState=[pscustomobject]@{Case=$case;Run='';Proxy=$false;Listener=0;NextId=1000;Payload='';Clipboard='';PageantCalls=0}
         $folder=Join-Path $fixtureRoot $case
         $fixtureDirs.Add($folder)
@@ -94,6 +102,9 @@ try {
         } elseif(-not $failed -or $data.status -ne 'REVIEW_REQUIRED'){throw "Failure incorrectly passed: $case"}
         if($fixtureState.Listener -ne 0 -or $data.ordersEnabled -or $data.brokerAuthenticationEnabled){throw 'Cleanup/safety boundary violated'}
         if($case -eq 'PreflightAuthFailure' -and $fixtureState.Payload){throw 'Proxy start payload exposed despite failed authentication preflight'}
+        if($case -in @('BadServerEvidence','InputTimeoutBeforeReady') -and ($data.serverEvidenceVerified -or -not $data.serverEvidence)){throw 'Failed server evidence lost or incorrectly verified'}
+        if($case -eq 'InputTimeoutBeforeReady' -and @($data.processes | Where-Object label -eq 'Allowed tunnel').Count){throw 'Tunnel opened without readiness'}
+        if($data.launcherRevision -ne 'FILE_WITH_TERMINAL_STDIN_V2'){throw 'Launcher revision missing'}
         $count++
     }
     Write-Host "PASS: $count mocked whole-run workflows; one report per run, no real network, Pageant or VPS changes."

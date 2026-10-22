@@ -44,15 +44,31 @@ Reject {Assert-TunnelListenerRows @() 123}; Reject {Assert-TunnelListenerRows @(
 foreach($address in @('0.0.0.0','::','::1','192.168.1.2')){Reject {Assert-TunnelListenerRows @([pscustomobject]@{LocalAddress=$address;OwningProcess=123}) 123}}
 $run='0123456789abcdef0123456789abcdef'
 $payload=Get-TunnelServerPayload $run
-Check ($payload.StartsWith('sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash ')) 'sudo connection handoff missing'
-Check ($payload.EndsWith("tw_main '$run'`nMARKETBRAIN_TUNNEL_WINDOW`n")) 'Wrong worker or delimiter'
-Check (-not $payload.Contains('then tg_main "$@"')) 'Installer entry remains active'
-Check (-not $payload.Contains('then pg_main "$@"')) 'Proxy installer entry remains active'
+Check ($payload.StartsWith('sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash -c ')) 'sudo must receive a command argument, not a stdin script'
+Check ($payload.EndsWith(" </dev/tty`n")) 'Terminal stdin not attached'
+$prefix='sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash -c '
+$quoted=$payload.Substring($prefix.Length,$payload.Length-$prefix.Length-" </dev/tty`n".Length)
+$escape="'"+'"'+"'"+'"'+"'"
+$decoded=$quoted.Substring(1,$quoted.Length-2).Replace($escape,"'")
+Check ($decoded.Contains("tw_main '$run'`nMARKETBRAIN_TUNNEL_FILE`n")) 'Wrong worker or file delimiter'
+Check (-not $decoded.Contains('then tg_main "$@"')) 'Installer entry remains active'
+Check (-not $decoded.Contains('then pg_main "$@"')) 'Proxy installer entry remains active'
+Check ($decoded.Contains('[ -t 0 ]')) 'Pre-launch terminal guard missing'
+Check ($decoded.Contains('mktemp -d /tmp/marketbrain-tunnel-script-XXXXXXXX')) 'Private unique staging missing'
+Check ($decoded.Contains('sha256sum --check --status')) 'Staged byte verification missing'
+Check ($decoded.Contains('bash "$mb_script_dir/window.sh" </dev/tty')) 'File execution with terminal stdin missing'
+Check (-not $payload.StartsWith('sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash <<')) 'Old stdin redirection regression'
+Reject {New-TunnelFileLauncher "MARKETBRAIN_TUNNEL_FILE`n"}
+Reject {New-TunnelFileLauncher "missing newline"}
+Reject {New-TunnelFileLauncher "bad`r`n"}
 Check (-not $payload.Contains("`r")) 'CR in bash payload'
 Check ($payload.Contains('--on-active=20m')) 'Independent watchdog missing'
 Reject {Get-TunnelServerPayload "a'; reboot"}
+$windowsHelper=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmTunnelVerification.ps1')).Replace("`r`n","`n").Replace("`n","`r`n")
+$windowsPayload=& {param($source) . ([scriptblock]::Create($source)); New-TunnelFileLauncher "printf ok`n"} $windowsHelper
+Check (-not $windowsPayload.Contains("`r")) 'Windows CRLF checkout leaked into remote bootstrap'
 $lines=@("BEGIN_SERVER_REPORT_$run")
-foreach($name in @('SERVER_BEGIN','SERVER_HOST_IDENTITY_OK','SERVER_GATEWAY_POLICY_AND_KEY_OK','SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED','SERVER_REMOTE_TEST_PORT_FREE','SERVER_READY','SERVER_STOPPED')){$lines+="$name=$run"}
+foreach($name in @('SERVER_BEGIN','SERVER_TERMINAL_INPUT_OK','SERVER_START_CONFIRMED','SERVER_STOP_CONFIRMED','SERVER_HOST_IDENTITY_OK','SERVER_GATEWAY_POLICY_AND_KEY_OK','SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED','SERVER_REMOTE_TEST_PORT_FREE','SERVER_READY','SERVER_STOPPED')){$lines+="$name=$run"}
 $lines+="SERVER_EXIT=0 RUN=$run"; $lines+="SERVER_REPORT_END=$run WORKER_EXIT=0 LOG_EXIT=0 ELAPSED=12"; $lines+="END_SERVER_REPORT_$run"
 $valid=$lines -join "`n"
 $parsed=Read-TunnelServerEvidence $valid $run

@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E150 LAUNCHER_CORRECTED_LOCAL_VERIFIED_SPARE_PENDING:** [evidence](evidence/paytm-tunnel-input-repair-20261022.json), [retry](paytm-tunnel-verification.md). Owner redirected input timed out; direct input succeeded. Verified-file launcher preserves terminal stdin through sudo; explicit acknowledgements and failed-report capture added.110 helper assertions,21 Bash checks,five native launcher checks,seven mocked workflows. No actual corrected VPS execution or parent percentage gain; no security restrictions relaxed.
+
 - **E149 LOCAL_COMBINED_TUNNEL_BUNDLE_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-tunnel-verification-local-20261021.json), [handoff](paytm-tunnel-verification.md).97 PowerShell assertions,15 mocked Bash guards and six mocked complete workflows; no actual SSH/proxy/systemd runtime. Rechecks current server key/policy/config instead of rerunning installer; fresh admin and final Pageant key removal are owner-confirmed. One report; temporary proxy with watchdog and explicit stop evidence. HTTP503, actual container routing and authentication pending. No parent percentage gain.
 
 - **E148 OWNER_REPORTED_SUCCESS_INSTALLATION_LOG_REVIEW_PENDING:** [record](evidence/paytm-tunnel-identity-owner-report-20261021.json). Owner says the b922159 handoff worked as expected. No installer log or individually explicit fresh-login/sudo results supplied. Do not rerun installation; review existing evidence before the planned combined tunnel batch. No runtime/whole-project completion credit inferred.

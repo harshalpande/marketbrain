@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E150 (2026-10-22): corrected a reproduced interactive-launcher failure; no runtime completion or parent-goal gain (0pp).110 helper assertions,21 Bash checks,five native Git Bash launcher checks and seven mocked workflows support local verification only. Corrected sudo/PTY behavior on the spare/VPS still needs evidence. [Record](evidence/paytm-tunnel-input-repair-20261022.json).
+
 E149 (2026-10-21): combined tunnel runner implemented and locally verified (97 PowerShell assertions,15 Bash guards, six mocked workflows). Runtime/owner acceptance pending; no whole-gateway or parent-goal percentage increase. Current-state prerequisite checks supersede requesting the old installer log as the immediate next task, not as retrospective installer verification. [Evidence](evidence/paytm-tunnel-verification-local-20261021.json), [handoff](paytm-tunnel-verification.md).
 
 E148 owner update (2026-10-21): installation success reported in conversation; log review and explicit fresh-admin/sudo confirmation pending. No additional runtime or owner-acceptance checkpoint percentage awarded from an ambiguous short confirmation. No tests rerun or application deployed. [Evidence](evidence/paytm-tunnel-identity-owner-report-20261021.json).

@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-22 E150: [tunnel launcher correction and full retry instructions](paytm-tunnel-verification.md). Owner's redirected confirmation timed out before proxy activation, while direct input worked. Replaced stdin-fed sudo script with a checksum-verified private file executed with terminal input.110 helper assertions,21 Bash checks,five native launcher checks and seven mocked workflows pass; actual corrected VPS run pending. No reinstall, key changes or relaxed security. [Evidence](evidence/paytm-tunnel-input-repair-20261022.json).
+
 2026-10-21 E149: [combined tunnel verification bundle](paytm-tunnel-verification.md) prepared;97 PowerShell assertions,15 Bash guard assertions and six mocked full workflows pass. Actual spare/VPS execution remains pending. Current key/policy/configuration checks and fresh-admin owner confirmation replace the old-log request as the immediate prerequisite; no installer rerun. One JSON, bounded temporary proxy window, no credentials/orders. [Paytm-to-paper testing roadmap](paytm-integration-verification-plan.md).
 
 2026-10-21 E148: owner reports restricted-identity installation worked as expected. Existing installation log and explicit fresh-admin/sudo confirmation remain pending; no rerun is needed. [Combined tunnel verification plan and evidence request](paytm-restricted-tunnel.md). No new deployment or proxy activation in this documentation-only update.

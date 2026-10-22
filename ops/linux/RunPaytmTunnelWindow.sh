@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 # Clipboard preparation prepends the sourceable identity/proxy helpers. No installs.
 tw_id() { [[ "$1" =~ ^[a-f0-9]{32}$ ]]; }
+tw_read_confirmation() {
+    local expected="$1" seconds="$2" answer rc
+    if IFS= read -r -t "$seconds" answer; then
+        [ "$answer" = "$expected" ] || { printf 'SERVER_INPUT_REJECTED: expected %s; no automatic retry\n' "$expected" >&2; return 1; }
+    else
+        rc=$?
+        printf 'SERVER_INPUT_FAILED: %s confirmation not received; read exit=%s. Do not type it at the normal shell prompt.\n' "$expected" "$rc" >&2
+        return "$rc"
+    fi
+    printf '\n%s accepted.\n' "$expected"
+}
+tw_confirm() {
+    printf '\nIN THIS PUTTY WINDOW: type %s and press ENTER (within %s seconds): ' "$1" "$2" >/dev/tty
+    tw_read_confirmation "$1" "$2" </dev/tty
+}
 tw_stop() {
     timeout 25s systemctl stop marketbrain-paytm-gateway.service || return 1
     tg_proxy_stopped || return 1
@@ -28,6 +43,8 @@ tw_work() (
     trap 'printf "SERVER_ERROR line=%s command=%s\n" "$LINENO" "$BASH_COMMAND" >&2' ERR
     local fingerprint policy answer client_port extra state
     printf 'SERVER_BEGIN=%s\nUTC=' "$tw_run"; date -u '+%Y-%m-%dT%H:%M:%SZ'
+    [ -t 0 ] || { printf 'SERVER_ERROR: stdin is not the PuTTY terminal; proxy not started\n' >&2; exit 1; }
+    printf 'SERVER_TERMINAL_INPUT_OK=%s\n' "$tw_run"
     [ "$(uname -s)" = Linux ] && [ "$(id -u)" = 0 ]
     [ "${SUDO_USER:-}" = marketbrain-admin ] || { tg_stop 'Use a fresh verified marketbrain-admin session with sudo'; exit 1; }
     exec 9>/run/marketbrain-gateway-identity.lock
@@ -65,9 +82,8 @@ tw_work() (
     printf 'SERVER_REMOTE_TEST_PORT_FREE=%s\n' "$tw_run"
     printf 'SERVER_CONFIG_UNCHANGED_INITIAL_STOPPED=%s\n' "$tw_run"
     printf 'One bounded 20-minute test window. No SSH/config/firewall/credentials changes.\n'
-    printf 'Type START-TEST to start the existing proxy: ' >/dev/tty
-    read -r -t 180 answer </dev/tty
-    [ "$answer" = START-TEST ]
+    tw_confirm START-TEST 180
+    printf 'SERVER_START_CONFIRMED=%s\n' "$tw_run"
     # Independent systemd watchdog survives a lost terminal. It is not boot-enabled.
     if state=$(systemctl show "$tw_timer.timer" -p LoadState --value); then :
     else [ "$?" = 1 ]; fi
@@ -77,9 +93,10 @@ tw_work() (
     timeout 10s systemctl is-active --quiet "$tw_timer.timer"
     pg_start
     printf 'SERVER_READY=%s\n' "$tw_run"
-    printf 'Return to Windows runner. When it asks you to stop the VPS proxy, type STOP here.\n'
-    read -r -t 1200 answer </dev/tty
-    [ "$answer" = STOP ]
+    printf 'Copy the SERVER_READY line above into POWERSHELL, not this PuTTY window.\n'
+    printf 'Then wait for PowerShell to request STOP before answering the next PuTTY prompt.\n'
+    tw_confirm STOP 1200
+    printf 'SERVER_STOP_CONFIRMED=%s\n' "$tw_run"
     # EXIT trap performs stop and emits the final confirmation even on failure.
 )
 tw_main() (

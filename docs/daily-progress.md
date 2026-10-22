@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 Interactive tunnel launcher correction
+
+- E150: two owner runs timed out at the180-second confirmation read before service/watchdog creation. The smaller redirected-input reproduction failed too; owner reported DIRECT_INPUT_OK for direct terminal input. Treat as an integration gap in our launcher, not confirmed user error. Exact VPS sudo internals remain inferred.
+- Authorized correction: quoted sudo bash-c bootstrap stages a unique private script, validates SHA256, runs the file with terminal stdin, and refuses missing terminal input. Explicit PuTTY/PowerShell prompts and START/STOP acknowledgement markers; retain failed bounded server evidence in the one Windows JSON. Restrictions and timers unchanged. Private staged script/log retained on VPS.
+-110 helper assertions,21 Bash confirmation/guard checks,five native Git Bash launcher checks and seven mocked whole workflows pass. An initial native-fixture run timed out locally; two consecutive full native-fixture repeats subsequently passed. No actual sudo/PTY, network, VPS or broker test is claimed. Docker API unavailable; no daemon started. [Evidence](evidence/paytm-tunnel-input-repair-20261022.json), [retry](paytm-tunnel-verification.md). Parent-goal gain0pp; actual spare run pending.
+
 ## 2026-10-21 Combined restricted tunnel verification prepared
 
 - E149: owner authorized proceeding. Added one interactive Windows runner with nine progress stages, per-process/stage timings and one JSON. Temporary Pageant gateway-key unlock; pinned host and public-key selector; no private-key/password arguments. No installer rerun, application deployment, SSH/firewall/routing edits or broker credentials.
