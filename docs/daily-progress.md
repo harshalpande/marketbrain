@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-22 Operations findings and Windows-first clock correction
+
+- E159 owner report b5f4ea70636047d6ad6ab4dc378a505f reviewed: 134.148 seconds; pinned identity/configuration, expected VPS-bound public IP, inactive proxy/no listeners/watchdog units, NTP=yes. Clock disagreement, 70 cached upgrade candidates and 40.248-day oldest metadata age need qualified review. Wrong tinyproxy-package query is our collector defect; installer uses tinyproxy-bin. Windows client 9.5.4.1 exists, SSH agent stopped/disabled.
+- Owner decision: spare laptop clock may be wrong; use synchronized VPS as provisional reference, investigate/correct Windows and leave VPS clock unchanged. Do not treat NTP=true or manual clipboard timestamp intervals as absolute accuracy proof.
+- E160 fixes package lookup and prepares [combined follow-up](paytm-operations-followup.md): elevation/exact prior report/idle confirmation; bounded Windows configured-source resync and status; VPS index refresh and upgrade simulation with bounded heartbeat; no install/reboot/service/proxy activation on VPS. Windows Time may be started if stopped/not disabled; no peer/start-type override. Failed time correction still permits collection of separate VPS findings into one JSON.
+- Verification: 44 new PowerShell assertions including eight mocked runner workflows; existing 52 operations assertions; Bash suite now 31 assertions, replacing its prior 20. No actual resync or server refresh locally. Runtime follow-up remains pending. E157 application acceptance remains intact, not rerun or inflated into full-project progress. Unattended provisioning follows operational review before Paytm login/quotes/Telegram.
+
 ## 2026-10-22 Main application accepted; combined operational snapshot
 
 - E157: reviewed owner run223cdc084de64c90a80c527032ac6879 (SHA256 e7ad80d611b693ff892dd3765c87ff333e554a4343e2647c08d7725f5a804973).8/8 stages in456.253s, four main-JVM transport checks, failure locks, changed boot UUID/locked restart, final lock and INR100000 account preservation. RootHEAD503 remains provider-readiness warning; no broker credentials/orders. [Acceptance](evidence/paytm-application-route-spare-20261022.json).

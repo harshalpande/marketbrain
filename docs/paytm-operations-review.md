@@ -1,5 +1,7 @@
 # Paytm operational snapshot before credentials
 
+**E159/E160 update:** the owner snapshot was captured with findings in 134.148 seconds. VPS IP/configuration/stopped state passed; clock disagreement and cached updates need follow-up. The proxy-version UNKNOWN is our wrong-package query (`tinyproxy` versus installed `tinyproxy-bin`), now corrected. Owner directs Windows clock correction first, leaving VPS time unchanged. Use the [combined follow-up](paytm-operations-followup.md), not another default snapshot. Historical instructions below describe the earlier read-only run.
+
 2026-10-22, E157/E158. Main Spring route accepted **8/8 stages in456.253s**. This supersedes E156's spare-pending state, not the open login/data gates. The application locked after closed-tunnel and stopped-proxy failures, recovered only after rearm, restarted with a new boot identity and remained locked. INR100000 cash, zero reservation and ledger revision0 were preserved. Root HEAD503 remains an API-readiness warning; no authenticated endpoint was tested.
 
 ## Why this run and what it achieves

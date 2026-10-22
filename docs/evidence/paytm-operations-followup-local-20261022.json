@@ -1,0 +1,19 @@
+{
+  "evidenceId": "E160",
+  "date": "2026-10-22",
+  "status": "OPERATIONS_FOLLOWUP_LOCAL_PASS_SPARE_EXECUTION_PENDING",
+  "newPowerShellAssertions": 44,
+  "includedMockedFollowupWorkflows": 8,
+  "existingOperationsPowerShellAssertions": 52,
+  "currentBashAssertions": 31,
+  "priorBashAssertionsSuperseded": 20,
+  "proxyPackageQueryCorrected": "tinyproxy-bin",
+  "windowsResyncExecutedLocally": false,
+  "vpsRefreshExecutedLocally": false,
+  "vpsClockModificationImplemented": false,
+  "packageInstallationImplemented": false,
+  "unattendedProvisioningImplemented": false,
+  "brokerCredentialsEnabled": false,
+  "ordersEnabled": false,
+  "scope": "Owner-confirmed Windows W32Time query/start-if-stopped/resync using existing source; verified VPS index refresh and bounded simulation; one JSON; no upgrades/reboot or broker activation."
+}

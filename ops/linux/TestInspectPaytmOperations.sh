@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "$0")/InspectPaytmOperations.sh"
 count=0
 check() { [[ "$1" == *"$2"* ]] || { printf 'FAIL: %s\n' "$2"; exit 1; }; count=$((count+1)); }
-timeout() { shift; "$@"; }
+timeout() { if [[ "$1" = --kill-after=* ]]; then shift; fi; shift; "$@"; }
 fixture_ok() { printf OK; }
 fixture_bad() { printf PRIVATE_DO_NOT_INCLUDE; return 9; }
 check "$(po_value fixture_ok)" OK
@@ -37,7 +37,7 @@ curl() {
     printf 130.250.191.137
 }
 timedatectl() { printf yes; }
-dpkg-query() { printf 1.2.3; }
+dpkg-query() { [[ "${*: -1}" = tinyproxy-bin || "${*: -1}" = openssh-server ]] || return 1; printf 1.2.3; }
 find() { printf '1790000000.0\n'; }
 apt-get() { [[ "$*" == '-s -o Debug::NoLocking=1 upgrade' ]] || return 91; printf 'Inst fixture\nInst fixture2\n'; }
 out=$(po_main 0123456789abcdef0123456789abcdef)
@@ -48,6 +48,7 @@ check "$out" VPS_BOUND_PUBLIC_IPV4=130.250.191.137
 check "$out" CACHED_UPGRADE_COUNT=2
 check "$out" APT_OLDEST_RELEASE_EPOCH=1790000000
 check "$out" CAPTURE_COMPLETE=yes
+check "$out" PROXY_VERSION=1.2.3
 curl() { return 124; }
 timedatectl() { return 1; }
 apt-get() { return 1; }
@@ -56,4 +57,31 @@ check "$out" VPS_BOUND_PUBLIC_IPV4=UNKNOWN
 check "$out" NTP_SYNCHRONIZED=UNKNOWN
 check "$out" CACHED_UPGRADE_COUNT=UNKNOWN
 check "$out" CAPTURE_COMPLETE=yes
+fixture_calls=$(mktemp)
+sleep() { :; }
+apt-get() {
+    if [[ "${*: -1}" = update ]]; then
+        printf 'update\n' >> "$fixture_calls"
+        [[ "$*" == *APT::Update::Error-Mode=any* ]] || return 99
+        return "${fixture_update_exit:-0}"
+    fi
+    [[ "$*" = '-s -o Debug::NoLocking=1 upgrade' ]] || return 98
+    printf 'Inst tinyproxy-bin [1.11.2-1] (1.11.2-2 Debian [amd64])\n'
+}
+out=$(po_main 0123456789abcdef0123456789abcdef refresh-reviewed)
+check "$out" VERSION=2
+check "$out" APT_UPDATE_EXIT=0
+check "$out" APT_SIMULATION_EXIT=0
+check "$out" CACHED_UPGRADE_COUNT=1
+encoded=$(printf '%s\n' "$out" | sed -n 's/^UPGRADE_CANDIDATES_B64=//p')
+check "$(printf '%s' "$encoded" | base64 -d)" 'tinyproxy-bin|1.11.2-1|1.11.2-2'
+fixture_update_exit=100
+out=$(po_main 0123456789abcdef0123456789abcdef refresh-reviewed)
+check "$out" APT_UPDATE_EXIT=100
+check "$out" CAPTURE_COMPLETE=yes
+before=$(wc -l < "$fixture_calls")
+po_hash() { printf MISMATCH; }
+if po_main 0123456789abcdef0123456789abcdef refresh-reviewed >/dev/null; then exit 1; else count=$((count+1)); fi
+check "$(wc -l < "$fixture_calls")" "$before"
+if po_main 0123456789abcdef0123456789abcdef unsafe-mode >/dev/null; then exit 1; else count=$((count+1)); fi
 printf 'PASS: %s offline assertions, no VPS or external calls.\n' "$count"

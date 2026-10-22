@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E159 OPERATIONS_SNAPSHOT_REVIEWED_WITH_FINDINGS:** [owner evidence](evidence/paytm-operations-spare-review-20261022.json), 134.148 seconds. Configuration/identity/IP/stopped state verified; clock disagreement and cached maintenance findings retained. Proxy UNKNOWN caused by collector querying wrong package. Owner requests Windows-first clock correction, VPS clock unchanged.
+- **E160 OPERATIONS_FOLLOWUP_LOCAL_PASS:** [local evidence](evidence/paytm-operations-followup-local-20261022.json), [handoff](paytm-operations-followup.md). 44 new PowerShell assertions/eight workflows, 52 existing assertions, current 31 Bash assertions. Owner-confirmed Windows resync and verified VPS index refresh/simulation only; no upgrades, reboot, broker activation or unattended provisioning. Spare execution pending.
+
 - **E157 MAIN_APPLICATION_ROUTE_SPARE_ACCEPTED:** [owner evidence](evidence/paytm-application-route-spare-20261022.json),8/8 stages in456.253s. Real main-process failure/restart locking, reconnect and account preservation verified. Supersedes E156's runtime-pending state; root503, operational review, credentials and quotes remain open.
 - **E158 READ_ONLY_OPERATIONS_COLLECTOR_LOCAL_PASS:** [local evidence](evidence/paytm-operations-review-local-20261022.json), [handoff](paytm-operations-review.md).52 PowerShell assertions including4 mocked collection workflows,20 Bash assertions; actual VPS execution pending. No services/configuration/credentials changed. Bound-VPS IP and cached package state are not end-to-end egress or patch-currency proof.
 

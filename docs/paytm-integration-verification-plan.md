@@ -2,6 +2,8 @@
 
 2026-10-21. This is the ordered acceptance plan, not permission to submit real orders. Combine related positive/negative tests in each evidence bundle, keep timing and safety counters, and retain one shareable report. Do not require live trading before returning to paper development.
 
+2026-10-22 E159/E160 update: operations snapshot is reviewed, not pending collection. Current next action is [Windows-first clock/index follow-up](paytm-operations-followup.md), with no VPS clock change or automatic package installation. Unattended design/provisioning remains before login as explicitly chosen. Accepted main-application route does not need repetition.
+
 | Sequence | Tests and acceptance | Current state |
 |---|---|---|
 | 1. Restricted tunnel | Pinned host/key; owned IPv4 plus optional owned IPv6 loopback; authenticated shell/session, wrong-target and remote-forward denials; proxy allowlist; disconnect/reconnect; stopped-backend failure and cleanup | E153 owner acceptance:9/9 stages,214.141s. Root503 remains API warning; timer-state review before next activation |
