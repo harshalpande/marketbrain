@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-22 E162/E163: VPS refresh accepted, elevation issue resolved; Windows Time OpenService access denied, resync never attempted. [Next Windows-only diagnosis](paytm-windows-time-access.md) collects service rights/configuration/policy without changes; 74 assertions/nine workflows plus regression tests pass. No repeat VPS refresh or runtime clock/activation acceptance claimed.
+
 2026-10-22 E161: [elevation correction](paytm-operations-followup.md). Owner follow-up stopped at OPS_ADMIN_POWERSHELL_REQUIRED in 0.009s before changes. New UAC launcher opens administrator PowerShell 7 from an ordinary console; mocked launcher/regression tests pass. Actual resync/index refresh remains pending. Main route acceptance remains intact.
 
 2026-10-22 E159/E160: [operations snapshot reviewed](evidence/paytm-operations-spare-review-20261022.json), 134.148 seconds, expected IP/configuration/stopped state verified. Owner directs Windows clock correction first, no VPS clock change. Next [combined clock/index follow-up](paytm-operations-followup.md) corrects tinyproxy-bin lookup, attempts Windows resync using its existing source, refreshes VPS indexes and captures simulated upgrade candidates without installing them. Local 44 new PowerShell assertions/eight workflows, 52 existing assertions and 31 Bash assertions pass; actual follow-up pending. Main application route remains 8/8 accepted; unattended gateway precedes login, quotes and Telegram review.

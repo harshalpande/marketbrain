@@ -6,6 +6,8 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
+**Current E162/E163:** VPS index refresh accepted (5s;70 upgrade candidates). Elevation passed, but Windows Time service access was denied before resync. Next: [Windows-only read-only access diagnosis](docs/paytm-windows-time-access.md); no PuTTY, VPS refresh retry or service-permission reset. Unattended activation/login remain pending.
+
 **Current E161:** the clock/index follow-up stopped before changes because PowerShell was not elevated. The [updated handoff](docs/paytm-operations-followup.md) now requests Windows UAC and opens a new administrator PowerShell 7 window. Guard and manual confirmation preserved; actual follow-up remains pending, no route retest or broker activation.
 
 **Current E159/E160, 2026-10-22:** main Spring route remains accepted **8/8**. Operations snapshot captured with findings in **134.148 seconds**: expected IP/configuration/stopped state, clock disagreement and cached updates; proxy-version UNKNOWN traced to our wrong-package query. Next: [Windows clock and VPS index follow-up](docs/paytm-operations-followup.md), locally verified. VPS clock untouched; no upgrades, reboot or broker activation. Unattended gateway comes before login; older handoffs below are historical.

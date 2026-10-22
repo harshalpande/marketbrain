@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E162/E163 (2026-10-22): accepted **VPS index refresh** in5s and corrected proxy inventory; full capture198.117s. Windows elevation passed, but service start access denied; **clock synchronization not achieved**.70 package candidates pending, no upgrades installed. Next Windows-only read-only diagnosis:74 assertions/nine mocked workflows plus22/44 regressions, actual spare result pending. Main route8/8 unchanged; no whole-project percentage uplift. [Handoff](paytm-windows-time-access.md).
+
 E161 (2026-10-22): follow-up blocked before changes in 0.009s by missing process elevation. UAC handoff corrected and locally tested (22 PS7/21 PS5.1 launcher assertions; 44/52 existing regressions). **No new runtime completion credit**; accepted main-route 8/8 unchanged. [Retry](paytm-operations-followup.md).
 
 E159/E160 (2026-10-22): operations evidence captured/reviewed in **134.148 seconds**, not operational release acceptance. Four findings retained; proxy-version UNKNOWN is a collector defect, now corrected. Local follow-up: 44 new PowerShell assertions/eight workflows, 52 existing operations assertions, current 31 Bash assertions (superseding 20). Windows resync/VPS index refresh not yet run on spare. Main application-route acceptance remains **8/8, 100% of that bounded bundle**; no whole-project percentage increase or clock accuracy claim. [Handoff](paytm-operations-followup.md).

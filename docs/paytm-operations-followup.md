@@ -1,5 +1,7 @@
 # Windows clock and VPS maintenance follow-up
 
+**Superseded retry instructions:** E162 owner follow-up completed capture in198.117s; elevation passed and VPS index refresh succeeded. Windows service start failed at OpenService error5, so resync did not run. Use the [Windows-only diagnostic](paytm-windows-time-access.md) next, not another combined refresh. Seventy package candidates remain for separate reviewed maintenance.
+
 **E161 correction:** owner run `f5b7892d6d0049cd82703ce431fa4d53` stopped at `OPS_ADMIN_POWERSHELL_REQUIRED` in 0.009 seconds, before confirmation or changes. Use the new UAC launcher below instead of invoking the runner directly. Administrator-account membership is not an elevated process. The launcher uses [Start-Process -Verb RunAs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process?view=powershell-7.5), never bypasses UAC or execution policy, and opens a visible PowerShell 7 window. Launch success is not review success. No runtime progress credit is added.
 
 2026-10-22, E159/E160. [Reviewed snapshot](evidence/paytm-operations-spare-review-20261022.json) completed in 134.148 seconds: host/config hashes matched, expected VPS-bound public IP, proxy inactive, no listeners/watchdogs, VPS reported NTP synchronized. Findings: clock disagreement, 70 cached upgrade candidates, old Release metadata and an incorrect proxy-package lookup. Windows OpenSSH exists; its agent is stopped/disabled. This is not a failed application-route test and does not require repeating E157's accepted 8/8 stages.

@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 VPS refresh accepted; Windows service access isolated
+
+- E162 owner follow-up captured in198.117s. Prior elevation failure resolved; Windows Time Stopped/Manual, OpenService error5 despite enabled-admin guard; no resync attempted. Underlying access/token/policy cause not yet proven. VPS hashes/identity/inactive proxy intact; APT refresh exit0 in5s, simulation exit0 with70 candidates, tinyproxy-bin1.11.2-1. No package installations or proxy activation. Clock comparison still outside window.
+- E163 [Windows-only read-only diagnosis](paytm-windows-time-access.md) batches fixed queries and minimal-right service handle probes, parent/child admin context and bounded partial evidence. No blind ACL reset, SYSTEM escalation, service re-registration, resync or VPS rerun. 74 assertions/nine mocked workflows plus22 UAC/44 follow-up regressions pass; native read-only probe exercised on development Windows, not spare. Actual repair/clock accuracy remains pending.
+- Preserve main route8/8 acceptance. Next: evidence-led Windows time repair and separately reviewed VPS package maintenance, then unattended provisioning before login/quotes/Telegram. No whole-project percentage increase claimed.
+
 ## 2026-10-22 Follow-up elevation handoff correction
 
 - E161 owner run f5b7892d6d0049cd82703ce431fa4d53 stopped in 0.009s: OPS_ADMIN_POWERSHELL_REQUIRED. No owner confirmation, Windows resync or VPS refresh preparation occurred. This does not invalidate accepted application-route evidence.

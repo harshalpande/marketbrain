@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E163",
+  "date": "2026-10-22",
+  "status": "TIME_ACCESS_DIAGNOSTIC_LOCAL_PASS_SPARE_PENDING",
+  "diagnosticAssertions": 74,
+  "mockedWholeRunnerWorkflows": 9,
+  "uacLauncherRegressionAssertions": 22,
+  "followupRegressionAssertions": 44,
+  "nativeProbeCompiled": true,
+  "nativeReadOnlyProbeExecutedOnDevelopmentWindows": true,
+  "developmentProbeAdministratorEnabled": false,
+  "developmentProbeQueryConfigStatusReadControlAllowed": true,
+  "developmentProbeStartHandleError": 5,
+  "developmentResultEstablishesSpareCause": false,
+  "realUacExecutedLocally": false,
+  "serviceStartInvoked": false,
+  "securityChanged": false,
+  "clockChanged": false,
+  "vpsAccessed": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}

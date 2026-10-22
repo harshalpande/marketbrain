@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+E162/E163 update: VPS index refresh now accepted (5s,70 candidates), corrected proxy version observed and elevation issue resolved. Windows Time OpenService access denied; resync unattempted and clock comparison unresolved. Next [Windows-only read-only service diagnosis](paytm-windows-time-access.md); no blind ACL reset or repeated VPS refresh. Review maintenance separately before activating unattended custody/services. This supersedes the older prerequisite text below, not the proposed lifecycle acceptance matrix.
+
 E159/E160 prerequisite update: the spare reports Windows OpenSSH 9.5.4.1, agent stopped/disabled; VPS identity/configuration/IP/stopped state match. Owner authorizes investigating/correcting Windows time with VPS as provisional reference, not changing VPS time. [Combined clock/index follow-up](paytm-operations-followup.md) also corrects the collector's tinyproxy-bin lookup and captures fresh upgrade candidates. No SSH-agent/service/task provisioning has occurred.
 
 2026-10-22 owner decision: **design unattended gateway operation before login testing**, instead of proceeding with manually unlocked initial sessions. This changes the next-stage ordering. Design below is proposed; it does not install a service, persist a private key, change the VPS's current20-minute window or enable broker login/trades. E157 remains accepted diagnostic transport evidence. E158 collects operational facts and local Windows OpenSSH capability without starting anything.
