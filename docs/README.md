@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-22 E164/E165: manual Windows correction owner-reported, not runtime acceptance. [Next clock snapshot](paytm-clock-snapshot.md) compares pinned VPS time, Windows and existing main-Java account timestamps with delay bounds.113 comparison/runner and28 HTTP assertions pass; actual spare run pending. No automatic-time repair, VPS-backed clock implementation or quote/trade activation.
+
 2026-10-22 E162/E163: VPS refresh accepted, elevation issue resolved; Windows Time OpenService access denied, resync never attempted. [Next Windows-only diagnosis](paytm-windows-time-access.md) collects service rights/configuration/policy without changes; 74 assertions/nine workflows plus regression tests pass. No repeat VPS refresh or runtime clock/activation acceptance claimed.
 
 2026-10-22 E161: [elevation correction](paytm-operations-followup.md). Owner follow-up stopped at OPS_ADMIN_POWERSHELL_REQUIRED in 0.009s before changes. New UAC launcher opens administrator PowerShell 7 from an ordinary console; mocked launcher/regression tests pass. Actual resync/index refresh remains pending. Main route acceptance remains intact.

@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E164 MANUAL_CLOCK_CORRECTION_OWNER_REPORTED:** [evidence](evidence/paytm-manual-clock-observation-20261022.json). Prior access run8.208s confirms enabled admin with denied SERVICE_START; observed Administrators ACE lacks that right, origin unknown. Owner manually set Windows and reports<5s difference; not independently verified or automatic-sync repair.
+- **E165 CLOCK_SNAPSHOT_LOCAL_PASS_SPARE_PENDING:** [evidence](evidence/paytm-clock-snapshot-local-20261022.json), [handoff](paytm-clock-snapshot.md).113 comparison/runner assertions including10 workflows,28 HTTP assertions, fixed remote Bash syntax. Five pinned VPS/main-Java sample pairs with request-delay bounds, no rebuild/time/permissions/broker changes. Actual relative snapshot pending; absolute accuracy/quote safety not certified.
+
 - **E162 INDEX_REFRESH_ACCEPTED_WINDOWS_TIME_ACCESS_BLOCKED:** [owner review](evidence/paytm-operations-followup-spare-20261022.json), 198.117s. Elevation guard passed; APT refresh exit0 in5s, 70 simulated upgrade candidates, corrected proxy version. Windows OpenService error5 prevented service start/resync. Exact denial cause unknown; clock unresolved.
 - **E163 TIME_ACCESS_DIAGNOSTIC_LOCAL_PASS_SPARE_PENDING:** [local evidence](evidence/paytm-windows-time-access-local-20261022.json), [handoff](paytm-windows-time-access.md). 74 assertions/nine mocked workflows, 22 UAC/44 follow-up regressions; real read-only native probe on non-admin development Windows. Windows-only query/handle inspection, no repairs or VPS retry. Spare diagnosis pending.
 

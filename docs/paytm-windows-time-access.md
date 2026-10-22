@@ -1,5 +1,7 @@
 # Windows Time access diagnosis: no VPS retry
 
+**Latest:** diagnostic accepted as captured in8.208s; enabled-admin child lacks SERVICE_START and observed Administrators ACE lacks that right. Owner subsequently set Windows manually and reports<5s difference. Next is the [read-only three-clock snapshot](paytm-clock-snapshot.md), not another access diagnostic or permission rewrite. Automatic synchronization remains unresolved.
+
 ## Reviewed outcome and next action
 
 E162: owner follow-up `11fea1e34d3a41e6b3dc10893178311c` completed capture in **198.117 seconds**. Elevation/confirmation now passed. VPS identity/configuration/stopped-state checks matched; APT index refresh succeeded in **5 seconds**, simulation succeeded with **70 upgrade candidates**, and corrected `tinyproxy-bin` query returned `1.11.2-1`. No package installation or proxy activation occurred. The prior elevation handoff problem is resolved for this run.

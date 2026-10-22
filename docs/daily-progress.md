@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 Manual correction reported; three-clock snapshot prepared
+
+- E164 access diagnostic reviewed:8.208s, enabled-admin child denied minimal SERVICE_START, query/read-control permitted; Administrators ACE lacks start right. Origin of descriptor not established, no ACL repair. Owner manually corrected Windows and reports<5s difference from VPS. Preserve this as owner-observed, not measured accuracy; automatic synchronization remains unresolved. VPS-backed application-clock discussion did not authorize or implement that architecture.
+- E165 [read-only snapshot](paytm-clock-snapshot.md): five pairs of pinned admin SSH timestamp/NTP query and existing authenticated no-store main-Java account-read timestamp, bracketed by Windows UTC and monotonic timing. Private local Docker identity/token lookup, no app rebuild/restart, gateway service, broker access or Windows change. Public-only admin selector; temporary owner Pageant loading, never unrestricted admin custody for an unattended service.
+-113 comparison/runner assertions/10 mocked workflows plus28 HTTP boundary assertions and Bash syntax pass. Actual spare collection pending. Five-second screen is diagnostic only, not a new quote-age allowance. Main-route acceptance remains intact; Windows drift and VPS maintenance remain open, no whole-project percentage uplift.
+
 ## 2026-10-22 VPS refresh accepted; Windows service access isolated
 
 - E162 owner follow-up captured in198.117s. Prior elevation failure resolved; Windows Time Stopped/Manual, OpenService error5 despite enabled-admin guard; no resync attempted. Underlying access/token/policy cause not yet proven. VPS hashes/identity/inactive proxy intact; APT refresh exit0 in5s, simulation exit0 with70 candidates, tinyproxy-bin1.11.2-1. No package installations or proxy activation. Clock comparison still outside window.

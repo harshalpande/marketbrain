@@ -6,6 +6,8 @@ The two parent goals are a full trading-intelligence platform and its mandatory 
 
 ## Start here
 
+**Current E164/E165:** owner manually corrected Windows; reports<5s VPS difference. Next [Windows/VPS/main-Java clock snapshot](docs/paytm-clock-snapshot.md), five bounded read-only sample pairs, no rebuild. Original admin key temporarily in Pageant; no gateway start, clock changes or broker access. Relative measurement and ongoing synchronization remain pending.
+
 **Current E162/E163:** VPS index refresh accepted (5s;70 upgrade candidates). Elevation passed, but Windows Time service access was denied before resync. Next: [Windows-only read-only access diagnosis](docs/paytm-windows-time-access.md); no PuTTY, VPS refresh retry or service-permission reset. Unattended activation/login remain pending.
 
 **Current E161:** the clock/index follow-up stopped before changes because PowerShell was not elevated. The [updated handoff](docs/paytm-operations-followup.md) now requests Windows UAC and opens a new administrator PowerShell 7 window. Guard and manual confirmation preserved; actual follow-up remains pending, no route retest or broker activation.

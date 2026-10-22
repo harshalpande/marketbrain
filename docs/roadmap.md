@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-22 E164/E165 current: owner manually corrected Windows and reports<5s VPS difference. [Read-only three-clock snapshot](paytm-clock-snapshot.md) is next; runtime accuracy, ongoing drift policy and VPS package maintenance remain open. This supersedes the Windows-only diagnosis as the next command, not the unresolved automatic-sync issue. No rebuild/gateway/trade activation or overall percentage increment.
+
 2026-10-22 E162/E163 current next step: VPS package-index refresh accepted;70 update candidates require separate maintenance review. Elevation passed but Windows Time service access denied, resync unattempted. [Windows-only access diagnosis](paytm-windows-time-access.md) is locally verified, actual spare diagnosis/repair pending. Main route8/8 remains accepted; unattended activation, login/quotes and paper-return gates remain open. No new full-roadmap percentage inferred from this operational finding. Older next-action entries below are historical.
 
 2026-10-15 E138: application handoff remains60% after a pre-build configuration rejection on spare. [Corrected retry](paper-runtime-application-handoff.md) has314 offline assertions/14 mocked scenarios, not spare deployment proof. Repair gain0pp; isolated custody100%, access-policy80% and full-roadmap12.4% unchanged. No role, approval or order authority added.

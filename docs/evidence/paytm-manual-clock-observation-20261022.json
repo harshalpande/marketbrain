@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E164",
+  "date": "2026-10-22",
+  "status": "MANUAL_CORRECTION_OWNER_REPORTED_RUNTIME_COMPARISON_PENDING",
+  "accessDiagnosticRunId": "179d221bd0434265a98524aa43bd8baa",
+  "accessDiagnosticSha256": "14D0EB6E3380A567E3F1D7EB6027FD1F7C1D7B62A53E45580628E66D11D73337",
+  "accessDiagnosticElapsedSeconds": 8.208,
+  "administratorEnabledInChild": true,
+  "serviceQueryAndReadControlAllowed": true,
+  "serviceStartHandleWin32Error": 5,
+  "observedAdministratorsAceContainsServiceStart": false,
+  "originOfServicePermissionsEstablished": false,
+  "ownerReportsManualWindowsTimeSet": true,
+  "ownerReportsDifferenceLessThanSeconds": 5,
+  "differenceIndependentlyMeasured": false,
+  "automaticTimeServiceRepaired": false,
+  "vpsBackedApplicationClockImplemented": false,
+  "quoteTimingApproved": false,
+  "ordersEnabled": false
+}
