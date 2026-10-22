@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E166/E167,2026-10-23:** relative clock snapshot accepted10/10, no rerun needed. Next [consolidated maintenance preflight](docs/paytm-maintenance-plan.md): one read-only report, no updates/reboot/activation. Six remaining acceptance batches documented; not six guaranteed executions. Older next-step entries below are historical.
+
 Personal Indian-equity research and a planned **INR 100,000 paper-trading portal**. Live market data is allowed under reviewed provider access; real broker order execution is outside the current release.
 
 The two parent goals are a full trading-intelligence platform and its mandatory paper-first deployment: 15+ year history target, technical/fundamental/quantitative/news analysis, required 5/20/60-session forecasts plus separate intraday horizons, Telegram ACCEPT/REJECT, controlled feedback learning and eventually separately authorized Paytm execution. These are target capabilities, not a claim of implementation. See the canonical V2 baseline below.

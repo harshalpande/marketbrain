@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E166/E167 supersedes next-step notes below: clock screen accepted10/10, no repeat now. [Maintenance preflight and six remaining batches](paytm-maintenance-plan.md) is current. Drift/automatic sync remain open before activation; no broker release implied.
+
 E164/E165: owner manually corrected Windows; [three-clock snapshot](paytm-clock-snapshot.md) is the immediate next verification. It uses an existing admin key only for manual read-only time queries, never as unattended gateway custody. Absolute accuracy/drift policy and70 VPS updates remain unresolved. Successful snapshot alone does not authorize activation.
 
 E162/E163 update: VPS index refresh now accepted (5s,70 candidates), corrected proxy version observed and elevation issue resolved. Windows Time OpenService access denied; resync unattempted and clock comparison unresolved. Next [Windows-only read-only service diagnosis](paytm-windows-time-access.md); no blind ACL reset or repeated VPS refresh. Review maintenance separately before activating unattended custody/services. This supersedes the older prerequisite text below, not the proposed lifecycle acceptance matrix.

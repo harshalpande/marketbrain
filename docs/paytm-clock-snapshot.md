@@ -1,5 +1,7 @@
 # Post-manual-correction clock snapshot
 
+**E166 accepted:** owner run6cdd699d5430498a937e74fd27eb486f passed10/10 samples in100.465s total; no findings, container unchanged, cleanup confirmed. No repeat now. Automatic sync, drift and quote approval remain unproven. Next [maintenance preflight](paytm-maintenance-plan.md). Pending text below is implementation history.
+
 ## Current evidence and purpose
 
 E164: the owner reports manually correcting Windows and seeing less than five seconds difference from the VPS. This is an owner observation, not measured application accuracy. The prior access diagnostic completed in8.208s: the elevated child could query/read W32Time but could not open SERVICE_START (error5). Its observed Administrators ACE lacks that right. Who/what configured those permissions is not established. **No permission reset or automatic-time repair is claimed.** The proposed VPS-backed application clock remains a discussion, not implemented or needed for this snapshot.

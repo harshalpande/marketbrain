@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E166/E167 (2026-10-23 review): October22 clock screen **10/10 usable,100% of this sample screen**,100.465s total; accepted. Automatic sync/quote timing remain false. Maintenance preflight locally verified49 PowerShell/33 Bash assertions, spare pending. Six remaining milestone groups, not six guaranteed runs; no full-roadmap percentage recalculated.
+
 E164/E165 (2026-10-22): owner reports manual correction to<5s difference; **no independently measured time acceptance yet**. Access diagnosis completed8.208s, start right denied even with enabled admin. New three-clock snapshot locally verified:113 comparison/runner assertions/10 workflows and28 HTTP assertions; no real runtime calls locally. No full-roadmap gain or automatic-sync repair credited. [Handoff](paytm-clock-snapshot.md).
 
 E162/E163 (2026-10-22): accepted **VPS index refresh** in5s and corrected proxy inventory; full capture198.117s. Windows elevation passed, but service start access denied; **clock synchronization not achieved**.70 package candidates pending, no upgrades installed. Next Windows-only read-only diagnosis:74 assertions/nine mocked workflows plus22/44 regressions, actual spare result pending. Main route8/8 unchanged; no whole-project percentage uplift. [Handoff](paytm-windows-time-access.md).

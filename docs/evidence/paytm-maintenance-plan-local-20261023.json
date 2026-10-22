@@ -1,0 +1,16 @@
+{
+  "evidenceId": "E167",
+  "date": "2026-10-23",
+  "status": "MAINTENANCE_PREFLIGHT_LOCAL_PASS_RUNTIME_PENDING",
+  "powershellAssertions": 49,
+  "mockedLauncherWorkflowsIncluded": 4,
+  "bashAssertions": 33,
+  "realVpsInvoked": false,
+  "packagesChanged": false,
+  "backupCreated": false,
+  "rebootPerformed": false,
+  "unattendedGatewayActivated": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false,
+  "runtimeAcceptancePending": true
+}

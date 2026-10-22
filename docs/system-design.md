@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E166/E167: relative clock screen accepted; next [read-only maintenance preflight](paytm-maintenance-plan.md) uses verified admin PuTTY, fixed bounded commands and one redacted JSON. No unattended admin credential custody or application clock substitution. Maintenance apply, ongoing time health and unattended provisioning remain separate gated changes; broker actions stay disabled.
+
 Current E164/E165: manual Windows correction reported; use [clock snapshot](paytm-clock-snapshot.md) to measure pinned VPS and existing main-JVM timestamps relative to Windows with network/request uncertainty. No application clock replacement, public time endpoint, database mutation or gateway activation. One-shot administrative SSH diagnostic is separate from future restricted unattended custody. Existing account GET returns actual main-JVM Instant.now; its token remains private.
 
 Current E162/E163: VPS index refresh accepted and proxy version observed. Windows Time OpenService error5 blocks synchronization despite successful elevation; use [read-only service-right diagnostics](paytm-windows-time-access.md), not a generic permission reset. No architecture/security change: minimal local service handles are opened/closed only, with no StartService invocation. VPS maintenance and time accuracy still require resolution before unattended activation; no VPS retry or broker access in this diagnostic.

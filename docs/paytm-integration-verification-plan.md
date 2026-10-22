@@ -1,5 +1,7 @@
 # Paytm integration gates and return to paper trading
 
+2026-10-23 E166/E167 current: clock screen accepted10/10. Next [maintenance preflight](paytm-maintenance-plan.md). Six remaining groups: maintenance, unattended provisioning, recovery/time health, real login, quotes, combined Telegram review. Not six guaranteed executions. This supersedes older next-command guidance; accepted route tests remain accepted.
+
 2026-10-21. This is the ordered acceptance plan, not permission to submit real orders. Combine related positive/negative tests in each evidence bundle, keep timing and safety counters, and retain one shareable report. Do not require live trading before returning to paper development.
 
 2026-10-22 E159/E160 update: operations snapshot is reviewed, not pending collection. Current next action is [Windows-first clock/index follow-up](paytm-operations-followup.md), with no VPS clock change or automatic package installation. Unattended design/provisioning remains before login as explicitly chosen. Accepted main-application route does not need repetition.

@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E166 RELATIVE_CLOCK_SCREEN_ACCEPTED:** [owner evidence](evidence/paytm-clock-snapshot-spare-20261022.json),10/10 samples,100.465s; no findings, unchanged container and cleanup confirmed. No automatic sync/absolute UTC/quote timing claim. No repeat now.
+- **E167 MAINTENANCE_PREFLIGHT_LOCAL_PASS_RUNTIME_PENDING:** [local evidence](evidence/paytm-maintenance-plan-local-20261023.json), [handoff](paytm-maintenance-plan.md).49 PowerShell assertions/four workflows,33 Bash assertions. No package changes/reboot/backup/activation.
+
 - **E164 MANUAL_CLOCK_CORRECTION_OWNER_REPORTED:** [evidence](evidence/paytm-manual-clock-observation-20261022.json). Prior access run8.208s confirms enabled admin with denied SERVICE_START; observed Administrators ACE lacks that right, origin unknown. Owner manually set Windows and reports<5s difference; not independently verified or automatic-sync repair.
 - **E165 CLOCK_SNAPSHOT_LOCAL_PASS_SPARE_PENDING:** [evidence](evidence/paytm-clock-snapshot-local-20261022.json), [handoff](paytm-clock-snapshot.md).113 comparison/runner assertions including10 workflows,28 HTTP assertions, fixed remote Bash syntax. Five pinned VPS/main-Java sample pairs with request-delay bounds, no rebuild/time/permissions/broker changes. Actual relative snapshot pending; absolute accuracy/quote safety not certified.
 
