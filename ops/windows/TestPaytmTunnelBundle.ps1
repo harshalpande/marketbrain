@@ -11,7 +11,7 @@ $report=[ordered]@{schemaVersion=1;runId=$runId;startedUtc=[DateTime]::UtcNow.To
 $session=[ordered]@{ServerRequested=$false;PageantRequested=$false;Tunnel=$null}; $passed=$false
 $report.egressReobserved=$false
 $report.launcherRevision='FILE_WITH_TERMINAL_STDIN_V2'
-$report.listenerValidationRevision='OBSERVED_ENDPOINT_AND_OWNER_V1'
+$report.listenerValidationRevision='OWNED_LOOPBACK_PAIR_V2'
 $report.listenerEvidence=New-Object 'Collections.Generic.List[object]'
 $report.powerShellVersion=$PSVersionTable.PSVersion.ToString()
 $reportPath=$null

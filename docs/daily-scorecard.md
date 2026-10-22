@@ -4,7 +4,7 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
-E151 (2026-10-22): terminal correction accepted; three stages passed, Windows listener check failed before Paytm HTTPS. No complete-tunnel acceptance or parent-goal gain (0pp). Exact mismatch unknown. Diagnostic coverage now includes118 helper assertions, seven real Windows listener/child checks,11 mocked workflows, five native launcher checks and21 Bash guards. Spare retry pending. [Record](evidence/paytm-tunnel-listener-diagnostics-20261022.json). E150's pending terminal-input status is superseded, not its historical record.
+E152 (2026-10-22): exact listener mismatch identified and validator corrected for the owned IPv4/IPv6 loopback pair.132 helpers,10 real Windows checks,16 mocked workflows, five native launcher checks and21 Bash guards pass. Full tunnel spare acceptance pending; parent-goal gain0pp. [Record](evidence/paytm-tunnel-loopback-pair-20261022.json). E151's unknown cause is superseded; historical evidence remains unchanged.
 
 E149 (2026-10-21): combined tunnel runner implemented and locally verified (97 PowerShell assertions,15 Bash guards, six mocked workflows). Runtime/owner acceptance pending; no whole-gateway or parent-goal percentage increase. Current-state prerequisite checks supersede requesting the old installer log as the immediate next task, not as retrospective installer verification. [Evidence](evidence/paytm-tunnel-verification-local-20261021.json), [handoff](paytm-tunnel-verification.md).
 

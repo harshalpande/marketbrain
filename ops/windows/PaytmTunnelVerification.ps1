@@ -103,13 +103,19 @@ function Get-TunnelListenerAssessment($Rows,[int]$ProcessId,[int]$Port=0,[string
     })
     $reasons=@()
     if($items.Count -eq 0){$reasons+='MISSING'}
-    if($items.Count -gt 1){$reasons+='MULTIPLE_LISTENERS'}
+    $ipv4Count=@($observed | Where-Object localAddress -CEQ '127.0.0.1').Count
+    $ipv6Count=@($observed | Where-Object localAddress -CEQ '::1').Count
+    if($items.Count -gt 0 -and $ipv4Count -eq 0){$reasons+='IPV4_LISTENER_MISSING'}
+    if($items.Count -gt 2){$reasons+='TOO_MANY_LISTENERS'}
+    if($ipv4Count -gt 1 -or $ipv6Count -gt 1){$reasons+='DUPLICATE_LOOPBACK_LISTENER'}
     foreach($row in $observed){
-        if($row.localAddress -cne '127.0.0.1'){$reasons+='NON_LOOPBACK_ADDRESS'}
+        # PuTTY Auto forwarding can create BOTH loopback families, even with outgoing -4.
+        # Exactly one IPv4 row is required; at most one IPv6 loopback companion is allowed.
+        if($row.localAddress -cnotin @('127.0.0.1','::1')){$reasons+='UNEXPECTED_BIND_ADDRESS'}
         if($row.owningProcess -ne $ProcessId){$reasons+='OWNER_PID_MISMATCH'}
         if($Port -gt 0 -and $row.localPort -ne $Port){$reasons+='PORT_MISMATCH'}
     }
-    [pscustomobject]@{label=$Label;observedUtc=[DateTime]::UtcNow.ToString('o');expectedAddress='127.0.0.1';expectedPort=$Port;expectedProcessId=$ProcessId;rowCount=$items.Count;rows=$observed;reasons=@($reasons | Select-Object -Unique);valid=($reasons.Count -eq 0)}
+    [pscustomobject]@{label=$Label;observedUtc=[DateTime]::UtcNow.ToString('o');expectedAddress='127.0.0.1';optionalCompanionAddress='::1';expectedPort=$Port;expectedProcessId=$ProcessId;rowCount=$items.Count;rows=$observed;reasons=@($reasons | Select-Object -Unique);valid=($reasons.Count -eq 0)}
 }
 function Assert-TunnelListenerAssessment($Assessment) {
     if(-not $Assessment.valid){
@@ -130,8 +136,9 @@ function Wait-TunnelListener($Handle,[int]$Port,$Evidence=$null,[string]$Label='
         }
         $assessment=Get-TunnelListenerAssessment $rows $Handle.Process.Id $Port $Label
         if($null -ne $Evidence){[void]$Evidence.Add($assessment)}
-        # Only absence is retried. An unexpected address, extra row or owner fails immediately.
-        if($rows.Count){Assert-TunnelListenerAssessment $assessment; return}
+        if($assessment.valid){return}
+        # IPv6 may bind first. Retry only missing IPv4/empty startup, never unsafe observations.
+        if(@($assessment.reasons | Where-Object {$_ -notin @('MISSING','IPV4_LISTENER_MISSING')}).Count){Assert-TunnelListenerAssessment $assessment}
         Start-Sleep -Milliseconds 500
     }
     throw 'Tunnel listener readiness timeout'

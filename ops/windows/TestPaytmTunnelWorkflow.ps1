@@ -23,6 +23,14 @@ function Get-TunnelListeners([int]$Port) {
         if($fixtureState.Case -eq 'ListenerExposed'){$row.LocalAddress='0.0.0.0'}
         $row
         if($fixtureState.Case -eq 'ListenerDuplicate'){$row}
+        if($fixtureState.Case -in @('PassDualLoopback','ListenerDualForeignOwner','ListenerDualWildcard','ListenerDualWrongPort','ListenerDualDuplicate')){
+            $companion=[pscustomobject]@{LocalAddress='::1';LocalPort=$Port;OwningProcess=$fixtureState.Listener}
+            if($fixtureState.Case -eq 'ListenerDualForeignOwner'){$companion.OwningProcess=99999}
+            if($fixtureState.Case -eq 'ListenerDualWildcard'){$companion.LocalAddress='::'}
+            if($fixtureState.Case -eq 'ListenerDualWrongPort'){$companion.LocalPort=$Port+1}
+            $companion
+            if($fixtureState.Case -eq 'ListenerDualDuplicate'){$companion}
+        }
     }
 }
 function Get-ItemProperty {param($LiteralPath) $null}
@@ -92,7 +100,7 @@ function Complete-TunnelProcess($Handle,[int]$LimitSeconds=20,[switch]$StopNow) 
 }
 $count=0
 try {
-    foreach($case in @('Pass','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure')) {
+    foreach($case in @('Pass','PassDualLoopback','PreflightAuthFailure','WrongTargetAuthFailure','ProxyAllowedForbiddenHost','BadServerEvidence','KeyNotRemoved','InputTimeoutBeforeReady','ListenerWrongOwner','ListenerExposed','ListenerDuplicate','ListenerQueryFailure','ListenerDualForeignOwner','ListenerDualWildcard','ListenerDualWrongPort','ListenerDualDuplicate')) {
         $script:fixtureState=[pscustomobject]@{Case=$case;Run='';Proxy=$false;Listener=0;NextId=1000;Payload='';Clipboard='';PageantCalls=0}
         $folder=Join-Path $fixtureRoot $case
         $fixtureDirs.Add($folder)
@@ -102,23 +110,24 @@ try {
         if($files.Count -ne 1){throw "Expected one report for $case"}
         $fixtureReports.Add($files[0].FullName)
         $data=Get-Content -LiteralPath $files[0].FullName -Raw | ConvertFrom-Json
-        if($case -eq 'Pass') {
+        if($case -in @('Pass','PassDualLoopback')) {
             if($failed -or $data.status -ne 'TUNNEL_BATCH_PASSED_APPLICATION_AND_AUTHENTICATION_PENDING' -or -not $data.serverEvidenceVerified -or -not $data.ownerGatewayKeyRemoved){throw "Happy path failed: $($data.failure)"}
             if($data.steps.Count -ne 9 -or @($data.steps | Where-Object status -ne PASS).Count){throw 'Incomplete stage ledger'}
             if($data.providerRootStatuses.Count -ne 2 -or $data.providerRootStatuses[0] -ne 503){throw '503 was lost or treated as API health'}
+            if($case -eq 'PassDualLoopback' -and @($data.listenerEvidence | Where-Object {$_.rowCount -ne 2 -or -not $_.valid}).Count){throw 'Dual-loopback path lost listener evidence'}
         } elseif(-not $failed -or $data.status -ne 'REVIEW_REQUIRED'){throw "Failure incorrectly passed: $case"}
         if($fixtureState.Listener -ne 0 -or $data.ordersEnabled -or $data.brokerAuthenticationEnabled){throw 'Cleanup/safety boundary violated'}
         if($case -eq 'PreflightAuthFailure' -and $fixtureState.Payload){throw 'Proxy start payload exposed despite failed authentication preflight'}
         if($case -in @('BadServerEvidence','InputTimeoutBeforeReady') -and ($data.serverEvidenceVerified -or -not $data.serverEvidence)){throw 'Failed server evidence lost or incorrectly verified'}
         if($case -eq 'InputTimeoutBeforeReady' -and @($data.processes | Where-Object label -eq 'Allowed tunnel').Count){throw 'Tunnel opened without readiness'}
         if($data.launcherRevision -ne 'FILE_WITH_TERMINAL_STDIN_V2'){throw 'Launcher revision missing'}
-        if($data.listenerValidationRevision -ne 'OBSERVED_ENDPOINT_AND_OWNER_V1'){throw 'Listener revision missing'}
+        if($data.listenerValidationRevision -ne 'OWNED_LOOPBACK_PAIR_V2'){throw 'Listener revision missing'}
         if($case -like 'Listener*') {
             if($data.listenerEvidence.Count -ne 1 -or $data.providerRootStatuses.Count -ne 0 -or -not $data.localCleanupConfirmed){throw 'Listener failure capture or safe cleanup broken'}
             if($case -eq 'ListenerQueryFailure'){
                 if($data.listenerEvidence[0].queryError -ne 'fixture TCP query failed'){throw 'Query error not preserved'}
             } else {
-                $reason=switch($case){ListenerWrongOwner {'OWNER_PID_MISMATCH'};ListenerExposed {'NON_LOOPBACK_ADDRESS'};ListenerDuplicate {'MULTIPLE_LISTENERS'}}
+                $reason=switch($case){ListenerWrongOwner {'OWNER_PID_MISMATCH'};ListenerExposed {'UNEXPECTED_BIND_ADDRESS'};ListenerDuplicate {'DUPLICATE_LOOPBACK_LISTENER'};ListenerDualForeignOwner {'OWNER_PID_MISMATCH'};ListenerDualWildcard {'UNEXPECTED_BIND_ADDRESS'};ListenerDualWrongPort {'PORT_MISMATCH'};ListenerDualDuplicate {'DUPLICATE_LOOPBACK_LISTENER'}}
                 if($data.listenerEvidence[0].reasons -notcontains $reason -or $data.listenerEvidence[0].expectedProcessId -le 0){throw 'Expected listener failure detail absent'}
             }
         }

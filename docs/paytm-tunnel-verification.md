@@ -1,6 +1,18 @@
 # Paytm restricted tunnel: combined verification
 
-## Current listener diagnostic E151, 2026-10-22
+## Current loopback-pair correction E152, 2026-10-22
+
+Owner run `82c6bf8518444fb08ecf8ba5d1a555de` identifies the failure precisely: Plink PID19392 owned both127.0.0.1:18889 and[::1]:18889. Both are loopback. The old single-row validator rejected normal dual-family forwarding and incorrectly labelled IPv6 loopback as NON_LOOPBACK_ADDRESS. No foreign owner or externally exposed bind was observed. Three stages passed; no Paytm HTTPS probe ran. Proxy stop and local cleanup were confirmed. This is a test-validator defect, not a user error.
+
+`OWNED_LOOPBACK_PAIR_V2` requires exactly one127.0.0.1 listener and permits at most one ::1 companion, both on the requested port with the exact owned Plink PID. It rejects extra/duplicate rows, foreign owners, wildcard/LAN/other bind addresses and wrong ports. IPv6-only startup waits within the existing30-attempt limit for required IPv4; only empty or otherwise-valid IPv6-only observations are retryable. Invalid observations stop immediately. Snapshots remain in the one JSON. The IPv4 probe, SSH command, VPS policy, proxy allowlist,20-minute backstop and credential/trade gates are unchanged.
+
+This matches PuTTY's documented Auto forwarding behavior, which listens in both families and overrides its general connection-family preference: [PuTTY0.85 forwarding families](https://the.earth.li/~sgtatham/putty/0.85/htmldoc/Chapter4.html#config-ssh-portfwd-address-family), [outgoing -4/-6 options](https://the.earth.li/~sgtatham/putty/0.85/htmldoc/Chapter3.html#using-cmdline-ipversion).
+
+Local verification:132 helper assertions (including the exact owner rows and both orders),10 real Windows loopback/owned-child checks,16 mocked complete workflows, five native Git Bash launcher checks and21 unchanged Bash guards. Tests cover IPv4-only and dual-loopback success, unsafe companions, IPv6-first startup and bounded IPv6-only refusal. Real Plink/VPS and spare PowerShell7.6.6 execution of this correction remain pending; local native Windows tests used Windows PowerShell5.1. [Evidence](evidence/paytm-tunnel-loopback-pair-20261022.json).
+
+## Historical listener diagnostic E151, 2026-10-22
+
+The unknown mismatch and single-row requirement below describe the superseded E151 checkpoint; E152 above identifies and corrects it.
 
 Owner run `cd2bf87d9de34fefaa5d5bbc59201320` verifies the terminal correction: START/STOP accepted, proxy started non-root/loopback-only and shutdown confirmed. Overall `REVIEW_REQUIRED`: Windows listener validation failed before any Paytm HTTPS request. Plink reported a127.0.0.1:18889 forward, but the generic error omitted the observed TCP rows and expected PID. The exact cause is **not established**; neither user error nor exposed networking is proven.
 
@@ -50,8 +62,8 @@ $ProgressPreference = 'Continue'
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed. Stop here.' }
-if (-not (Select-String -LiteralPath '.\ops\windows\TestPaytmTunnelBundle.ps1' -Pattern 'OBSERVED_ENDPOINT_AND_OWNER_V1' -SimpleMatch -Quiet)) {
-    throw 'Listener diagnostic update missing. Do not run an old test.'
+if (-not (Select-String -LiteralPath '.\ops\windows\TestPaytmTunnelBundle.ps1' -Pattern 'OWNED_LOOPBACK_PAIR_V2' -SimpleMatch -Quiet)) {
+    throw 'Loopback-pair correction missing. Do not run an old test.'
 }
 & '.\ops\windows\TestPaytmTunnelBundle.ps1'
 ```
@@ -71,7 +83,7 @@ The public key selector in the repository chooses the corresponding Pageant key;
 | Group | Evidence required |
 |---|---|
 | Identity and configuration | Pinned SSH host fingerprint; exact gateway key; effective restriction policy; unchanged accepted proxy hashes; fresh admin owner confirmation |
-| Allowed path | Exactly one owned Windows127.0.0.1 listener; Paytm CONNECT200, TLS verification0 and recorded HTTP status |
+| Allowed path | Exactly one Windows127.0.0.1 listener plus at most one ::1 companion, both exact owned PID/requested port; Paytm CONNECT200, TLS verification0 and recorded HTTP status |
 | SSH restrictions | Successful authentication followed by explicit command/PTY-requested session, wrong destination and remote-forward refusals; no output from a remote command |
 | Proxy restrictions | Disallowed name, lookalike, port80, former diagnostic host and plaintext HTTP rejected |
 | Recovery | Closing owned tunnel refuses the request; a fresh tunnel restores the permitted TLS path |

@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-22 Dual-loopback validator defect corrected
+
+- E152: owner run82c6bf8518444fb08ecf8ba5d1a555de captured both127.0.0.1:18889 and[::1]:18889 owned by expected PID19392. Our single-row validator, not user input, caused the rejection. The NON_LOOPBACK_ADDRESS label for ::1 was wrong. No external bind/foreign PID was observed, and no Paytm HTTPS probe ran. Proxy/local cleanup confirmed; watchdog-target warning remains separate.
+- Require one owned IPv4 listener with at most one same-port/same-PID IPv6 companion. Reject duplicates, excess rows, wildcards, other addresses, foreign PID and wrong port. Retry only empty/otherwise-valid IPv6-first startup within the existing bound. Preserve compact diagnostics; no VPS/SSH/proxy policy, credentials or account changes.
+-132 helper assertions,10 real Windows loopback/child checks,16 mocked workflows, five native launcher checks and21 Bash guards pass. Exact owner rows pass in both orders; unsafe pairs fail. Local Windows PowerShell5.1, not spare7.6.6 or real Plink/VPS. Parent-goal gain0pp; spare acceptance pending. [Evidence](evidence/paytm-tunnel-loopback-pair-20261022.json), [handoff](paytm-tunnel-verification.md).
+
 ## 2026-10-22 Terminal fix accepted; listener evidence added
 
 - E151: owner report cd2bf87d9de34fefaa5d5bbc59201320 verifies terminal confirmation, proxy start/stop and SSH authentication. Overall REVIEW_REQUIRED: three stages passed, Windows listener check failed before Paytm HTTP. Exact mismatch unknown; local real Windows reproduction passes. Watchdog target warning is separate; check final timer state before retry.

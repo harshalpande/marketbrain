@@ -4,7 +4,7 @@
 
 | Sequence | Tests and acceptance | Current state |
 |---|---|---|
-| 1. Restricted tunnel | Pinned host/key; allowed loopback path; authenticated shell/session, wrong-target and remote-forward denials; proxy allowlist; disconnect/reconnect; stopped-backend failure and cleanup | E151 terminal/proxy start-stop verified; Windows listener mismatch unresolved, diagnostic retry pending |
+| 1. Restricted tunnel | Pinned host/key; owned IPv4 plus optional owned IPv6 loopback; authenticated shell/session, wrong-target and remote-forward denials; proxy allowlist; disconnect/reconnect; stopped-backend failure and cleanup | E152 dual-loopback validator corrected locally; full spare batch pending |
 | 2. Actual application route and operations | Route the actual Java/container HTTP client through the approved gateway; verify observed fixed egress without exposing credentials; deny direct fallback on proxy/SSH loss; startup/restart lock behavior; reviewed key custody, least privilege and OS maintenance | Not accepted; requires scoped implementation and deployment |
 | 3. Paytm login and token lifecycle | Exact registered callback on the intended browser machine; one-use state correlation; reject missing/wrong/expired/replayed state and duplicate callbacks; bounded token exchange; no secret logs; expiry/revocation/relogin and unavailable-provider behavior | Synthetic preparation accepted; real callback deployment/exchange pending |
 | 4. Read-only market data | Correct instrument/exchange mapping and entitlement; real quote timestamp, freshness and price fields; documented REST/streaming endpoints; reconnect/stale data/rate-limit/timeout behavior; no silent stale or substitute quotes | Not accepted; HTTP503 root cause/API availability unresolved |

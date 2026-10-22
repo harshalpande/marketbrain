@@ -50,7 +50,7 @@ Reject {Assert-TunnelListenerRows @($detailedRow) 456 -Port 18889 -Evidence $evi
 Check ($evidence.Count -eq 1 -and $evidence[0].expectedProcessId -eq 456 -and $evidence[0].rows[0].owningProcess -eq 123 -and $evidence[0].reasons -contains 'OWNER_PID_MISMATCH') 'Failure owner evidence lost'
 Reject {Assert-TunnelListenerRows @($detailedRow) 123 -Port 18890}
 Check ((Get-TunnelListenerAssessment @() 123 18889).reasons -contains 'MISSING') 'Missing reason lost'
-Check ((Get-TunnelListenerAssessment @($detailedRow,$detailedRow) 123 18889).reasons -contains 'MULTIPLE_LISTENERS') 'Duplicate reason lost'
+Check ((Get-TunnelListenerAssessment @($detailedRow,$detailedRow) 123 18889).reasons -contains 'DUPLICATE_LOOPBACK_LISTENER') 'Duplicate reason lost'
 try {Assert-TunnelListenerRows @($detailedRow) 456 -Port 18889}catch{Check ($_.Exception.Message -match 'OWNER_PID_MISMATCH' -and $_.Exception.Message -match '456' -and $_.Exception.Message -match '123') 'Console diagnosis lacks observed and expected owners'}
 & {
     function Get-TunnelListeners([int]$Port){throw 'fixture TCP inventory failure'}
@@ -58,6 +58,31 @@ try {Assert-TunnelListenerRows @($detailedRow) 456 -Port 18889}catch{Check ($_.E
     try {Wait-TunnelListener ([pscustomobject]@{Process=[pscustomobject]@{HasExited=$false;Id=123}}) 18889 -Evidence $queryEvidence; throw 'Query unexpectedly passed'}
     catch {if($queryEvidence.Count -ne 1 -or $queryEvidence[0].queryError -ne 'fixture TCP inventory failure'){throw 'Query failure evidence lost'}}
 }; $checks++
+# Exact owner observation, including IPv6-first enumeration, must pass without accepting wildcards.
+$ownerV4=[pscustomobject]@{LocalAddress='127.0.0.1';LocalPort=18889;OwningProcess=19392;State='Listen'}
+$ownerV6=[pscustomobject]@{LocalAddress='::1';LocalPort=18889;OwningProcess=19392;State='Listen'}
+Assert-TunnelListenerRows @($ownerV6,$ownerV4) 19392 -Port 18889; $checks++
+Assert-TunnelListenerRows @($ownerV4,$ownerV6) 19392 -Port 18889; $checks++
+Reject {Assert-TunnelListenerRows @($ownerV6) 19392 -Port 18889}
+Reject {Assert-TunnelListenerRows @($ownerV4,$ownerV6,$ownerV6) 19392 -Port 18889}
+foreach($address in @('0.0.0.0','::','192.168.31.7','100.85.67.66','127.0.0.2','::ffff:127.0.0.1')){
+    Reject {Assert-TunnelListenerRows @($ownerV4,[pscustomobject]@{LocalAddress=$address;LocalPort=18889;OwningProcess=19392}) 19392 -Port 18889}
+}
+Reject {Assert-TunnelListenerRows @($ownerV4,[pscustomobject]@{LocalAddress='::1';LocalPort=18889;OwningProcess=99999}) 19392 -Port 18889}
+Reject {Assert-TunnelListenerRows @($ownerV4,[pscustomobject]@{LocalAddress='::1';LocalPort=18890;OwningProcess=19392}) 19392 -Port 18889}
+& {
+    $script:listenerFixtureCalls=0
+    function Get-TunnelListeners([int]$Port){$script:listenerFixtureCalls++; $ownerV6; if($script:listenerFixtureCalls -gt 1){$ownerV4}}
+    function Start-Sleep {param($Milliseconds)}
+    $startupEvidence=New-Object 'Collections.Generic.List[object]'
+    Wait-TunnelListener ([pscustomobject]@{Process=[pscustomobject]@{HasExited=$false;Id=19392}}) 18889 -Evidence $startupEvidence
+    if($startupEvidence.Count -ne 2 -or $startupEvidence[0].valid -or -not $startupEvidence[1].valid){throw 'IPv6-first startup did not wait for required IPv4'}
+    function Get-TunnelListeners([int]$Port){$ownerV6}
+    $timeoutEvidence=New-Object 'Collections.Generic.List[object]'
+    $failure=''
+    try {Wait-TunnelListener ([pscustomobject]@{Process=[pscustomobject]@{HasExited=$false;Id=19392}}) 18889 -Evidence $timeoutEvidence}catch{$failure=$_.Exception.Message}
+    if($failure -ne 'Tunnel listener readiness timeout' -or $timeoutEvidence.Count -ne 30){throw 'IPv6-only startup was not bounded/rejected'}
+}; $checks+=2
 $run='0123456789abcdef0123456789abcdef'
 $payload=Get-TunnelServerPayload $run
 Check ($payload.StartsWith('sudo -n env SSH_CONNECTION="$SSH_CONNECTION" bash -c ')) 'sudo must receive a command argument, not a stdin script'
