@@ -1,5 +1,7 @@
 # Maintenance preflight and remaining Paytm acceptance
 
+**Current E183/E184:** confirmed reboot/postcheck accepted, stale services/sessions cleared. Group1 complete; do not rerun maintenance. Continue with [gateway engineering foundation](paytm-gateway-foundation.md); group2 provisioning and group3 real recovery remain pending, followed by login, quotes and Telegram review. Earlier instructions below are historical, not today's handoff.
+
 **Current E181/E182 correction:** original gateway is static/no-Install, not disabled. The incorrect new guard stopped Before without preparing a reboot. [Pull corrected code and run fresh Before](paytm-maintenance-completion.md); v2 records actual state/exit/reference evidence and preserves other guards. No gateway configuration change or package replay. Group1 still open.
 
 **Current E179/E180:** scanner installation/capture accepted35.83s; six services/four sessions stale. [One confirmed reboot plus fresh postcheck](paytm-maintenance-completion.md) next. No reinstall; microcode missing output is handled only with explicit VM evidence and provider limitation. Group1 remains open pending runtime acceptance; subsequent five groups unchanged. Earlier next-step notes below are historical.

@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-23 Maintenance accepted; unattended gateway engineering foundation
+
+- E183: owner post-boot report `7250c5f8a89b4d148ecf5fe5a33eb88a` independently reparsed; boot changed, targets passed, stale services 6 to 0, sessions 4 to 0, no failed services. Collection 28.444s, not reboot downtime. Gateway static/inactive, NTP synchronized; host microcode remains provider-managed/unassessed. No maintenance rerun.
+- E184: [foundation and combined spare test](paytm-gateway-foundation.md). State/action engine, monotonic deadlines, capped backoff, security/stop latches, exclusive lock and native owned-process cleanup tests; actual `ssh -G` settings/space-path and adverse-output checks. No production observation/credential adapters or installation yet. Local and spare evidence remain separate.
+- Milestone metric: 1/6 Paytm-readiness acceptance groups complete (16.7% of this checklist only). Five groups remain; implementation assertions do not establish operational acceptance or change whole-project percentage. No login/quote/order authority.
+
 ## 2026-10-23 Reboot precheck static-unit defect corrected
 
 - E181: owner Before916ac81d86294aa3b5309d596ed72569 collected72.395s; sole wrapper blocker `GATEWAY_DISABLED_REVIEW`. VM=kvm/no container, scanner/packages/backup/idle/core services/baseline passed; six stale services/four sessions unchanged. No reboot approval, prepared command or observed boot change.

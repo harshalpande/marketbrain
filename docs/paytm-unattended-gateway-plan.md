@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E183/E184: maintenance/reboot is now accepted. [Engineering foundation and spare compatibility bundle](paytm-gateway-foundation.md) implements the recovery/action policy and local process/configuration tests without provisioning or activation. Exact-account key custody, production adapters, task/VPS managed lifecycle and real logoff/boot recovery still require implementation/acceptance. Do not repeat maintenance; older prerequisite notes below are historical.
+
 2026-10-23 E179/E180: installation accepted, restart scan found six stale services/four sessions. [Confirmed reboot/postcheck](paytm-maintenance-completion.md) is the current prerequisite, not repeat installation. VM microcode disposition remains explicit; no unattended provisioning or activation has occurred. Earlier immediate-next-step notes are historical.
 
 2026-10-23 E177/E178: missing-scanner dependency plan accepted; [combined install and scan](paytm-scanner-install.md) next. Detached maintenance execution does not establish unattended gateway supervision or key custody. No gateway activation/login acceptance yet; restart disposition remains open.

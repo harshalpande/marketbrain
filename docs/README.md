@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E183/E184: maintenance/reboot accepted, six stale services/four sessions cleared. [Gateway foundation bundle](paytm-gateway-foundation.md) is next: offline recovery/security/process tests and actual Windows client configuration, one JSON, no PuTTY or administrator rights. This is engineering preparation, not unattended installation or broker readiness. Do not replay maintenance. Earlier next-step notes are historical.
+
 2026-10-23 E181/E182: [maintenance precheck corrected](paytm-maintenance-completion.md). Wrong disabled-state assumption conflicted with the original static gateway definition. Before72.395s stopped before reboot preparation; v2 reports capture state/exit/activation references. Fresh Before needed, no reinstall or unit changes. Earlier immediate handoff assumes this correction has been pulled.
 
 2026-10-23 E179/E180: six scanner packages and scan accepted,35.83s collection; six stale services/four sessions remain. [Combined confirmed reboot and after-check](paytm-maintenance-completion.md) is next, with saved checkpoint and After-only recovery. No update replay, gateway or broker activation. This supersedes earlier immediate-next-step notes below.

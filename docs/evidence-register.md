@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E184 GATEWAY_FOUNDATION_LOCAL_PASS_SPARE_PENDING:** [local evidence](evidence/paytm-gateway-foundation-local-20261023.json), [handoff and limits](paytm-gateway-foundation.md). Recovery/action engine and synthetic negative cases, real local owned-process/lock tests, actual installed OpenSSH `-G` inspection. No credentials, VPS connection, production observation adapters, task/service installation or real network/logoff/reboot recovery acceptance.
+- **E183 VPS_REBOOT_VERIFIED_GUEST_SCREEN_CLEAR_UNATTENDED_PENDING:** [spare acceptance](evidence/paytm-maintenance-completion-spare-20261023.json). Both v2 receipts reparsed; owner confirms reboot/reconnect, boot changed, stale services 6 to 0 and sessions 4 to 0, no failed services after reboot. Postcheck 28.444s is collection time. Gateway static/inactive, NTP synchronized, installed targets verified. VM host microcode remains unassessed/provider-managed. Maintenance group1 closed; no gateway or broker activation.
+
 - **E182 STATIC_GATEWAY_GUARD_CORRECTED_LOCAL_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-static-gateway-fix-local-20261023.json), [handoff](paytm-maintenance-completion.md). Original static unit/hash contract now tested; real guard used through mocked observation/reboot paths, v2 captures state/exit/references. No weakening to accept arbitrary zero exits, no unit/config mutation. Runtime Before and reboot/postcheck still pending.
 - **E181 REBOOT_PRECHECK_STOPPED_ON_STATIC_UNIT_GUARD_DEFECT:** [evidence](evidence/paytm-maintenance-precheck-spare-20261023.json).72.395s, sole wrapper finding gateway disabled review, no reboot command or approval. Other preconditions passed. Existing definition/tunnel tests conflict with the new disabled fixture; actual state was lost in boolean-only v1 capture. Not user error or failed installation.
 

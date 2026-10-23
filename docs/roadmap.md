@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-23 E183/E184: **maintenance group1 accepted** after verified VPS reboot; no replay. Next [unattended gateway foundation](paytm-gateway-foundation.md) batches engineering recovery/security/process tests and Windows SSH compatibility. Production adapters, custody, installation and real lifecycle remain pending. **1/6 acceptance groups complete (16.7% of the Paytm-readiness checklist only)**; five groups unchanged, not five guaranteed test runs or whole-project progress. Earlier immediate-next-step notes are historical.
+
 2026-10-23 E181/E182: Before stopped on a defective disabled-state assumption for the original static gateway. [Corrected precheck](paytm-maintenance-completion.md) ready for fresh runtime validation; no reboot occurred or package acceptance regressed. Maintenance group1 remains open, five downstream groups unchanged. Bug correction adds no project percentage.
 
 2026-10-23 E179/E180: scanner install/scan accepted; six stale services/four sessions remain. [Confirmed reboot and fresh postcheck](paytm-maintenance-completion.md) combines the remaining guest restart work, with no reinstall. Maintenance group1 remains open until real acceptance; five further groups unchanged. VM microcode is a separately recorded provider limitation, not a guest pass or automatic reboot requirement. No whole-project percentage increment.

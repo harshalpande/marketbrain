@@ -1,5 +1,7 @@
 # VPS maintenance completion: one reviewed reboot and post-boot screen
 
+**Accepted E183, 2026-10-23:** owner completed reboot and reconnected both clients. Before/After v2 receipts independently reparsed; boot changed, six stale services/four sessions cleared, no failed services after reboot, original static gateway still inactive and NTP synchronized. [Acceptance evidence](evidence/paytm-maintenance-completion-spare-20261023.json). No further reboot/Before/After run needed. Continue with [unattended gateway foundation](paytm-gateway-foundation.md); commands below are retained for history, not the current handoff.
+
 **2026-10-23 E181/E182 correction:** owner Before run916ac81d86294aa3b5309d596ed72569 stopped72.395s solely on `GATEWAY_DISABLED_REVIEW`; no reboot approved/prepared. The prior guard incorrectly required `disabled`/exit1 although the original pinned unit deliberately has no `[Install]` section and earlier tunnel tests require `static`/exit0. The failure report did not retain that command's actual state, so it does not independently prove the observed value. Corrected v2 receipts record state, exit and incoming activation-reference assessment. Fresh Before is required; do not reuse the failed v1 report as an approved checkpoint, change the unit to satisfy the test, reinstall packages or reboot manually.
 
 ## Accepted evidence and purpose
