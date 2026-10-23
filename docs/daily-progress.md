@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-23 Private backup accepted; reviewed updates prepared
+
+- E170 owner run897a81468f7d4ac0ba034fc15797b6fa:95.89s,19,281,920-byte private archive, source comparison passed, unchanged package state, no update/reboot/gateway/broker actions. Independent console login owner-confirmed; no off-host backup or restore/full rollback proof. Earlier backup-runtime-pending wording is superseded.
+- E171 [next update handoff](paytm-maintenance-update.md): exact70 reviewed upgrades only; refuse changed simulations, archive identities or installed versions. Explicit real-change/recovery-limitation approval, private detached systemd job, collect-only reconnection, fixed staging refusal, bounded downloads/observation but no forced dpkg kill. Failure categories retained without raw private logs. Fresh admin login is owner-confirmed after programmatic postchecks.
+- Verification:46 PowerShell assertions/seven workflows,63 Bash assertions including ten mocked transactions,49 backup/49 maintenance PowerShell regression assertions;70 manifest rows independently matched to accepted evidence. Real VPS update and restart review remain pending. No automatic repair/reboot/rollback, Paytm login or trade authority added. Batch1 remains open; no new whole-project percentage or promised retry count.
+
 ## 2026-10-23 Maintenance plan accepted; private backup prepared
 
 - E168 owner run f44e98badcf348a6aa7f0967236b4a9b accepted:76.183s, no findings, matching hashes/inactive gateway, clean dpkg/SSH,70 unchanged candidates,0 holds/removals,8.04GiB free. User independently tested HosterDaddy browser/VNC login and confirmed success; rescue/image restore not verified. Do not rerun preflight.

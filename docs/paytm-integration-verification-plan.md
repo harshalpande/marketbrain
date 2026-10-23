@@ -1,5 +1,7 @@
 # Paytm integration gates and return to paper trading
 
+2026-10-23 E170/E171: backup accepted; [controlled updates and verification](paytm-maintenance-update.md) prepared, actual install/restart review pending within maintenance batch1. No change to the six-group denominator; no repeats of accepted transport/clock/preflight/backup requested. Live orders remain outside the paper-return prerequisites.
+
 2026-10-23 E168/E169: maintenance-plan acceptance closes preflight, not the update batch. [Next private backup](paytm-maintenance-backup.md) follows owner-confirmed console access. Six remaining milestone groups retain their scope; no seventh group or live-order prerequisite added.
 
 2026-10-23 E166/E167 current: clock screen accepted10/10. Next [maintenance preflight](paytm-maintenance-plan.md). Six remaining groups: maintenance, unattended provisioning, recovery/time health, real login, quotes, combined Telegram review. Not six guaranteed executions. This supersedes older next-command guidance; accepted route tests remain accepted.

@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E170 PRIVATE_BACKUP_SPARE_ACCEPTED:** [owner evidence](evidence/paytm-maintenance-backup-spare-20261023.json),95.89s;19,281,920bytes/source comparison passed, package state unchanged. Console login owner-confirmed; off-host copy, restore and full rollback unproven. Do not rerun backup.
+- **E171 REVIEWED_UPDATE_LOCAL_PASS_RUNTIME_PENDING:** [local evidence](evidence/paytm-maintenance-update-local-20261023.json), [handoff](paytm-maintenance-update.md). Exact70 candidate transaction with preinstall archive check, detached job, atomic redacted receipt and collect-only recovery. Mocked tests do not certify actual Debian installation or SSH-loss recovery. Explicit owner real-change/recovery-limit confirmation required; no automatic reboot or broker activation.
+
 - **E168 MAINTENANCE_PREFLIGHT_ACCEPTED:** [owner evidence](evidence/paytm-maintenance-plan-spare-20261023.json),76.183s/no findings;70 unchanged candidates,0 holds/removals,8.04GiB free. Independent console login subsequently owner-confirmed. Backup/apply not performed.
 - **E169 PRIVATE_BACKUP_LOCAL_PASS_RUNTIME_PENDING:** [local evidence](evidence/paytm-maintenance-backup-local-20261023.json), [handoff](paytm-maintenance-backup.md).49 PowerShell assertions/six workflows,28 Bash assertions/native disposable archive test (Linux size limit mocked); root-only real Debian backup and full recovery unverified. No update/reboot/activation.
 

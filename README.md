@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E170/E171,2026-10-23:** private VPS backup accepted in95.89s; source comparison passed, package state unchanged. [Next reviewed package update and verification](docs/paytm-maintenance-update.md) is a real-change handoff with explicit owner confirmation, independent job and collect-only recovery. No automatic reboot, gateway activation or broker access. Same-VPS backup is not full rollback; earlier next-step notes are historical.
+
 **Current E168/E169,2026-10-23:** maintenance preflight accepted; independent console login owner-confirmed. Next [private VPS backup](docs/paytm-maintenance-backup.md), one shareable JSON, archive stays root-only on VPS. No updates/restart/activation; no plan rerun. Earlier next-step notes are historical.
 
 **Current E166/E167,2026-10-23:** relative clock snapshot accepted10/10, no rerun needed. Next [consolidated maintenance preflight](docs/paytm-maintenance-plan.md): one read-only report, no updates/reboot/activation. Six remaining acceptance batches documented; not six guaranteed executions. Older next-step entries below are historical.

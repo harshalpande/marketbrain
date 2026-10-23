@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E170",
+  "date": "2026-10-23",
+  "status": "PRIVATE_BACKUP_COMPARED_UPDATE_AND_RECOVERY_REVIEW_PENDING",
+  "sourceFile": "paytm-maintenance-backup-20261023-095415-897a81468f7d4ac0ba034fc15797b6fa.json",
+  "sourceSha256": "DA176C0DA7B3890C7FE41CF249CFE804EDA2BE7109905472FE03E6CB8E5B5CBE",
+  "runId": "897a81468f7d4ac0ba034fc15797b6fa",
+  "elapsedSeconds": 95.89,
+  "archiveBytes": 19281920,
+  "archiveSha256": "3050d89b1eaa1db95a0ad27a3cb52b394870ffc0b57185dfa53672430587ca8c",
+  "archiveSourceComparisonPassed": true,
+  "packageStateUnchanged": true,
+  "independentConsoleLoginOwnerConfirmed": true,
+  "offHostBackupVerified": false,
+  "restoreTestPerformed": false,
+  "fullSystemRollbackProven": false,
+  "packagesChanged": false,
+  "rebootPerformed": false,
+  "gatewayStarted": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}

@@ -1,5 +1,7 @@
 # Private VPS maintenance backup
 
+**E170 accepted,2026-10-23:** actual owner backup95.89s,19,281,920bytes, comparison passed and package state unchanged. Do not rerun these historical instructions. Next [controlled update handoff](paytm-maintenance-update.md) explicitly reviews and requires acceptance of same-VPS/no-full-rollback limitations before real changes. No off-host backup or restore claim is added.
+
 2026-10-23 E168/E169. Maintenance preflight accepted from run `f44e98badcf348a6aa7f0967236b4a9b`:76.183s, no findings, clean dpkg/SSH,70 candidates, no held packages/removals,8.04GiB free on the checked filesystem. Candidate versions match the previous capture. Do not repeat the maintenance-plan runner. Owner subsequently confirmed successful independent HosterDaddy browser/VNC login. This is owner-tested console access, not proof of provider rescue/image-restore capability.
 
 ## Purpose and exact scope

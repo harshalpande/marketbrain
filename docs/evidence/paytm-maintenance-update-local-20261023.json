@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E171",
+  "date": "2026-10-23",
+  "status": "REVIEWED_UPDATE_LOCAL_TESTS_PASSED_RUNTIME_PENDING",
+  "powershellAssertions": 46,
+  "mockedWindowsWorkflowsIncluded": 7,
+  "bashAssertions": 63,
+  "mockedTransactionsIncluded": 10,
+  "reviewedManifestRowsComparedToAcceptedEvidence": 70,
+  "backupRegressionPowerShellAssertions": 49,
+  "maintenanceRegressionPowerShellAssertions": 49,
+  "archiveHookAndGuardBoundariesMocked": true,
+  "productionAptInstallationPerformed": false,
+  "productionSystemdJobExecuted": false,
+  "realSshDisconnectRecoveryVerified": false,
+  "productionFreshLoginVerified": false,
+  "offHostBackupVerified": false,
+  "fullSystemRollbackProven": false,
+  "packagesChangedLocally": false,
+  "rebootPerformed": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}

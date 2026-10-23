@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E170/E171 (2026-10-23): private backup accepted in95.89s,19,281,920bytes, archive/source comparison passed and packages unchanged. Update implementation/local verification is separate from pending actual VPS installation. One maintenance checkpoint closed; batch1 of six remains open for updates/restart review. Off-host recovery/restore unproven. No new full-project percentage is supported by this result.
+
 E168/E169 (2026-10-23): maintenance **preflight accepted**,76.183s/no findings;70 candidates unchanged,0 holds/removals. Independent console login owner-confirmed. Private backup package49 PowerShell/28 Bash assertions locally passed; actual VPS backup pending. Maintenance updates/recovery and six-group readiness not complete; do not count test pass rate as project completion.
 
 E166/E167 (2026-10-23 review): October22 clock screen **10/10 usable,100% of this sample screen**,100.465s total; accepted. Automatic sync/quote timing remain false. Maintenance preflight locally verified49 PowerShell/33 Bash assertions, spare pending. Six remaining milestone groups, not six guaranteed runs; no full-roadmap percentage recalculated.

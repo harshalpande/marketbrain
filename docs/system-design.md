@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E170/E171: private backup accepted. [Reviewed maintenance transaction](paytm-maintenance-update.md) is launched as a separate VPS systemd service, pinned70 package manifest and archive hook, no automatic restart/repair/replay. SSH disconnect resumes observation only; private logs/atomic non-secret receipt remain on VPS. Real package effects require owner confirmation including same-VPS backup limitations. No application/broker authority changes, no unattended admin-key custody.
+
 Current E168/E169: accepted maintenance preflight and owner-confirmed console login precede [root-only on-VPS backup](paytm-maintenance-backup.md). Unique non-overwriting private archive, comparison/hash and redacted receipt; no restore/update/start/reboot. Same-disk config backup is not full rollback/off-host recovery. Application/database and broker boundaries unchanged.
 
 Current E166/E167: relative clock screen accepted; next [read-only maintenance preflight](paytm-maintenance-plan.md) uses verified admin PuTTY, fixed bounded commands and one redacted JSON. No unattended admin credential custody or application clock substitution. Maintenance apply, ongoing time health and unattended provisioning remain separate gated changes; broker actions stay disabled.

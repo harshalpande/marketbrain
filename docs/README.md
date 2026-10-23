@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E170/E171: private backup accepted95.89s,18.39MiB/source comparison, unchanged packages. [Next guarded 70-package update](paytm-maintenance-update.md), fresh admin login and restart review; no automatic reboot/activation. One shareable JSON, detached job/collect-only recovery. Off-host/full-system rollback remains unproven and requires explicit limitation acceptance. Supersedes immediate next-step notes below.
+
 2026-10-23 E168/E169: maintenance preflight accepted76.183s, no findings; console login owner-confirmed. [Next private backup](paytm-maintenance-backup.md) locally verified, Debian execution pending. No package installation/reboot or gateway activation. Share JSON only, never archive/private logs.
 
 2026-10-23 E166/E167: clock screen accepted10/10. [Next maintenance preflight and six remaining batches](paytm-maintenance-plan.md);49 PowerShell/33 Bash assertions passed locally, spare pending. No package changes/reboot/gateway/broker activation. This supersedes older immediate-next-step notes below.
