@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "baselineDate": "2026-10-23",
+  "measurement": "Equal-weight accepted checkpoints within each group; not estimated effort, live health or whole-project completion. Local tests alone do not close runtime checkpoints. Scope changes require a dated rebaseline.",
+  "groups": [
+    {"id":"G1","name":"VPS maintenance","checkpoints":[
+      {"id":"G1.1","goal":"Reviewed maintenance inventory and candidate plan","evidence":"E168"},
+      {"id":"G1.2","goal":"Private configuration backup and owner-confirmed console recovery access (not full restore proof)","evidence":"E170"},
+      {"id":"G1.3","goal":"Reviewed updates and installed targets verified","evidence":"E173"},
+      {"id":"G1.4","goal":"Scanner installed and restart requirements assessed","evidence":"E179"},
+      {"id":"G1.5","goal":"Owner-confirmed reboot and clear guest postcheck","evidence":"E183"}
+    ]},
+    {"id":"G2","name":"Unattended gateway","checkpoints":[
+      {"id":"G2.1","goal":"Supervisor foundation and spare native client configuration accepted","evidence":"E185"},
+      {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":null},
+      {"id":"G2.3","goal":"Protected key custody and pinned restricted OpenSSH authentication under exact account accepted","evidence":null},
+      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null},
+      {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":null}
+    ]},
+    {"id":"G3","name":"Real recovery and safe failure","checkpoints":[
+      {"id":"G3.1","goal":"Installed system process and network interruption/recovery accepted","evidence":null},
+      {"id":"G3.2","goal":"Actual wrong-key/host/listener/destination/TLS negative cases accepted","evidence":null},
+      {"id":"G3.3","goal":"Managed-system duplicate-start, cancellation and persistent stop accepted","evidence":null},
+      {"id":"G3.4","goal":"Exact-account logoff/cold-boot recovery with no authority replay accepted","evidence":null},
+      {"id":"G3.5","goal":"Clock/health drift policy, observability and application no-direct-fallback accepted","evidence":null}
+    ]},
+    {"id":"G4","name":"Paytm login","checkpoints":[
+      {"id":"G4.1","goal":"Current provider auth/callback contract and app configuration verified","evidence":null},
+      {"id":"G4.2","goal":"Owner login and required authentication completed through reviewed flow","evidence":null},
+      {"id":"G4.3","goal":"Callback binding, validation and invalid/replayed callback rejection accepted","evidence":null},
+      {"id":"G4.4","goal":"Secret-safe token custody and authenticated read-only access accepted","evidence":null},
+      {"id":"G4.5","goal":"Expiry, revocation, restart and relogin behavior accepted","evidence":null}
+    ]},
+    {"id":"G5","name":"Read-only fresh quotes","checkpoints":[
+      {"id":"G5.1","goal":"Instrument mapping and data entitlement verified","evidence":null},
+      {"id":"G5.2","goal":"Actual fresh timestamped market-hours quote retrieval accepted","evidence":null},
+      {"id":"G5.3","goal":"Stale, missing and malformed quote rejection accepted","evidence":null},
+      {"id":"G5.4","goal":"Provider error, rate-limit and reconnect behavior accepted","evidence":null},
+      {"id":"G5.5","goal":"Application quote provenance and no-fallback/read-only integration accepted","evidence":null}
+    ]},
+    {"id":"G6","name":"Combined Telegram review","checkpoints":[
+      {"id":"G6.1","goal":"Real authorized ACCEPT with current quote/account/risk checks records review only","evidence":null},
+      {"id":"G6.2","goal":"Real REJECT accepted without order, reservation or fill","evidence":null},
+      {"id":"G6.3","goal":"100-second expiry and stale/out-of-zone rejection accepted","evidence":null},
+      {"id":"G6.4","goal":"Duplicate/replayed actions cannot duplicate outcomes","evidence":null},
+      {"id":"G6.5","goal":"Unauthorized actions rejected with consistent audit and no execution","evidence":null}
+    ]}
+  ]
+}

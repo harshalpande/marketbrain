@@ -1,0 +1,21 @@
+{
+  "evidenceId": "E186",
+  "date": "2026-10-23",
+  "status": "WINDOWS_GATEWAY_ACCOUNT_LOCAL_VERIFIED_RUNTIME_PENDING",
+  "accountAssertions": 99,
+  "mockedLauncherWorkflows": 10,
+  "mockedCases": ["clean", "existing_standard_group_membership", "cancel", "target_collision", "scm_denied", "group_query_denied", "partial_agent_failure", "probe_failure", "verify_without_reprovisioning", "disable_only_owned_account"],
+  "nativeWindowsPowerShellWrongIdentityProbePassed": true,
+  "nativeSecurityDescriptorRoundTripPassed": true,
+  "nativeScmReadOnlyAccessCheckExecuted": true,
+  "nativeScmResultOnNonElevatedDevelopmentProcess": 5,
+  "syntaxChecksPassed": true,
+  "realAccountCreationPerformedLocally": false,
+  "realAlternateAccountLogonTestedLocally": false,
+  "realServiceConfigurationChangedLocally": false,
+  "privateKeyImported": false,
+  "vpsContacted": false,
+  "ordersEnabled": false,
+  "checkpointPending": "G2.2",
+  "candidateGroup2PercentAfterSuccessfulReviewedSpareRun": 40
+}

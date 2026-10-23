@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-23 Foundation accepted; fixed group-percentage reporting and account provisioning
+
+- Owner requires percentages after every shared test. [Baseline](paytm-readiness-progress.md): five fixed equal-weight acceptance checkpoints per group; report evidence, changed checkpoint/delta, all six percentages and next action. No effort/whole-project claim or silent denominator change.
+- E185: spare run9bc4c7bc13984aafa848432b692e305a passed79 assertions,12 adverse cases,31 effective settings, spaced paths;2.335s, failure null. Five source hashes match Windows CRLF checkout. Windows client9.5.4.1; agent still stopped/disabled. G2.1 accepted; **G1=100%, G2=20%, G3–G6=0%**.
+- E186: [controlled Windows account batch](paytm-gateway-account.md) implemented/tested locally. New non-admin account/password, protected manifest/work folder, existing agent Automatic/Running, exact-account hidden empty-agent probe; no key import or scheduled task. Preflight includes actual SCM rights and group-query capability before mutation. Ten mocked workflows and99 assertions; actual provisioning/login not run locally. Failure checkpoints preserve partial state; no blind retry/rollback.
+- Next successful reviewed spare result closes G2.2: **20% to40%**, other groups unchanged. No accepted maintenance/foundation replay, VPS change, broker login or trading.
+
 ## 2026-10-23 Maintenance accepted; unattended gateway engineering foundation
 
 - E183: owner post-boot report `7250c5f8a89b4d148ecf5fe5a33eb88a` independently reparsed; boot changed, targets passed, stale services 6 to 0, sessions 4 to 0, no failed services. Collection 28.444s, not reboot downtime. Gateway static/inactive, NTP synchronized; host microcode remains provider-managed/unassessed. No maintenance rerun.

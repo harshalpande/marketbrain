@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E185/E186: spare foundation accepted. Next [dedicated Windows account/agent provisioning](paytm-gateway-account.md), not a repeated foundation/maintenance test. Fixed Windows user `marketbrain-gateway` is distinct from the VPS identity; private owner password, standard Users membership, protected `C:\ProgramData\MarketBrainPaytmGateway`, empty-agent probe. This first install does not import a key or create supervisor/task/VPS lifecycle changes. Runtime installation pending. [Accepted percentage baseline](paytm-readiness-progress.md): G1=100%, G2=20%, other groups0%; after accepted account evidence G2 becomes40%.
+
 2026-10-23 E183/E184: maintenance/reboot is now accepted. [Engineering foundation and spare compatibility bundle](paytm-gateway-foundation.md) implements the recovery/action policy and local process/configuration tests without provisioning or activation. Exact-account key custody, production adapters, task/VPS managed lifecycle and real logoff/boot recovery still require implementation/acceptance. Do not repeat maintenance; older prerequisite notes below are historical.
 
 2026-10-23 E179/E180: installation accepted, restart scan found six stale services/four sessions. [Confirmed reboot/postcheck](paytm-maintenance-completion.md) is the current prerequisite, not repeat installation. VM microcode disposition remains explicit; no unattended provisioning or activation has occurred. Earlier immediate-next-step notes are historical.

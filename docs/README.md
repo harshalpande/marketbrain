@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E185/E186: foundation spare report accepted (2.335s); [account/agent provisioning](paytm-gateway-account.md) is next. [Percentage baseline and reporting policy](paytm-readiness-progress.md), [machine-readable checkpoints](paytm-readiness-progress.json): five equal acceptance checkpoints per group; G1=100%, G2=20%, G3–G6=0%. No speculative credit for mocks or automatic group completion. Old handoffs below are historical; no maintenance/foundation rerun.
+
 2026-10-23 E183/E184: maintenance/reboot accepted, six stale services/four sessions cleared. [Gateway foundation bundle](paytm-gateway-foundation.md) is next: offline recovery/security/process tests and actual Windows client configuration, one JSON, no PuTTY or administrator rights. This is engineering preparation, not unattended installation or broker readiness. Do not replay maintenance. Earlier next-step notes are historical.
 
 2026-10-23 E181/E182: [maintenance precheck corrected](paytm-maintenance-completion.md). Wrong disabled-state assumption conflicted with the original static gateway definition. Before72.395s stopped before reboot preparation; v2 reports capture state/exit/activation references. Fresh Before needed, no reinstall or unit changes. Earlier immediate handoff assumes this correction has been pulled.

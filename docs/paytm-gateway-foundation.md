@@ -1,5 +1,7 @@
 # Unattended gateway foundation: one local engineering bundle
 
+**Accepted E185, 2026-10-23:** spare report passed79 checks,12 negative cases,31 settings/space paths in2.335s, failure null. Do not rerun this bundle. Next [controlled Windows account/agent setup](paytm-gateway-account.md); [group percentages](paytm-readiness-progress.md) are G1=100%, G2=20%, G3–G6=0%. Earlier run instructions below are retained for reference.
+
 ## Current outcome and purpose
 
 E183 accepts the owner's maintenance/reboot evidence. Both v2 receipts were independently reparsed: boot changed, installed targets verified, stale services **6 to 0**, stale sessions **4 to 0**, no failed services after reboot, gateway still static/inactive and NTP synchronized. Postcheck collection took 28.444s, not measured downtime. Guest microcode remains explicitly unassessed/provider-managed. **Do not repeat maintenance, installation or reboot.**
@@ -47,7 +49,7 @@ Expect progress 10%, 70%, 100% and `GATEWAY_FOUNDATION_PASSED_PROVISIONING_PENDI
 ## Next work and unchanged acceptance groups
 
 1. Maintenance: **accepted E183**.
-2. Unattended gateway: engineering foundation implemented; spare compatibility run pending. Next is the reviewed dedicated-account/agent/key custody and scheduled-supervisor/VPS lifecycle installation, with exact targets, private provisioning and rollback. Do not start services based on this report alone.
+2. Unattended gateway: foundation and spare compatibility accepted E185 (G2.1,20%). Next is the explicit-consent dedicated Windows account/agent batch E186. Key custody and scheduled-supervisor/VPS lifecycle remain pending; do not activate these from foundation evidence alone.
 3. Real lifecycle/fail-closed acceptance: still pending, including process/network interruption, safe stop, logoff/cold boot, clock drift, actual OpenSSH restrictions and application no-fallback behavior.
 4. Paytm login/token/callback: pending.
 5. Read-only fresh quotes: pending.
