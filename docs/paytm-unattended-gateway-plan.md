@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E175/E176: restart review collected clean baseline/targets but scanner is absent. [Dependency preview](paytm-scanner-plan.md) next; no unattended custody/supervision or activation accepted. Do not replay successful updates or infer restart clearance from absent reboot marker.
+
 2026-10-23 E173/E174: reviewed updates/postchecks and fresh login accepted; [read-only restart review](paytm-restart-review.md) is next. No new unattended-key custody, supervision, login or quote readiness accepted. Do not replay maintenance updates; earlier immediate-next-step notes are historical.
 
 2026-10-23 E172: update stopped before install on candidate drift; reviewed r2 retry is the current maintenance step. Unattended activation still blocked. [Updated handoff](paytm-maintenance-update.md).

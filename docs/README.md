@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E175/E176: restart report accepted with one missing-tool finding; health/70 targets pass,33.811s. [Scanner dependency preview](paytm-scanner-plan.md) next, read-only and one JSON. Restart clearance, scanner installation and unattended activation remain pending; no update replay.
+
 2026-10-23 E173/E174: 70-target update verification and fresh administrator login accepted, 159.754s. [Read-only restart review](paytm-restart-review.md) is next; no package replay, rebuild, restart or activation. Missing/unknown scanner results remain findings. Earlier immediate-next-step notes below are historical.
 
 2026-10-23 E172: original update stopped in SIMULATE, installation not attempted. Follow-up70-entry plan differs only in tzdata target. [Reviewed r2 retry instructions](paytm-maintenance-update.md) supersede the earlier Apply command: backup + failed-run + new-plan evidence required, original staging preserved. Actual updates/restart review remain pending.

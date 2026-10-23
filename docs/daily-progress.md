@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-23 Restart evidence accepted; missing scanner identified
+
+- E175: restart run77b0af7628bf4162807175c4c8eac0c3 completed33.811s, no capture failure.70 targets verified, clean package database/SSH, NTPyes, gateway inactive/no listener, cached updates/removals0; no unexpected failed services. Known earlier failed update unit remains visible. Scanner UNAVAILABLE/NOT_RUN is the only finding; no restart assessment or maintenance closure claimed. Zero scanner counts are unmeasured, not proof of no stale processes.
+- E176: [read-only dependency preview](paytm-scanner-plan.md) prepared.51 PowerShell assertions/five mocked workflows,34 Bash assertions/four mocked collectors pass. Current baseline plus bounded cached simulation; package/configuration pair parsing, unexpected upgrades/removals, missing candidate, private-output suppression and one-file evidence covered. Actual VPS plan pending; no install/restart/reboot/index refresh/activation. Future install needs reviewed manifest/owner approval; aim to combine install and scan, not repeat completed upgrades.
+- Progress: update acceptance unchanged; restart blocker now specifically identified as a missing tool. Maintenance remains group1 of six; no whole-project percentage increment or guaranteed remaining execution count.
+
 ## 2026-10-23 Updates accepted; read-only restart review prepared
 
 - E173: owner report `61e8afb23b9e4e73b883914330c99514` is COMPLETE/exit 0, postchecks passed, reviewed 70-target versions verified, fresh administrator login owner-confirmed, 159.754s. Both PuTTY sessions remained connected; disconnect recovery is not thereby tested. No Apply/Collect retry requested. Reboot marker absent does not prove restarts unnecessary; no gateway/broker/order activation.

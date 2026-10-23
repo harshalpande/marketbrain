@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E176 SCANNER_PLAN_LOCAL_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-scanner-plan-local-20261023.json), [handoff](paytm-scanner-plan.md).51 PowerShell assertions/five mocked workflows,34 Bash assertions/four mocked collectors. Cached dependency simulation plus fresh baseline; no install/download/refresh/restart/activation. Missing scanner remains unassessed; plan is not authorization or origin verification.
+- **E175 RESTART_REVIEW_ACCEPTED_WITH_SCANNER_MISSING:** [evidence](evidence/paytm-restart-review-spare-20261023.json).33.811s,70 targets and baseline health pass, zero cached upgrades/removals, no unexpected failed services; old failed update unit separately observed. UNAVAILABLE/NOT_RUN is the only scanner finding. No restart clearance; E173 update acceptance stands, E174 execution-pending status superseded.
+
 - **E174 RESTART_REVIEW_LOCAL_VERIFIED_VPS_PENDING:** [evidence](evidence/paytm-restart-review-local-20261023.json), [handoff](paytm-restart-review.md). 51 PowerShell assertions/five mocked workflows, 31 Bash assertions/five mocked collectors, 49 maintenance PowerShell regressions. Exact update hash, installed targets, baseline health, failed services and list-only scanner; missing/unknown evidence never clear. No restart/install/reboot/activation. Actual VPS screen pending.
 - **E173 REVIEWED_UPDATES_VERIFIED_RESTART_REVIEW_PENDING:** [acceptance](evidence/paytm-maintenance-update-spare-20261023.json). COMPLETE/exit0, target/postchecks passed,70 reviewed packages, fresh login owner-confirmed,159.754s. Both PuTTY sessions remained connected; no disconnect-recovery proof. Absent reboot marker is not restart clearance. Supersedes E172 installation-pending status only; no replay needed.
 

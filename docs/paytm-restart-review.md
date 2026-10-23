@@ -1,5 +1,7 @@
 # Read-only VPS restart review
 
+**Current E175/E176:** actual run77b0af7628bf4162807175c4c8eac0c3 completed33.811s with one finding: scanner UNAVAILABLE/NOT_RUN. Health/targets pass, restart needs remain unassessed. Do not repeat this unchanged script to resolve a missing tool. Next [read-only scanner dependency preview](paytm-scanner-plan.md); the steps below describe the completed screen, not the current handoff.
+
 ## Current result and purpose
 
 E173 accepts update run `61e8afb23b9e4e73b883914330c99514`: COMPLETE/exit 0, reviewed target verification and postchecks passed, fresh administrator login owner-confirmed, 159.754 seconds. Both PuTTY sessions stayed connected. No disconnect-recovery claim or repeat installation is needed. The absent reboot marker alone does not establish that all running processes use the updated libraries.

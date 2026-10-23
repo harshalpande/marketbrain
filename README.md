@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E175/E176,2026-10-23:** restart collection succeeded33.811s; targets/health passed, but scanner unavailable, so restart needs remain unassessed. Next [read-only scanner dependency preview](docs/paytm-scanner-plan.md), one JSON. No installation/reboot/activation; completed updates must not be repeated. Earlier next-step notes are historical.
+
 **Current E173/E174, 2026-10-23:** reviewed VPS updates accepted (70 targets, 159.754s, postchecks and owner-confirmed fresh login). Do not repeat installation or Collect; both PuTTY sessions stayed connected. Next [read-only restart review](docs/paytm-restart-review.md), one JSON, no rebuild/restart/reboot or Paytm activation. Earlier next-step commands below are historical.
 
 **Current E172,2026-10-23:** update stopped before installation; follow-up identifies only a newer tzdata candidate. [Reviewed r2 retry](docs/paytm-maintenance-update.md) preserves original staging, requires stopped/no-install evidence and rechecks the backup. Three original JSON inputs; one output. No automatic reboot/gateway/broker activation. Earlier next-step commands are superseded.

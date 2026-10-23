@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-23 E175/E176: restart collection accepted with scanner unavailable, not maintenance complete. [Read-only dependency preview](paytm-scanner-plan.md) addresses that specific gap; no completed-update replay, installation or activation. Still group1 of six; no project-percentage increment for local tests or diagnosis.
+
 2026-10-23 E173/E174: update checkpoint accepted (70 targets/postchecks, fresh login,159.754s); maintenance group1 remains open for [read-only restart review](paytm-restart-review.md). No repeat installation or added milestone group. Remaining unattended/login/quotes/Telegram gates and overall percentages unchanged.
 
 2026-10-23 E172: maintenance update blocked safely before install; one tzdata candidate drift identified. [Reviewed r2 retry](paytm-maintenance-update.md) prepared with original evidence preserved and fresh guards. Maintenance batch1 still open; no added milestone group, no overall percentage increment.

@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E175/E176: accepted restart collection found absent needrestart. [Dependency preview](paytm-scanner-plan.md) uses cached APT simulation and current guarded baseline only; captures bounded package versions/actions and validates install/configuration pairs. Expected absent scanner is excluded only from plan screening, not restart clearance. New/existing package scope, origins and future hook behavior require review before apply. No runtime authority changes.
+
 Current E173/E174: VPS update receipt accepted. [Restart review](paytm-restart-review.md) collects read-only baseline/installed-target/failed-service and batch/list-only scanner evidence; no automatic install/restart/reboot/reset-failed. Missing tools and unknown states remain findings. Current-run receipt is bounded and validated; private session/container descriptions are masked. Neither no-known-findings nor accepted updates enable unattended gateway or broker access.
 
 Current E172: reviewed maintenance retry uses a separate fixed r2 staging path; old logs/receipt/worker remain unchanged. Original stopped/no-install proof and fresh backup/baseline guards prevent rerunning an ambiguous or partially installed transaction. Only tzdata candidate target updated; broker/application authority unchanged. [Retry handoff](paytm-maintenance-update.md).
