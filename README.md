@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E181/E182,2026-10-23:** Before stopped on an incorrect script assumption: original gateway is designed `static`, not `disabled`. [Corrected maintenance handoff](docs/paytm-maintenance-completion.md) captures actual state/exit/references and retains all reboot guards. Pull, run fresh Before, then confirmed reboot/After only if clear. No package reinstall or gateway configuration change; prior failed report is not reboot approval.
+
 **Current E179/E180,2026-10-23:** scanner installation/capture accepted (six packages,35.83s collection). Six stale services/four sessions need disposition. Next [one confirmed VPS reboot and post-boot verification](docs/paytm-maintenance-completion.md), no reinstall; independent VNC recovery required. VM microcode is explicitly unassessed/provider-managed only after VM detection. Maintenance remains open; gateway/login/trades are not activated. Earlier next-step notes are historical.
 
 **Current E177/E178,2026-10-23:** six-package scanner plan accepted51.727s, no upgrades/removals/findings. Next [controlled scanner install plus immediate restart scan](docs/paytm-scanner-install.md), explicit confirmation, one JSON and collect-only recovery. No replay of completed70-package updates, reboot, gateway activation or trades. Earlier next-step notes are historical.

@@ -1,0 +1,28 @@
+{
+  "evidenceId": "E182",
+  "date": "2026-10-23",
+  "status": "STATIC_GATEWAY_GUARD_CORRECTED_LOCAL_VERIFIED_RUNTIME_PENDING",
+  "rootCause": "New disabled/exit1 expectation and its mock fixture contradicted original pinned static/no-Install gateway contract",
+  "powerShellAssertions": 80,
+  "mockedBeforeAfterWorkflows": 13,
+  "bashRebootAssertions": 79,
+  "originalGatewayRegressionCases": 59,
+  "originalUnitHashMatchesPinnedDeploymentContract": true,
+  "newReceiptVersion": 2,
+  "corrections": [
+    "Require static/exit0 for exact original unit, retaining pinned configuration and inactive/no-listener guards",
+    "Require complete empty WantedBy, RequiredBy and TriggeredBy references",
+    "Record actual unit state, query exit and references assessment instead of boolean-only failure",
+    "Use the real gateway guard through mocked observation and reboot flows",
+    "Keep enabled, unexpected, malformed, query-failed and dependency-triggered states blocked"
+  ],
+  "sourceReportReplayedWithExplicitlySyntheticStaticState": true,
+  "syntheticReplayIsNotRuntimeStateEvidence": true,
+  "expandedBeforeAfterRebootBashSyntaxPassed": true,
+  "oldFailedReceiptPromotedToApproval": false,
+  "vpsConfigurationChanged": false,
+  "vpsRebootPerformedLocally": false,
+  "freshBeforeAndActualPostBootAcceptancePending": true,
+  "gatewayActivationAuthorized": false,
+  "ordersEnabled": false
+}

@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E181",
+  "date": "2026-10-23",
+  "status": "REBOOT_PRECHECK_STOPPED_ON_STATIC_UNIT_GUARD_DEFECT",
+  "sourceFile": "paytm-maintenance-completion-20261023-205640-de7c4920b1044c2d9b4f879e5ccb5482.json",
+  "sourceSha256": "F0481E994240F4B0CE18484EC90C9E88F1C24EED320CF2ACDD7DFA7CA7679792",
+  "runId": "916ac81d86294aa3b5309d596ed72569",
+  "elapsedSeconds": 72.395,
+  "soleWrapperFinding": "GATEWAY_DISABLED_REVIEW",
+  "actualGatewayQueryStateAndExitCaptured": false,
+  "vm": "kvm",
+  "container": "none",
+  "otherPreconditionsPassed": true,
+  "staleServiceCount": 6,
+  "staleSessionCount": 4,
+  "rootCause": "New guard and fixture incorrectly expected disabled/exit1; pinned original gateway deliberately has no Install section and established tunnel contract expects static/exit0",
+  "ownerRebootConfirmed": false,
+  "rebootCommandPrepared": false,
+  "bootChangeObserved": false,
+  "gatewayActivationAuthorized": false,
+  "ordersEnabled": false
+}

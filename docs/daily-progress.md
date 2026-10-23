@@ -1,10 +1,17 @@
 # Daily progress and decision log
 
+## 2026-10-23 Reboot precheck static-unit defect corrected
+
+- E181: owner Before916ac81d86294aa3b5309d596ed72569 collected72.395s; sole wrapper blocker `GATEWAY_DISABLED_REVIEW`. VM=kvm/no container, scanner/packages/backup/idle/core services/baseline passed; six stale services/four sessions unchanged. No reboot approval, prepared command or observed boot change.
+- Root cause in implementation: new guard expected disabled/exit1; original `pg_unit` intentionally has no Install section and accepted tunnel runner checks static/exit0. Original tests modeled the incorrect expectation instead of checking the existing deployment contract. The report reduced the query to NO, so actual state/exit were not independently recorded. This was not evidence of an operator mistake or failed package installation.
+- E182: manual-only static guard plus actual state/exit and WantedBy/RequiredBy/TriggeredBy assessment, strict receipt v2; original unit hash cross-module regression and real guard exercised in mocked observation/reboot paths. Enabled/unexpected/failed/incomplete results remain blocked; no server configuration changes or guard removal. Fresh Before and actual reboot/postcheck remain pending.
+- Maintenance group1 remains open; no new milestone or completion-percentage gain for correcting a defect. Scanner acceptance stands. [Updated complete steps](paytm-maintenance-completion.md).
+
 ## 2026-10-23 Scanner installation accepted; reboot/postcheck prepared
 
 - E179: Collect for job7e54c5029aca42e3a96c8e0195311723 passed35.83s, phaseCOMPLETE/exit0/failure null. Six scanner versions,70 earlier targets, origin/list-only guards and baseline pass. Six services/four sessions stale; no unexpected failed services or stale containers. Kernel current/expected match. This resolves earlier receipt-capture uncertainty without reinstalling; collection time is not installation time.
 - Missing UCSTA is not established microcode obsolescence: Debian needrestart3.11 skips this on virtual machines. New tooling separately captures VM/container identity and preserves original findings plus an explicit provider-managed/unassessed limitation; no guessed firmware repair.
-- E180: [one confirmed reboot and fresh after-check](paytm-maintenance-completion.md) prepared. Before/After observations bounded; exact evidence hash, core services, backup readability, idle checks, disabled/stopped gateway and boot/20-minute VPS-time binding. Independent VNC and downtime confirmation required; local checkpoint saved before copying reboot command. After cannot reboot. No package replay, unattended key/service provisioning or trade activation.
+- E180: [one confirmed reboot and fresh after-check](paytm-maintenance-completion.md) prepared. Before/After observations bounded; exact evidence hash, core services, backup readability, idle checks, stopped gateway and boot/20-minute VPS-time binding. The initial disabled-state expectation was defective and is superseded by E182. Independent VNC and downtime confirmation required; local checkpoint saved before copying reboot command. After cannot reboot. No package replay, unattended key/service provisioning or trade activation.
 - Local verification:76 PowerShell assertions/thirteen mocked workflows,51 Bash assertions;51+59 PowerShell and31 Bash regression assertions. No actual VPS reboot performed locally. Real post-boot guest acceptance remains pending; host firmware assurance not claimed.
 - Progress: scanner installation/capture checkpoint complete. Still maintenance group1 of six, not an extra milestone. Five subsequent groups unchanged. No invented whole-project percentage uplift.
 

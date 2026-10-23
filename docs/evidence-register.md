@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E182 STATIC_GATEWAY_GUARD_CORRECTED_LOCAL_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-static-gateway-fix-local-20261023.json), [handoff](paytm-maintenance-completion.md). Original static unit/hash contract now tested; real guard used through mocked observation/reboot paths, v2 captures state/exit/references. No weakening to accept arbitrary zero exits, no unit/config mutation. Runtime Before and reboot/postcheck still pending.
+- **E181 REBOOT_PRECHECK_STOPPED_ON_STATIC_UNIT_GUARD_DEFECT:** [evidence](evidence/paytm-maintenance-precheck-spare-20261023.json).72.395s, sole wrapper finding gateway disabled review, no reboot command or approval. Other preconditions passed. Existing definition/tunnel tests conflict with the new disabled fixture; actual state was lost in boolean-only v1 capture. Not user error or failed installation.
+
 - **E180 MAINTENANCE_REBOOT_LOCAL_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-maintenance-completion-local-20261023.json), [handoff](paytm-maintenance-completion.md).76 PowerShell/thirteen mocked workflows,51 Bash assertions;141 regression assertions. Confirmed whole-VPS reboot separately from read-only pre/post checks, boot/time-bound command, VNC/recovery limitation acceptance, checkpoint-before-command and After-only recovery. VM-only microcode limitation explicit; runtime reboot/maintenance closure pending, no gateway/broker authority.
 - **E179 SCANNER_INSTALL_ACCEPTED_RESTART_DISPOSITION_PENDING:** [evidence](evidence/paytm-scanner-install-spare-20261023.json). Collect35.83s, completed/no failure; six scanner packages and70 earlier targets verified, scanner exit0. Six services/four sessions stale; missing UCSTA requires VM-context disposition, not blind microcode installation. E178 installation-pending superseded; actual restart/unattended acceptance still pending.
 

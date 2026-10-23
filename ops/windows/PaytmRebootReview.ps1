@@ -16,7 +16,7 @@ function New-PaytmRebootPayload([string]$RunId,[string]$Source,[ValidateSet('BEF
 function Read-PaytmRebootReceipt([string]$Text,[string]$RunId,[ValidateSet('BEFORE','AFTER')][string]$Phase) {
     if($RunId -cnotmatch '^[a-f0-9]{32}$' -or $Text.Length -gt 65000){throw 'REBOOT_RECEIPT_INVALID'}
     $lines=@($Text.Replace("`r",'').Trim().Split("`n"));$fields=[ordered]@{}
-    $keys=@('VERSION','RUN_ID','PHASE','BOOT_ID','UTC_EPOCH','VM','CONTAINER','SCANNER_PACKAGES','BACKUP_READABLE','JOBS_IDLE','GATEWAY_DISABLED','CORE_SERVICES_ACTIVE','REVIEW_B64','CAPTURE_COMPLETE')
+    $keys=@('VERSION','RUN_ID','PHASE','BOOT_ID','UTC_EPOCH','VM','CONTAINER','SCANNER_PACKAGES','BACKUP_READABLE','JOBS_IDLE','GATEWAY_MANUAL_ONLY','GATEWAY_UNIT_STATE','GATEWAY_QUERY_EXIT','GATEWAY_REFERENCES','CORE_SERVICES_ACTIVE','REVIEW_B64','CAPTURE_COMPLETE')
     if($lines.Count -lt 3 -or $lines[0] -cne "BEGIN_PAYTM_REBOOT_$RunId" -or $lines[-1] -cne "END_PAYTM_REBOOT_$RunId"){throw 'REBOOT_CURRENT_BLOCK_REQUIRED'}
     foreach($line in $lines[1..($lines.Count-2)]){
         if($line -cnotmatch '^([A-Z][A-Z0-9_]+)=([A-Za-z0-9+/=_-]{1,54000})$'){throw 'REBOOT_FIELD_INVALID'}
@@ -24,12 +24,13 @@ function Read-PaytmRebootReceipt([string]$Text,[string]$RunId,[ValidateSet('BEFO
         if($key -cnotin $keys -or $fields.Contains($key) -or ($key -cne 'REVIEW_B64' -and $value.Length -gt 120)){throw 'REBOOT_DUPLICATE_OR_UNKNOWN'}
         $fields[$key]=$value
     }
-    if($fields.Count -ne $keys.Count -or $fields.VERSION -cne '1' -or $fields.RUN_ID -cne $RunId -or $fields.PHASE -cne $Phase -or $fields.CAPTURE_COMPLETE -cne 'yes'){throw 'REBOOT_INCOMPLETE'}
+    if($fields.Count -ne $keys.Count -or $fields.VERSION -cne '2' -or $fields.RUN_ID -cne $RunId -or $fields.PHASE -cne $Phase -or $fields.CAPTURE_COMPLETE -cne 'yes'){throw 'REBOOT_INCOMPLETE'}
     if($fields.BOOT_ID -cnotmatch '^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$' -or $fields.UTC_EPOCH -cnotmatch '^[0-9]{10}$'){throw 'REBOOT_IDENTITY_INVALID'}
     $review=Read-PaytmRestartReceipt (ConvertFrom-PaytmRestartBase64 $fields.REVIEW_B64) $RunId
     $findings=[Collections.Generic.List[string]]::new()
     if($review.scanner.KCUR -cne $review.scanner.KEXP){$findings.Add('KERNEL_VERSION_MISMATCH')}
-    foreach($name in @('SCANNER_PACKAGES','BACKUP_READABLE','JOBS_IDLE','GATEWAY_DISABLED','CORE_SERVICES_ACTIVE')){if($fields[$name] -cne 'YES'){$findings.Add($name+'_REVIEW')}}
+    foreach($name in @('SCANNER_PACKAGES','BACKUP_READABLE','JOBS_IDLE','GATEWAY_MANUAL_ONLY','CORE_SERVICES_ACTIVE')){if($fields[$name] -cne 'YES'){$findings.Add($name+'_REVIEW')}}
+    if($fields.GATEWAY_UNIT_STATE -cne 'static' -or $fields.GATEWAY_QUERY_EXIT -cne '0' -or $fields.GATEWAY_REFERENCES -cne 'NONE'){$findings.Add('GATEWAY_STATE_OR_ACTIVATION_REFERENCES_REVIEW')}
     # needrestart 3.11 skips microcode inside a VM; keep this as an explicit provider limit.
     # Never infer VM status from hostname or missing UCSTA alone. Unknown containers stay blocked.
     $vmConfirmed=$fields.VM -cin @('kvm','qemu','vmware','microsoft','oracle','xen','amazon','google','parallels','bhyve','bochs','uml','acrn','powervm','zvm','apple') -and $fields.CONTAINER -ceq 'none'

@@ -39,7 +39,11 @@ try{
     if($Mode -ceq 'Before'){
         # Store only validated, bounded receipt; arbitrary clipboard data is never persisted.
         $report.beforeReceipt=$text.Trim();$report.before=$observed
-        if(-not $observed.checksPassed){throw 'REBOOT_PRECHECK_FINDINGS_NO_REBOOT'}
+        if(-not $observed.checksPassed){
+            Write-Host ('Blocking findings: '+($observed.findings -join ', '))
+            Write-Host "Gateway state=$($observed.fields.GATEWAY_UNIT_STATE); query exit=$($observed.fields.GATEWAY_QUERY_EXIT); activation references=$($observed.fields.GATEWAY_REFERENCES). No reboot command prepared."
+            throw 'REBOOT_PRECHECK_FINDINGS_NO_REBOOT'
+        }
         Write-Progress -Activity 'Paytm maintenance completion' -Status 'Awaiting explicit reboot approval' -PercentComplete 70
         Write-Host '[70%] Fresh guards passed. Next command requests ONE normal VPS reboot; PuTTY disconnection is expected. No package installation, gateway enable or trade.'
         Write-Host "Microcode assessment: $($observed.microcodeAssessment). Host microcode is not certified by this guest test."

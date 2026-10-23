@@ -1,5 +1,7 @@
 # Maintenance preflight and remaining Paytm acceptance
 
+**Current E181/E182 correction:** original gateway is static/no-Install, not disabled. The incorrect new guard stopped Before without preparing a reboot. [Pull corrected code and run fresh Before](paytm-maintenance-completion.md); v2 records actual state/exit/reference evidence and preserves other guards. No gateway configuration change or package replay. Group1 still open.
+
 **Current E179/E180:** scanner installation/capture accepted35.83s; six services/four sessions stale. [One confirmed reboot plus fresh postcheck](paytm-maintenance-completion.md) next. No reinstall; microcode missing output is handled only with explicit VM evidence and provider limitation. Group1 remains open pending runtime acceptance; subsequent five groups unchanged. Earlier next-step notes below are historical.
 
 **Current E177/E178:** six new scanner packages reviewed, no upgrades/removals,51.727s. Next [combined controlled install and scan](paytm-scanner-install.md), owner confirmation and private same-VPS backup included. No completed-update replay or gateway/reboot activation. Earlier next-step notes below are historical.

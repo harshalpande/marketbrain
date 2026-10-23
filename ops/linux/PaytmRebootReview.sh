@@ -13,10 +13,18 @@ rb_idle() {
     rows=$(timeout 10s systemctl list-jobs --no-legend --no-pager) && [ -z "$rows" ] || return 1
     [ ! -e /run/systemd/shutdown/scheduled ] && [ ! -L /run/systemd/shutdown/scheduled ]
 }
-rb_gateway_disabled() {
-    local value code=0
-    value=$(timeout 10s systemctl is-enabled marketbrain-paytm-gateway.service 2>/dev/null) || code=$?
-    [ "$code" = 1 ] && [ "$value" = disabled ]
+rb_gateway_manual_only() {
+    # The pinned staged unit deliberately has NO [Install] section. It is static,
+    # not disabled; is-enabled returns zero for static. Preserve actual evidence.
+    local rows
+    rb_gateway_state=UNKNOWN; rb_gateway_exit=0; rb_gateway_references=UNKNOWN
+    rb_gateway_state=$(timeout 10s systemctl is-enabled marketbrain-paytm-gateway.service 2>/dev/null) || rb_gateway_exit=$?
+    [[ "$rb_gateway_state" =~ ^[a-z-]{1,30}$ ]] || rb_gateway_state=UNKNOWN
+    if rows=$(timeout 10s systemctl show marketbrain-paytm-gateway.service -p WantedBy -p RequiredBy -p TriggeredBy 2>/dev/null); then
+        if [ "$(printf '%s\n' "$rows" | sort)" = "$(printf '%s\n' 'WantedBy=' 'RequiredBy=' 'TriggeredBy=' | sort)" ]; then rb_gateway_references=NONE
+        elif [[ "$rows" = *'WantedBy='* && "$rows" = *'RequiredBy='* && "$rows" = *'TriggeredBy='* ]]; then rb_gateway_references=PRESENT; fi
+    fi
+    [ "$rb_gateway_exit" = 0 ] && [ "$rb_gateway_state" = static ] && [ "$rb_gateway_references" = NONE ]
 }
 rb_core_active() {
     local service value
@@ -49,7 +57,8 @@ rb_virtualization() {
 }
 rb_observe() (
     set -uo pipefail; export PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C
-    local run="${1:-}" phase="${2:-}" raw review boot epoch scanner=NO backup=NO idle=NO disabled=NO core=NO
+    local run="${1:-}" phase="${2:-}" raw review boot epoch scanner=NO backup=NO idle=NO manual=NO core=NO
+    local rb_gateway_state=UNKNOWN rb_gateway_exit=UNKNOWN rb_gateway_references=UNKNOWN
     [[ "$run" =~ ^[a-f0-9]{32}$ && "$phase" =~ ^(BEFORE|AFTER)$ ]] || return 1
     rb_host || { printf 'REBOOT_STOP=HOST_OR_BASELINE_GUARD\n'; return 1; }
     boot=$(rb_boot); epoch=$(date -u +%s)
@@ -58,15 +67,18 @@ rb_observe() (
     si_arguments && si_versions && scanner=YES
     rb_backup && backup=YES
     rb_idle && idle=YES
-    rb_gateway_disabled && disabled=YES
+    rb_gateway_manual_only && manual=YES
     rb_core_active && core=YES
     raw=$(pr_main "$run") || { printf 'REBOOT_STOP=SCAN_COLLECTION\n'; return 1; }
     review=$(printf '%s\n' "$raw" | awk '/^BEGIN_PAYTM_RESTART_/ {capture=1} capture {print} /^END_PAYTM_RESTART_/ {capture=0}')
     [ "${#review}" -le 40000 ] && [ "$(rb_boot)" = "$boot" ] || return 1
-    printf 'BEGIN_PAYTM_REBOOT_%s\nVERSION=1\nRUN_ID=%s\nPHASE=%s\n' "$run" "$run" "$phase"
+    printf 'BEGIN_PAYTM_REBOOT_%s\nVERSION=2\nRUN_ID=%s\nPHASE=%s\n' "$run" "$run" "$phase"
     printf 'BOOT_ID=%s\nUTC_EPOCH=%s\n' "$boot" "$epoch"
     printf 'VM=%s\nCONTAINER=%s\n' "$(rb_virtualization vm)" "$(rb_virtualization container)"
-    printf 'SCANNER_PACKAGES=%s\nBACKUP_READABLE=%s\nJOBS_IDLE=%s\nGATEWAY_DISABLED=%s\n' "$scanner" "$backup" "$idle" "$disabled"
+    printf 'SCANNER_PACKAGES=%s\nBACKUP_READABLE=%s\nJOBS_IDLE=%s\nGATEWAY_MANUAL_ONLY=%s\n' "$scanner" "$backup" "$idle" "$manual"
+    po_field GATEWAY_UNIT_STATE "$rb_gateway_state"
+    po_field GATEWAY_QUERY_EXIT "$rb_gateway_exit"
+    po_field GATEWAY_REFERENCES "$rb_gateway_references"
     printf 'CORE_SERVICES_ACTIVE=%s\n' "$core"
     printf 'REVIEW_B64=%s\nCAPTURE_COMPLETE=yes\nEND_PAYTM_REBOOT_%s\n' "$(printf '%s\n' "$review" | base64 -w 0)" "$run"
 )
@@ -78,7 +90,7 @@ rb_reboot() (
     now=$(date -u +%s)
     [[ "$now" =~ ^[0-9]{10}$ ]] && [ "$now" -ge "$captured" ] && [ "$((now-captured))" -le 1200 ] || { printf 'REBOOT_STOP=EXPIRED_OR_CLOCK_CHANGED\n'; return 1; }
     [ "$(rb_boot)" = "$expected" ] || { printf 'REBOOT_STOP=BOOT_ALREADY_CHANGED_DO_NOT_REPEAT\n'; return 1; }
-    rb_host && rb_gateway_disabled && rb_idle && rb_backup && rb_core_active && pr_targets && si_arguments && si_versions || {
+    rb_host && rb_gateway_manual_only && rb_idle && rb_backup && rb_core_active && pr_targets && si_arguments && si_versions || {
         printf 'REBOOT_STOP=FRESH_GUARD_FAILED_NO_REBOOT\n'; return 1;
     }
     [ "$(po_value timedatectl show -p NTPSynchronized --value)" = yes ] || return 1

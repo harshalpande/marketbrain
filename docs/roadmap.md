@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-23 E181/E182: Before stopped on a defective disabled-state assumption for the original static gateway. [Corrected precheck](paytm-maintenance-completion.md) ready for fresh runtime validation; no reboot occurred or package acceptance regressed. Maintenance group1 remains open, five downstream groups unchanged. Bug correction adds no project percentage.
+
 2026-10-23 E179/E180: scanner install/scan accepted; six stale services/four sessions remain. [Confirmed reboot and fresh postcheck](paytm-maintenance-completion.md) combines the remaining guest restart work, with no reinstall. Maintenance group1 remains open until real acceptance; five further groups unchanged. VM microcode is a separately recorded provider limitation, not a guest pass or automatic reboot requirement. No whole-project percentage increment.
 
 2026-10-23 E177/E178: scanner dependency plan accepted, six packages/no upgrades/removals. [Install plus scan](paytm-scanner-install.md) now combined in one controlled job; real execution and restart review remain pending inside maintenance group1 of six. No additional milestone group or overall percentage gain for preparation.

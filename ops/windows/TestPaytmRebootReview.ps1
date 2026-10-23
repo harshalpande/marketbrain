@@ -58,7 +58,7 @@ END_PAYTM_RESTART_$Id
     $epoch=if($Phase -eq 'BEFORE' -or $Scenario -eq 'time'){'1792750000'}else{'1792750300'}
 @"
 BEGIN_PAYTM_REBOOT_$Id
-VERSION=1
+VERSION=2
 RUN_ID=$Id
 PHASE=$Phase
 BOOT_ID=$boot
@@ -68,7 +68,10 @@ CONTAINER=none
 SCANNER_PACKAGES=YES
 BACKUP_READABLE=YES
 JOBS_IDLE=YES
-GATEWAY_DISABLED=YES
+GATEWAY_MANUAL_ONLY=YES
+GATEWAY_UNIT_STATE=static
+GATEWAY_QUERY_EXIT=0
+GATEWAY_REFERENCES=NONE
 CORE_SERVICES_ACTIVE=YES
 REVIEW_B64=$(B64 $review)
 CAPTURE_COMPLETE=yes
@@ -81,11 +84,11 @@ Check ($r.checksPassed -and $r.microcodeAssessment -ceq 'NOT_ASSESSED_IN_VM_PROV
 Check ($r.restartReview.findings -contains 'MICROCODE_REVIEW_REQUIRED') 'raw scanner finding preserved'
 Check (-not $r.gatewayActivationAuthorized -and -not $r.ordersEnabled) 'authority unchanged'
 foreach($scenario in @('baseline','ucode','kernel','unknown','container','service')){Check (-not (Read-PaytmRebootReceipt (Fixture $id BEFORE $scenario) $id BEFORE).checksPassed) 'unreviewed condition blocks'}
-foreach($pair in @(@('VM=kvm','VM=UNKNOWN'),@('VM=kvm','VM=none'),@('CONTAINER=none','CONTAINER=docker'),@('CONTAINER=none','CONTAINER=UNKNOWN'),@('SCANNER_PACKAGES=YES','SCANNER_PACKAGES=NO'),@('BACKUP_READABLE=YES','BACKUP_READABLE=NO'),@('JOBS_IDLE=YES','JOBS_IDLE=NO'),@('GATEWAY_DISABLED=YES','GATEWAY_DISABLED=NO'))){Check (-not (Read-PaytmRebootReceipt $valid.Replace($pair[0],$pair[1]) $id BEFORE).checksPassed) 'guard failure blocks'}
+foreach($pair in @(@('VM=kvm','VM=UNKNOWN'),@('VM=kvm','VM=none'),@('CONTAINER=none','CONTAINER=docker'),@('CONTAINER=none','CONTAINER=UNKNOWN'),@('SCANNER_PACKAGES=YES','SCANNER_PACKAGES=NO'),@('BACKUP_READABLE=YES','BACKUP_READABLE=NO'),@('JOBS_IDLE=YES','JOBS_IDLE=NO'),@('GATEWAY_MANUAL_ONLY=YES','GATEWAY_MANUAL_ONLY=NO'),@('GATEWAY_UNIT_STATE=static','GATEWAY_UNIT_STATE=enabled'),@('GATEWAY_QUERY_EXIT=0','GATEWAY_QUERY_EXIT=124'),@('GATEWAY_REFERENCES=NONE','GATEWAY_REFERENCES=PRESENT'),@('GATEWAY_REFERENCES=NONE','GATEWAY_REFERENCES=UNKNOWN'))){Check (-not (Read-PaytmRebootReceipt $valid.Replace($pair[0],$pair[1]) $id BEFORE).checksPassed) 'guard failure blocks even if summary claims YES'}
 Check ((Read-PaytmRebootReceipt (Fixture $id AFTER) $id AFTER).checksPassed) 'post boot guest screen'
 Check (-not (Read-PaytmRebootReceipt (Fixture $id AFTER stale) $id AFTER).checksPassed) 'post boot stale services and sessions block'
 Check (-not (Read-PaytmRebootReceipt $valid.Replace('CORE_SERVICES_ACTIVE=YES','CORE_SERVICES_ACTIVE=NO') $id BEFORE).checksPassed) 'core service inactive blocks'
-foreach($bad in @($valid.Replace('VERSION=1','VERSION=2'),$valid.Replace('VERSION=1',"VERSION=1`nVERSION=1"),$valid.Replace('VERSION=1',"VERSION=1`nEXTRA=1"),$valid.Replace('CAPTURE_COMPLETE=yes','CAPTURE_COMPLETE=no'),$valid.Replace($id,'f'*32),($valid+"`nPRIVATE"),$valid.Replace('BOOT_ID=11111111-1111-1111-1111-111111111111','BOOT_ID=bad'),('x'*65001))){Reject {Read-PaytmRebootReceipt $bad $id BEFORE}}
+foreach($bad in @($valid.Replace('VERSION=2','VERSION=1'),$valid.Replace('VERSION=2',"VERSION=2`nVERSION=2"),$valid.Replace('VERSION=2',"VERSION=2`nEXTRA=1"),$valid.Replace('CAPTURE_COMPLETE=yes','CAPTURE_COMPLETE=no'),$valid.Replace($id,'f'*32),($valid+"`nPRIVATE"),$valid.Replace('BOOT_ID=11111111-1111-1111-1111-111111111111','BOOT_ID=bad'),('x'*65001))){Reject {Read-PaytmRebootReceipt $bad $id BEFORE}}
 Reject {Read-PaytmRebootReceipt $valid $id AFTER}
 Reject {New-PaytmRebootPayload 'bad' '' BEFORE}
 Reject {New-PaytmRebootPayload $id 'MB_REBOOT_REVIEW' BEFORE}
