@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E177/E178: missing-scanner dependency plan accepted; [combined install and scan](paytm-scanner-install.md) next. Detached maintenance execution does not establish unattended gateway supervision or key custody. No gateway activation/login acceptance yet; restart disposition remains open.
+
 2026-10-23 E175/E176: restart review collected clean baseline/targets but scanner is absent. [Dependency preview](paytm-scanner-plan.md) next; no unattended custody/supervision or activation accepted. Do not replay successful updates or infer restart clearance from absent reboot marker.
 
 2026-10-23 E173/E174: reviewed updates/postchecks and fresh login accepted; [read-only restart review](paytm-restart-review.md) is next. No new unattended-key custody, supervision, login or quote readiness accepted. Do not replay maintenance updates; earlier immediate-next-step notes are historical.

@@ -1,5 +1,7 @@
 # Maintenance preflight and remaining Paytm acceptance
 
+**Current E177/E178:** six new scanner packages reviewed, no upgrades/removals,51.727s. Next [combined controlled install and scan](paytm-scanner-install.md), owner confirmation and private same-VPS backup included. No completed-update replay or gateway/reboot activation. Earlier next-step notes below are historical.
+
 **Current E175/E176:** restart collection accepted33.811s, targets/health pass; scanner unavailable leaves restart needs unassessed. [Read-only dependency preview](paytm-scanner-plan.md) is next. No new installation or restart authorized; completed updates are not repeated. Earlier immediate-next-step notes below are historical.
 
 **Current E173/E174:** updates and fresh administrator login accepted in159.754s. Next [read-only restart review](paytm-restart-review.md); no repeat Apply/Collect, install or backup. Earlier retry guidance below is historical. Maintenance group1 remains open; broker/unattended activation unchanged.
@@ -18,7 +20,7 @@ These are milestones, **not a promise of six executions or zero retries**. Maint
 
 | Batch | Completion evidence | Dependency |
 |---|---|---|
-| 1. VPS maintenance | Reviewed candidates; private backup/recovery; approved update; fresh admin access and post-update verification | Updates/fresh login accepted; restart scan blocked by absent scanner, dependency preview next |
+| 1. VPS maintenance | Reviewed candidates; private backup/recovery; approved update; fresh admin access and post-update verification | Updates/fresh login accepted; scanner plan accepted, controlled install/scan next |
 | 2. Unattended gateway | Restricted identity under exact Windows task account; pinned host/fixed destination; supervision and effective egress | Provisioning pending; never automate with unrestricted admin key |
 | 3. Recovery and fail-closed operations | Network loss, duplicate start, stop/disable, wrong host/key, logoff/cold restart, no fallback/replay; time-health/drift policy | Bundle ordinary negatives, separate reboot checkpoint if necessary |
 | 4. Real Paytm login | Registered callback/state/MFA exchange, expiry/revocation/relogin, secret-safe failures | Real login not accepted; check current provider documentation |

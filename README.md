@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E177/E178,2026-10-23:** six-package scanner plan accepted51.727s, no upgrades/removals/findings. Next [controlled scanner install plus immediate restart scan](docs/paytm-scanner-install.md), explicit confirmation, one JSON and collect-only recovery. No replay of completed70-package updates, reboot, gateway activation or trades. Earlier next-step notes are historical.
+
 **Current E175/E176,2026-10-23:** restart collection succeeded33.811s; targets/health passed, but scanner unavailable, so restart needs remain unassessed. Next [read-only scanner dependency preview](docs/paytm-scanner-plan.md), one JSON. No installation/reboot/activation; completed updates must not be repeated. Earlier next-step notes are historical.
 
 **Current E173/E174, 2026-10-23:** reviewed VPS updates accepted (70 targets, 159.754s, postchecks and owner-confirmed fresh login). Do not repeat installation or Collect; both PuTTY sessions stayed connected. Next [read-only restart review](docs/paytm-restart-review.md), one JSON, no rebuild/restart/reboot or Paytm activation. Earlier next-step commands below are historical.

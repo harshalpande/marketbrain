@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E178 SCANNER_INSTALL_AND_SCAN_LOCAL_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-scanner-install-local-20261023.json), [handoff](paytm-scanner-install.md). Six fixed new packages, fresh private same-VPS backup, refreshed/exact manifest, download-host/archives/source-option guards, list-only configuration and immediate read-only restart scan. Detached one-time job; Collect never reinstalls. Actual Debian install/scan and real disconnect recovery pending; no restart/reboot/activation authority.
+- **E177 SIX_PACKAGE_SCANNER_PLAN_ACCEPTED:** [evidence](evidence/paytm-scanner-plan-spare-20261023.json).51.727s, exit0, six new packages/six matching configuration actions, no upgrades/removals/findings;70 targets and baseline health pass. Origins not proven by simulation, scanner still absent. E176 preview execution pending superseded; no installation/restart acceptance inferred.
+
 - **E176 SCANNER_PLAN_LOCAL_VERIFIED_RUNTIME_PENDING:** [evidence](evidence/paytm-scanner-plan-local-20261023.json), [handoff](paytm-scanner-plan.md).51 PowerShell assertions/five mocked workflows,34 Bash assertions/four mocked collectors. Cached dependency simulation plus fresh baseline; no install/download/refresh/restart/activation. Missing scanner remains unassessed; plan is not authorization or origin verification.
 - **E175 RESTART_REVIEW_ACCEPTED_WITH_SCANNER_MISSING:** [evidence](evidence/paytm-restart-review-spare-20261023.json).33.811s,70 targets and baseline health pass, zero cached upgrades/removals, no unexpected failed services; old failed update unit separately observed. UNAVAILABLE/NOT_RUN is the only scanner finding. No restart clearance; E173 update acceptance stands, E174 execution-pending status superseded.
 

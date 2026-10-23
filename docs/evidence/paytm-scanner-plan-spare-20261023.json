@@ -1,0 +1,32 @@
+{
+  "evidenceId": "E177",
+  "date": "2026-10-23",
+  "status": "SIX_PACKAGE_SCANNER_PLAN_ACCEPTED",
+  "sourceFile": "paytm-scanner-plan-20261023-160927-6b823ad4ebfe4de8b310e4897d7df4d9.json",
+  "sourceSha256": "545290116C8C0D6B3F852A3EE50A405B66B711A6A282BD646B59753FB8A657B2",
+  "runId": "6b823ad4ebfe4de8b310e4897d7df4d9",
+  "elapsedSeconds": 51.727,
+  "failure": null,
+  "simulationExit": 0,
+  "newPackageCount": 6,
+  "configurationActionCount": 6,
+  "upgradedPackageCount": 0,
+  "removedPackageCount": 0,
+  "findings": [],
+  "packages": {
+    "libintl-perl": "1.35-1",
+    "libmodule-find-perl": "0.17-1",
+    "libproc-processtable-perl": "0.636-1+b3",
+    "libsort-naturally-perl": "1.03-4",
+    "libterm-readkey-perl": "2.38-2+b4",
+    "needrestart": "3.11-1"
+  },
+  "baselineHealthyAnd70TargetsVerified": true,
+  "scannerStillUnavailable": true,
+  "packageOriginsVerifiedByPlan": false,
+  "ownerRequestedNextStep": true,
+  "actualInstallationPerformed": false,
+  "restartClearanceGranted": false,
+  "unattendedGatewayApproved": false,
+  "ordersEnabled": false
+}

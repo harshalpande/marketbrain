@@ -1,5 +1,7 @@
 # Paytm integration gates and return to paper trading
 
+2026-10-23 E177/E178: six-package scanner plan accepted; [install and scan together](paytm-scanner-install.md) next within maintenance group1. No repeat of accepted70-package updates, no live-order prerequisite or quote/login readiness credit. Scanner runtime/restart disposition precedes maintenance closure.
+
 2026-10-23 E175/E176: one specific maintenance gap remains from restart collection: scanner unavailable. [Read-only dependency preview](paytm-scanner-plan.md) next; installed updates remain accepted. Six-group scope unchanged, no quote/login/Telegram credit or live-order prerequisite added.
 
 2026-10-23 E173/E174: 70-target update verification and fresh login accepted. [Read-only restart review](paytm-restart-review.md) remains within maintenance group1 of six, not an added group. No installation repeat, login/quote completion or live-order prerequisite. Earlier next-step notes are historical.

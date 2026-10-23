@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-23 Scanner plan accepted; combined install and scan prepared
+
+- E177: owner plan6b823ad4ebfe4de8b310e4897d7df4d9 completed51.727s, simulation0, six new packages and six matching configuration actions, no upgrades/removals/findings. Health and70 installed targets pass; restart scanner still absent. All six pinned names/versions match the source report hash.
+- E178: [controlled install and immediate scan](paytm-scanner-install.md) prepared with fresh same-VPS backup, source trust-override screening, refreshed/exact simulation checks, Debian download-host and archive identity guards, suppressed APT scanner hook and new list-only default. Detached one-time job, non-overwriting stage, explicit owner confirmation, collect-only recovery and one shareable report. Real VPS install/scan not executed locally; no auto-repair/restart/reboot/activation.
+- Progress: dependency-plan acceptance closes preparation only. Maintenance group1 remains open until actual scanner/scan and restart disposition. No whole-project percentage increment, broker readiness or profit claim.
+- Local verification:59 PowerShell assertions/eight mocked workflows and122 Bash assertions/twenty mocked transactions;51 PowerShell/102 Bash shared regressions. Accepted report hash/all six versions, Apply/Collect syntax and serialized worker helpers verified. Actual Debian installation remains pending.
+
 ## 2026-10-23 Restart evidence accepted; missing scanner identified
 
 - E175: restart run77b0af7628bf4162807175c4c8eac0c3 completed33.811s, no capture failure.70 targets verified, clean package database/SSH, NTPyes, gateway inactive/no listener, cached updates/removals0; no unexpected failed services. Known earlier failed update unit remains visible. Scanner UNAVAILABLE/NOT_RUN is the only finding; no restart assessment or maintenance closure claimed. Zero scanner counts are unmeasured, not proof of no stale processes.

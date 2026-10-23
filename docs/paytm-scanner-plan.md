@@ -1,5 +1,7 @@
 # Missing restart scanner: dependency preview
 
+**Current E177/E178:** actual preview accepted51.727s, six new packages with matching configuration actions, no upgrades/removals/findings. Do not repeat the preview unchanged. Next [controlled scanner installation and scan](paytm-scanner-install.md); the preview steps below are historical. Actual installation/restart clearance remains pending.
+
 ## Accepted result and remaining gap
 
 E175 accepts the owner's restart report `77b0af7628bf4162807175c4c8eac0c3`, completed in **33.811 seconds** without a capture failure. All70 reviewed installed targets matched; package database/SSH checks passed, NTP was synchronized, gateway configuration matched and the gateway remained inactive with no listener. Cached simulation reported zero updates/removals. No unexpected failed services were reported; the previously reviewed failed maintenance unit remains visible separately.

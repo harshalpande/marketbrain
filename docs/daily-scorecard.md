@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E177/E178 (2026-10-23): six new packages,0 upgrades/removals,51.727s dependency plan accepted. Next [combined install and scan](paytm-scanner-install.md); execution pending. Earlier70-package update remains accepted, restart clearance still open. Local fixtures do not constitute real installation, disconnect-recovery or whole-project completion credit.
+
 E175/E176 (2026-10-23): restart collection33.811s, one finding: scanner unavailable.70 installed targets/baseline health pass; no new runtime completion beyond collection/diagnosis, no restart clearance. New read-only scanner-plan implementation passes51 PowerShell/34 Bash assertions locally; actual VPS preview pending. Maintenance group1 remains open; no whole-roadmap percentage gain. [Next handoff](paytm-scanner-plan.md).
 
 E173/E174 (2026-10-23): reviewed update completed in159.754s, all70 target versions verified by accepted worker postchecks; fresh administrator login owner-confirmed. Update checkpoint closed; maintenance still awaits restart review. New screen passes51 PowerShell/31 Bash assertions locally, not runtime acceptance. Both SSH sessions stayed connected, so disconnect recovery remains unproven. No whole-project percentage uplift or paper/quote/authentication completion inferred. [Next read-only handoff](paytm-restart-review.md).

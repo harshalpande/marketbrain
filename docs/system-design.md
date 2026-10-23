@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E177/E178: [six-package scanner installation](paytm-scanner-install.md) is a detached one-shot transaction with explicit consent, fresh same-VPS backup, fixed versions, APT trust/source/URI/archive checks and no replay of prior upgrades. APT scanner hook is suppressed; new default is list-only, followed by explicit batch scan. Atomic receipt distinguishes no-install/possible-partial/installed-scan outcomes. Collect cannot apply; no automatic restart, reboot, gateway or broker activation.
+
 Current E175/E176: accepted restart collection found absent needrestart. [Dependency preview](paytm-scanner-plan.md) uses cached APT simulation and current guarded baseline only; captures bounded package versions/actions and validates install/configuration pairs. Expected absent scanner is excluded only from plan screening, not restart clearance. New/existing package scope, origins and future hook behavior require review before apply. No runtime authority changes.
 
 Current E173/E174: VPS update receipt accepted. [Restart review](paytm-restart-review.md) collects read-only baseline/installed-target/failed-service and batch/list-only scanner evidence; no automatic install/restart/reboot/reset-failed. Missing tools and unknown states remain findings. Current-run receipt is bounded and validated; private session/container descriptions are masked. Neither no-known-findings nor accepted updates enable unattended gateway or broker access.
