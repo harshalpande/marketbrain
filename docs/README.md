@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E173/E174: 70-target update verification and fresh administrator login accepted, 159.754s. [Read-only restart review](paytm-restart-review.md) is next; no package replay, rebuild, restart or activation. Missing/unknown scanner results remain findings. Earlier immediate-next-step notes below are historical.
+
 2026-10-23 E172: original update stopped in SIMULATE, installation not attempted. Follow-up70-entry plan differs only in tzdata target. [Reviewed r2 retry instructions](paytm-maintenance-update.md) supersede the earlier Apply command: backup + failed-run + new-plan evidence required, original staging preserved. Actual updates/restart review remain pending.
 
 2026-10-23 E170/E171: private backup accepted95.89s,18.39MiB/source comparison, unchanged packages. [Next guarded 70-package update](paytm-maintenance-update.md), fresh admin login and restart review; no automatic reboot/activation. One shareable JSON, detached job/collect-only recovery. Off-host/full-system rollback remains unproven and requires explicit limitation acceptance. Supersedes immediate next-step notes below.

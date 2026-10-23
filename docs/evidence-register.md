@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E174 RESTART_REVIEW_LOCAL_VERIFIED_VPS_PENDING:** [evidence](evidence/paytm-restart-review-local-20261023.json), [handoff](paytm-restart-review.md). 51 PowerShell assertions/five mocked workflows, 31 Bash assertions/five mocked collectors, 49 maintenance PowerShell regressions. Exact update hash, installed targets, baseline health, failed services and list-only scanner; missing/unknown evidence never clear. No restart/install/reboot/activation. Actual VPS screen pending.
+- **E173 REVIEWED_UPDATES_VERIFIED_RESTART_REVIEW_PENDING:** [acceptance](evidence/paytm-maintenance-update-spare-20261023.json). COMPLETE/exit0, target/postchecks passed,70 reviewed packages, fresh login owner-confirmed,159.754s. Both PuTTY sessions remained connected; no disconnect-recovery proof. Absent reboot marker is not restart clearance. Supersedes E172 installation-pending status only; no replay needed.
+
 - **E172 CANDIDATE_DRIFT_REVIEWED_RETRY_RUNTIME_PENDING:** [evidence](evidence/paytm-maintenance-retry-20261023.json), [retry](paytm-maintenance-update.md). Original94.305s run stopped before installation; follow-up41.905s/exit0 has70 candidates and only tzdata target changed. Revised fixed manifest and separate r2 staging preserve prior evidence. Prior stopped/no-install receipt, original backup and three local JSON hashes gate retry; simulation-command failures distinguished from changed plans. Real upgrade/restart acceptance pending.
 
 - **E170 PRIVATE_BACKUP_SPARE_ACCEPTED:** [owner evidence](evidence/paytm-maintenance-backup-spare-20261023.json),95.89s;19,281,920bytes/source comparison passed, package state unchanged. Console login owner-confirmed; off-host copy, restore and full rollback unproven. Do not rerun backup.

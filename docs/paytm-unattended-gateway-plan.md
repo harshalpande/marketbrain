@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E173/E174: reviewed updates/postchecks and fresh login accepted; [read-only restart review](paytm-restart-review.md) is next. No new unattended-key custody, supervision, login or quote readiness accepted. Do not replay maintenance updates; earlier immediate-next-step notes are historical.
+
 2026-10-23 E172: update stopped before install on candidate drift; reviewed r2 retry is the current maintenance step. Unattended activation still blocked. [Updated handoff](paytm-maintenance-update.md).
 
 2026-10-23 E170/E171: private backup runtime accepted; [guarded exact-version update](paytm-maintenance-update.md) and post-update/restart review next. Unattended gateway activation is still blocked. Systemd independence here is for one maintenance job, not gateway supervision or unattended custody of the administrator key.

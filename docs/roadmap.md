@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-23 E173/E174: update checkpoint accepted (70 targets/postchecks, fresh login,159.754s); maintenance group1 remains open for [read-only restart review](paytm-restart-review.md). No repeat installation or added milestone group. Remaining unattended/login/quotes/Telegram gates and overall percentages unchanged.
+
 2026-10-23 E172: maintenance update blocked safely before install; one tzdata candidate drift identified. [Reviewed r2 retry](paytm-maintenance-update.md) prepared with original evidence preserved and fresh guards. Maintenance batch1 still open; no added milestone group, no overall percentage increment.
 
 2026-10-23 E170/E171: backup runtime acceptance closes that checkpoint (95.89s, comparison passed), not maintenance as a whole. [Controlled exact-version updates/postchecks](paytm-maintenance-update.md) prepared; actual install/fresh login/restart review pending. Still batch1 of six acceptance groups. No whole-roadmap percentage gain or guaranteed remaining run count.

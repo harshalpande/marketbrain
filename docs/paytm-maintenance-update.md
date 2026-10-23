@@ -1,5 +1,7 @@
 # Reviewed VPS updates and reconnect-safe verification
 
+**Current E173, accepted:** run `61e8afb23b9e4e73b883914330c99514` completed successfully in159.754s with target/postchecks passed and fresh administrator login owner-confirmed. Both PuTTY sessions stayed connected; no Collect or Apply retry is needed. **Do not execute the historical update handoff below again.** Use the [read-only restart review](paytm-restart-review.md). Absent reboot marker is not proof that restarts are unnecessary. Unattended gateway/broker activation remain blocked. Earlier sections retain the reviewed implementation and historical handoff, not current instructions.
+
 **Current E172, reviewed retry r2:** run `7fb461f8bff74ee0bb15a5afed8c49bc` stopped in SIMULATE after94.305s, installation not attempted. Follow-up `146a8aba4cdf47c08e356010016eb462` passed in41.905s:70 candidates,0 holds/removals, clean package/SSH/configuration checks. Only `tzdata` candidate changed from `2026c-0+deb13u1` to `2026e-0+deb13u1`; installed version remains `2026b-0+deb13u1`. The changed candidate explains rejection of the fixed manifest, though the original simulation output was not retained. Owner authorized a reviewed retry. All69 other entries remain unchanged. The instructions below are updated; do not use the earlier Apply command without the two additional evidence paths.
 
 2026-10-23 E170/E171. The owner backup run `897a81468f7d4ac0ba034fc15797b6fa` passed in **95.89 seconds**: 19,281,920-byte archive (18.39 MiB), source comparison passed, package state unchanged. Independent HosterDaddy browser/VNC login was owner-confirmed. Do not rerun the backup or earlier accepted route/clock/preflight batches.
@@ -26,7 +28,7 @@ The private worker records a small atomic receipt with phase, exit code, install
 
 [APT's Debian manual](https://manpages.debian.org/trixie/apt/apt-get.8.en.html) documents simulations, pinned versions and download/upgrade restrictions. The [APT configuration manual](https://manpages.debian.org/trixie/apt/apt.conf.5.en.html) documents pre-install archive lists and aborting when a hook fails. [systemd-run's Debian manual](https://manpages.debian.org/trixie/systemd/systemd-run.1.en.html) documents transient services independent of the invoking SSH process. These mechanisms do not guarantee an uninterrupted upgrade; real VPS acceptance remains pending.
 
-## Complete spare-laptop handoff
+## Historical update handoff - already completed; do not rerun
 
 1. Keep all other VPS package/configuration jobs idle. Keep VNC recovery available and the existing verified administrator PuTTY window open. No gateway Pageant key, START-TEST, STOP or SERVER_READY is used here.
 2. In administrator PuTTY run `sudo -v`, entering the sudo password there only.

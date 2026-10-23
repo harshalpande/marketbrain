@@ -1,5 +1,7 @@
 # Maintenance preflight and remaining Paytm acceptance
 
+**Current E173/E174:** updates and fresh administrator login accepted in159.754s. Next [read-only restart review](paytm-restart-review.md); no repeat Apply/Collect, install or backup. Earlier retry guidance below is historical. Maintenance group1 remains open; broker/unattended activation unchanged.
+
 **E172 current:** post-refresh candidate drift stopped installation. Follow-up plan passed, with only tzdata target2026c to2026e changed. [Reviewed r2 retry](paytm-maintenance-update.md) is next; no new preflight/backup requested. Original staging retained, fresh guards apply. All six milestone groups remain unchanged.
 
 **Current E170/E171:** backup accepted95.89s; next [reviewed updates and postchecks](paytm-maintenance-update.md), with explicit owner acceptance of on-VPS-only recovery limits. No preflight/backup rerun. Real updates and restart review remain within batch1; no automatic reboot or gateway activation. Earlier next-step notes are historical.
@@ -14,7 +16,7 @@ These are milestones, **not a promise of six executions or zero retries**. Maint
 
 | Batch | Completion evidence | Dependency |
 |---|---|---|
-| 1. VPS maintenance | Reviewed candidates; private backup/recovery; approved update; fresh admin access and post-update verification | Current preflight only; apply after review and owner recovery access |
+| 1. VPS maintenance | Reviewed candidates; private backup/recovery; approved update; fresh admin access and post-update verification | Updates and fresh login accepted; read-only restart review pending |
 | 2. Unattended gateway | Restricted identity under exact Windows task account; pinned host/fixed destination; supervision and effective egress | Provisioning pending; never automate with unrestricted admin key |
 | 3. Recovery and fail-closed operations | Network loss, duplicate start, stop/disable, wrong host/key, logoff/cold restart, no fallback/replay; time-health/drift policy | Bundle ordinary negatives, separate reboot checkpoint if necessary |
 | 4. Real Paytm login | Registered callback/state/MFA exchange, expiry/revocation/relogin, secret-safe failures | Real login not accepted; check current provider documentation |

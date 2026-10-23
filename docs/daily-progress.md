@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-23 Updates accepted; read-only restart review prepared
+
+- E173: owner report `61e8afb23b9e4e73b883914330c99514` is COMPLETE/exit 0, postchecks passed, reviewed 70-target versions verified, fresh administrator login owner-confirmed, 159.754s. Both PuTTY sessions remained connected; disconnect recovery is not thereby tested. No Apply/Collect retry requested. Reboot marker absent does not prove restarts unnecessary; no gateway/broker/order activation.
+- E174: [read-only restart screen](paytm-restart-review.md) combines installed-target and baseline health with failed-service/kernel/scanner checks. 51 PowerShell assertions/five mocked workflows, 31 Bash assertions/five mocked collectors and 49 maintenance PowerShell regressions pass locally. Unknown/missing scanner output stays a finding, known old failed job remains separately visible, private session/container descriptions are masked. One shareable JSON; no server file/configuration changes or automatic remediation. Real VPS screen pending.
+- Progress: one update acceptance checkpoint closed, maintenance group 1 of six remains open for restart review. No new group, guaranteed run count, whole-project percentage or trading-performance claim.
+
 ## 2026-10-23 Maintenance candidate drift reviewed; guarded retry r2
 
 - Failed update7fb461f8bff74ee0bb15a5afed8c49bc:94.305s, SIMULATE/UPGRADE_PLAN_CHANGED, installation not attempted. Follow-up146a8aba4cdf47c08e356010016eb462:41.905s, simulation exit0,70 candidates,0 holds/removals, clean package database/SSH, matching gateway configuration, stopped gateway, NTP synchronized. Exactly one candidate differs: tzdata2026c to2026e; installed2026b unchanged. Original simulation stdout was not retained, so the later diff explains the rejection without proving the original command exit code.
