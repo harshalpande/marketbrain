@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E168/E169: accepted maintenance preflight and owner-confirmed console login precede [root-only on-VPS backup](paytm-maintenance-backup.md). Unique non-overwriting private archive, comparison/hash and redacted receipt; no restore/update/start/reboot. Same-disk config backup is not full rollback/off-host recovery. Application/database and broker boundaries unchanged.
+
 Current E166/E167: relative clock screen accepted; next [read-only maintenance preflight](paytm-maintenance-plan.md) uses verified admin PuTTY, fixed bounded commands and one redacted JSON. No unattended admin credential custody or application clock substitution. Maintenance apply, ongoing time health and unattended provisioning remain separate gated changes; broker actions stay disabled.
 
 Current E164/E165: manual Windows correction reported; use [clock snapshot](paytm-clock-snapshot.md) to measure pinned VPS and existing main-JVM timestamps relative to Windows with network/request uncertainty. No application clock replacement, public time endpoint, database mutation or gateway activation. One-shot administrative SSH diagnostic is separate from future restricted unattended custody. Existing account GET returns actual main-JVM Instant.now; its token remains private.

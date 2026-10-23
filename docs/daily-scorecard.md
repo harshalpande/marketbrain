@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E168/E169 (2026-10-23): maintenance **preflight accepted**,76.183s/no findings;70 candidates unchanged,0 holds/removals. Independent console login owner-confirmed. Private backup package49 PowerShell/28 Bash assertions locally passed; actual VPS backup pending. Maintenance updates/recovery and six-group readiness not complete; do not count test pass rate as project completion.
+
 E166/E167 (2026-10-23 review): October22 clock screen **10/10 usable,100% of this sample screen**,100.465s total; accepted. Automatic sync/quote timing remain false. Maintenance preflight locally verified49 PowerShell/33 Bash assertions, spare pending. Six remaining milestone groups, not six guaranteed runs; no full-roadmap percentage recalculated.
 
 E164/E165 (2026-10-22): owner reports manual correction to<5s difference; **no independently measured time acceptance yet**. Access diagnosis completed8.208s, start right denied even with enabled admin. New three-clock snapshot locally verified:113 comparison/runner assertions/10 workflows and28 HTTP assertions; no real runtime calls locally. No full-roadmap gain or automatic-sync repair credited. [Handoff](paytm-clock-snapshot.md).

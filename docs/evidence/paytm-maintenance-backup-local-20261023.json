@@ -1,0 +1,17 @@
+{
+  "evidenceId": "E169",
+  "date": "2026-10-23",
+  "status": "PRIVATE_BACKUP_LOCAL_TESTS_PASSED_RUNTIME_PENDING",
+  "powershellAssertions": 49,
+  "mockedLauncherWorkflowsIncluded": 6,
+  "bashAssertions": 28,
+  "linuxFileSizeLimitMockedLocally": true,
+  "nativeGnuTarDisposableFixtureExercised": true,
+  "productionDebianArchiveCreated": false,
+  "debianPermissionOrAclRestoreProven": false,
+  "offHostBackupVerified": false,
+  "fullSystemRollbackProven": false,
+  "packagesChanged": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}

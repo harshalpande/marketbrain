@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E168/E169: maintenance preflight accepted76.183s, no findings; console login owner-confirmed. [Next private backup](paytm-maintenance-backup.md) locally verified, Debian execution pending. No package installation/reboot or gateway activation. Share JSON only, never archive/private logs.
+
 2026-10-23 E166/E167: clock screen accepted10/10. [Next maintenance preflight and six remaining batches](paytm-maintenance-plan.md);49 PowerShell/33 Bash assertions passed locally, spare pending. No package changes/reboot/gateway/broker activation. This supersedes older immediate-next-step notes below.
 
 2026-10-22 E164/E165: manual Windows correction owner-reported, not runtime acceptance. [Next clock snapshot](paytm-clock-snapshot.md) compares pinned VPS time, Windows and existing main-Java account timestamps with delay bounds.113 comparison/runner and28 HTTP assertions pass; actual spare run pending. No automatic-time repair, VPS-backed clock implementation or quote/trade activation.

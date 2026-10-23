@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E168 MAINTENANCE_PREFLIGHT_ACCEPTED:** [owner evidence](evidence/paytm-maintenance-plan-spare-20261023.json),76.183s/no findings;70 unchanged candidates,0 holds/removals,8.04GiB free. Independent console login subsequently owner-confirmed. Backup/apply not performed.
+- **E169 PRIVATE_BACKUP_LOCAL_PASS_RUNTIME_PENDING:** [local evidence](evidence/paytm-maintenance-backup-local-20261023.json), [handoff](paytm-maintenance-backup.md).49 PowerShell assertions/six workflows,28 Bash assertions/native disposable archive test (Linux size limit mocked); root-only real Debian backup and full recovery unverified. No update/reboot/activation.
+
 - **E166 RELATIVE_CLOCK_SCREEN_ACCEPTED:** [owner evidence](evidence/paytm-clock-snapshot-spare-20261022.json),10/10 samples,100.465s; no findings, unchanged container and cleanup confirmed. No automatic sync/absolute UTC/quote timing claim. No repeat now.
 - **E167 MAINTENANCE_PREFLIGHT_LOCAL_PASS_RUNTIME_PENDING:** [local evidence](evidence/paytm-maintenance-plan-local-20261023.json), [handoff](paytm-maintenance-plan.md).49 PowerShell assertions/four workflows,33 Bash assertions. No package changes/reboot/backup/activation.
 

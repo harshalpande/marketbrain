@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E168/E169: preflight accepted, console access owner-confirmed; [private backup](paytm-maintenance-backup.md) next. Updates and unattended activation remain pending. Do not repeat accepted maintenance/clock/route batches; backup rechecks only immediate safety conditions.
+
 2026-10-23 E166/E167 supersedes next-step notes below: clock screen accepted10/10, no repeat now. [Maintenance preflight and six remaining batches](paytm-maintenance-plan.md) is current. Drift/automatic sync remain open before activation; no broker release implied.
 
 E164/E165: owner manually corrected Windows; [three-clock snapshot](paytm-clock-snapshot.md) is the immediate next verification. It uses an existing admin key only for manual read-only time queries, never as unattended gateway custody. Absolute accuracy/drift policy and70 VPS updates remain unresolved. Successful snapshot alone does not authorize activation.

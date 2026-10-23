@@ -1,5 +1,7 @@
 # Paytm integration gates and return to paper trading
 
+2026-10-23 E168/E169: maintenance-plan acceptance closes preflight, not the update batch. [Next private backup](paytm-maintenance-backup.md) follows owner-confirmed console access. Six remaining milestone groups retain their scope; no seventh group or live-order prerequisite added.
+
 2026-10-23 E166/E167 current: clock screen accepted10/10. Next [maintenance preflight](paytm-maintenance-plan.md). Six remaining groups: maintenance, unattended provisioning, recovery/time health, real login, quotes, combined Telegram review. Not six guaranteed executions. This supersedes older next-command guidance; accepted route tests remain accepted.
 
 2026-10-21. This is the ordered acceptance plan, not permission to submit real orders. Combine related positive/negative tests in each evidence bundle, keep timing and safety counters, and retain one shareable report. Do not require live trading before returning to paper development.
