@@ -1,5 +1,7 @@
 # Reviewed scanner installation and immediate restart scan
 
+**Superseded execution instructions:** E179 accepts the actual installation via Collect (35.83s); do not run Apply or Collect again just to progress. Next is [confirmed reboot and post-boot verification](paytm-maintenance-completion.md) for six stale services/four sessions. The original procedure below is retained for audit, not the current next step.
+
 ## Accepted plan and scope
 
 E177 accepts owner plan `6b823ad4ebfe4de8b310e4897d7df4d9`: **51.727 seconds**, simulation exit0, six new packages and matching configuration actions, no upgrades/removals or plan findings. Current health and all70 previously installed targets passed. The absent scanner still prevents restart assessment. This next operation installs the scanner and runs the read-only scan in the **same job**, not a replay of the completed maintenance upgrade.

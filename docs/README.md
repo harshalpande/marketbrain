@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E179/E180: six scanner packages and scan accepted,35.83s collection; six stale services/four sessions remain. [Combined confirmed reboot and after-check](paytm-maintenance-completion.md) is next, with saved checkpoint and After-only recovery. No update replay, gateway or broker activation. This supersedes earlier immediate-next-step notes below.
+
 2026-10-23 E177/E178: needrestart plus five dependencies reviewed (six new packages,51.727s). [Install and scan in one job](paytm-scanner-install.md) is next; owner confirmation, fresh private backup, exact manifest and collect-only recovery. Actual installation/scan pending; completed updates remain accepted.
 
 2026-10-23 E175/E176: restart report accepted with one missing-tool finding; health/70 targets pass,33.811s. [Scanner dependency preview](paytm-scanner-plan.md) next, read-only and one JSON. Restart clearance, scanner installation and unattended activation remain pending; no update replay.

@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-23 E179/E180: scanner install/scan accepted; six stale services/four sessions remain. [Confirmed reboot and fresh postcheck](paytm-maintenance-completion.md) combines the remaining guest restart work, with no reinstall. Maintenance group1 remains open until real acceptance; five further groups unchanged. VM microcode is a separately recorded provider limitation, not a guest pass or automatic reboot requirement. No whole-project percentage increment.
+
 2026-10-23 E177/E178: scanner dependency plan accepted, six packages/no upgrades/removals. [Install plus scan](paytm-scanner-install.md) now combined in one controlled job; real execution and restart review remain pending inside maintenance group1 of six. No additional milestone group or overall percentage gain for preparation.
 
 2026-10-23 E175/E176: restart collection accepted with scanner unavailable, not maintenance complete. [Read-only dependency preview](paytm-scanner-plan.md) addresses that specific gap; no completed-update replay, installation or activation. Still group1 of six; no project-percentage increment for local tests or diagnosis.

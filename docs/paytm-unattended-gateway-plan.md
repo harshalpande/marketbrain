@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+2026-10-23 E179/E180: installation accepted, restart scan found six stale services/four sessions. [Confirmed reboot/postcheck](paytm-maintenance-completion.md) is the current prerequisite, not repeat installation. VM microcode disposition remains explicit; no unattended provisioning or activation has occurred. Earlier immediate-next-step notes are historical.
+
 2026-10-23 E177/E178: missing-scanner dependency plan accepted; [combined install and scan](paytm-scanner-install.md) next. Detached maintenance execution does not establish unattended gateway supervision or key custody. No gateway activation/login acceptance yet; restart disposition remains open.
 
 2026-10-23 E175/E176: restart review collected clean baseline/targets but scanner is absent. [Dependency preview](paytm-scanner-plan.md) next; no unattended custody/supervision or activation accepted. Do not replay successful updates or infer restart clearance from absent reboot marker.

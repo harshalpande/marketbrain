@@ -1,0 +1,34 @@
+{
+  "evidenceId": "E180",
+  "date": "2026-10-23",
+  "status": "MAINTENANCE_REBOOT_LOCAL_VERIFIED_RUNTIME_PENDING",
+  "newPowerShellAssertions": 76,
+  "mockedBeforeAfterWorkflows": 13,
+  "newBashAssertions": 51,
+  "regressionPowerShellAssertions": 110,
+  "regressionBashAssertions": 31,
+  "sourceScannerEvidenceHashVerified": true,
+  "sourceScannerReceiptReparsed": true,
+  "scope": [
+    "Read-only before and after guest observations",
+    "Exact accepted scanner evidence, fresh 70 plus six versions and core services",
+    "VM evidence required for explicit unassessed provider microcode limitation",
+    "Independent console, idle workloads and downtime/recovery limitations confirmed by operator",
+    "Checkpoint persisted before separately confirmed reboot command is copied",
+    "Pinned host, boot identity and VPS-time expiry; no force, delayed timer or repeat install",
+    "After-only recovery cannot request reboot; changed boot and clean guest screen required"
+  ],
+  "limitations": [
+    "Local tests mock VPS commands; they are not real reboot or recovery evidence",
+    "Idle-process and systemd-job checks are observations, not package exclusion locks",
+    "Existing private archive readability is not off-host backup, tested restore or full rollback",
+    "Host microcode and hypervisor health are not certified inside the guest",
+    "No guarantee of zero provider, boot or postcheck findings"
+  ],
+  "vpsRebootPerformedLocally": false,
+  "runtimeAcceptancePending": true,
+  "maintenanceComplete": false,
+  "gatewayActivationAuthorized": false,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}
