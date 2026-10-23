@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+E172 (2026-10-23):94.305s update stopped before installation;41.905s follow-up isolated one changed candidate out of70. This is diagnosis and reviewed retry preparation, not successful installation or a project-completion increase. Actual updates and restart review remain open in maintenance batch1.
+
 E170/E171 (2026-10-23): private backup accepted in95.89s,19,281,920bytes, archive/source comparison passed and packages unchanged. Update implementation/local verification is separate from pending actual VPS installation. One maintenance checkpoint closed; batch1 of six remains open for updates/restart review. Off-host recovery/restore unproven. No new full-project percentage is supported by this result.
 
 E168/E169 (2026-10-23): maintenance **preflight accepted**,76.183s/no findings;70 candidates unchanged,0 holds/removals. Independent console login owner-confirmed. Private backup package49 PowerShell/28 Bash assertions locally passed; actual VPS backup pending. Maintenance updates/recovery and six-group readiness not complete; do not count test pass rate as project completion.

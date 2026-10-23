@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E172,2026-10-23:** update stopped before installation; follow-up identifies only a newer tzdata candidate. [Reviewed r2 retry](docs/paytm-maintenance-update.md) preserves original staging, requires stopped/no-install evidence and rechecks the backup. Three original JSON inputs; one output. No automatic reboot/gateway/broker activation. Earlier next-step commands are superseded.
+
 **Current E170/E171,2026-10-23:** private VPS backup accepted in95.89s; source comparison passed, package state unchanged. [Next reviewed package update and verification](docs/paytm-maintenance-update.md) is a real-change handoff with explicit owner confirmation, independent job and collect-only recovery. No automatic reboot, gateway activation or broker access. Same-VPS backup is not full rollback; earlier next-step notes are historical.
 
 **Current E168/E169,2026-10-23:** maintenance preflight accepted; independent console login owner-confirmed. Next [private VPS backup](docs/paytm-maintenance-backup.md), one shareable JSON, archive stays root-only on VPS. No updates/restart/activation; no plan rerun. Earlier next-step notes are historical.

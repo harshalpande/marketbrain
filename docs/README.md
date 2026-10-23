@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-23 E172: original update stopped in SIMULATE, installation not attempted. Follow-up70-entry plan differs only in tzdata target. [Reviewed r2 retry instructions](paytm-maintenance-update.md) supersede the earlier Apply command: backup + failed-run + new-plan evidence required, original staging preserved. Actual updates/restart review remain pending.
+
 2026-10-23 E170/E171: private backup accepted95.89s,18.39MiB/source comparison, unchanged packages. [Next guarded 70-package update](paytm-maintenance-update.md), fresh admin login and restart review; no automatic reboot/activation. One shareable JSON, detached job/collect-only recovery. Off-host/full-system rollback remains unproven and requires explicit limitation acceptance. Supersedes immediate next-step notes below.
 
 2026-10-23 E168/E169: maintenance preflight accepted76.183s, no findings; console login owner-confirmed. [Next private backup](paytm-maintenance-backup.md) locally verified, Debian execution pending. No package installation/reboot or gateway activation. Share JSON only, never archive/private logs.

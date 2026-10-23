@@ -1,5 +1,7 @@
 # Maintenance preflight and remaining Paytm acceptance
 
+**E172 current:** post-refresh candidate drift stopped installation. Follow-up plan passed, with only tzdata target2026c to2026e changed. [Reviewed r2 retry](paytm-maintenance-update.md) is next; no new preflight/backup requested. Original staging retained, fresh guards apply. All six milestone groups remain unchanged.
+
 **Current E170/E171:** backup accepted95.89s; next [reviewed updates and postchecks](paytm-maintenance-update.md), with explicit owner acceptance of on-VPS-only recovery limits. No preflight/backup rerun. Real updates and restart review remain within batch1; no automatic reboot or gateway activation. Earlier next-step notes are historical.
 
 **E168 accepted,2026-10-23:** owner preflight76.183s, no findings;70 identical candidates, no holds/removals,8.04GiB free. Do not rerun this plan. Owner confirmed independent browser/VNC login. Next [private backup handoff](paytm-maintenance-backup.md), not package installation. Earlier preflight instructions remain historical.

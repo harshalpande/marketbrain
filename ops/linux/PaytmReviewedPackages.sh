@@ -1,4 +1,4 @@
-# Reviewed package versions from owner report f44e98badcf348a6aa7f0967236b4a9b.
+# Reviewed revision 2 from owner report 146a8aba4cdf47c08e356010016eb462.
 mu_expected() {
     cat <<'MB_REVIEWED_PACKAGES'
 libc6|2.41-12+deb13u3|2.41-12+deb13u4
@@ -37,7 +37,7 @@ python3.13|3.13.5-2+deb13u3|3.13.5-2+deb13u5
 libpython3.13-stdlib|3.13.5-2+deb13u3|3.13.5-2+deb13u5
 python3.13-minimal|3.13.5-2+deb13u3|3.13.5-2+deb13u5
 libpython3.13-minimal|3.13.5-2+deb13u3|3.13.5-2+deb13u5
-tzdata|2026b-0+deb13u1|2026c-0+deb13u1
+tzdata|2026b-0+deb13u1|2026e-0+deb13u1
 liblzma5|5.8.1-1+deb13u1|5.8.1-1+deb13u2
 libpcre2-8-0|10.46-1~deb13u1|10.46-1~deb13u3
 libglib2.0-0t64|2.84.4-3~deb13u3|2.84.4-3~deb13u5

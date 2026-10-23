@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E172 CANDIDATE_DRIFT_REVIEWED_RETRY_RUNTIME_PENDING:** [evidence](evidence/paytm-maintenance-retry-20261023.json), [retry](paytm-maintenance-update.md). Original94.305s run stopped before installation; follow-up41.905s/exit0 has70 candidates and only tzdata target changed. Revised fixed manifest and separate r2 staging preserve prior evidence. Prior stopped/no-install receipt, original backup and three local JSON hashes gate retry; simulation-command failures distinguished from changed plans. Real upgrade/restart acceptance pending.
+
 - **E170 PRIVATE_BACKUP_SPARE_ACCEPTED:** [owner evidence](evidence/paytm-maintenance-backup-spare-20261023.json),95.89s;19,281,920bytes/source comparison passed, package state unchanged. Console login owner-confirmed; off-host copy, restore and full rollback unproven. Do not rerun backup.
 - **E171 REVIEWED_UPDATE_LOCAL_PASS_RUNTIME_PENDING:** [local evidence](evidence/paytm-maintenance-update-local-20261023.json), [handoff](paytm-maintenance-update.md). Exact70 candidate transaction with preinstall archive check, detached job, atomic redacted receipt and collect-only recovery. Mocked tests do not certify actual Debian installation or SSH-loss recovery. Explicit owner real-change/recovery-limit confirmation required; no automatic reboot or broker activation.
 

@@ -1,6 +1,47 @@
 #!/usr/bin/env bash
 # Controlled transaction, launched as a transient root service; never reboot/restore.
 mu_fail() { failure_code="$1"; printf 'UPDATE_STOP=%s\n' "$1" >&2; exit 1; }
+mu_prior_receipt() {
+    cat <<'MB_PRIOR_RECEIPT'
+BEGIN_PAYTM_UPDATE_7fb461f8bff74ee0bb15a5afed8c49bc
+VERSION=1
+RUN_ID=7fb461f8bff74ee0bb15a5afed8c49bc
+PHASE=SIMULATE
+EXIT_CODE=1
+INSTALL_ATTEMPTED=no
+POSTCHECKS_PASSED=no
+REBOOT_MARKER=UNKNOWN
+FAILURE_CODE=UPGRADE_PLAN_CHANGED
+CAPTURE_COMPLETE=yes
+END_PAYTM_UPDATE_7fb461f8bff74ee0bb15a5afed8c49bc
+MB_PRIOR_RECEIPT
+}
+mu_prior_state() {
+    # Exact inactive/failed observations only, independent of property ordering.
+    local rows
+    rows=$(printf '%s\n' "$1" | sort) || return 1
+    [ "$rows" = "$(printf '%s\n' ActiveState=failed LoadState=loaded MainPID=0 SubState=failed | sort)" ] ||
+    [ "$rows" = "$(printf '%s\n' ActiveState=inactive LoadState=loaded MainPID=0 SubState=dead | sort)" ] ||
+    [ "$rows" = "$(printf '%s\n' ActiveState=inactive LoadState=not-found MainPID=0 SubState=dead | sort)" ]
+}
+mu_prior_files() {
+    local prior="$1" path
+    pb_parent "$prior" || return 1
+    [ "$(stat -c '%u:%g:%a' "$prior")" = 0:0:700 ] || return 1
+    for path in "$prior/run-id" "$prior/receipt.txt"; do
+        [ -f "$path" ] && [ ! -L "$path" ] && [ "$(stat -c '%u:%g:%a' "$path")" = 0:0:600 ] || return 1
+        [ "$(stat -c %s "$path")" -le 2048 ] || return 1
+    done
+    [ "$(cat "$prior/run-id")" = 7fb461f8bff74ee0bb15a5afed8c49bc ] &&
+    [ "$(cat "$prior/receipt.txt")" = "$(mu_prior_receipt)" ]
+}
+mu_prior() {
+    local rows rc=0
+    pb_parent /var && pb_parent /var/backups && pb_parent /var/backups/marketbrain-maintenance || return 1
+    mu_prior_files /var/backups/marketbrain-maintenance/update-20261023 || return 1
+    rows=$(timeout 15s systemctl show marketbrain-maintenance-7fb461f8bff74ee0bb15a5afed8c49bc.service -p LoadState -p ActiveState -p SubState -p MainPID) || rc=$?
+    [[ "$rc" = 0 || "$rc" = 4 ]] && mu_prior_state "$rows"
+}
 mu_plan() {
     local input="$1" rows
     if printf '%s\n' "$input" | grep -q '^Remv '; then return 1; fi
@@ -68,14 +109,17 @@ mu_receipt() {
 mu_execute() {
     # Uses the worker's fixed local context; split out solely for offline fixtures.
     mu_guard || mu_fail GUARD
+    mu_prior || mu_fail PRIOR_RUN_NOT_SAFE
     [ "$(po_hash "$archive" 3050d89b1eaa1db95a0ad27a3cb52b394870ffc0b57185dfa53672430587ca8c)" = MATCH ] || mu_fail BACKUP_HASH
     timeout --kill-after=5s 180s tar --compare --acls --xattrs --numeric-owner --file "$archive" --directory / || mu_fail BACKUP_SOURCE_DRIFT
     mu_arguments && mu_versions before || mu_fail INSTALLED_VERSION_DRIFT
     phase=REFRESH; printf '%s\n' "$phase" >"$directory/phase"
     timeout --kill-after=10s 180s apt-get "${apt_options[@]}" -o APT::Update::Error-Mode=any update || mu_fail INDEX_REFRESH
     phase=SIMULATE; printf '%s\n' "$phase" >"$directory/phase"
-    rows=$(timeout 60s apt-get -s -o Debug::NoLocking=1 upgrade) && mu_plan "$rows" || mu_fail UPGRADE_PLAN_CHANGED
-    rows=$(timeout 60s apt-get -s --only-upgrade --no-remove --no-install-recommends install "${targets[@]}") && mu_plan "$rows" || mu_fail EXACT_PLAN_CHANGED
+    timeout --kill-after=5s 60s apt-get -s -o Debug::NoLocking=1 upgrade >"$directory/upgrade-simulation.txt" || mu_fail UPGRADE_SIMULATION_FAILED
+    rows=$(cat "$directory/upgrade-simulation.txt") && mu_plan "$rows" || mu_fail UPGRADE_PLAN_CHANGED
+    timeout --kill-after=5s 60s apt-get -s --only-upgrade --no-remove --no-install-recommends install "${targets[@]}" >"$directory/exact-simulation.txt" || mu_fail EXACT_SIMULATION_FAILED
+    rows=$(cat "$directory/exact-simulation.txt") && mu_plan "$rows" || mu_fail EXACT_PLAN_CHANGED
     phase=DOWNLOAD; printf '%s\n' "$phase" >"$directory/phase"
     timeout --kill-after=10s 600s apt-get "${apt_options[@]}" --download-only --assume-yes --only-upgrade --no-remove --no-install-recommends install "${targets[@]}" || mu_fail DOWNLOAD
     mu_guard && mu_versions before || mu_fail PREINSTALL_DRIFT
@@ -97,7 +141,7 @@ mu_worker() (
     export PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l UCF_FORCE_CONFFOLD=1
     unset TAR_OPTIONS
     umask 077
-    local run="$1" directory=/var/backups/marketbrain-maintenance/update-20261023
+    local run="$1" directory=/var/backups/marketbrain-maintenance/update-20261023-r2
     local phase=PRECHECK attempted=no post=no reboot=UNKNOWN failure_code=NONE rows archive=/var/backups/marketbrain-maintenance/897a81468f7d4ac0ba034fc15797b6fa/configuration.tar
     local -a packages targets apt_options=(-o DPkg::Lock::Timeout=30 -o Acquire::Retries=0 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20)
     [[ "$run" =~ ^[a-f0-9]{32}$ ]] || exit 1
@@ -107,9 +151,10 @@ mu_worker() (
 )
 mu_launch() (
     set -uo pipefail; export PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C; umask 077
-    local run="${1:-}" directory=/var/backups/marketbrain-maintenance/update-20261023
+    local run="${1:-}" directory=/var/backups/marketbrain-maintenance/update-20261023-r2
     [[ "$run" =~ ^[a-f0-9]{32}$ ]] && [ "${SUDO_USER:-}" = marketbrain-admin ] || return 1
     mu_guard || mu_fail LAUNCH_GUARD
+    mu_prior || mu_fail PRIOR_RUN_NOT_SAFE
     pb_parent /var && pb_parent /var/backups && pb_parent /var/backups/marketbrain-maintenance &&
         [ "$(stat -c '%u:%g:%a' /var/backups/marketbrain-maintenance)" = 0:0:700 ] || mu_fail BACKUP_PARENT
     local rows free
@@ -121,7 +166,7 @@ mu_launch() (
     printf 'STAGED\n' >"$directory/phase"
     {
         printf '#!/usr/bin/env bash\n'
-        declare -f po_value po_hash mu_expected mu_fail mu_plan mu_versions mu_arguments mu_guard mu_archive_hook mu_receipt mu_execute mu_worker
+        declare -f po_value po_hash pb_parent mu_expected mu_fail mu_prior_receipt mu_prior_state mu_prior_files mu_prior mu_plan mu_versions mu_arguments mu_guard mu_archive_hook mu_receipt mu_execute mu_worker
         printf '\nif [ "${1:-}" = hook ]; then mu_archive_hook; else mu_worker %q; fi\n' "$run"
     } >"$directory/worker.sh" || mu_fail WORKER_WRITE
     chmod 700 "$directory/worker.sh" || mu_fail WORKER_MODE
@@ -135,7 +180,8 @@ mu_launch() (
 )
 mu_poll() (
     # Read-only and reconnect-safe. Never launches/retries/kills a package operation.
-    local run="${1:-}" directory=/var/backups/marketbrain-maintenance/update-20261023 i phase fingerprint
+    local run="${1:-}" directory=/var/backups/marketbrain-maintenance/update-20261023-r2 i phase fingerprint
+    if [ "$run" = 7fb461f8bff74ee0bb15a5afed8c49bc ]; then directory=/var/backups/marketbrain-maintenance/update-20261023; fi
     [[ "$run" =~ ^[a-f0-9]{32}$ ]] && [ "$(id -u)" = 0 ] || return 1
     fingerprint=$(po_value ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub)
     [[ "$fingerprint" == '3072 SHA256:YTQ8GV8J4qOQkY4j3dGGyCTAzyR2iX/KSJoGK0p2dKI '* ]] || return 1

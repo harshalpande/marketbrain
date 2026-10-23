@@ -32,7 +32,13 @@ $apply=New-PaytmUpdatePayload $id '# source' Apply;$collect=New-PaytmUpdatePaylo
 Check ($apply.Contains("mu_launch '$id'")) 'apply entry'
 Check ($collect.Contains("mu_poll '$id'") -and -not $collect.Contains('mu_launch')) 'collect never launches'
 $global:mbUpdateFixture=@{mode='';copied='';hash='DA176C0DA7B3890C7FE41CF249CFE804EDA2BE7109905472FE03E6CB8E5B5CBE'}
-function Get-FileHash {param($LiteralPath,$Algorithm) [pscustomobject]@{Hash=$global:mbUpdateFixture.hash}}
+function Get-FileHash {
+    param($LiteralPath,$Algorithm)
+    $hash=$global:mbUpdateFixture.hash
+    if($LiteralPath.EndsWith('plan.json')){$hash=if($global:mbUpdateFixture.mode -eq 'planhash'){'BAD'}else{'5791623DAC303E150B4BF15AD27442DBAEA03584CDD54B097544D36416C4FB43'}}
+    if($LiteralPath.EndsWith('failure.json')){$hash=if($global:mbUpdateFixture.mode -eq 'failurehash'){'BAD'}else{'84C8828053A8F9C2256E750313A72E91CE97E7F413C5F177B209ECE7DAC1FB45'}}
+    [pscustomobject]@{Hash=$hash}
+}
 function Set-Clipboard {param($Value) $global:mbUpdateFixture.copied=$Value}
 function Read-Host {
     param($Prompt)
@@ -49,10 +55,13 @@ function Get-Clipboard {
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('paytm-update-fixture-'+[guid]::NewGuid().ToString('N'))
 $null=New-Item -ItemType Directory -Path $temp
 $evidence=Join-Path $temp 'evidence.json';$null=New-Item -ItemType File -Path $evidence
-foreach($mode in @('clean','partial','invalid','cancel','login','collect','hash')){
+$planPath=Join-Path $temp 'plan.json';$null=New-Item -ItemType File -Path $planPath
+$failurePath=Join-Path $temp 'failure.json';$null=New-Item -ItemType File -Path $failurePath
+foreach($mode in @('clean','partial','invalid','cancel','login','collect','missing','planhash','failurehash','hash')){
     $global:mbUpdateFixture.mode=$mode;$global:mbUpdateFixture.copied=''
     if($mode -eq 'hash'){$global:mbUpdateFixture.hash='BAD'}
     $out=Join-Path $temp $mode;$failed=$false;$params=@{BackupEvidencePath=$evidence;OutputDirectory=$out}
+    if($mode -notin @('missing','collect')){$params.PlanEvidencePath=$planPath;$params.FailureEvidencePath=$failurePath}
     if($mode -eq 'collect'){$params.Mode='Collect';$params.RunId=$id}
     try{& (Join-Path $PSScriptRoot 'UpdatePaytmMaintenance.ps1') @params}catch{$failed=$true}
     $files=@(Get-ChildItem -LiteralPath $out -Filter '*.json');Check ($files.Count -eq 1) "one file $mode"
@@ -61,9 +70,9 @@ foreach($mode in @('clean','partial','invalid','cancel','login','collect','hash'
     if($mode -in @('clean','collect')){Check (-not $failed -and $r.status -ceq 'REVIEWED_UPDATES_VERIFIED_RESTART_REVIEW_PENDING') "complete $mode"}
     elseif($mode -eq 'login'){Check (-not $failed -and $r.status -ceq 'UPDATES_POSTCHECKED_FRESH_LOGIN_PENDING') 'login not inferred'}
     else{Check ($failed -and $r.status -ceq 'REVIEW_REQUIRED') "failed $mode"}
-    if($mode -in @('cancel','hash')){Check ($global:mbUpdateFixture.copied -ceq '' -and $r.packageChangeState -ceq 'NOT_STARTED') "no payload $mode"}
+    if($mode -in @('cancel','hash','missing','planhash','failurehash')){Check ($global:mbUpdateFixture.copied -ceq '' -and $r.packageChangeState -ceq 'NOT_STARTED') "no payload $mode"}
     if($mode -eq 'partial'){Check ($r.packageChangeState -ceq 'POSSIBLE_PARTIAL_CHANGES_REVIEW_REQUIRED') 'partial retained'}
     if($mode -eq 'invalid'){Check ($r.packageChangeState -ceq 'UNKNOWN_UNTIL_RECEIPT') 'lost receipt not false safety'}
     if($mode -eq 'collect'){Check (-not $r.ownerUpdateConfirmed -and $global:mbUpdateFixture.copied.EndsWith("mu_poll '$id'`nMB_REVIEWED_UPDATE`n")) 'collect no install approval'}
 }
-Write-Host "PASS: $script:checks assertions including seven mocked workflows. Fixtures: $temp"
+Write-Host "PASS: $script:checks assertions including ten mocked workflows. Fixtures: $temp"

@@ -1,18 +1,20 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([Parameter(Mandatory=$true)][string]$BackupEvidencePath,[ValidateSet('Apply','Collect')][string]$Mode='Apply',[string]$RunId,[string]$OutputDirectory='C:\MarketBrainData\Review')
+[CmdletBinding()]param([Parameter(Mandatory=$true)][string]$BackupEvidencePath,[string]$PlanEvidencePath,[string]$FailureEvidencePath,[ValidateSet('Apply','Collect')][string]$Mode='Apply',[string]$RunId,[string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmMaintenanceUpdate.ps1')
 $timer=[Diagnostics.Stopwatch]::StartNew()
 $run=if($Mode -ceq 'Apply'){[guid]::NewGuid().ToString('N')}else{$RunId}
-$report=[ordered]@{schemaVersion=1;runId=$run;mode=$Mode;status='REVIEW_REQUIRED';acceptedBackup=$null;ownerUpdateConfirmed=$false;commandCopied=$false;packageChangeState='NOT_STARTED';observations=$null;freshAdminLoginOwnerConfirmed=$false;failure=$null;elapsedSeconds=0;rebootPerformed=$false;brokerCredentialsUsed=$false;ordersEnabled=$false;unattendedGatewayApproved=$false}
+$report=[ordered]@{schemaVersion=1;runId=$run;mode=$Mode;status='REVIEW_REQUIRED';acceptedBackup=$null;retryEvidence=$null;ownerUpdateConfirmed=$false;commandCopied=$false;packageChangeState='NOT_STARTED';observations=$null;freshAdminLoginOwnerConfirmed=$false;failure=$null;elapsedSeconds=0;rebootPerformed=$false;brokerCredentialsUsed=$false;ordersEnabled=$false;unattendedGatewayApproved=$false}
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory ('paytm-maintenance-update-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N')+'.json')
 try {
     if($run -cnotmatch '^[a-f0-9]{32}$'){throw 'UPDATE_VALID_RUN_ID_REQUIRED_FOR_COLLECT'}
     $report.acceptedBackup=Assert-PaytmAcceptedBackup $BackupEvidencePath
+    if($Mode -ceq 'Apply'){$report.retryEvidence=Assert-PaytmRetryEvidence $PlanEvidencePath $FailureEvidencePath}
     Write-Progress -Activity 'Paytm reviewed maintenance' -Status 'Validate owner and backup' -PercentComplete 10
     Write-Host "[10%] Mode=$Mode; VPS job ID=$run. No broker access or automatic reboot."
     if($Mode -ceq 'Apply'){
+        Write-Host 'REVIEWED RETRY r2: only tzdata target changes to 2026e-0+deb13u1. Prior failed job must be stopped with installation-not-attempted evidence. Old staging is preserved; new staging cannot be overwritten.'
         Write-Host 'REAL VPS UPDATE: exactly 70 reviewed packages only. Existing configuration files retained where supported; package scripts may restart affected services. Keep browser/VNC console available. The accepted backup is same-VPS configuration only, not full-system/off-host rollback.'
         if((Read-Host 'Keep all other package/configuration jobs idle. Type UPDATE-REVIEWED-PACKAGES to accept that scope and recovery limitation') -cne 'UPDATE-REVIEWED-PACKAGES'){throw 'UPDATE_OWNER_CONFIRMATION_REQUIRED'}
         $report.ownerUpdateConfirmed=$true

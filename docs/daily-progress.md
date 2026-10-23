@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-10-23 Maintenance candidate drift reviewed; guarded retry r2
+
+- Failed update7fb461f8bff74ee0bb15a5afed8c49bc:94.305s, SIMULATE/UPGRADE_PLAN_CHANGED, installation not attempted. Follow-up146a8aba4cdf47c08e356010016eb462:41.905s, simulation exit0,70 candidates,0 holds/removals, clean package database/SSH, matching gateway configuration, stopped gateway, NTP synchronized. Exactly one candidate differs: tzdata2026c to2026e; installed2026b unchanged. Original simulation stdout was not retained, so the later diff explains the rejection without proving the original command exit code.
+- E172 owner authorizes reviewed retry. New r2 directory preserves original evidence; exact old receipt/run-id and stopped process required before launch and worker transaction. Original backup hash/source comparison and installed baseline still required. Three input report hashes bound locally; no automatic policy relaxation if repository candidates change again.
+- Separate simulation-command failure codes and private simulation output now aid diagnosis. Local checks pass:58 PowerShell assertions/ten workflows,102 Bash assertions/fourteen mocked transactions,49 backup/49 maintenance PowerShell regressions. All70 revised manifest rows and the pinned prior receipt match owner evidence; combined payload/handoff syntax passes. Tests cover prior-run rejection and evidence guards; actual Debian installation/recovery remains pending. No automatic repair, reset, deletion, reboot, Paytm login or trades. No whole-project percentage uplift.
+
 ## 2026-10-23 Private backup accepted; reviewed updates prepared
 
 - E170 owner run897a81468f7d4ac0ba034fc15797b6fa:95.89s,19,281,920-byte private archive, source comparison passed, unchanged package state, no update/reboot/gateway/broker actions. Independent console login owner-confirmed; no off-host backup or restore/full rollback proof. Earlier backup-runtime-pending wording is superseded.
