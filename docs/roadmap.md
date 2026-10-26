@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+**Current E195, 2026-10-26:** G2.3 [controlled custody and pinned-authentication implementation](paytm-gateway-key-custody.md) locally verified after owner-confirmed encrypted export. One batch includes protected staging, private console, targeted revoke/reload, host-pin negative/positive and new-process signing. Actual spare acceptance pending;100/40/0/0/0/0 unchanged. No account recovery rerun. Subsequent supervisor/task, managed lifecycle and true installed-system/reboot recovery remain gates.
+
 **Current E194, 2026-10-26:** real gateway account recovery/probe accepted, G2.2 closed: **G1=100%, G2=40%, G3–G6=0%; G2 delta +20 points**. Old storage preserved and service unchanged. [Next G2.3: key custody and pinned restricted authentication](paytm-gateway-key-custody.md), format confirmation pending. No more Apply/Recover/Verify/account inventory runs. Earlier next-step instructions below are historical. This is Paytm readiness checkpoint credit, not whole-platform completion.
 
 2026-10-26 E192/E193: residual state reviewed; [controlled Recover](paytm-gateway-account.md) prepared and locally tested to preserve old storage, recreate a restricted identity and verify it while preserving the shared agent. Actual spare recovery still gates G2.2. Accepted percentages100/20/0/0/0/0 unchanged; success plus review would move G2 to40%. Earlier next-step statements below are historical, not commands for the deleted-account state.

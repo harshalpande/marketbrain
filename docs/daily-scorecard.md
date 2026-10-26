@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+**E195, 2026-10-26:** key-custody import/verification implementation prepared after owner-confirmed encrypted export.112 key checks/9 mocked worker sequences,97 controller assertions/14 workflows and320 account regressions pass; no real key or network tested locally. Accepted Paytm groups100/40/0/0/0/0 unchanged; candidate G2.3 runtime acceptance targets60%. [Single-batch handoff](paytm-gateway-key-custody.md). Account recovery is complete and must not be replayed.
+
 **Current E194, 2026-10-26:** gateway account runtime accepted, eight completed stages,46.068s total/6.497s child probe; three source hashes verified. **G2.2 closed; G2 +20 percentage points to40%.** Paytm readiness groups100/40/0/0/0/0. No account rerun; encrypted key format confirmation precedes the [key-custody batch](paytm-gateway-key-custody.md). No key import/startup/broker/paper-execution or full-roadmap credit inferred. Earlier next-step notes below are historical.
 
 E177/E178 (2026-10-23): six new packages,0 upgrades/removals,51.727s dependency plan accepted. Next [combined install and scan](paytm-scanner-install.md); execution pending. Earlier70-package update remains accepted, restart clearance still open. Local fixtures do not constitute real installation, disconnect-recovery or whole-project completion credit.

@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-26 Encrypted key confirmed; custody and pinned-authentication batch prepared
+
+- Owner verified encrypted OpenSSH export from existing gateway PPK; no new identity or server change. E195 implements [one controlled custody batch](paytm-gateway-key-custody.md), existing-account password in parent and two native key-passphrase prompts in a dedicated account console. No passphrase arguments/files/report.
+- Exact identity/encryption validation, protected encrypted staging, import/sign/targeted revoke/non-sign/reload, wrong host rejection/pinned no-session authentication, removal of only the owned encrypted copy and fresh-process signing/operator isolation included. Existing source export/PPK untouched. Partial failures preserve evidence/state and block blind retries.
+- Local112 assertions/9 worker sequences,97 assertions/14 controller workflows,320 account regressions/26 workflows pass. Real SSH -G inspected with no connection; actual credentialed console/import/authentication still await spare. No claimed unrelated-standard-user, reboot or server-policy revalidation.
+- Accepted G1/G2/G3/G4/G5/G6 remains100/40/0/0/0/0, delta0 this implementation step. Reviewed runtime success targets G2.3/60%. No task/service/tunnel/proxy/broker or trading activation.
+
 ## 2026-10-26 Account recovery accepted; key custody next
 
 - E194: run ed64356fd5d84c02b0c156f1fc3ef1b4 completed eight stages in46.068s including owner input; real probe6.497s. New SID ends1010 versus archived old1009, archive/hash/permissions verified. Shared agent unchanged. All three script hashes match b7f0806 CRLF checkout bytes.

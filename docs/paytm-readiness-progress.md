@@ -4,6 +4,8 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
+E195 update: encrypted export owner-verified; [key-custody batch](paytm-gateway-key-custody.md) locally tested and ready for spare execution. G2.3 remains open until actual report review. This preparation adds no percentage credit and does not require repeating G2.2.
+
 Current E194: actual recovery and exact-account probe accepted. Eight completed stages,46.068s total including owner input,6.497s child probe, three reviewed CRLF source hashes match. Protected storage/archive verified, new account non-admin and agent empty/reachable; service unchanged. **G2.2 closes; G2 rises20% to40% (+20 percentage points).** No account rerun. [Next: key custody](paytm-gateway-key-custody.md), pending encrypted-key format confirmation. G3 remains0%: this account repair is not installed gateway recovery acceptance.
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
