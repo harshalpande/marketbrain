@@ -1,0 +1,30 @@
+{
+  "evidenceId": "E190",
+  "date": "2026-10-26",
+  "status": "GATEWAY_ACCOUNT_STDIN_LAUNCH_LOCAL_VERIFIED",
+  "accountAssertions": 236,
+  "mockedLauncherWorkflows": 17,
+  "commandLineCharactersIncludingExecutableQuotesAndNullAllowance": 380,
+  "commandLineContractMaximum": 1024,
+  "sourceTransport": "UTF8_STDIN",
+  "nativeTransportCases": ["wrong_identity_no_writes", "large_source", "unicode_source", "malformed_json", "empty_output", "array_output", "oversized_output", "nonzero_exit", "syntax_failure", "timeout_owned_cleanup", "missing_executable"],
+  "commandBoundary1024And1025Tested": true,
+  "safeNegativeChildOutcomePreservedInReport": true,
+  "verifyModeNoProvisioningMutationTested": true,
+  "syntaxJsonSvgAndVerifyHandoffChecksPassed": true,
+  "foundationRegression": {
+    "runId": "125a15fb03d840f9964611b627c3b1cc",
+    "status": "GATEWAY_FOUNDATION_PASSED_PROVISIONING_PENDING",
+    "elapsedSeconds": 2.838,
+    "acceptanceCreditAdded": false
+  },
+  "nativeTestsUseCurrentDevelopmentIdentity": true,
+  "realAlternateAccountLogonTestedLocally": false,
+  "realAccountOrServiceChangesPerformedLocally": false,
+  "privateKeyImported": false,
+  "vpsContacted": false,
+  "ordersEnabled": false,
+  "checkpointPending": "G2.2",
+  "acceptedGroupPercentages": [100, 20, 0, 0, 0, 0],
+  "primaryReferences": ["https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw", "https://github.com/dotnet/runtime/blob/main/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Windows.cs"]
+}

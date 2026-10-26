@@ -6,7 +6,7 @@ $c=Get-PaytmAccountContract;$run=[guid]::NewGuid().ToString('N');$timer=[Diagnos
 $password=$null;$confirmPassword=$null;$stream=$null
 $report=[ordered]@{schemaVersion=1;runId=$run;mode=$Mode;status='REVIEW_REQUIRED';stage='INVENTORY';
     inventory=$null;createdAccount=$false;createdDirectory=$false;accountSid=$null;agentChanged=$false;
-    probe=$null;events=@();passwordAttempts=@();sourceHashes=[ordered]@{};failure=$null;failureDetails=$null;elapsedSeconds=0;
+    probe=$null;probeLaunch=[ordered]@{};probeLaunchContract=$null;events=@();passwordAttempts=@();sourceHashes=[ordered]@{};failure=$null;failureDetails=$null;elapsedSeconds=0;
     acceptedProgressAtScriptRelease=@();candidateGroup2PercentIfReviewed=$null;
     sshKeysImported=$false;scheduledTaskInstalled=$false;vpsContacted=$false;gatewayActivated=$false;ordersEnabled=$false}
 function Save-AccountCheckpoint {
@@ -29,6 +29,9 @@ try{
     $stream=[IO.File]::Open($path,'CreateNew','Write','Read');Save-AccountCheckpoint
     foreach($name in @('InstallPaytmGatewayAccount.ps1','PaytmGatewayAccount.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name) -Algorithm SHA256).Hash}
     $report.acceptedProgressAtScriptRelease=@(Get-PaytmReadinessProgress)
+    # Inspect the exact production launch contract before any account/service writes.
+    $probeInfo=New-PaytmAccountProbeStartInfo $null
+    $report.probeLaunchContract=[pscustomobject]@{transport='UTF8_STDIN';commandLineCharacters=($probeInfo.FileName.Length+$probeInfo.Arguments.Length+4);maximumCommandLineCharacters=1024}
     Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction Stop
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     $elevated=([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -117,7 +120,10 @@ try{
             Account-Step 'DISABLE_OWNED_ACCOUNT' 70 {Disable-LocalUser -SID $saved.sid -ErrorAction Stop}
             if((Get-LocalUser -SID $saved.sid).Enabled){throw 'ACCOUNT_DISABLE_NOT_CONFIRMED'}
             $report.status='GATEWAY_ACCOUNT_DISABLED_SHARED_AGENT_UNCHANGED'
-        }else{$password=Read-Host 'Existing marketbrain-gateway Windows account password (not an admin or VPS password)' -AsSecureString}
+        }else{
+            Write-Host 'Verify only: preserve the existing account, password, folders and shared agent configuration. Run the private identity/storage/agent probe; no VPS or broker access.'
+            $password=Read-Host 'Existing marketbrain-gateway Windows account password (not an admin or VPS password)' -AsSecureString
+        }
     }
     if($Mode -cne 'Disable'){
         Account-Step 'POSTCHECK_ACCOUNT_AND_AGENT' 75 {
@@ -127,7 +133,10 @@ try{
             if($service.Status -ne 'Running' -or $service.StartType -ne 'Automatic'){throw 'ACCOUNT_AGENT_NOT_READY'}
         }
         Account-Step 'EXACT_ACCOUNT_PRIVATE_PROBE' 85 {
-            $report.probe=Invoke-PaytmAccountProbe $report.accountSid $run $password
+            $report.probe=Invoke-PaytmAccountProbe $report.accountSid $run $password $report.probeLaunch
+            # Preserve safe child check outcomes before enforcing acceptance.
+            Save-AccountCheckpoint
+            Assert-PaytmAccountProbe $report.probe $run
         }
         $report.status='GATEWAY_ACCOUNT_PROVISIONED_KEY_CUSTODY_PENDING'
         $report.candidateGroup2PercentIfReviewed=40

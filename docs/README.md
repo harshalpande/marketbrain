@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-26 E189/E190: installation now exists; six account/storage/agent stages passed before the alternate-user probe launch failed. [Verify-only recovery](paytm-gateway-account.md) replaces prior Apply instructions. Short native command/private UTF-8 stdin,236 local assertions/17 mocked workflows and native process cases; no reset/recreate or maintenance repeat. G2 remains20% until real credentialed probe acceptance; other percentages100/0/0/0/0 unchanged.
+
 2026-10-24 E187/E188: account input stopped before installation; no account/service changes. [Corrected password-confirmation flow and next-login script](paytm-gateway-account.md) verified locally (199 assertions/16 mocked workflows). Exact short/mismatch outcomes, three bounded attempts, no secrets in reports. Accepted percentages unchanged100/20/0/0/0/0; G2.2 awaits spare acceptance. Do not repeat foundation/maintenance or delete anything.
 
 2026-10-23 E185/E186: foundation spare report accepted (2.335s); [account/agent provisioning](paytm-gateway-account.md) is next. [Percentage baseline and reporting policy](paytm-readiness-progress.md), [machine-readable checkpoints](paytm-readiness-progress.json): five equal acceptance checkpoints per group; G1=100%, G2=20%, G3–G6=0%. No speculative credit for mocks or automatic group completion. Old handoffs below are historical; no maintenance/foundation rerun.

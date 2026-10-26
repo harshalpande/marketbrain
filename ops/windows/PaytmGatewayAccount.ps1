@@ -154,18 +154,23 @@ function New-PaytmAccountProbeSource([string]$Sid,[string]$RunId) {
     # Compatible with built-in Windows PowerShell 5.1: no per-user PowerShell 7 installation dependency.
     $template=@'
 $ErrorActionPreference='Stop'
-$probe=[ordered]@{version=1;runId='__RUN__';sidMatched=$false;nonAdmin=$false;protectedWriteDenied=$false;workWriteReadDelete=$false;agentEmpty=$false;agentExit=$null;failure=$null}
+$probe=[ordered]@{version=1;runId='__RUN__';sidMatched=$false;nonAdmin=$false;protectedWriteDenied=$false;workWriteReadDelete=$false;agentEmpty=$false;agentExit=$null;checkStage='IDENTITY';nativeErrorCode=$null;failure=$null}
 $process=$null;$probeFile=$null;$probeOwned=$false;$started=$false
 try{
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     $probe.sidMatched=$identity.User.Value -ceq '__SID__'
     $probe.nonAdmin=-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if(-not ($probe.sidMatched -and $probe.nonAdmin)){throw 'IDENTITY'}
+    $probe.checkStage='PROTECTED_STORAGE'
     try{$f=[IO.File]::Open('C:\ProgramData\MarketBrainPaytmGateway\installation.json','Open','Write','None');$f.Dispose()}catch [UnauthorizedAccessException]{$probe.protectedWriteDenied=$true}
+    if(-not $probe.protectedWriteDenied){throw 'PROTECTED_WRITE_ALLOWED'}
+    $probe.checkStage='WORK_DIRECTORY'
     $probeFile='C:\ProgramData\MarketBrainPaytmGateway\work\probe-__RUN__.txt'
     $f=[IO.File]::Open($probeFile,'CreateNew','Write','None');$probeOwned=$true;try{$f.WriteByte(77)}finally{$f.Dispose()}
     $read=[IO.File]::ReadAllBytes($probeFile);[IO.File]::Delete($probeFile);$probeFile=$null;$probeOwned=$false
     $probe.workWriteReadDelete=$read.Length -eq 1 -and $read[0] -eq 77
+    if(-not $probe.workWriteReadDelete){throw 'WORK_CONTENT'}
+    $probe.checkStage='AGENT_QUERY'
     $info=[Diagnostics.ProcessStartInfo]::new('C:\Windows\System32\OpenSSH\ssh-add.exe','-l')
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.RedirectStandardInput=$true
     $info.EnvironmentVariables.Remove('SSH_AUTH_SOCK');$info.EnvironmentVariables.Remove('SSH_AGENT_PID');$info.EnvironmentVariables.Remove('SSH_ASKPASS')
@@ -177,7 +182,13 @@ try{
     $probe.agentExit=$process.ExitCode
     # No raw key list is emitted or written, even if unexpected identities exist.
     $probe.agentEmpty=$process.ExitCode -eq 1 -and (($out.Result+$err.Result).Trim() -ceq 'The agent has no identities.')
-}catch{$probe.failure='ACCOUNT_PROBE_CHECK_FAILED'}finally{
+    if(-not $probe.agentEmpty){throw 'AGENT_NOT_EMPTY_OR_UNREACHABLE'}
+    $probe.checkStage='COMPLETE'
+}catch{
+    $probe.failure='ACCOUNT_PROBE_CHECK_FAILED'
+    $base=$_.Exception.GetBaseException()
+    if($base -is [ComponentModel.Win32Exception]){$probe.nativeErrorCode=$base.NativeErrorCode}
+}finally{
     if($null -ne $process){if($started -and -not $process.HasExited){$process.Kill();[void]$process.WaitForExit(5000)};$process.Dispose()}
     if($probeOwned -and $null -ne $probeFile -and [IO.File]::Exists($probeFile)){[IO.File]::Delete($probeFile)}
 }
@@ -191,26 +202,62 @@ function Assert-PaytmAccountProbe($Probe,[string]$RunId) {
         if($Probe.$field -isnot [bool] -or -not $Probe.$field){throw "ACCOUNT_PROBE_$($field.ToUpperInvariant())"}
     }
 }
-function Invoke-PaytmAccountProbe([string]$Sid,[string]$RunId,[Security.SecureString]$Password) {
-    $source=New-PaytmAccountProbeSource $Sid $RunId
-    $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($source))
+function New-PaytmAccountProbeStartInfo([Security.SecureString]$Password) {
+    # CreateProcessWithLogonW has a 1024-character command-line limit. Keep only a
+    # fixed small bootstrap in argv; send non-secret probe code over redirected stdin.
+    $bootstrap='[Console]::InputEncoding=[Text.Encoding]::UTF8; & ([scriptblock]::Create([Console]::In.ReadToEnd()))'
+    $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($bootstrap))
     $info=[Diagnostics.ProcessStartInfo]::new('C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',('-NoLogo -NoProfile -NonInteractive -EncodedCommand '+$encoded))
-    $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.LoadUserProfile=$true
+    $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.WindowStyle='Hidden';$info.LoadUserProfile=$true
     $info.UserName='marketbrain-gateway';$info.Domain=$env:COMPUTERNAME;$info.Password=$Password
     $info.WorkingDirectory='C:\ProgramData\MarketBrainPaytmGateway'
     $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.RedirectStandardInput=$true
+    $info.StandardInputEncoding=[Text.UTF8Encoding]::new($false)
     foreach($name in @('SSH_AUTH_SOCK','SSH_AGENT_PID','SSH_ASKPASS','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY')){$info.EnvironmentVariables.Remove($name)}
+    Assert-PaytmAccountProbeCommandLine $info
+    $info
+}
+function Assert-PaytmAccountProbeCommandLine([Diagnostics.ProcessStartInfo]$Info) {
+    # Include executable quotes, separating space and terminating NUL; conservative bound.
+    if(($Info.FileName.Length+$Info.Arguments.Length+4) -gt 1024){throw 'ACCOUNT_PROBE_COMMAND_LINE_TOO_LONG'}
+}
+function Invoke-PaytmAccountProbeProcess([Diagnostics.ProcessStartInfo]$Info,[string]$Source,[System.Collections.IDictionary]$Diagnostics,[ValidateRange(1,60000)][int]$TimeoutMilliseconds=60000) {
+    Assert-PaytmAccountProbeCommandLine $Info
+    if($Source.Length -gt 32768){throw 'ACCOUNT_PROBE_SOURCE_TOO_LARGE'}
+    $Diagnostics.transport='UTF8_STDIN';$Diagnostics.commandLineCharacters=$Info.FileName.Length+$Info.Arguments.Length+4
+    $Diagnostics.sourceCharacters=$Source.Length;$Diagnostics.stage='START_PROCESS';$Diagnostics.processStarted=$false
+    $Diagnostics.exitCode=$null;$Diagnostics.stopConfirmed=$null
+    $timer=[Diagnostics.Stopwatch]::StartNew()
     $process=[Diagnostics.Process]::new();$process.StartInfo=$info;$started=$false
     try{
         if(-not $process.Start()){throw 'ACCOUNT_PROBE_START_FAILED'};$started=$true
-        $out=$process.StandardOutput.ReadToEndAsync();$err=$process.StandardError.ReadToEndAsync();$process.StandardInput.Close()
-        if(-not $process.WaitForExit(60000)){throw 'ACCOUNT_PROBE_TIMEOUT'}
+        $Diagnostics.processStarted=$true;$Diagnostics.stage='WRITE_SOURCE'
+        $out=$process.StandardOutput.ReadToEndAsync();$err=$process.StandardError.ReadToEndAsync()
+        $write=$process.StandardInput.WriteAsync($Source)
+        if(-not $write.Wait(5000)){throw 'ACCOUNT_PROBE_INPUT_TIMEOUT'}
+        $flush=$process.StandardInput.FlushAsync()
+        if(-not $flush.Wait(5000)){throw 'ACCOUNT_PROBE_INPUT_TIMEOUT'}
+        $process.StandardInput.Close();$Diagnostics.stage='WAIT_PROCESS'
+        if(-not $process.WaitForExit($TimeoutMilliseconds)){throw 'ACCOUNT_PROBE_TIMEOUT'}
+        $Diagnostics.exitCode=$process.ExitCode;$Diagnostics.stage='COLLECT_OUTPUT'
         if(-not $out.Wait(5000) -or -not $err.Wait(5000) -or $process.ExitCode -ne 0 -or $out.Result.Length -gt 4096){throw 'ACCOUNT_PROBE_OUTPUT_FAILED'}
-        $probe=$out.Result.Trim()|ConvertFrom-Json
-        Assert-PaytmAccountProbe $probe $RunId
+        $Diagnostics.stage='PARSE_OUTPUT'
+        $json=$out.Result.Trim()
+        # ConvertFrom-Json can unwrap a one-element array; require an object at the wire boundary.
+        if(-not $json.StartsWith('{') -or -not $json.EndsWith('}')){throw 'ACCOUNT_PROBE_JSON_INVALID'}
+        try{$probe=$json|ConvertFrom-Json -ErrorAction Stop}catch{throw 'ACCOUNT_PROBE_JSON_INVALID'}
+        if($null -eq $probe -or $probe -is [array] -or $probe -isnot [pscustomobject]){throw 'ACCOUNT_PROBE_JSON_INVALID'}
+        $Diagnostics.stage='COMPLETE'
         $probe
     }finally{
-        if($started -and -not $process.HasExited){$process.Kill($true);if(-not $process.WaitForExit(5000)){throw 'ACCOUNT_PROBE_STOP_FAILED'}}
-        $process.Dispose()
+        try{
+            if($started -and -not $process.HasExited){$process.Kill($true);if(-not $process.WaitForExit(5000)){throw 'ACCOUNT_PROBE_STOP_FAILED'}}
+            if($started){$Diagnostics.stopConfirmed=$process.HasExited}
+        }finally{$timer.Stop();$Diagnostics.elapsedSeconds=[math]::Round($timer.Elapsed.TotalSeconds,3);$process.Dispose()}
     }
+}
+function Invoke-PaytmAccountProbe([string]$Sid,[string]$RunId,[Security.SecureString]$Password,[System.Collections.IDictionary]$Diagnostics) {
+    $source=New-PaytmAccountProbeSource $Sid $RunId
+    $info=New-PaytmAccountProbeStartInfo $Password
+    try{Invoke-PaytmAccountProbeProcess $info $source $Diagnostics}finally{$info.Password=$null}
 }

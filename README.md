@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E189/E190, 2026-10-26:** account/storage/agent provisioning succeeded, but the verification launcher exceeded Windows' alternate-user command-line limit. Corrected to a short bootstrap/private stdin, verified236 assertions/17 mocked workflows and native transport cases. **[Run Verify only with the existing password](docs/paytm-gateway-account.md); do not repeat Apply/reset/delete.** Accepted group percentages remain100/20/0/0/0/0 pending the final account probe. Older handoffs below are historical.
+
 **Current E187/E188, 2026-10-24:** account setup stopped before creation at password confirmation; administrator/service checks passed. [Corrected next-login handoff](docs/paytm-gateway-account.md) distinguishes short/mismatched input and allows three private attempts, verified by199 local assertions/16 mocked workflows. No cleanup or maintenance rerun. Accepted group percentages remain **100/20/0/0/0/0**; spare account acceptance is still pending. Older next-step entries below are historical.
 
 **Current E185/E186, 2026-10-23:** spare gateway foundation accepted in 2.335s (79 checks, 12 negative cases, 31 settings). Next: [restricted Windows account/agent setup](docs/paytm-gateway-account.md), explicit local consent and one report; no VPS, key import or gateway activation. [Fixed progress checklist](docs/paytm-readiness-progress.md): G1 **100%**, G2 **20%**, G3–G6 **0%**. Publish group percentages after every evidence review; an accepted account result would move G2 to40%. Do not repeat foundation or maintenance.

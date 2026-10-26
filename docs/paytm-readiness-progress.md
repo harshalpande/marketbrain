@@ -4,7 +4,7 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
-Latest review, 2026-10-24 E187/E188: account setup stopped before any account/service change at password confirmation. Corrected private retries are locally verified, not runtime acceptance. **No percentage increase:** the snapshot below remains100/20/0/0/0/0. Next action is [corrected account Apply](paytm-gateway-account.md) at the owner's next login; no foundation/maintenance repeat.
+Latest review, 2026-10-26 E189/E190: six account/storage/agent setup stages passed, but the credentialed verification process did not start. Its command-line contract is corrected and locally tested. **No percentage increase:** the snapshot below remains100/20/0/0/0/0 until the full exact-account probe passes. Next action is [Verify existing account](paytm-gateway-account.md), not Apply, reset, deletion or maintenance repeat.
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 

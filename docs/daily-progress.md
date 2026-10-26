@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-26 Account provisioned; alternate-user probe launch corrected
+
+- E189: spare run5effeeb6993d484fa70ac49555e88aa4 completed six setup/postcheck stages, then failed at native Process.Start with0x80070057.110.512s includes password input. Account, protected storage and enabled/Automatic agent exist; no keys/tasks/VPS/broker activity. G2.2 is not complete until the exact-account probe passes.
+- Identified defect: full-source encoded arguments exceed7,000 characters but CreateProcessWithLogonW permits1,024. Earlier same-user native test used a different API path and full-launcher mocks missed this boundary. E190 uses a380-character bootstrap plus private UTF-8 stdin, an upfront length guard and preserved safe launch/child diagnostics. No password/script file or administrator-identity fallback.
+-236 local assertions/17 mocked workflows passed; native shared transport covers Unicode/large input, malformed/empty/array/oversized output, syntax/nonzero/start failures and owned-process timeout cleanup. Actual spare credentialed login still unverified; no new real account/service changes made locally.
+- Next: [Verify existing installation](paytm-gateway-account.md), existing dedicated password, one JSON. **Do not repeat Apply or delete/reset anything.** Percentages unchanged100/20/0/0/0/0; reviewed probe success targets G2=40%. This supersedes earlier Apply handoffs below.
+
 ## 2026-10-26 Resume interrupted account-fix handoff
 
 - Confirmed the October24 password-flow fix, tests and documentation remained uncommitted; no unrelated local changes found. Resumed review and release without widening runtime scope.

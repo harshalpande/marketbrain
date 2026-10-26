@@ -80,13 +80,63 @@ Reject {Assert-PaytmAccountPath 'relative'} 'relative path'
 $probeSource=New-PaytmAccountProbeSource $sid $run
 $tokens=$null;$errors=$null;$null=[Management.Automation.Language.Parser]::ParseInput($probeSource,[ref]$tokens,[ref]$errors)
 Check ($errors.Count -eq 0) 'child source parses'
-# Execute only an intentionally wrong-SID probe under the CURRENT development user.
-# It fails at identity BEFORE filesystem writes, agent queries or credentials.
-$handle=Start-TunnelProcess 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' @('-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($probeSource)))
-$native=Complete-TunnelProcess $handle -LimitSeconds 15
-Check ($native.ExitCode -eq 0 -and -not $native.StoppedByRunner) 'native Windows PowerShell probe executes'
-$wrongIdentity=$native.Stdout.Trim()|ConvertFrom-Json
+# Test the real production bootstrap/stdin/collection code, not a separate unrestricted
+# same-user -EncodedCommand path. Clear credentials ONLY in this local test fixture.
+function New-CurrentUserProbeFixture {
+    $info=New-PaytmAccountProbeStartInfo $null
+    $info.UserName='';$info.Domain='';$info.Password=$null;$info.LoadUserProfile=$false
+    $info.WorkingDirectory=[IO.Path]::GetTempPath()
+    $info
+}
+$credentialFixture=ConvertTo-SecureString 'FixtureOnly-NOT-A-REAL-PASSWORD-1' -AsPlainText -Force
+try{
+    $info=New-PaytmAccountProbeStartInfo $credentialFixture
+    Check ($info.UserName -ceq 'marketbrain-gateway' -and $info.Domain -ceq $env:COMPUTERNAME -and $info.LoadUserProfile) 'exact credential target and profile'
+    Check ($info.FileName -ceq 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -and $info.WorkingDirectory -ceq 'C:\ProgramData\MarketBrainPaytmGateway') 'absolute runtime paths'
+    Check ($info.RedirectStandardInput -and $info.RedirectStandardOutput -and $info.RedirectStandardError -and -not $info.UseShellExecute) 'private redirected handles'
+    Check ($info.WindowStyle -eq 'Hidden' -and $info.CreateNoWindow) 'hidden launch intent'
+    Check (($info.FileName.Length+$info.Arguments.Length+4) -le 1024 -and $info.Arguments -notmatch 'FixtureOnly') 'alternate-user command bound and no password arguments'
+    Check ($info.StandardInputEncoding.WebName -ceq 'utf-8') 'explicit stdin encoding'
+    foreach($name in @('SSH_AUTH_SOCK','SSH_AGENT_PID','SSH_ASKPASS','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY')){Check (-not $info.EnvironmentVariables.ContainsKey($name)) "environment isolation $name"}
+    $info.Password=$null
+}finally{$credentialFixture.Dispose()}
+$boundary=New-CurrentUserProbeFixture
+$boundary.Arguments='x'*(1024-$boundary.FileName.Length-4)
+Assert-PaytmAccountProbeCommandLine $boundary;$script:checks++
+$boundary.Arguments+='x';Reject {Assert-PaytmAccountProbeCommandLine $boundary} '1025 rejects before launch'
+$legacyLength=51+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($probeSource)).Length
+Check ($legacyLength -gt 1024) 'previous full-source launch exceeds alternate-user contract'
+$diag=[ordered]@{}
+$wrongIdentity=Invoke-PaytmAccountProbeProcess (New-CurrentUserProbeFixture) $probeSource $diag
+Check ($diag.processStarted -and $diag.exitCode -eq 0 -and $diag.stopConfirmed -and $diag.transport -ceq 'UTF8_STDIN') 'native production transport executes and cleans up'
 Check (-not $wrongIdentity.sidMatched -and $wrongIdentity.failure -ceq 'ACCOUNT_PROBE_CHECK_FAILED' -and $null -eq $wrongIdentity.agentExit) 'wrong identity fails before agent access'
+Check ($wrongIdentity.checkStage -ceq 'IDENTITY') 'safe child stage retained'
+Reject {Assert-PaytmAccountProbe $wrongIdentity $run} 'failed real child cannot pass acceptance'
+$largeSource=('# '+('x'*12000)+"`n"+'[pscustomobject]@{value="é-密码"}|ConvertTo-Json -Compress')
+$diag=[ordered]@{};$large=Invoke-PaytmAccountProbeProcess (New-CurrentUserProbeFixture) $largeSource $diag
+# Windows stdout codepage is not assumed UTF-8; use ASCII numeric output for the encoding assertion below.
+Check ($diag.sourceCharacters -gt 1024 -and $diag.commandLineCharacters -le 1024 -and $diag.stopConfirmed) 'large source absent from argv'
+$diag=[ordered]@{};$unicode=Invoke-PaytmAccountProbeProcess (New-CurrentUserProbeFixture) '[pscustomobject]@{code=[int][char]"é"}|ConvertTo-Json -Compress' $diag
+Check ($unicode.code -eq 233) 'UTF8 source survives native stdin transport'
+foreach($case in @(
+    @{name='malformed';source='Write-Output "not-json"';error='ACCOUNT_PROBE_JSON_INVALID'},
+    @{name='empty';source='$null';error='ACCOUNT_PROBE_JSON_INVALID'},
+    @{name='array';source='Write-Output "[{}]"';error='ACCOUNT_PROBE_JSON_INVALID'},
+    @{name='oversized';source='Write-Output ("x"*5000)';error='ACCOUNT_PROBE_OUTPUT_FAILED'},
+    @{name='nonzero';source='exit 7';error='ACCOUNT_PROBE_OUTPUT_FAILED'},
+    @{name='syntax';source='bad syntax }';error='ACCOUNT_PROBE_OUTPUT_FAILED'}
+)){
+    $diag=[ordered]@{};$message=$null
+    try{$null=Invoke-PaytmAccountProbeProcess (New-CurrentUserProbeFixture) $case.source $diag}catch{$message=$_.Exception.Message}
+    Check ($message -ceq $case.error -and $diag.stopConfirmed) "native negative $($case.name)"
+}
+$diag=[ordered]@{};$message=$null
+try{$null=Invoke-PaytmAccountProbeProcess (New-CurrentUserProbeFixture) 'Start-Sleep -Seconds 30' $diag -TimeoutMilliseconds 100}catch{$message=$_.Exception.Message}
+Check ($message -ceq 'ACCOUNT_PROBE_TIMEOUT' -and $diag.stopConfirmed) 'timeout kills only owned child'
+$diag=[ordered]@{};$missing=New-CurrentUserProbeFixture;$missing.FileName=Join-Path ([IO.Path]::GetTempPath()) ('missing-'+[guid]::NewGuid().ToString('N')+'.exe')
+Reject {Invoke-PaytmAccountProbeProcess $missing '$null' $diag} 'native start failure'
+Check ($diag.stage -ceq 'START_PROCESS' -and -not $diag.processStarted) 'start failure retains safe metadata'
+Reject {Invoke-PaytmAccountProbeProcess (New-CurrentUserProbeFixture) ('x'*32769) ([ordered]@{})} 'source size guard'
 # Full launcher orchestration with account/service/filesystem operations replaced by explicit mocks.
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('marketbrain-account-tests-'+[guid]::NewGuid().ToString('N'))
 $null=New-Item -ItemType Directory -Path $temp
@@ -114,7 +164,11 @@ function Assert-PaytmAccountPath($Path){$Path}
 function Set-PaytmAccountDirectoryAcl {param($Path,$AccountSid,[switch]$Writable)}
 function Write-PaytmAccountNewJson {param($Path,$Value) $global:accountFixture.manifest=$Value}
 function Read-PaytmOwnedAccount {if(-not $global:accountFixture.exists){throw 'ACCOUNT_FIXTURE_NOT_OWNED'};[pscustomobject]@{sid='S-1-5-21-111-222-333-1001'}}
-function Invoke-PaytmAccountProbe {param($Sid,$RunId,$Password) if($global:accountFixture.failProbe){throw 'ACCOUNT_PROBE_FAILED'};[pscustomobject]@{runId=$RunId;sidMatched=$true;agentEmpty=$true}}
+function Invoke-PaytmAccountProbe {param($Sid,$RunId,$Password,$Diagnostics)
+    if($global:accountFixture.failProbe){throw 'ACCOUNT_PROBE_FAILED'}
+    $Diagnostics.stage='COMPLETE'
+    [pscustomobject]@{version=1;runId=$RunId;sidMatched=$true;nonAdmin=$true;protectedWriteDenied=$true;workWriteReadDelete=$true;agentEmpty=(-not $global:accountFixture.childFailure);agentExit=1;checkStage=if($global:accountFixture.childFailure){'AGENT_QUERY'}else{'COMPLETE'};failure=if($global:accountFixture.childFailure){'ACCOUNT_PROBE_CHECK_FAILED'}else{$null}}
+}
 function Test-Path {param($LiteralPath,$PathType) if($LiteralPath -eq 'C:\ProgramData\MarketBrainPaytmGateway'){return $global:accountFixture.rootExists};Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath}
 function New-Item {param($ItemType,$Path,[switch]$Force,$ErrorAction) if($Path.StartsWith('C:\ProgramData\MarketBrainPaytmGateway')){$global:accountFixture.rootExists=$true;return};Microsoft.PowerShell.Management\New-Item -ItemType $ItemType -Path $Path -Force:$Force}
 function Read-Host {param($Prompt,[switch]$AsSecureString)
@@ -130,12 +184,14 @@ function Read-Host {param($Prompt,[switch]$AsSecureString)
 '@
 [IO.File]::WriteAllText((Join-Path $temp 'PaytmGatewayAccount.ps1'),([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmGatewayAccount.ps1'))+"`n"+$mock))
 [IO.File]::WriteAllText((Join-Path $temp 'InstallPaytmGatewayAccount.ps1'),[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'InstallPaytmGatewayAccount.ps1')))
-$scenarios=@('clean','autoMember','cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','verify','disable','shortThenSuccess','mismatchThenSuccess','thirdAttemptSuccess','shortExhausted','mismatchExhausted','inputCancelled')
+$scenarios=@('clean','autoMember','cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','verify','disable','shortThenSuccess','mismatchThenSuccess','thirdAttemptSuccess','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure')
 foreach($scenario in $scenarios){
     $global:accountFixture=@{exists=($scenario -in @('collision','verify','disable'));rootExists=($scenario -in @('verify','disable'));enabled=($scenario -in @('verify','disable'));mutations=0;groupAdds=0;autoMember=($scenario -ceq 'autoMember');agentStatus='Stopped';agentStartType='Disabled';cancel=($scenario -ceq 'cancel');scmDenied=($scenario -ceq 'scmDenied');groupQueryDenied=($scenario -ceq 'groupQueryDenied');failAgent=($scenario -ceq 'agentFailure');failProbe=($scenario -ceq 'probeFailure')}
     $global:accountFixture.passwordReads=0;$global:accountFixture.passwordInputs=@()
     $global:accountFixture.secrets=[Collections.Generic.List[Security.SecureString]]::new()
     $global:accountFixture.inputFailure=$scenario -ceq 'inputCancelled'
+    $global:accountFixture.childFailure=$scenario -ceq 'verifyChildFailure'
+    if($scenario -ceq 'verifyChildFailure'){$global:accountFixture.exists=$true;$global:accountFixture.rootExists=$true;$global:accountFixture.enabled=$true}
     switch($scenario){
         shortThenSuccess {$global:accountFixture.passwordInputs=@('FixtureOnly','FixtureOnly')}
         mismatchThenSuccess {$global:accountFixture.passwordInputs=@('FixtureOnly-NOT-A-REAL-PASSWORD-1','FixtureOnly-NOT-A-REAL-PASSWORD-2')}
@@ -143,21 +199,22 @@ foreach($scenario in $scenarios){
         shortExhausted {$global:accountFixture.passwordInputs=@('FixtureOnly')*6}
         mismatchExhausted {$global:accountFixture.passwordInputs=@('FixtureOnly-NOT-A-REAL-PASSWORD-1','FixtureOnly-NOT-A-REAL-PASSWORD-2')*3}
     }
-    if($scenario -ceq 'verify'){$global:accountFixture.agentStatus='Running';$global:accountFixture.agentStartType='Automatic'}
-    $mode=if($scenario -ceq 'verify'){'Verify'}elseif($scenario -ceq 'disable'){'Disable'}else{'Apply'}
+    if($scenario -in @('verify','verifyChildFailure')){$global:accountFixture.agentStatus='Running';$global:accountFixture.agentStartType='Automatic'}
+    $mode=if($scenario -in @('verify','verifyChildFailure')){'Verify'}elseif($scenario -ceq 'disable'){'Disable'}else{'Apply'}
     $outDir=Join-Path $temp $scenario;$failed=$false
     $console=[Collections.Generic.List[string]]::new()
     try{& (Join-Path $temp 'InstallPaytmGatewayAccount.ps1') -Mode $mode -OutputDirectory $outDir 6>&1 | ForEach-Object {$console.Add([string]$_);Write-Host $_}}catch{$failed=$true}
     $files=@(Get-ChildItem -LiteralPath $outDir -Filter '*.json')
     Check ($files.Count -eq 1) "one report $scenario"
     $report=Get-Content -LiteralPath $files[0].FullName -Raw|ConvertFrom-Json
-    $expectedFailure=$scenario -in @('cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','shortExhausted','mismatchExhausted','inputCancelled')
+    $expectedFailure=$scenario -in @('cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure')
     Check ($failed -eq $expectedFailure) "outcome $scenario"
     Check (-not $report.gatewayActivated -and -not $report.ordersEnabled -and -not $report.sshKeysImported -and -not $report.vpsContacted) "authority $scenario"
     Check ((Get-Content -LiteralPath $files[0].FullName -Raw) -notmatch 'FixtureOnly') "no password $scenario"
     Check (($console -join "`n") -notmatch 'FixtureOnly') "no console password $scenario"
     foreach($secret in $global:accountFixture.secrets){Reject {$copy=$secret.Copy();$copy.Dispose()} "secure input disposed $scenario"}
-    if($scenario -in @('cancel','collision','scmDenied','groupQueryDenied','verify','shortExhausted','mismatchExhausted','inputCancelled')){Check ($global:accountFixture.mutations -eq 0) "no mutation $scenario"}
+    if($scenario -in @('cancel','collision','scmDenied','groupQueryDenied','verify','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure')){Check ($global:accountFixture.mutations -eq 0) "no mutation $scenario"}
+    if($scenario -ceq 'verifyChildFailure'){Check ($report.probe.checkStage -ceq 'AGENT_QUERY' -and $report.probeLaunch.stage -ceq 'COMPLETE' -and $report.failure -ceq 'ACCOUNT_PROBE_FAILED') 'child outcomes preserved before rejection'}
     if($scenario -in @('shortExhausted','mismatchExhausted','inputCancelled')){
         Check ($report.stage -ceq 'PASSWORD_CONFIRMATION' -and -not $report.createdAccount -and -not $report.createdDirectory -and -not $report.agentChanged) "password stage no changes $scenario"
         $expectedCode=if($scenario -ceq 'shortExhausted'){'ACCOUNT_PASSWORD_TOO_SHORT'}elseif($scenario -ceq 'mismatchExhausted'){'ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'}else{'ACCOUNT_PASSWORD_INPUT_CANCELLED'}
