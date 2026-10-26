@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-26 E191: owner reports deleting the Windows gateway account. G2.2 now requires residual-state review before repair; previous Verify command is superseded by [read-only recovery inventory](paytm-gateway-account.md). No actual deletion/cleanup state inferred without new evidence. Accepted checkpoint percentages100/20/0/0/0/0 unchanged; historical acceptance is not a continuous health claim.
+
 2026-10-26 E189/E190: Windows account/storage/agent installation and postchecks succeeded, but exact-account probe launch failed before execution. [Corrected Verify-only handoff](paytm-gateway-account.md) preserves all installed state and existing password. Native command-length/transport regression added;236 assertions/17 mocked workflows passed locally. **G1=100%, G2=20%, G3/G4/G5/G6=0%; delta0.** Six completed install stages are tangible progress, not yet G2.2 acceptance; real probe success would yield40%.
 
 2026-10-24 E187/E188: account creation remains pending after a pre-change password-confirmation stop, not an administrator/service failure. [Corrected Apply handoff](paytm-gateway-account.md),199 local assertions/16 mocked workflows; no cleanup needed for this report. **G1=100%, G2=20%, G3/G4/G5/G6=0%, delta0.** Next successful reviewed account evidence targets G2.2/40%; no guaranteed execution count or broader readiness credit.

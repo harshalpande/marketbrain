@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E191",
+  "date": "2026-10-26",
+  "status": "GATEWAY_DELETED_ACCOUNT_RECOVERY_INVENTORY_LOCAL_VERIFIED",
+  "trigger": "Owner reports manually deleting the marketbrain-gateway Windows account.",
+  "spareDeletionIndependentlyVerified": false,
+  "localChecks": 34,
+  "localReadOnlySmoke": {
+    "runId": "9471ce5657b047f88b8756b74661fc00",
+    "status": "INVENTORY_CAPTURED_RECOVERY_REVIEW_REQUIRED",
+    "elapsedSeconds": 0.979,
+    "environment": "development laptop, not spare acceptance",
+    "profileLookupExercised": false,
+    "note": "An initial CIM service query was unavailable locally; final service collection uses read-only native SCM and registry instead. Profile CIM remains bounded and records failures without assuming absence."
+  },
+  "tested": ["absent account", "same SID", "reused name different SID", "missing manifest", "manifest contract failures", "unknown secret property omitted", "bounded file size", "native fixture ACL and missing path", "path type mismatch", "malformed JSON", "forbidden mutation commands absent"],
+  "accountServicePermissionChangesPerformed": false,
+  "keyContentsRead": false,
+  "vpsContacted": false,
+  "ordersEnabled": false,
+  "acceptedGroupPercentages": [100, 20, 0, 0, 0, 0],
+  "nextAction": "Run GetPaytmGatewayAccountRecovery.ps1 and share its one JSON. No Apply, Verify, cleanup or recreation until reviewed."
+}

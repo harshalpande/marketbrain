@@ -2,6 +2,10 @@
 
 ## Purpose and current evidence
 
+**Current recovery hold, 2026-10-26 E191:** owner reports manually deleting the Windows `marketbrain-gateway` account after E189. The earlier Verify-only handoff is now superseded. **Do not run Apply or Verify, recreate the username, delete its folder or change the agent.** A recreated username has a new SID and cannot inherit the deleted identity's ownership contract. Run the read-only inventory below first; no credentials are requested. Account absence, remaining storage/ACLs/profile and agent state still require fresh spare evidence.
+
+The recovery inventory reads only the exact account, fixed installation/work/manifest paths, existing ssh-agent service and profile metadata for a validated manifest SID. Child listing is non-recursive/capped at101 entries, names and contents are not exported; arbitrary manifest fields are not exported. Reparse paths are blocked. Failed queries are recorded as unknown/partial, not absence. It writes one report, never creates users, changes ACLs/services, runs a login probe or reads keys. A captured inventory is not repair authorization or readiness acceptance.
+
 **Current, 2026-10-26 E189/E190 — VERIFY ONLY:** run `5effeeb6993d484fa70ac49555e88aa4` created the account and protected folders, enabled the account, started/configured the agent and passed ownership/ACL/membership/service postchecks. Password confirmation succeeded on attempt2. It then failed at `Process.Start` before the alternate-account probe ran (`0x80070057`), after110.512s including owner input. **Do not repeat Apply, recreate the account or reset its password.** Use the existing dedicated password with the Verify handoff below.
 
 The old full-source encoded argument exceeded7,000 characters. [Microsoft's alternate-user launch API](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw) limits its command line to1,024 characters; [.NET's Windows process implementation](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Windows.cs) uses that credentialed launch path. This identified contract violation is consistent with the parameter error; actual corrected alternate-user execution is still pending. The new launcher uses a380-character command line (including executable/quotes/NUL allowance) and sends non-secret source over a private UTF-8 stdin pipe. Passwords remain only in the credential property. No probe script is written to disk, no execution-policy weakening or fallback to administrator identity.
@@ -28,7 +32,7 @@ The launcher inspects targets and all local group queries before writing, prints
 
 There is no VPS/Paytm connection, firewall change, scheduled task, automatic gateway, broker login, account/writer unlock, order or fill. Success is **GATEWAY_ACCOUNT_PROVISIONED_KEY_CUSTODY_PENDING**. If reviewed and accepted, G2.2 closes and G2 becomes40%; G3–G6 remain unchanged.
 
-## Current recovery: verify the existing account on the spare laptop
+## Current recovery: inventory after manual account deletion
 
 1. Open **PowerShell7 as Administrator** on the spare. Continue using your normal Windows login; do not sign out. No PuTTY/Pageant/VPS commands, no rebuild or reboot.
 2. Run:
@@ -49,15 +53,17 @@ if ($LASTEXITCODE -ne 0 -or $branch -ne 'main') { throw 'Expected main branch.' 
 $changes = git status --porcelain
 if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Preserve local changes and stop for review.' }
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
-if ($LASTEXITCODE -ne 0) { throw 'Git update failed; do not verify.' }
-& '.\ops\windows\InstallPaytmGatewayAccount.ps1' -Mode Verify
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed; do not continue.' }
+& '.\ops\windows\GetPaytmGatewayAccountRecovery.ps1'
 ```
 
-3. Enter the **existing `marketbrain-gateway` Windows account password successfully confirmed in run5effeeb6**, not a new password, administrator password or PPK passphrase. There is no PROVISION-ACCOUNT prompt in Verify. Do not share it. If forgotten, stop and request a reviewed recovery; do not reset/recreate the account blindly.
-4. Verify checks the owned account/manifest/ACLs/membership and agent state, then runs the hidden probe. The probe creates/deletes only its own small test file; normal Windows login/profile bookkeeping may occur. Account/password/service configuration is not changed. Progress75/85/100%; child execution wait60s after startup plus bounded pipe/cleanup waits. No START-TEST/STOP/SERVER_READY, PuTTY or clipboard interaction. Exact elapsed time is recorded, not promised.
-5. Share only the printed **`paytm-gateway-account-*.json`** from `C:\MarketBrainData\Review`—whether pass or fail. It includes completed steps/timing, current failure stage and non-secret error identifiers. Installed manifest/profile are not files to share.
+3. No account password, PROVISION-ACCOUNT, START-TEST or other confirmation is requested. No PuTTY or VPS session is needed.
+4. Watch progress10/25/40/55/70/85/100%. Service capture uses native service/registry reads; the profile CIM request has a10-second operation timeout. Exact elapsed time is recorded. Both `INVENTORY_CAPTURED_RECOVERY_REVIEW_REQUIRED` and `PARTIAL_INVENTORY_RECOVERY_BLOCKED` mean stop for review, not proceed to installation.
+5. Share only the printed **`paytm-gateway-recovery-*.json`** from `C:\MarketBrainData\Review`. Existing manifest/profile/key files are not files to share. Do not run the previous Apply/Verify commands afterward.
 
 ## Failure, recheck and containment
+
+**Owner deletion supersedes E189's Verify advice:** inventory first. E189 records what existed during its run, not current Windows state. No recovery mutation is authorized by an inventory result alone; any later cleanup/reprovisioning must account for the retained old SID, folder contents and shared service consumers.
 
 **Current E189 overrides the earlier E187 input-only retry advice:** an installation now exists and passed postchecks. Resume with **Verify only**. Preserve it even if verification fails. The report now distinguishes parent launch stages from child IDENTITY/PROTECTED_STORAGE/WORK_DIRECTORY/AGENT_QUERY stages and retains safe negative child outcomes. Missing/unreachable/non-empty agent remains a failure, never silently accepted.
 

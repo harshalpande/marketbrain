@@ -4,6 +4,8 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
+Current E191 hold: owner reports deleting the Windows gateway account after E189. The next action is [read-only recovery inventory](paytm-gateway-account.md), not the earlier Verify/Apply handoff. Current residual state is unverified; no checkpoint added or erased. Percentages remain100/20/0/0/0/0; G2.2 cannot close until reviewed recovery and actual account verification.
+
 Latest review, 2026-10-26 E189/E190: six account/storage/agent setup stages passed, but the credentialed verification process did not start. Its command-line contract is corrected and locally tested. **No percentage increase:** the snapshot below remains100/20/0/0/0/0 until the full exact-account probe passes. Next action is [Verify existing account](paytm-gateway-account.md), not Apply, reset, deletion or maintenance repeat.
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.

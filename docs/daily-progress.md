@@ -1,5 +1,10 @@
 # Daily progress and decision log
 
+## 2026-10-26 Owner deleted account: read-only recovery inventory
+
+- Owner reports deleting the Windows gateway user manually. Prior Apply/Verify handoffs are superseded. Actual absence and residual ACL/storage/profile/agent state await new spare evidence; no inferred cleanup success.
+- E191 adds [read-only inventory handoff](paytm-gateway-account.md), one JSON, no passwords/key contents or account/service/permission changes.34 local checks cover absence/reused SID, bounded/allowlisted manifests, native fixture ACL collection and forbidden mutation commands. G1/G2/G3/G4/G5/G6 accepted checkpoint percentages remain100/20/0/0/0/0; recovery blocks G2.2, no new credit.
+
 ## 2026-10-26 Account provisioned; alternate-user probe launch corrected
 
 - E189: spare run5effeeb6993d484fa70ac49555e88aa4 completed six setup/postcheck stages, then failed at native Process.Start with0x80070057.110.512s includes password input. Account, protected storage and enabled/Automatic agent exist; no keys/tasks/VPS/broker activity. G2.2 is not complete until the exact-account probe passes.
