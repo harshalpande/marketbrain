@@ -6,7 +6,7 @@ $c=Get-PaytmAccountContract;$run=[guid]::NewGuid().ToString('N');$timer=[Diagnos
 $password=$null;$confirmPassword=$null;$stream=$null
 $report=[ordered]@{schemaVersion=1;runId=$run;mode=$Mode;status='REVIEW_REQUIRED';stage='INVENTORY';
     inventory=$null;createdAccount=$false;createdDirectory=$false;accountSid=$null;agentChanged=$false;
-    probe=$null;events=@();sourceHashes=[ordered]@{};failure=$null;failureDetails=$null;elapsedSeconds=0;
+    probe=$null;events=@();passwordAttempts=@();sourceHashes=[ordered]@{};failure=$null;failureDetails=$null;elapsedSeconds=0;
     acceptedProgressAtScriptRelease=@();candidateGroup2PercentIfReviewed=$null;
     sshKeysImported=$false;scheduledTaskInstalled=$false;vpsContacted=$false;gatewayActivated=$false;ordersEnabled=$false}
 function Save-AccountCheckpoint {
@@ -54,9 +54,31 @@ try{
         Write-Host 'Choose a NEW account password (14+ characters) and keep it in your password manager. Do not enter your VPS/Windows-admin/Paytm password here or share it in chat.'
         Write-Host 'On a partial failure, account/files/service state are preserved and recorded; no blind rollback or deletion. Do not repeat Apply.'
         if((Read-Host 'Type PROVISION-ACCOUNT to authorize exactly these changes') -cne 'PROVISION-ACCOUNT'){throw 'ACCOUNT_OWNER_CANCELLED'}
-        $password=Read-Host 'New dedicated Windows account password' -AsSecureString
-        $confirmPassword=Read-Host 'Confirm new account password' -AsSecureString
-        if(-not (Test-PaytmAccountPasswords $password $confirmPassword)){throw 'ACCOUNT_PASSWORD_MISMATCH_OR_TOO_SHORT'}
+        $report.stage='PASSWORD_CONFIRMATION';Save-AccountCheckpoint
+        Write-Host '[10%] Private password confirmation: up to 3 attempts. No account or service changes have started. Ctrl+C cancels.'
+        $passwordAccepted=$false
+        for($attempt=1;$attempt -le 3;$attempt++){
+            try{
+                Write-Host "Password attempt $attempt of 3. Enter the same NEW password twice; check Caps Lock and keyboard layout."
+                $password=Read-Host 'New dedicated Windows account password (14+ characters)' -AsSecureString
+                $confirmPassword=Read-Host 'Confirm the SAME new account password' -AsSecureString
+                $passwordResult=Get-PaytmAccountPasswordResult $password $confirmPassword
+                $passwordAccepted=$passwordResult -ceq 'CONFIRMED'
+                $report.passwordAttempts+=@([pscustomobject]@{attempt=$attempt;outcome=$passwordResult})
+                Save-AccountCheckpoint
+            }finally{
+                if($null -ne $confirmPassword){$confirmPassword.Dispose();$confirmPassword=$null}
+                if(-not $passwordAccepted -and $null -ne $password){$password.Dispose();$password=$null}
+            }
+            if($passwordAccepted){break}
+            switch($passwordResult){
+                ACCOUNT_PASSWORD_TOO_SHORT {Write-Host 'The new password must contain at least 14 characters. No changes made.'}
+                ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH {Write-Host 'The two password entries did not match exactly. No changes made.'}
+                default {Write-Host 'Password input was missing. No changes made.'}
+            }
+        }
+        if(-not $passwordAccepted){throw $passwordResult}
+        $report.stage='PRE_APPLY_RECHECK';Save-AccountCheckpoint
         # Recheck absence immediately before the first change. Never adopt/reset an existing user.
         if(@(Get-LocalUser | Where-Object {$_.Name -ieq $c.name}).Count -or (Test-Path -LiteralPath $c.root)){throw 'ACCOUNT_TARGET_CHANGED_BEFORE_APPLY'}
         Account-Step 'CREATE_DISABLED_ACCOUNT' 20 {
@@ -126,6 +148,10 @@ try{
     Write-Host "Share this ONE file: $path"
     Write-Host ('Accepted progress at script release: '+(($report.acceptedProgressAtScriptRelease|ForEach-Object { "$($_.id)=$($_.percent)%" }) -join ', '))
     if($null -ne $report.candidateGroup2PercentIfReviewed){Write-Host "This account result is a candidate for G2=$($report.candidateGroup2PercentIfReviewed)%, pending evidence review."}
-    if($report.failure){Write-Host 'STOP: do not rerun Apply or delete the account/folder. Share the JSON; it records completed and possibly partial steps.'}
+    if($report.failure){
+        if($report.stage -ceq 'PASSWORD_CONFIRMATION'){
+            Write-Host 'Stopped before account/service changes. You may run Apply again later; it rechecks that the account/folder are absent. Do not delete anything. Share only the JSON, never passwords.'
+        }else{Write-Host 'STOP: do not rerun Apply or delete the account/folder. Share the JSON; it records completed and possibly partial steps.'}
+    }
 }
 if($report.failure){throw $report.failure}

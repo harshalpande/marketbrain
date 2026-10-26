@@ -47,6 +47,24 @@ try{
     Check (-not (Test-PaytmAccountPasswords $first $other)) 'different secure strings'
     Check (-not (Test-PaytmAccountPasswords $short $short)) 'short password'
 }finally{foreach($secret in @($first,$same,$other,$short)){$secret.Dispose()}}
+foreach($vector in @(
+    @('1234567890123','1234567890123','ACCOUNT_PASSWORD_TOO_SHORT'),
+    @('12345678901234','12345678901234','CONFIRMED'),
+    @('12345678901234','123456789012345','ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'),
+    @('12345678901234','12345678901235','ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'),
+    @('ABCDEFGHIJKLMN','abcdefghijklmn','ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'),
+    @(' 12345678901234','12345678901234 ','ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'),
+    @('unicode-é-密码-12345','unicode-é-密码-12345','CONFIRMED'),
+    @('unicode-é-密码-12345','unicode-é-密码-12346','ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH')
+)){
+    $a=ConvertTo-SecureString $vector[0] -AsPlainText -Force;$b=ConvertTo-SecureString $vector[1] -AsPlainText -Force
+    try{Check ((Get-PaytmAccountPasswordResult $a $b) -ceq $vector[2]) 'exact password outcome'}finally{$a.Dispose();$b.Dispose()}
+}
+$empty=[Security.SecureString]::new()
+try{
+    Check ((Get-PaytmAccountPasswordResult $empty $empty) -ceq 'ACCOUNT_PASSWORD_TOO_SHORT') 'empty password'
+    Check ((Get-PaytmAccountPasswordResult $null $empty) -ceq 'ACCOUNT_PASSWORD_INPUT_MISSING') 'missing input'
+}finally{$empty.Dispose()}
 $probe=[pscustomobject]@{version=1;runId=$run;sidMatched=$true;nonAdmin=$true;protectedWriteDenied=$true;workWriteReadDelete=$true;agentEmpty=$true;agentExit=1;failure=$null}
 Assert-PaytmAccountProbe $probe $run;$script:checks++
 foreach($field in @('sidMatched','nonAdmin','protectedWriteDenied','workWriteReadDelete','agentEmpty')){
@@ -99,28 +117,60 @@ function Read-PaytmOwnedAccount {if(-not $global:accountFixture.exists){throw 'A
 function Invoke-PaytmAccountProbe {param($Sid,$RunId,$Password) if($global:accountFixture.failProbe){throw 'ACCOUNT_PROBE_FAILED'};[pscustomobject]@{runId=$RunId;sidMatched=$true;agentEmpty=$true}}
 function Test-Path {param($LiteralPath,$PathType) if($LiteralPath -eq 'C:\ProgramData\MarketBrainPaytmGateway'){return $global:accountFixture.rootExists};Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath}
 function New-Item {param($ItemType,$Path,[switch]$Force,$ErrorAction) if($Path.StartsWith('C:\ProgramData\MarketBrainPaytmGateway')){$global:accountFixture.rootExists=$true;return};Microsoft.PowerShell.Management\New-Item -ItemType $ItemType -Path $Path -Force:$Force}
-function Read-Host {param($Prompt,[switch]$AsSecureString) if($AsSecureString){return ConvertTo-SecureString 'FixtureOnly-NOT-A-REAL-PASSWORD-1' -AsPlainText -Force};if($global:accountFixture.cancel){return 'CANCEL'};if($Prompt -like '*DISABLE-ACCOUNT*'){return 'DISABLE-ACCOUNT'};'PROVISION-ACCOUNT'}
+function Read-Host {param($Prompt,[switch]$AsSecureString)
+    if($AsSecureString){
+        $index=$global:accountFixture.passwordReads;$global:accountFixture.passwordReads++
+        if($global:accountFixture.inputFailure -and $index -eq 1){throw 'ACCOUNT_PASSWORD_INPUT_CANCELLED'}
+        $value=if($index -lt $global:accountFixture.passwordInputs.Count){$global:accountFixture.passwordInputs[$index]}else{'FixtureOnly-NOT-A-REAL-PASSWORD-1'}
+        $secret=ConvertTo-SecureString $value -AsPlainText -Force
+        $global:accountFixture.secrets.Add($secret);return $secret
+    }
+    if($global:accountFixture.cancel){return 'CANCEL'};if($Prompt -like '*DISABLE-ACCOUNT*'){return 'DISABLE-ACCOUNT'};'PROVISION-ACCOUNT'
+}
 '@
 [IO.File]::WriteAllText((Join-Path $temp 'PaytmGatewayAccount.ps1'),([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmGatewayAccount.ps1'))+"`n"+$mock))
 [IO.File]::WriteAllText((Join-Path $temp 'InstallPaytmGatewayAccount.ps1'),[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'InstallPaytmGatewayAccount.ps1')))
-$scenarios=@('clean','autoMember','cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','verify','disable')
+$scenarios=@('clean','autoMember','cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','verify','disable','shortThenSuccess','mismatchThenSuccess','thirdAttemptSuccess','shortExhausted','mismatchExhausted','inputCancelled')
 foreach($scenario in $scenarios){
     $global:accountFixture=@{exists=($scenario -in @('collision','verify','disable'));rootExists=($scenario -in @('verify','disable'));enabled=($scenario -in @('verify','disable'));mutations=0;groupAdds=0;autoMember=($scenario -ceq 'autoMember');agentStatus='Stopped';agentStartType='Disabled';cancel=($scenario -ceq 'cancel');scmDenied=($scenario -ceq 'scmDenied');groupQueryDenied=($scenario -ceq 'groupQueryDenied');failAgent=($scenario -ceq 'agentFailure');failProbe=($scenario -ceq 'probeFailure')}
+    $global:accountFixture.passwordReads=0;$global:accountFixture.passwordInputs=@()
+    $global:accountFixture.secrets=[Collections.Generic.List[Security.SecureString]]::new()
+    $global:accountFixture.inputFailure=$scenario -ceq 'inputCancelled'
+    switch($scenario){
+        shortThenSuccess {$global:accountFixture.passwordInputs=@('FixtureOnly','FixtureOnly')}
+        mismatchThenSuccess {$global:accountFixture.passwordInputs=@('FixtureOnly-NOT-A-REAL-PASSWORD-1','FixtureOnly-NOT-A-REAL-PASSWORD-2')}
+        thirdAttemptSuccess {$global:accountFixture.passwordInputs=@('FixtureOnly','FixtureOnly','FixtureOnly-NOT-A-REAL-PASSWORD-1','FixtureOnly-NOT-A-REAL-PASSWORD-2')}
+        shortExhausted {$global:accountFixture.passwordInputs=@('FixtureOnly')*6}
+        mismatchExhausted {$global:accountFixture.passwordInputs=@('FixtureOnly-NOT-A-REAL-PASSWORD-1','FixtureOnly-NOT-A-REAL-PASSWORD-2')*3}
+    }
     if($scenario -ceq 'verify'){$global:accountFixture.agentStatus='Running';$global:accountFixture.agentStartType='Automatic'}
     $mode=if($scenario -ceq 'verify'){'Verify'}elseif($scenario -ceq 'disable'){'Disable'}else{'Apply'}
     $outDir=Join-Path $temp $scenario;$failed=$false
-    try{& (Join-Path $temp 'InstallPaytmGatewayAccount.ps1') -Mode $mode -OutputDirectory $outDir | Out-Null}catch{$failed=$true}
+    $console=[Collections.Generic.List[string]]::new()
+    try{& (Join-Path $temp 'InstallPaytmGatewayAccount.ps1') -Mode $mode -OutputDirectory $outDir 6>&1 | ForEach-Object {$console.Add([string]$_);Write-Host $_}}catch{$failed=$true}
     $files=@(Get-ChildItem -LiteralPath $outDir -Filter '*.json')
     Check ($files.Count -eq 1) "one report $scenario"
     $report=Get-Content -LiteralPath $files[0].FullName -Raw|ConvertFrom-Json
-    $expectedFailure=$scenario -in @('cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure')
+    $expectedFailure=$scenario -in @('cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','shortExhausted','mismatchExhausted','inputCancelled')
     Check ($failed -eq $expectedFailure) "outcome $scenario"
     Check (-not $report.gatewayActivated -and -not $report.ordersEnabled -and -not $report.sshKeysImported -and -not $report.vpsContacted) "authority $scenario"
     Check ((Get-Content -LiteralPath $files[0].FullName -Raw) -notmatch 'FixtureOnly') "no password $scenario"
-    if($scenario -in @('cancel','collision','scmDenied','groupQueryDenied','verify')){Check ($global:accountFixture.mutations -eq 0) "no mutation $scenario"}
+    Check (($console -join "`n") -notmatch 'FixtureOnly') "no console password $scenario"
+    foreach($secret in $global:accountFixture.secrets){Reject {$copy=$secret.Copy();$copy.Dispose()} "secure input disposed $scenario"}
+    if($scenario -in @('cancel','collision','scmDenied','groupQueryDenied','verify','shortExhausted','mismatchExhausted','inputCancelled')){Check ($global:accountFixture.mutations -eq 0) "no mutation $scenario"}
+    if($scenario -in @('shortExhausted','mismatchExhausted','inputCancelled')){
+        Check ($report.stage -ceq 'PASSWORD_CONFIRMATION' -and -not $report.createdAccount -and -not $report.createdDirectory -and -not $report.agentChanged) "password stage no changes $scenario"
+        $expectedCode=if($scenario -ceq 'shortExhausted'){'ACCOUNT_PASSWORD_TOO_SHORT'}elseif($scenario -ceq 'mismatchExhausted'){'ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'}else{'ACCOUNT_PASSWORD_INPUT_CANCELLED'}
+        Check ($report.failure -ceq $expectedCode) "specific failure $scenario"
+    }
+    if($scenario -in @('shortExhausted','mismatchExhausted')){Check ($global:accountFixture.passwordReads -eq 6 -and $report.passwordAttempts.Count -eq 3) "three attempts only $scenario"}
+    if($scenario -in @('shortThenSuccess','mismatchThenSuccess','thirdAttemptSuccess')){
+        $expectedAttempts=if($scenario -ceq 'thirdAttemptSuccess'){3}else{2}
+        Check ($report.passwordAttempts.Count -eq $expectedAttempts -and $report.passwordAttempts[-1].outcome -ceq 'CONFIRMED' -and $report.createdAccount) "recovery within same run $scenario"
+    }
     if($scenario -ceq 'autoMember'){Check ($global:accountFixture.groupAdds -eq 0) 'existing standard membership not readded'}
     if($scenario -ceq 'agentFailure'){Check ($report.agentChanged -and $report.createdAccount -and $report.failureDetails.stage -ceq 'ENABLE_EXISTING_CLIENT_AGENT') 'partial change evidence'}
     if($scenario -ceq 'disable'){Check ($global:accountFixture.mutations -eq 1 -and -not $global:accountFixture.enabled) 'disable only owned account'}
 }
 Remove-Variable -Name accountFixture,realInventoryAssertion -Scope Global
-Write-Host "PASS: $script:checks account assertions; 10 mocked launcher workflows; native wrong-identity probe. No account/service/key/VPS changes. Fixtures: $temp"
+Write-Host "PASS: $script:checks account assertions; $($scenarios.Count) mocked launcher workflows; native wrong-identity probe. No account/service/key/VPS changes. Fixtures: $temp"

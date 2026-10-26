@@ -1,5 +1,17 @@
 # Daily progress and decision log
 
+## 2026-10-26 Resume interrupted account-fix handoff
+
+- Confirmed the October24 password-flow fix, tests and documentation remained uncommitted; no unrelated local changes found. Resumed review and release without widening runtime scope.
+- Reverification passed199 account assertions/16 mocked workflows and the gateway foundation bundle (79 assertions;2.069s bundle elapsed). Syntax, JSON/SVG and diff checks repeated before commit. No real account, service, key, VPS or broker changes performed locally.
+- Spare handoff remains [guarded account Apply](paytm-gateway-account.md). Accepted percentages unchanged100/20/0/0/0/0; runtime G2.2 evidence still pending. E188 records this repeat verification without adding acceptance credit.
+
+## 2026-10-24 Account password-confirmation stop reviewed and corrected
+
+- E187: spare run962eecffb56049c5ae000466d47921b1 stopped in20.248s with `ACCOUNT_PASSWORD_MISMATCH_OR_TOO_SHORT`, before New-LocalUser. Elevated/tools/SCM access passed; no account, directory, agent change or probe. Old INVENTORY stage was misleading; evidence cannot distinguish short input from mismatch. Do not blame credentials or retry maintenance.
+- E188: corrected password-stage/outcome reporting and three bounded private entry attempts; no reduced minimum, password logging, account adoption or automatic cleanup.199 local assertions/16 mocked workflows passed, including interrupted input, disposal and failure secrecy. [Next-login handoff](paytm-gateway-account.md) is the same guarded Apply after pulling the fix, not Verify or deletion. No runtime changes made locally.
+- Accepted percentages unchanged: **G1=100%, G2=20%, G3/G4/G5/G6=0%**; delta0. Successful reviewed account/probe evidence would close G2.2 and move G2 to40%, enabling the key-custody stage, not broker access.
+
 ## 2026-10-23 Foundation accepted; fixed group-percentage reporting and account provisioning
 
 - Owner requires percentages after every shared test. [Baseline](paytm-readiness-progress.md): five fixed equal-weight acceptance checkpoints per group; report evidence, changed checkpoint/delta, all six percentages and next action. No effort/whole-project claim or silent denominator change.

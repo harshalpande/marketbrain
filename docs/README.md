@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+2026-10-24 E187/E188: account input stopped before installation; no account/service changes. [Corrected password-confirmation flow and next-login script](paytm-gateway-account.md) verified locally (199 assertions/16 mocked workflows). Exact short/mismatch outcomes, three bounded attempts, no secrets in reports. Accepted percentages unchanged100/20/0/0/0/0; G2.2 awaits spare acceptance. Do not repeat foundation/maintenance or delete anything.
+
 2026-10-23 E185/E186: foundation spare report accepted (2.335s); [account/agent provisioning](paytm-gateway-account.md) is next. [Percentage baseline and reporting policy](paytm-readiness-progress.md), [machine-readable checkpoints](paytm-readiness-progress.json): five equal acceptance checkpoints per group; G1=100%, G2=20%, G3–G6=0%. No speculative credit for mocks or automatic group completion. Old handoffs below are historical; no maintenance/foundation rerun.
 
 2026-10-23 E183/E184: maintenance/reboot accepted, six stale services/four sessions cleared. [Gateway foundation bundle](paytm-gateway-foundation.md) is next: offline recovery/security/process tests and actual Windows client configuration, one JSON, no PuTTY or administrator rights. This is engineering preparation, not unattended installation or broker readiness. Do not replay maintenance. Earlier next-step notes are historical.

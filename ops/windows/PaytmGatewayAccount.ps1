@@ -74,18 +74,25 @@ function Set-PaytmAccountDirectoryAcl([string]$Path,[string]$AccountSid,[switch]
     [IO.FileSystemAclExtensions]::SetAccessControl([IO.DirectoryInfo]::new($Path),$acl)
     Assert-PaytmAccountAcl (Get-Acl -LiteralPath $Path) $AccountSid -Writable:$Writable
 }
-function Test-PaytmAccountPasswords([Security.SecureString]$First,[Security.SecureString]$Second) {
-    if($null -eq $First -or $null -eq $Second -or $First.Length -lt 14 -or $First.Length -ne $Second.Length){return $false}
+function Get-PaytmAccountPasswordResult([Security.SecureString]$First,[Security.SecureString]$Second) {
+    # Outcome codes only: never return password text, contents or exact lengths.
+    if($null -eq $First -or $null -eq $Second){return 'ACCOUNT_PASSWORD_INPUT_MISSING'}
+    if($First.Length -lt 14){return 'ACCOUNT_PASSWORD_TOO_SHORT'}
+    if($First.Length -ne $Second.Length){return 'ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'}
     $left=[IntPtr]::Zero;$right=[IntPtr]::Zero
     try{
         $left=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($First);$right=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($Second)
         $different=0
         for($i=0;$i -lt $First.Length;$i++){$different=$different -bor ([Runtime.InteropServices.Marshal]::ReadInt16($left,$i*2) -bxor [Runtime.InteropServices.Marshal]::ReadInt16($right,$i*2))}
-        return $different -eq 0
+        if($different -eq 0){return 'CONFIRMED'}
+        return 'ACCOUNT_PASSWORD_CONFIRMATION_MISMATCH'
     }finally{
         if($left -ne [IntPtr]::Zero){[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($left)}
         if($right -ne [IntPtr]::Zero){[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($right)}
     }
+}
+function Test-PaytmAccountPasswords([Security.SecureString]$First,[Security.SecureString]$Second) {
+    (Get-PaytmAccountPasswordResult $First $Second) -ceq 'CONFIRMED'
 }
 function Assert-PaytmAccountInventory($Inventory,[ValidateSet('Apply','Verify','Disable')][string]$Mode) {
     if(-not $Inventory.elevated -or -not $Inventory.native64Bit){throw 'ACCOUNT_ELEVATED_64BIT_REQUIRED'}

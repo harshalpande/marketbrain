@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+2026-10-24 E187/E188: account creation remains pending after a pre-change password-confirmation stop, not an administrator/service failure. [Corrected Apply handoff](paytm-gateway-account.md),199 local assertions/16 mocked workflows; no cleanup needed for this report. **G1=100%, G2=20%, G3/G4/G5/G6=0%, delta0.** Next successful reviewed account evidence targets G2.2/40%; no guaranteed execution count or broader readiness credit.
+
 2026-10-23 E185/E186: [fixed group-percentage baseline](paytm-readiness-progress.md) introduced at owner's request: five equal accepted checkpoints per group, evidence-based rather than estimated effort. **G1 100%; G2 20%; G3/G4/G5/G6 0%.** Spare foundation accepted; [Windows account/agent provisioning](paytm-gateway-account.md) next. Successful reviewed runtime evidence would close G2.2 and yield40%, not complete group2. One fully completed group remains; prior route work is preserved as prerequisite evidence. No maintenance/foundation repeat.
 
 2026-10-23 E183/E184: **maintenance group1 accepted** after verified VPS reboot; no replay. Next [unattended gateway foundation](paytm-gateway-foundation.md) batches engineering recovery/security/process tests and Windows SSH compatibility. Production adapters, custody, installation and real lifecycle remain pending. **1/6 acceptance groups complete (16.7% of the Paytm-readiness checklist only)**; five groups unchanged, not five guaranteed test runs or whole-project progress. Earlier immediate-next-step notes are historical.
