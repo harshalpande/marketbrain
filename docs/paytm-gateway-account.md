@@ -2,6 +2,8 @@
 
 ## Current state and purpose — 2026-10-26
 
+**E194: RECOVERY ACCEPTED — do not rerun the historical commands below.** Run ed64356fd5d84c02b0c156f1fc3ef1b4 completed all eight stages, including actual non-admin login/storage/empty-agent verification, in46.068s. Three source hashes match the reviewed code. Old folder preserved; shared agent unchanged. G2.2 closed and G2 is now40%. [Next: protected key custody](paytm-gateway-key-custody.md), pending encrypted-file format confirmation. The following E192/E193 description is historical, not a current recovery instruction.
+
 **E192 accepts the recovery inventory, not account readiness.** Run `ece79d9aa003448c99ae114f3d1c20ca` captured six checks with zero failures in 0.825 seconds: the Windows account is absent; its old ownership manifest and protected folders remain; the work folder is empty; no profile is registered for the old SID; the existing Windows SSH agent is Running/Automatic. The owner approved recovery after this review.
 
 **E193 prepares one combined Recover run.** It preserves the old folder, creates a new restricted account and fresh storage, and verifies the actual account login. This supersedes all earlier Apply/Verify/inventory-only handoffs for this installation. Do not manually recreate the account, delete folders, reset service permissions or repeat maintenance.
@@ -20,7 +22,7 @@ The corrected credentialed launcher has a380-character command line, guarded bel
 
 This batch does **not** touch the VPS, application, database, firewall, Paytm credentials, Pageant keys or encrypted PPK. No scheduled task, tunnel activation, broker login or trades. No Docker rebuild/reboot or PuTTY session is needed.
 
-## Complete spare-laptop handoff
+## Completed recovery handoff — DO NOT RERUN
 
 Open **64-bit PowerShell7 as Administrator** under your normal Windows login. Leave the application and existing services unchanged.
 

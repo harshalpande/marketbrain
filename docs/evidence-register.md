@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E194 GATEWAY_ACCOUNT_RUNTIME_ACCEPTED_KEY_CUSTODY_PENDING:** [spare acceptance](evidence/paytm-gateway-account-accepted-20261026.json). Eight completed recovery stages,46.068s total,6.497s actual credentialed probe; new non-admin SID, archived old storage, protected-write denial/work success/empty agent. Agent unchanged; all three CRLF source hashes verified against b7f0806. Closes G2.2, G2 **40%**; other groups unchanged. No account/recovery rerun. [Key-custody plan](paytm-gateway-key-custody.md) awaits encrypted-key format confirmation; no import or broker activation accepted. Earlier immediate handoffs below are superseded.
+
 - **E193 GATEWAY_ACCOUNT_RECOVERY_LOCAL_VERIFIED_RUNTIME_PENDING:** [local verification](evidence/paytm-gateway-account-repair-local-20261026.json), [current Recover handoff](paytm-gateway-account.md).320 assertions/26 mocked workflows,29 repair checks with native temp rename/hash preservation,37 inventory regressions and foundation regression pass. Exact reviewed receipt/live-state gates, old-folder preservation, new SID/storage/probe; existing Running/Automatic agent never reconfigured. Partial state retained. No spare recovery acceptance or percentage increase. Supersedes earlier immediate Apply/Verify/inventory-only handoffs below.
 - **E192 GATEWAY_DELETED_ACCOUNT_INVENTORY_REVIEWED:** [spare review](evidence/paytm-gateway-recovery-spare-20261026.json). Six checks/zero failures,0.825s; account absent, exact old-SID folders/manifest remain, work empty/profile absent, agent Running/Automatic. Owner approved controlled recovery; this is not proof of a working account. G2 remains20%.
 

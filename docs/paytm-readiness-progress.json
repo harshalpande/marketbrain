@@ -12,7 +12,7 @@
     ]},
     {"id":"G2","name":"Unattended gateway","checkpoints":[
       {"id":"G2.1","goal":"Supervisor foundation and spare native client configuration accepted","evidence":"E185"},
-      {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":null},
+      {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":"E194"},
       {"id":"G2.3","goal":"Protected key custody and pinned restricted OpenSSH authentication under exact account accepted","evidence":null},
       {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null},
       {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":null}

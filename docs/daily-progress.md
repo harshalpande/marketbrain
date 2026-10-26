@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-26 Account recovery accepted; key custody next
+
+- E194: run ed64356fd5d84c02b0c156f1fc3ef1b4 completed eight stages in46.068s including owner input; real probe6.497s. New SID ends1010 versus archived old1009, archive/hash/permissions verified. Shared agent unchanged. All three script hashes match b7f0806 CRLF checkout bytes.
+- Actual child identity matched and was non-admin; protected manifest write denied, work write/read/delete passed, agent reachable/empty. Child exit0; ssh-add exit1 means expected empty agent, not an error. No imported keys/tasks/VPS/gateway/orders.
+- G2.2 closes: G2 **20% to40%, +20 percentage points**. G1=100%, G3–G6=0%; no whole-project or profitability claim. No account/recovery rerun.
+- [Next G2.3 plan](paytm-gateway-key-custody.md): private existing-key format confirmation, protected import under exact account and pinned restricted authentication. Format-only question outstanding; no private material requested and no import script released yet. Real key persistence and managed startup remain pending.
+
 ## 2026-10-26 Reviewed deleted-account state; combined recovery prepared
 
 - E192: run ece79d9aa003448c99ae114f3d1c20ca accepted as inventory only; six checks, zero failures,0.825s. Account absent, old manifest/ACLs remain, empty work folder, no old-SID profile, agent Running/Automatic. No account acceptance inferred.

@@ -8,7 +8,7 @@ function Reject([scriptblock]$Action,[string]$Name){$bad=$false;try{&$Action|Out
 $sid='S-1-5-21-111-222-333-1001';$run='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 $progress=@(Get-PaytmReadinessProgress)
 Check ($progress.Count -eq 6) 'six progress groups'
-Check ($progress[0].percent -eq 100 -and $progress[1].percent -eq 20) 'accepted evidence percentages'
+Check ($progress[0].percent -eq 100 -and $progress[1].percent -eq 40) 'accepted evidence percentages after E194'
 Check (@($progress[2..5]|Where-Object {$_.percent -ne 0}).Count.Equals(0)) 'no speculative runtime credit'
 $inventory=[pscustomobject]@{elevated=$true;native64Bit=$true;toolsPresent=$true;agentImage='"C:\Windows\System32\OpenSSH\ssh-agent.exe"';agentStartName='LocalSystem';accountExists=$false;rootExists=$false;agentStatus='Stopped';agentStartType='Disabled';secondaryLogonStartType='Manual';agentControlError=0}
 Assert-PaytmAccountInventory $inventory Apply;$script:checks++
@@ -146,7 +146,7 @@ function Assert-PaytmAccountInventory($Inventory,$Mode){$Inventory.elevated=$tru
 function Import-Module {param($Name,$ErrorAction)}
 function Get-PaytmAgentControlAccess {if($global:accountFixture.scmDenied){return 5};0}
 function Get-PaytmLocalMembershipSnapshot {if($global:accountFixture.groupQueryDenied){throw 'ACCOUNT_FIXTURE_GROUP_QUERY_DENIED'}}
-function Get-PaytmReadinessProgress {foreach($id in 1..6){[pscustomobject]@{id="G$id";percent=if($id -eq 1){100}elseif($id -eq 2){20}else{0}}}}
+function Get-PaytmReadinessProgress {foreach($id in 1..6){[pscustomobject]@{id="G$id";percent=if($id -eq 1){100}elseif($id -eq 2){40}else{0}}}}
 function Get-LocalUser {param($Name,$SID,$ErrorAction) if($global:accountFixture.exists){[pscustomobject]@{Name='marketbrain-gateway';SID=[pscustomobject]@{Value='S-1-5-21-111-222-333-1001'};Enabled=$global:accountFixture.enabled;Description='MarketBrain gateway account'}}}
 function New-LocalUser {param($Name,$Password,$Description,[switch]$Disabled,$ErrorAction) if($global:accountFixture.failCreate){throw 'ACCOUNT_FIXTURE_CREATE_FAILED'};$global:accountFixture.exists=$true;$global:accountFixture.mutations++;Get-LocalUser}
 function Get-LocalGroupMember {param($SID,$ErrorAction) if($global:accountFixture.autoMember){Get-LocalUser}}

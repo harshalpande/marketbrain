@@ -4,18 +4,16 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
-Current E192/E193: residual inventory accepted, owner-approved [controlled Recover](paytm-gateway-account.md) locally verified. Old storage preserved, new account/SID/protected storage plus exact-account probe prepared; existing agent untouched. Runtime recovery pending. No checkpoint added or erased:100/20/0/0/0/0; G2.2 success plus review targets40%. This supersedes earlier Apply/Verify/inventory-only next actions below.
-
-Latest review, 2026-10-26 E189/E190: six account/storage/agent setup stages passed, but the credentialed verification process did not start. Its command-line contract is corrected and locally tested. **No percentage increase:** the snapshot below remains100/20/0/0/0/0 until the full exact-account probe passes. Next action is [Verify existing account](paytm-gateway-account.md), not Apply, reset, deletion or maintenance repeat.
+Current E194: actual recovery and exact-account probe accepted. Eight completed stages,46.068s total including owner input,6.497s child probe, three reviewed CRLF source hashes match. Protected storage/archive verified, new account non-admin and agent empty/reachable; service unchanged. **G2.2 closes; G2 rises20% to40% (+20 percentage points).** No account rerun. [Next: key custody](paytm-gateway-key-custody.md), pending encrypted-key format confirmation. G3 remains0%: this account repair is not installed gateway recovery acceptance.
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 
-## Current accepted snapshot — E185
+## Current accepted snapshot — E194
 
 | Group | Accepted checkpoints | Accepted completion | Remaining |
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
-| G2 Unattended gateway |1/5|20%|Windows account/agent, key custody, production supervisor/task, managed VPS lifecycle |
+| G2 Unattended gateway |2/5|40%|Key custody, production supervisor/task, managed VPS lifecycle |
 | G3 Real recovery/safe failure |0/5|0%|Installed-system interruption, negatives, stop, logoff/boot, health/no-fallback acceptance |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |
@@ -33,4 +31,4 @@ E185 report passed79 assertions,12 unsafe-configuration cases and31 effective SS
 4. Why the next script is needed, exactly what it changes, and what successful evidence would establish.
 5. For authorized implementation: verified commit/push and complete spare commands, one shareable JSON where practical. Never request passwords, tokens or private keys in chat.
 
-The [next account-provisioning step](paytm-gateway-account.md), if successful and reviewed, closes **G2.2**: G2 **20% → 40%**. No other group advances automatically. The script reports the accepted snapshot at its release and marks40% as a candidate, never self-approves its evidence.
+Next checkpoint **G2.3**, protected key custody plus pinned restricted authentication, would move G2 **40% → 60%** after runtime review. No other group advances automatically. The account report's release-time20% snapshot is historical; E194 review supplies the new40% acceptance.

@@ -4,6 +4,8 @@ Established 2026-10-12 at the owner's request. This scorecard measures delivered
 
 ## Measurement rules
 
+**Current E194, 2026-10-26:** gateway account runtime accepted, eight completed stages,46.068s total/6.497s child probe; three source hashes verified. **G2.2 closed; G2 +20 percentage points to40%.** Paytm readiness groups100/40/0/0/0/0. No account rerun; encrypted key format confirmation precedes the [key-custody batch](paytm-gateway-key-custody.md). No key import/startup/broker/paper-execution or full-roadmap credit inferred. Earlier next-step notes below are historical.
+
 E177/E178 (2026-10-23): six new packages,0 upgrades/removals,51.727s dependency plan accepted. Next [combined install and scan](paytm-scanner-install.md); execution pending. Earlier70-package update remains accepted, restart clearance still open. Local fixtures do not constitute real installation, disconnect-recovery or whole-project completion credit.
 
 E175/E176 (2026-10-23): restart collection33.811s, one finding: scanner unavailable.70 installed targets/baseline health pass; no new runtime completion beyond collection/diagnosis, no restart clearance. New read-only scanner-plan implementation passes51 PowerShell/34 Bash assertions locally; actual VPS preview pending. Maintenance group1 remains open; no whole-roadmap percentage gain. [Next handoff](paytm-scanner-plan.md).

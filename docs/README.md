@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+**Current E194, 2026-10-26:** dedicated gateway account runtime accepted: eight stages,46.068s, exact-account probe6.497s, archived old storage and unchanged agent; three source hashes match. G2.2 closed, **100/40/0/0/0/0** accepted percentages. [Next key-custody plan](paytm-gateway-key-custody.md) awaits format confirmation, not another account run. Previous Apply/Recover/Verify handoffs below are historical. No rebuild or runtime change for this evidence update.
+
 2026-10-26 E192/E193: spare inventory accepted; account absent, protected old-SID storage remains, work/profile empty and agent Running/Automatic. Owner-approved [controlled Recover handoff](paytm-gateway-account.md) preserves the old directory and recreates/verifies restricted account/storage, without changing the shared agent.320 assertions/26 mocked workflows,29 repair and37 inventory checks pass; actual recovery pending. All earlier immediate-next-step instructions below are historical. Accepted100/20/0/0/0/0 unchanged.
 
 2026-10-26 E189/E190: installation now exists; six account/storage/agent stages passed before the alternate-user probe launch failed. [Verify-only recovery](paytm-gateway-account.md) replaces prior Apply instructions. Short native command/private UTF-8 stdin,236 local assertions/17 mocked workflows and native process cases; no reset/recreate or maintenance repeat. G2 remains20% until real credentialed probe acceptance; other percentages100/0/0/0/0 unchanged.
