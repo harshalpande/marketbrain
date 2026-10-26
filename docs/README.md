@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-2026-10-26 E191: owner-reported account deletion supersedes Apply/Verify instructions. [Current read-only recovery inventory](paytm-gateway-account.md) captures exact residual metadata, one JSON; no cleanup/recreation/passwords or new acceptance credit. G2.2 blocked pending fresh spare evidence; accepted100/20/0/0/0/0 unchanged.
+2026-10-26 E192/E193: spare inventory accepted; account absent, protected old-SID storage remains, work/profile empty and agent Running/Automatic. Owner-approved [controlled Recover handoff](paytm-gateway-account.md) preserves the old directory and recreates/verifies restricted account/storage, without changing the shared agent.320 assertions/26 mocked workflows,29 repair and37 inventory checks pass; actual recovery pending. All earlier immediate-next-step instructions below are historical. Accepted100/20/0/0/0/0 unchanged.
 
 2026-10-26 E189/E190: installation now exists; six account/storage/agent stages passed before the alternate-user probe launch failed. [Verify-only recovery](paytm-gateway-account.md) replaces prior Apply instructions. Short native command/private UTF-8 stdin,236 local assertions/17 mocked workflows and native process cases; no reset/recreate or maintenance repeat. G2 remains20% until real credentialed probe acceptance; other percentages100/0/0/0/0 unchanged.
 

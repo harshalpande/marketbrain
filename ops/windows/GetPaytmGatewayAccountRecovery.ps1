@@ -10,12 +10,13 @@ function ConvertTo-PaytmRecoveryManifest($Saved) {
         $Saved.sid -cnotmatch '^S-1-5-21-\d+-\d+-\d+-\d+$' -or
         $Saved.runId -cnotmatch '^[a-f0-9]{32}$' -or
         $Saved.containsPrivateKey -isnot [bool] -or $Saved.containsPrivateKey -ne $false -or
-        $Saved.previousAgentStatus -cne 'Stopped' -or $Saved.previousAgentStartType -cne 'Disabled'){
+        (($Saved.previousAgentStatus -cne 'Stopped' -or $Saved.previousAgentStartType -cne 'Disabled') -and
+         ($Saved.previousAgentStatus -cne 'Running' -or $Saved.previousAgentStartType -cne 'Automatic'))){
         throw 'RECOVERY_MANIFEST_CONTRACT_INVALID'
     }
     # Allowlist only; never emit arbitrary manifest properties/content.
     [pscustomobject]@{version=1;sid=[string]$Saved.sid;runId=[string]$Saved.runId;
-        previousAgentStatus='Stopped';previousAgentStartType='Disabled';containsPrivateKey=$false}
+        previousAgentStatus=[string]$Saved.previousAgentStatus;previousAgentStartType=[string]$Saved.previousAgentStartType;containsPrivateKey=$false}
 }
 function Read-PaytmRecoveryManifest([string]$Path) {
     $null=Assert-PaytmAccountPath $Path

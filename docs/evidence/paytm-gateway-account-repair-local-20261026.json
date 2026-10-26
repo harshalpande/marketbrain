@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E193",
+  "date": "2026-10-26",
+  "status": "GATEWAY_ACCOUNT_RECOVERY_LOCAL_VERIFIED_RUNTIME_PENDING",
+  "reviewedInventoryEvidence": "E192",
+  "accountAssertions": 320,
+  "mockedInstallerWorkflows": 26,
+  "repairHelperChecks": 29,
+  "inventoryRegressionChecks": 37,
+  "foundationRegression": {"assertions": 79, "negativeCases": 12, "nativeClientSettings": 31, "elapsedSeconds": 8.469, "runId": "cfd89abe2c984eb185c1c7ae25abef0d"},
+  "coverage": ["exact reviewed receipt binding", "live baseline drift before mutation", "new SID and manifest lineage", "shared agent unchanged", "cancel and invalid password", "archive move and verification failure", "creation failure after archive", "probe failure preserves new installation", "native temporary directory rename and hash preservation", "wrong-identity native probe", "bounded production stdin transport"],
+  "mockedBoundaries": ["Windows user creation/login in installer workflows", "service and account inspection in recovery fixtures", "recovery fixture ACL queries"],
+  "countsAreOverlappingNotUniqueTotal": true,
+  "developmentAccountServiceChanges": false,
+  "runtimeRecoveryAccepted": false,
+  "vpsContacted": false,
+  "ordersEnabled": false,
+  "acceptedGroupPercentages": [100, 20, 0, 0, 0, 0],
+  "nextAction": "Run InstallPaytmGatewayAccount.ps1 -Mode Recover with the original E192 inventory; share one JSON; preserve partial state on failure"
+}

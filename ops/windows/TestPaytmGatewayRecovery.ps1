@@ -17,6 +17,11 @@ foreach($field in @('version','name','root','sid','runId','previousAgentStatus',
 }
 Reject {ConvertTo-PaytmRecoveryManifest $null}
 Reject {ConvertTo-PaytmRecoveryManifest @($valid,$valid)}
+$repaired=$valid.PSObject.Copy();$repaired.previousAgentStatus='Running';$repaired.previousAgentStartType='Automatic'
+$repairedSafe=ConvertTo-PaytmRecoveryManifest $repaired
+Check ($repairedSafe.previousAgentStatus -ceq 'Running' -and $repairedSafe.previousAgentStartType -ceq 'Automatic')
+$repaired.previousAgentStartType='Disabled';Reject {ConvertTo-PaytmRecoveryManifest $repaired}
+$repaired.previousAgentStatus='Stopped';$repaired.previousAgentStartType='Automatic';Reject {ConvertTo-PaytmRecoveryManifest $repaired}
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('marketbrain-recovery-tests-'+[guid]::NewGuid().ToString('N'))
 $null=New-Item -ItemType Directory -Path $temp
 $file=Join-Path $temp 'installation.json'

@@ -1,6 +1,6 @@
 # MarketBrain
 
-**Current E191, 2026-10-26:** owner deleted the Windows gateway account. **[Run read-only recovery inventory](docs/paytm-gateway-account.md), not Apply or Verify.** Preserve folders/ACLs/shared agent; no passwords or keys requested. One JSON establishes remaining state before any reviewed repair. Earlier handoffs below are superseded for the deleted-account state; accepted percentages remain100/20/0/0/0/0.
+**Current E192/E193, 2026-10-26:** reviewed inventory confirms the deleted account, retained old-SID storage, empty work folder and Running/Automatic agent. **[Run controlled Recover](docs/paytm-gateway-account.md)**: preserve the old folder, create a new restricted identity/storage and verify it in one batch; no shared-agent configuration change.320 account assertions/26 mocked workflows,29 repair and37 inventory checks pass. Earlier handoffs below are historical and superseded. Accepted percentages remain100/20/0/0/0/0; real recovery/probe evidence pending.
 
 **Current E189/E190, 2026-10-26:** account/storage/agent provisioning succeeded, but the verification launcher exceeded Windows' alternate-user command-line limit. Corrected to a short bootstrap/private stdin, verified236 assertions/17 mocked workflows and native transport cases. **[Run Verify only with the existing password](docs/paytm-gateway-account.md); do not repeat Apply/reset/delete.** Accepted group percentages remain100/20/0/0/0/0 pending the final account probe. Older handoffs below are historical.
 

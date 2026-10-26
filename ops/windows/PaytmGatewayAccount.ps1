@@ -94,7 +94,7 @@ function Get-PaytmAccountPasswordResult([Security.SecureString]$First,[Security.
 function Test-PaytmAccountPasswords([Security.SecureString]$First,[Security.SecureString]$Second) {
     (Get-PaytmAccountPasswordResult $First $Second) -ceq 'CONFIRMED'
 }
-function Assert-PaytmAccountInventory($Inventory,[ValidateSet('Apply','Verify','Disable')][string]$Mode) {
+function Assert-PaytmAccountInventory($Inventory,[ValidateSet('Apply','Verify','Disable','Recover')][string]$Mode) {
     if(-not $Inventory.elevated -or -not $Inventory.native64Bit){throw 'ACCOUNT_ELEVATED_64BIT_REQUIRED'}
     if(-not $Inventory.toolsPresent){throw 'ACCOUNT_WINDOWS_CLIENT_TOOLS_MISSING'}
     $contract=Get-PaytmAccountContract
@@ -104,6 +104,7 @@ function Assert-PaytmAccountInventory($Inventory,[ValidateSet('Apply','Verify','
         if($Inventory.accountExists -or $Inventory.rootExists){throw 'ACCOUNT_TARGET_ALREADY_EXISTS_USE_VERIFY_OR_REVIEW'}
         if($Inventory.agentStatus -cne 'Stopped' -or $Inventory.agentStartType -cne 'Disabled'){throw 'ACCOUNT_AGENT_BASELINE_CHANGED'}
     }
+    if($Mode -ceq 'Recover' -and ($Inventory.accountExists -or -not $Inventory.rootExists -or $Inventory.agentStatus -cne 'Running' -or $Inventory.agentStartType -cne 'Automatic')){throw 'ACCOUNT_REPAIR_BASELINE_CHANGED'}
     if($Mode -cne 'Disable' -and $Inventory.secondaryLogonStartType -ceq 'Disabled'){throw 'ACCOUNT_SECONDARY_LOGON_DISABLED_NO_POLICY_CHANGE'}
 }
 function Get-PaytmReadinessProgress {

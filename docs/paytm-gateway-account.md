@@ -1,41 +1,28 @@
-# Dedicated Windows gateway account and agent setup
+# Dedicated Windows gateway account: controlled recovery
 
-## Purpose and current evidence
+## Current state and purpose — 2026-10-26
 
-**Current recovery hold, 2026-10-26 E191:** owner reports manually deleting the Windows `marketbrain-gateway` account after E189. The earlier Verify-only handoff is now superseded. **Do not run Apply or Verify, recreate the username, delete its folder or change the agent.** A recreated username has a new SID and cannot inherit the deleted identity's ownership contract. Run the read-only inventory below first; no credentials are requested. Account absence, remaining storage/ACLs/profile and agent state still require fresh spare evidence.
+**E192 accepts the recovery inventory, not account readiness.** Run `ece79d9aa003448c99ae114f3d1c20ca` captured six checks with zero failures in 0.825 seconds: the Windows account is absent; its old ownership manifest and protected folders remain; the work folder is empty; no profile is registered for the old SID; the existing Windows SSH agent is Running/Automatic. The owner approved recovery after this review.
 
-The recovery inventory reads only the exact account, fixed installation/work/manifest paths, existing ssh-agent service and profile metadata for a validated manifest SID. Child listing is non-recursive/capped at101 entries, names and contents are not exported; arbitrary manifest fields are not exported. Reparse paths are blocked. Failed queries are recorded as unknown/partial, not absence. It writes one report, never creates users, changes ACLs/services, runs a login probe or reads keys. A captured inventory is not repair authorization or readiness acceptance.
+**E193 prepares one combined Recover run.** It preserves the old folder, creates a new restricted account and fresh storage, and verifies the actual account login. This supersedes all earlier Apply/Verify/inventory-only handoffs for this installation. Do not manually recreate the account, delete folders, reset service permissions or repeat maintenance.
 
-**Current, 2026-10-26 E189/E190 — VERIFY ONLY:** run `5effeeb6993d484fa70ac49555e88aa4` created the account and protected folders, enabled the account, started/configured the agent and passed ownership/ACL/membership/service postchecks. Password confirmation succeeded on attempt2. It then failed at `Process.Start` before the alternate-account probe ran (`0x80070057`), after110.512s including owner input. **Do not repeat Apply, recreate the account or reset its password.** Use the existing dedicated password with the Verify handoff below.
+Why: Windows permissions identify an account by SID, not its display name. Recreating `marketbrain-gateway` does not restore its deleted identity. Accepted readiness remains **G1=100%, G2=20%, G3–G6=0%**. Only reviewed successful runtime evidence closes G2.2 and raises G2 to40%; local tests do not advance these checkpoints.
 
-The old full-source encoded argument exceeded7,000 characters. [Microsoft's alternate-user launch API](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw) limits its command line to1,024 characters; [.NET's Windows process implementation](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Windows.cs) uses that credentialed launch path. This identified contract violation is consistent with the parameter error; actual corrected alternate-user execution is still pending. The new launcher uses a380-character command line (including executable/quotes/NUL allowance) and sends non-secret source over a private UTF-8 stdin pipe. Passwords remain only in the credential property. No probe script is written to disk, no execution-policy weakening or fallback to administrator identity.
+## Exact changes and safeguards
 
-E190 verifies236 assertions/17 mocked workflows and actual native bootstrap/pipe/capture execution, including large/Unicode input, malformed/empty/array/oversized output, nonzero exit, syntax/start failure and timeout cleanup. The previous tests mocked the credentialed launcher and exercised a different same-user encoded-command path; they could not expose its shorter API limit. That test gap is now covered by an exact production launch-contract check and shared native transport tests. These local tests do not authenticate as the spare's account. Child check outcomes and launch stages are now retained before acceptance validation, without raw stderr or key lists.
+1. Require the exact reviewed inventory (SHA256 `06789E84490F9A524A5C920A433018288899FD33AE3B8A46761EC9DF3817B7FF`). Recheck account absence, old SID/manifest, protected permissions, empty work folder, absence of the old profile and agent configuration. Failed queries are errors, never assumed absence. Reject reparse paths, unexpected files, changed permissions or a recreated account.
+2. After **RECOVER-ACCOUNT** consent and two matching private password entries, repeat the checks. Rename the exact `C:\ProgramData\MarketBrainPaytmGateway` directory to its unique sibling `C:\ProgramData\MarketBrainPaytmGateway.recovery-<runId>`. No overwrite or deletion. Checkpoint intent/completion and verify the manifest hash and preserved ACLs after the move.
+3. Create a new disabled local non-admin `marketbrain-gateway` account with a new SID, then standard Users membership only. Create fresh SYSTEM/Administrators-owned storage: account read/execute on the root, Modify only in `work`. Record ownership lineage in a non-secret manifest. Enable the new account after storage checks.
+4. **Do not stop, start or reconfigure the shared SSH agent.** Recover requires the reviewed Running/Automatic Windows-owned LocalSystem service and checks it again. No keys are imported/removed. The old Stopped/Disabled baseline stays in the archive; the new manifest records the actually preserved Running/Automatic baseline.
+5. Launch one bounded hidden probe as the new account with its supplied password. Verify exact SID/non-admin identity, denial of write access to the manifest, write/read/delete in the dedicated work directory, and an empty reachable account-scoped agent. Windows may initialize that profile/start its normal Secondary Logon service during login; startup policy is not changed. Key-list output is classified in memory, never exported.
 
-Accepted group percentages remain100/20/0/0/0/0. Six setup stages completed, but G2.2 requires the final real-account probe before G2 can become40%.
+The corrected credentialed launcher has a380-character command line, guarded below the1,024-character alternate-user launch limit, with non-secret source sent over private UTF-8 stdin. Passwords remain a SecureString credential property, not arguments/environment/files/reports. No source-script file, execution-policy weakening or administrator-identity fallback. Source writing, execution, output bounds and owned-process cleanup are checked; safe stages/outcomes are retained without raw stderr/key lists.
 
-**2026-10-24 E187/E188:** spare run `962eecffb56049c5ae000466d47921b1` stopped at private password confirmation in20.248s, before account creation or service changes. Administrator, client-tool and actual service-control checks passed. The old combined error cannot establish whether the password was short or confirmation differed; do not infer an administrator/password-policy failure. No partial account/folder needs cleanup. The corrected launcher separates those outcomes, labels the stage correctly, and allows up to three private entry attempts before stopping. Retry this account step at the next login after pulling the fix; no work is required tonight. G2 remains20% pending real account/probe evidence.
+This batch does **not** touch the VPS, application, database, firewall, Paytm credentials, Pageant keys or encrypted PPK. No scheduled task, tunnel activation, broker login or trades. No Docker rebuild/reboot or PuTTY session is needed.
 
-E185 accepts the spare's foundation report:79 assertions,12 negative cases,31 client settings,2.335s, failure null. **Do not rerun foundation or VPS maintenance.** The [progress baseline](paytm-readiness-progress.md) is G1=100%, G2=20%, G3–G6=0%.
+## Complete spare-laptop handoff
 
-E186 implements one controlled provisioning batch. This is a real Windows account/service change, unlike the preceding configuration-only test. Why: unattended transport must have a consistent non-admin identity and a verified place to run before we entrust it with the restricted gateway key. Existing application/Docker operation remains under its existing account; this does not migrate the application.
-
-## Exact changes and verification
-
-- Create **Windows local user `marketbrain-gateway`**, initially disabled, with a new owner-entered password. This is a different account from the identically named Linux user on the VPS. Do not reuse a Windows-admin, VPS, broker or PPK password. No administrator-group membership; only the standard Users group. Windows password-expiry policy remains unchanged and must be considered later for scheduled operation.
-- Create **`C:\ProgramData\MarketBrainPaytmGateway`** with SYSTEM/Administrators full control and gateway-account read/execute. Its `work` child grants that account Modify. No inherited broad access, unknown ACEs or reparse paths. Store a non-secret ownership manifest with SID and original agent state. The account cannot modify this manifest. No existing account/folder is adopted, reset or overwritten.
-- Set the **existing Windows `ssh-agent` service** to Automatic and start it. This is system-wide. The expected original service is stopped/disabled and runs the Windows-owned executable as LocalSystem. The script first checks real SCM query/change/start access, not just the UAC admin flag. It does **not** install/start OpenSSH Server (`sshd`).
-- Enable the new account and run one hidden, bounded, private probe with its supplied password. Built-in Windows PowerShell5.1 avoids dependency on another user's PowerShell7 installation. Windows may initialize the new user profile/start its normal Secondary Logon service as part of this login; the script never changes Secondary Logon startup policy.
-- Verify actual account SID/non-admin token, inability to open the protected manifest for writing, write/read/delete in its own work folder, and an empty reachable account-scoped SSH agent. `ssh-add -l` output is classified in memory; key lists are never emitted. No key is imported yet. This is an empty-agent/identity test, not proof of stored-key persistence or wrong-user denial after key import.
-
-The launcher inspects targets and all local group queries before writing, prints exact scope, and requires **PROVISION-ACCOUNT**. Password input is secure/local and confirmed twice (minimum14 characters plus Windows policy). A short new password and a confirmation mismatch have different messages. Up to three entry pairs are allowed; Ctrl+C cancels. Rejected inputs and all confirmations are disposed immediately; the accepted password is disposed at launcher exit. Only attempt numbers/outcome codes are recorded, never content or exact lengths. Comparison is exact, case-sensitive, with no trimming or normalization. It is passed to Windows login through the in-process SecureString property, never shell arguments/environment/report. No plaintext password or key file is created by the script. Input validation is not proof that Windows account/password policy or alternate-account login will accept it; those remain runtime checks.
-
-There is no VPS/Paytm connection, firewall change, scheduled task, automatic gateway, broker login, account/writer unlock, order or fill. Success is **GATEWAY_ACCOUNT_PROVISIONED_KEY_CUSTODY_PENDING**. If reviewed and accepted, G2.2 closes and G2 becomes40%; G3–G6 remain unchanged.
-
-## Current recovery: inventory after manual account deletion
-
-1. Open **PowerShell7 as Administrator** on the spare. Continue using your normal Windows login; do not sign out. No PuTTY/Pageant/VPS commands, no rebuild or reboot.
-2. Run:
+Open **64-bit PowerShell7 as Administrator** under your normal Windows login. Leave the application and existing services unchanged.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -45,7 +32,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7 -or -not [Environment]::Is64BitProcess
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw 'Close this window and open PowerShell 7 as Administrator.'
+    throw 'Open PowerShell 7 as Administrator.'
 }
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 $branch = git branch --show-current
@@ -54,29 +41,33 @@ $changes = git status --porcelain
 if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Preserve local changes and stop for review.' }
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed; do not continue.' }
-& '.\ops\windows\GetPaytmGatewayAccountRecovery.ps1'
+$inventoryPath = 'C:\MarketBrainData\Review\paytm-gateway-recovery-20261026-132901-ece79d9aa003448c99ae114f3d1c20ca.json'
+if (-not (Test-Path -LiteralPath $inventoryPath -PathType Leaf)) {
+    throw 'Reviewed inventory missing. Locate the original report; do not regenerate or edit it.'
+}
+& '.\ops\windows\InstallPaytmGatewayAccount.ps1' -Mode Recover -RecoveryInventoryPath $inventoryPath
 ```
 
-3. No account password, PROVISION-ACCOUNT, START-TEST or other confirmation is requested. No PuTTY or VPS session is needed.
-4. Watch progress10/25/40/55/70/85/100%. Service capture uses native service/registry reads; the profile CIM request has a10-second operation timeout. Exact elapsed time is recorded. Both `INVENTORY_CAPTURED_RECOVERY_REVIEW_REQUIRED` and `PARTIAL_INVENTORY_RECOVERY_BLOCKED` mean stop for review, not proceed to installation.
-5. Share only the printed **`paytm-gateway-recovery-*.json`** from `C:\MarketBrainData\Review`. Existing manifest/profile/key files are not files to share. Do not run the previous Apply/Verify commands afterward.
+At the prompts:
 
-## Failure, recheck and containment
+1. Type **RECOVER-ACCOUNT** in PowerShell when asked.
+2. Enter a new dedicated Windows account password (14+ characters) twice. Keep it privately in your password manager. Do not reuse/share a Windows-admin, VPS, broker or PPK password. Up to three private entry pairs are allowed; Windows policy still applies. SecureStrings are disposed; only non-secret outcome codes are recorded.
+3. Expected status: **GATEWAY_ACCOUNT_PROVISIONED_KEY_CUSTODY_PENDING**. This is a candidate result until reviewed, not automatic approval.
+4. Share only the printed **`paytm-gateway-account-*.json`**. Keep the archive locally; it is not a file to share.
 
-**Owner deletion supersedes E189's Verify advice:** inventory first. E189 records what existed during its run, not current Windows state. No recovery mutation is authorized by an inventory result alone; any later cleanup/reprovisioning must account for the retained old SID, folder contents and shared service consumers.
+## Failure and containment
 
-**Current E189 overrides the earlier E187 input-only retry advice:** an installation now exists and passed postchecks. Resume with **Verify only**. Preserve it even if verification fails. The report now distinguishes parent launch stages from child IDENTITY/PROTECTED_STORAGE/WORK_DIRECTORY/AGENT_QUERY stages and retains safe negative child outcomes. Missing/unreachable/non-empty agent remains a failure, never silently accepted.
+Each step is checkpointed to one exclusively created report, including intent before the directory move. Power loss during a checkpoint is not claimed atomic. Partial results are preserved; **no automatic rollback, retry, deletion or reset**.
 
-The one report is checkpointed before/after steps through an exclusively created owned file. A process interruption can leave partial account/service state; power loss during a checkpoint is not claimed atomic. Partial installations are preserved, not deleted or silently adopted. **Exception for confirmed input-only stops:** E187 proves no account/folder/service changes; a corrected Apply is appropriate. The new launcher also identifies failures in PASSWORD_CONFIRMATION as pre-change stops that can be retried later, with fresh absence checks. This is not permission to rerun after creation/service/probe failures. For those or ambiguous interruptions, **do not repeat Apply**, reset passwords, weaken ACLs, alter service permissions or delete the folder. Share the report first. Completed maintenance and foundation acceptance do not regress merely because installation needs review.
+- Changed state or an unreviewed report blocks mutation. Confirmed PASSWORD_CONFIRMATION stops can be retried with the same Recover command; it rechecks the baseline.
+- After an attempted move/creation or an ambiguous interruption, **do not rerun Apply/Recover, delete the account, restore the folder manually or alter agent permissions**. Share the report first. The archive retains old files/ACLs, but restoring it cannot recreate the deleted account's SID.
+- `-Mode Verify` is for a separately reviewed intact installation; it repeats the credentialed probe with the existing dedicated password without resetting account/service configuration. It can initialize the profile and creates/deletes its small probe file. Do not run automatically after partial recovery.
+- `-Mode Disable` requires the intact owned manifest/SID/ACL contract and DISABLE-ACCOUNT consent. It disables that account only, without terminating sessions, removing keys/files or stopping the shared service. This is containment, not full rollback or the final gateway kill switch.
 
-`-Mode Verify` does not create users/change services/reset passwords; it validates the owned SID/manifest/ACLs/membership and repeats the exact-account probe using the existing dedicated password. It does create/delete that small probe file and can cause normal Windows profile/login bookkeeping. Use only when directed, not as an automatic retry after an incomplete Apply.
+## Verification and history
 
-`-Mode Disable` requires an intact owned manifest/SID/ACL contract and **DISABLE-ACCOUNT** confirmation; it disables that exact local account. It does not delete files, terminate existing sessions, remove keys, restore shared ssh-agent startup settings or change the VPS. It is account containment, **not** the final gateway kill switch or a full rollback. Original stopped/disabled agent state is retained for a separately reviewed restoration only after checking for other consumers. Shared service changes are never reversed blindly.
+E193:320 account assertions across26 mocked installer workflows (recovery cancellation, report/password failure, drift after input, rename/archive failure, creation failure and probe failure included);29 repair-helper checks with actual temp-directory rename/hash preservation;37 inventory regressions; foundation regression passes79 assertions,12 negative configurations and31 native SSH settings. Counts overlap and are not summed into a unique-test total. Native wrong-identity/transport checks remain included. Real user/service/ACL queries in recovery fixtures are mocked; no actual development-machine account/service change. Spare credentialed execution remains pending.
 
-## Verification and references
+History remains in the register: E187/E188 input correction; E189 installed account then overlength native launch failure; E190 short-bootstrap correction; E191 owner-deletion inventory; E192 actual residual-state review. Historical Apply/Verify advice is superseded above.
 
-E188 correction verification:199 assertions across16 mocked full-launcher workflows, including short/mismatched passwords followed by success, success on the third attempt, bounded exhaustion, interrupted input, SecureString disposal and secret-free console/report output. Direct comparison checks cover empty/missing input,13/14 boundary, unequal lengths, case/space differences and Unicode. Native wrong-identity probe and ACL round-trip remain included. This is local engineering verification, not spare provisioning acceptance.
-
-Local verification:99 assertions;10 mocked full-launcher workflows; native Windows security-descriptor round-trip; built-in Windows PowerShell wrong-SID probe rejects before filesystem/agent access; real read-only SCM access probe reports denied for the non-elevated development process. Mocks exercise consent/collision/no-write paths, already-present Users membership, service/group-query denials, partial service/probe failures, Verify and owned-account Disable. No actual account or service was changed on the development laptop; real alternate-account login and provisioning await spare evidence.
-
-[Microsoft local-account creation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.localaccounts/new-localuser?view=powershell-5.1) and [Windows OpenSSH key custody](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement) inform the implementation. Documentation does not establish this machine's permissions or credential persistence. Next, after acceptance: encrypted-key provisioning and pinned restricted authentication under this account, then production supervision/task and managed VPS lifecycle. No assumption that the existing Pageant PPK is already usable by Windows OpenSSH.
+After acceptance: protected gateway-key custody and pinned restricted authentication under this account, then supervised startup and managed VPS lifecycle. Do not assume a Pageant PPK is already usable by Windows OpenSSH.

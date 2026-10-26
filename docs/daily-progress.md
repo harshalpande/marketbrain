@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-26 Reviewed deleted-account state; combined recovery prepared
+
+- E192: run ece79d9aa003448c99ae114f3d1c20ca accepted as inventory only; six checks, zero failures,0.825s. Account absent, old manifest/ACLs remain, empty work folder, no old-SID profile, agent Running/Automatic. No account acceptance inferred.
+- E193: owner-approved [Recover batch](paytm-gateway-account.md) binds to the exact report hash and rechecks live state before mutation. Preserves the old folder/ACL/hash in a unique sibling archive, creates a new non-admin SID and fresh protected storage, then runs the corrected credentialed probe. Shared agent untouched; partial failures checkpointed and retained, no blind retry/delete/rollback.
+- Verified320 assertions/26 mocked workflows,29 repair guards/native fixture rename checks,37 inventory regressions and foundation79 assertions/12 negatives/31 settings. Native transport tests included; actual credentialed spare login remains pending. No local account/service/VPS/broker changes.
+- Accepted G1/G2/G3/G4/G5/G6 remains100/20/0/0/0/0, delta0. Reviewed recovery success targets G2.2 and40%; key custody/task/lifecycle remain downstream. Earlier commands below are historical.
+
 ## 2026-10-26 Owner deleted account: read-only recovery inventory
 
 - Owner reports deleting the Windows gateway user manually. Prior Apply/Verify handoffs are superseded. Actual absence and residual ACL/storage/profile/agent state await new spare evidence; no inferred cleanup success.

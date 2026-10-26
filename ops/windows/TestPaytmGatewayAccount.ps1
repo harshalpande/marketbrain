@@ -148,7 +148,7 @@ function Get-PaytmAgentControlAccess {if($global:accountFixture.scmDenied){retur
 function Get-PaytmLocalMembershipSnapshot {if($global:accountFixture.groupQueryDenied){throw 'ACCOUNT_FIXTURE_GROUP_QUERY_DENIED'}}
 function Get-PaytmReadinessProgress {foreach($id in 1..6){[pscustomobject]@{id="G$id";percent=if($id -eq 1){100}elseif($id -eq 2){20}else{0}}}}
 function Get-LocalUser {param($Name,$SID,$ErrorAction) if($global:accountFixture.exists){[pscustomobject]@{Name='marketbrain-gateway';SID=[pscustomobject]@{Value='S-1-5-21-111-222-333-1001'};Enabled=$global:accountFixture.enabled;Description='MarketBrain gateway account'}}}
-function New-LocalUser {param($Name,$Password,$Description,[switch]$Disabled,$ErrorAction) $global:accountFixture.exists=$true;$global:accountFixture.mutations++;Get-LocalUser}
+function New-LocalUser {param($Name,$Password,$Description,[switch]$Disabled,$ErrorAction) if($global:accountFixture.failCreate){throw 'ACCOUNT_FIXTURE_CREATE_FAILED'};$global:accountFixture.exists=$true;$global:accountFixture.mutations++;Get-LocalUser}
 function Get-LocalGroupMember {param($SID,$ErrorAction) if($global:accountFixture.autoMember){Get-LocalUser}}
 function Add-LocalGroupMember {param($SID,$Member,$ErrorAction) $global:accountFixture.mutations++;$global:accountFixture.groupAdds++}
 function Enable-LocalUser {param($SID,$ErrorAction) $global:accountFixture.enabled=$true;$global:accountFixture.mutations++}
@@ -158,8 +158,9 @@ function Get-Service {param($Name,$ErrorAction)
     $s|Add-Member ScriptMethod WaitForStatus {param($Status,$Timeout)};$s
 }
 function Get-CimInstance {param($ClassName,$Filter,$OperationTimeoutSec,$ErrorAction) [pscustomobject]@{PathName='C:\Windows\System32\OpenSSH\ssh-agent.exe';StartName='LocalSystem'}}
-function Set-Service {param($Name,$StartupType,$ErrorAction) $global:accountFixture.agentStartType=$StartupType;$global:accountFixture.mutations++}
-function Start-Service {param($Name,$ErrorAction) if($global:accountFixture.failAgent){throw 'ACCOUNT_FIXTURE_AGENT_DENIED'};$global:accountFixture.agentStatus='Running';$global:accountFixture.mutations++}
+function Get-ItemProperty {param($LiteralPath,$ErrorAction) [pscustomobject]@{ImagePath='C:\Windows\System32\OpenSSH\ssh-agent.exe';ObjectName='LocalSystem'}}
+function Set-Service {param($Name,$StartupType,$ErrorAction) $global:accountFixture.serviceChanges++;$global:accountFixture.agentStartType=$StartupType;$global:accountFixture.mutations++}
+function Start-Service {param($Name,$ErrorAction) $global:accountFixture.serviceChanges++;if($global:accountFixture.failAgent){throw 'ACCOUNT_FIXTURE_AGENT_DENIED'};$global:accountFixture.agentStatus='Running';$global:accountFixture.mutations++}
 function Assert-PaytmAccountPath($Path){$Path}
 function Set-PaytmAccountDirectoryAcl {param($Path,$AccountSid,[switch]$Writable)}
 function Write-PaytmAccountNewJson {param($Path,$Value) $global:accountFixture.manifest=$Value}
@@ -179,18 +180,38 @@ function Read-Host {param($Prompt,[switch]$AsSecureString)
         $secret=ConvertTo-SecureString $value -AsPlainText -Force
         $global:accountFixture.secrets.Add($secret);return $secret
     }
-    if($global:accountFixture.cancel){return 'CANCEL'};if($Prompt -like '*DISABLE-ACCOUNT*'){return 'DISABLE-ACCOUNT'};'PROVISION-ACCOUNT'
+    if($global:accountFixture.cancel){return 'CANCEL'};if($Prompt -like '*DISABLE-ACCOUNT*'){return 'DISABLE-ACCOUNT'};if($Prompt -like '*RECOVER-ACCOUNT*'){return 'RECOVER-ACCOUNT'};'PROVISION-ACCOUNT'
 }
+'@
+$repairMock=@'
+function Read-PaytmReviewedRecovery($Path){if($global:accountFixture.reportFailure){throw 'ACCOUNT_REPAIR_REPORT_NOT_REVIEWED'};[pscustomobject]@{oldSid='S-1-5-21-111-222-333-1000';installationRunId='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';sourceHash='fixture';sourceRunId='fixture'}}
+function Assert-PaytmRepairState($Approved,$ArchivePath){$global:accountFixture.repairChecks++;if($global:accountFixture.drift -and $global:accountFixture.repairChecks -gt 1){throw 'ACCOUNT_REPAIR_ACCOUNT_EXISTS'};[pscustomobject]@{manifestHash='fixture'}}
+function Move-PaytmRepairArchive($ArchivePath,$RunId){if($global:accountFixture.moveFailure){throw 'ACCOUNT_REPAIR_MOVE_TARGET_INVALID'};$global:accountFixture.archive=$true;$global:accountFixture.rootExists=$false;$global:accountFixture.mutations++}
+function Assert-PaytmRepairArchive($ArchivePath,$Hash,$Sid){if($global:accountFixture.archiveFailure){throw 'ACCOUNT_REPAIR_ARCHIVE_HASH_CHANGED'}}
+function Assert-PaytmRepairAgent {if($global:accountFixture.agentStatus -ne 'Running' -or $global:accountFixture.agentStartType -ne 'Automatic'){throw 'ACCOUNT_REPAIR_AGENT_DRIFT'}}
 '@
 [IO.File]::WriteAllText((Join-Path $temp 'PaytmGatewayAccount.ps1'),([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmGatewayAccount.ps1'))+"`n"+$mock))
 [IO.File]::WriteAllText((Join-Path $temp 'InstallPaytmGatewayAccount.ps1'),[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'InstallPaytmGatewayAccount.ps1')))
-$scenarios=@('clean','autoMember','cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','verify','disable','shortThenSuccess','mismatchThenSuccess','thirdAttemptSuccess','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure')
+[IO.File]::WriteAllText((Join-Path $temp 'PaytmGatewayAccountRepair.ps1'),([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmGatewayAccountRepair.ps1'))+"`n"+$repairMock))
+$scenarios=@('clean','autoMember','cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','verify','disable','shortThenSuccess','mismatchThenSuccess','thirdAttemptSuccess','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure','recover','recoverCancel','recoverPasswordFailure','recoverReportFailure','recoverDrift','recoverMoveFailure','recoverArchiveFailure','recoverCreateFailure','recoverProbeFailure')
 foreach($scenario in $scenarios){
     $global:accountFixture=@{exists=($scenario -in @('collision','verify','disable'));rootExists=($scenario -in @('verify','disable'));enabled=($scenario -in @('verify','disable'));mutations=0;groupAdds=0;autoMember=($scenario -ceq 'autoMember');agentStatus='Stopped';agentStartType='Disabled';cancel=($scenario -ceq 'cancel');scmDenied=($scenario -ceq 'scmDenied');groupQueryDenied=($scenario -ceq 'groupQueryDenied');failAgent=($scenario -ceq 'agentFailure');failProbe=($scenario -ceq 'probeFailure')}
     $global:accountFixture.passwordReads=0;$global:accountFixture.passwordInputs=@()
     $global:accountFixture.secrets=[Collections.Generic.List[Security.SecureString]]::new()
     $global:accountFixture.inputFailure=$scenario -ceq 'inputCancelled'
     $global:accountFixture.childFailure=$scenario -ceq 'verifyChildFailure'
+    $global:accountFixture.serviceChanges=0;$global:accountFixture.repairChecks=0
+    if($scenario.StartsWith('recover')){
+        $global:accountFixture.rootExists=$true;$global:accountFixture.agentStatus='Running';$global:accountFixture.agentStartType='Automatic'
+        $global:accountFixture.cancel=$scenario -ceq 'recoverCancel'
+        $global:accountFixture.failCreate=$scenario -ceq 'recoverCreateFailure'
+        $global:accountFixture.failProbe=$scenario -ceq 'recoverProbeFailure'
+        $global:accountFixture.reportFailure=$scenario -ceq 'recoverReportFailure'
+        $global:accountFixture.drift=$scenario -ceq 'recoverDrift'
+        $global:accountFixture.moveFailure=$scenario -ceq 'recoverMoveFailure'
+        $global:accountFixture.archiveFailure=$scenario -ceq 'recoverArchiveFailure'
+        if($scenario -ceq 'recoverPasswordFailure'){$global:accountFixture.passwordInputs=@('FixtureOnly')*6}
+    }
     if($scenario -ceq 'verifyChildFailure'){$global:accountFixture.exists=$true;$global:accountFixture.rootExists=$true;$global:accountFixture.enabled=$true}
     switch($scenario){
         shortThenSuccess {$global:accountFixture.passwordInputs=@('FixtureOnly','FixtureOnly')}
@@ -200,14 +221,14 @@ foreach($scenario in $scenarios){
         mismatchExhausted {$global:accountFixture.passwordInputs=@('FixtureOnly-NOT-A-REAL-PASSWORD-1','FixtureOnly-NOT-A-REAL-PASSWORD-2')*3}
     }
     if($scenario -in @('verify','verifyChildFailure')){$global:accountFixture.agentStatus='Running';$global:accountFixture.agentStartType='Automatic'}
-    $mode=if($scenario -in @('verify','verifyChildFailure')){'Verify'}elseif($scenario -ceq 'disable'){'Disable'}else{'Apply'}
+    $mode=if($scenario.StartsWith('recover')){'Recover'}elseif($scenario -in @('verify','verifyChildFailure')){'Verify'}elseif($scenario -ceq 'disable'){'Disable'}else{'Apply'}
     $outDir=Join-Path $temp $scenario;$failed=$false
     $console=[Collections.Generic.List[string]]::new()
     try{& (Join-Path $temp 'InstallPaytmGatewayAccount.ps1') -Mode $mode -OutputDirectory $outDir 6>&1 | ForEach-Object {$console.Add([string]$_);Write-Host $_}}catch{$failed=$true}
     $files=@(Get-ChildItem -LiteralPath $outDir -Filter '*.json')
     Check ($files.Count -eq 1) "one report $scenario"
     $report=Get-Content -LiteralPath $files[0].FullName -Raw|ConvertFrom-Json
-    $expectedFailure=$scenario -in @('cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure')
+    $expectedFailure=$scenario -in @('cancel','collision','scmDenied','groupQueryDenied','agentFailure','probeFailure','shortExhausted','mismatchExhausted','inputCancelled','verifyChildFailure') -or ($scenario.StartsWith('recover') -and $scenario -cne 'recover')
     Check ($failed -eq $expectedFailure) "outcome $scenario"
     Check (-not $report.gatewayActivated -and -not $report.ordersEnabled -and -not $report.sshKeysImported -and -not $report.vpsContacted) "authority $scenario"
     Check ((Get-Content -LiteralPath $files[0].FullName -Raw) -notmatch 'FixtureOnly') "no password $scenario"
@@ -228,6 +249,14 @@ foreach($scenario in $scenarios){
     if($scenario -ceq 'autoMember'){Check ($global:accountFixture.groupAdds -eq 0) 'existing standard membership not readded'}
     if($scenario -ceq 'agentFailure'){Check ($report.agentChanged -and $report.createdAccount -and $report.failureDetails.stage -ceq 'ENABLE_EXISTING_CLIENT_AGENT') 'partial change evidence'}
     if($scenario -ceq 'disable'){Check ($global:accountFixture.mutations -eq 1 -and -not $global:accountFixture.enabled) 'disable only owned account'}
+    if($scenario.StartsWith('recover')){
+        Check ($global:accountFixture.serviceChanges -eq 0 -and -not $report.agentChanged) "shared service preserved $scenario"
+        if($scenario -in @('recoverCancel','recoverPasswordFailure','recoverReportFailure','recoverDrift','recoverMoveFailure')){Check ($global:accountFixture.mutations -eq 0 -and -not $report.createdAccount) "repair stops before mutation $scenario"}
+        if($scenario -in @('recoverArchiveFailure','recoverCreateFailure','recoverProbeFailure','recover')){Check ($global:accountFixture.archive -and $report.recovery.archiveCreated) "archive preserved $scenario"}
+        if($scenario -ceq 'recoverCreateFailure'){Check ($report.recovery.archiveVerified -and -not $report.createdAccount -and -not $global:accountFixture.rootExists) 'create failure does not roll back archive'}
+        if($scenario -ceq 'recoverProbeFailure'){Check ($report.createdAccount -and $report.createdDirectory -and $report.recovery.archiveVerified) 'probe failure retains installed recovery'}
+        if($scenario -ceq 'recover'){Check ($global:accountFixture.manifest.recoveryFrom.oldSid -cne $report.accountSid -and $global:accountFixture.manifest.previousAgentStatus -ceq 'Running' -and $report.probe.agentEmpty) 'new SID lineage and probe verified'}
+    }
 }
 Remove-Variable -Name accountFixture,realInventoryAssertion -Scope Global
 Write-Host "PASS: $script:checks account assertions; $($scenarios.Count) mocked launcher workflows; native wrong-identity probe. No account/service/key/VPS changes. Fixtures: $temp"

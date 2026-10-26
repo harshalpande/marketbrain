@@ -1,6 +1,6 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
-2026-10-26 E191: account manually deleted per owner. Stop Apply/Verify; [read-only residual-state inventory](paytm-gateway-account.md) first. Preserve folder/old SID/shared agent and require reviewed repair; no key custody/task/VPS activation scope added. G2 remains20%, G2.2 recovery-blocked.
+2026-10-26 E192/E193: reviewed inventory confirms deleted account and retained protected old-SID storage; owner-approved [Recover batch](paytm-gateway-account.md) preserves that directory and creates/verifies fresh identity/storage without reconfiguring the Running/Automatic agent. Local tests pass; actual spare recovery remains pending. G2 stays20% until G2.2 acceptance. No key custody/task/VPS activation scope added. Earlier handoffs below are historical and superseded for this state.
 
 2026-10-26 E189/E190: dedicated Windows account, protected storage and agent configuration now exist and passed postchecks. Exact-account verification failed at an overlength credentialed process launch. [Short-bootstrap Verify recovery](paytm-gateway-account.md) uses the existing password and preserves state.236 local assertions/17 mocked workflows plus native transport tests; real account probe still pending, G2=20%. No key import, task, managed VPS lifecycle or broker activation yet. Prior Apply handoffs are superseded for this installation.
 

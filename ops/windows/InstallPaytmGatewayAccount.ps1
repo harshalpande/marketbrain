@@ -1,11 +1,13 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([ValidateSet('Apply','Verify','Disable')][string]$Mode='Apply',[string]$OutputDirectory='C:\MarketBrainData\Review')
+[CmdletBinding()]param([ValidateSet('Apply','Verify','Disable','Recover')][string]$Mode='Apply',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$RecoveryInventoryPath)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmGatewayAccount.ps1')
+if($Mode -ceq 'Recover'){. (Join-Path $PSScriptRoot 'PaytmGatewayAccountRepair.ps1')}
 $c=Get-PaytmAccountContract;$run=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $password=$null;$confirmPassword=$null;$stream=$null
 $report=[ordered]@{schemaVersion=1;runId=$run;mode=$Mode;status='REVIEW_REQUIRED';stage='INVENTORY';
     inventory=$null;createdAccount=$false;createdDirectory=$false;accountSid=$null;agentChanged=$false;
+    recovery=[ordered]@{approved=$null;archivePath=$null;archiveMoveAttempted=$false;archiveCreated=$false;archiveVerified=$false;manifestHash=$null};
     probe=$null;probeLaunch=[ordered]@{};probeLaunchContract=$null;events=@();passwordAttempts=@();sourceHashes=[ordered]@{};failure=$null;failureDetails=$null;elapsedSeconds=0;
     acceptedProgressAtScriptRelease=@();candidateGroup2PercentIfReviewed=$null;
     sshKeysImported=$false;scheduledTaskInstalled=$false;vpsContacted=$false;gatewayActivated=$false;ordersEnabled=$false}
@@ -28,6 +30,7 @@ $path=Join-Path $OutputDirectory ('paytm-gateway-account-'+(Get-Date -Format 'yy
 try{
     $stream=[IO.File]::Open($path,'CreateNew','Write','Read');Save-AccountCheckpoint
     foreach($name in @('InstallPaytmGatewayAccount.ps1','PaytmGatewayAccount.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name) -Algorithm SHA256).Hash}
+    if($Mode -ceq 'Recover'){$report.sourceHashes['PaytmGatewayAccountRepair.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmGatewayAccountRepair.ps1') -Algorithm SHA256).Hash}
     $report.acceptedProgressAtScriptRelease=@(Get-PaytmReadinessProgress)
     # Inspect the exact production launch contract before any account/service writes.
     $probeInfo=New-PaytmAccountProbeStartInfo $null
@@ -37,7 +40,10 @@ try{
     $elevated=([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     $null=Assert-PaytmAccountPath $c.root
     $agent=Get-Service ssh-agent -ErrorAction Stop
-    $agentCim=Get-CimInstance Win32_Service -Filter "Name='ssh-agent'" -OperationTimeoutSec 10 -ErrorAction Stop
+    if($Mode -ceq 'Recover'){
+        $agentRegistry=Get-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Services\ssh-agent' -ErrorAction Stop
+        $agentCim=[pscustomobject]@{PathName=$agentRegistry.ImagePath;StartName=$agentRegistry.ObjectName}
+    }else{$agentCim=Get-CimInstance Win32_Service -Filter "Name='ssh-agent'" -OperationTimeoutSec 10 -ErrorAction Stop}
     $secondary=Get-Service seclogon -ErrorAction Stop
     $accounts=@(Get-LocalUser -ErrorAction Stop | Where-Object {$_.Name -ieq $c.name})
     $report.inventory=[pscustomobject]@{
@@ -50,13 +56,22 @@ try{
         agentControlError=if($Mode -ceq 'Apply'){Get-PaytmAgentControlAccess}else{$null}}
     Assert-PaytmAccountInventory $report.inventory $Mode
     $null=@(Get-PaytmLocalMembershipSnapshot) # Local account API preflight; no membership details logged.
+    if($Mode -ceq 'Recover'){
+        $report.recovery.approved=Read-PaytmReviewedRecovery $RecoveryInventoryPath
+        $report.recovery.archivePath=Get-PaytmRepairArchivePath $run
+        $null=Assert-PaytmRepairState $report.recovery.approved $report.recovery.archivePath
+    }
     Save-AccountCheckpoint
-    if($Mode -ceq 'Apply'){
-        Write-Host 'This creates local NON-ADMIN user marketbrain-gateway, protected C:\ProgramData\MarketBrainPaytmGateway, and enables/starts the existing Windows ssh-agent service (system-wide).'
+    if($Mode -cin @('Apply','Recover')){
+        if($Mode -ceq 'Recover'){
+            Write-Host "Recovery: preserve old storage at $($report.recovery.archivePath), create a NEW non-admin account/SID and fresh protected storage, then verify. No files deleted."
+            Write-Host 'The already Running/Automatic shared ssh-agent is preserved: no stop, start or configuration changes.'
+        }else{Write-Host 'This creates local NON-ADMIN user marketbrain-gateway, protected C:\ProgramData\MarketBrainPaytmGateway, and enables/starts the existing Windows ssh-agent service (system-wide).'}
         Write-Host 'It does NOT install OpenSSH Server, import a key, create a scheduled task, change VPS/firewall/Paytm settings or start a tunnel.'
         Write-Host 'Choose a NEW account password (14+ characters) and keep it in your password manager. Do not enter your VPS/Windows-admin/Paytm password here or share it in chat.'
-        Write-Host 'On a partial failure, account/files/service state are preserved and recorded; no blind rollback or deletion. Do not repeat Apply.'
-        if((Read-Host 'Type PROVISION-ACCOUNT to authorize exactly these changes') -cne 'PROVISION-ACCOUNT'){throw 'ACCOUNT_OWNER_CANCELLED'}
+        Write-Host 'On a partial failure, account/files/service state are preserved and recorded; no blind rollback or deletion. Do not repeat Apply or Recover.'
+        $consent=if($Mode -ceq 'Recover'){'RECOVER-ACCOUNT'}else{'PROVISION-ACCOUNT'}
+        if((Read-Host "Type $consent to authorize exactly these changes") -cne $consent){throw 'ACCOUNT_OWNER_CANCELLED'}
         $report.stage='PASSWORD_CONFIRMATION';Save-AccountCheckpoint
         Write-Host '[10%] Private password confirmation: up to 3 attempts. No account or service changes have started. Ctrl+C cancels.'
         $passwordAccepted=$false
@@ -81,12 +96,24 @@ try{
             }
         }
         if(-not $passwordAccepted){throw $passwordResult}
+        if($Mode -ceq 'Recover'){
+            Account-Step 'PRESERVE_OLD_INSTALLATION' 15 {
+                $state=Assert-PaytmRepairState $report.recovery.approved $report.recovery.archivePath
+                $report.recovery.manifestHash=$state.manifestHash
+                $report.recovery.archiveMoveAttempted=$true;Save-AccountCheckpoint
+                Move-PaytmRepairArchive $report.recovery.archivePath $run
+                $report.recovery.archiveCreated=$true;Save-AccountCheckpoint
+                Assert-PaytmRepairArchive $report.recovery.archivePath $state.manifestHash $report.recovery.approved.oldSid
+                $report.recovery.archiveVerified=$true;Save-AccountCheckpoint
+            }
+        }
         $report.stage='PRE_APPLY_RECHECK';Save-AccountCheckpoint
-        # Recheck absence immediately before the first change. Never adopt/reset an existing user.
+        # Recheck absence immediately before account creation. Never adopt/reset an existing user.
         if(@(Get-LocalUser | Where-Object {$_.Name -ieq $c.name}).Count -or (Test-Path -LiteralPath $c.root)){throw 'ACCOUNT_TARGET_CHANGED_BEFORE_APPLY'}
         Account-Step 'CREATE_DISABLED_ACCOUNT' 20 {
             $newAccount=New-LocalUser -Name $c.name -Password $password -Description $c.description -Disabled -ErrorAction Stop
             $report.accountSid=$newAccount.SID.Value;$report.createdAccount=$true
+            if($Mode -ceq 'Recover' -and $report.accountSid -ceq $report.recovery.approved.oldSid){throw 'ACCOUNT_REPAIR_SID_NOT_NEW'}
         }
         Account-Step 'STANDARD_USER_GROUP' 30 {
             $alreadyMember=@(Get-LocalGroupMember -SID 'S-1-5-32-545' -ErrorAction Stop | Where-Object {$_.SID.Value -ceq $report.accountSid}).Count -gt 0
@@ -101,17 +128,20 @@ try{
             Write-PaytmAccountNewJson (Join-Path $c.root 'installation.json') ([ordered]@{
                 version=1;runId=$run;name=$c.name;root=$c.root;sid=$report.accountSid;
                 previousAgentStatus=$report.inventory.agentStatus;previousAgentStartType=$report.inventory.agentStartType;
-                passwordExpiryPolicy='WINDOWS_DEFAULT_UNCHANGED';containsPrivateKey=$false})
+                passwordExpiryPolicy='WINDOWS_DEFAULT_UNCHANGED';containsPrivateKey=$false;
+                recoveryFrom=if($Mode -ceq 'Recover'){[ordered]@{oldSid=$report.recovery.approved.oldSid;installationRunId=$report.recovery.approved.installationRunId;archivePath=$report.recovery.archivePath;agentConfigurationPreserved=$true}}else{$null}})
             $null=Read-PaytmOwnedAccount
         }
         Account-Step 'ENABLE_RESTRICTED_ACCOUNT' 55 {Enable-LocalUser -SID $report.accountSid -ErrorAction Stop}
-        Account-Step 'ENABLE_EXISTING_CLIENT_AGENT' 65 {
+        if($Mode -ceq 'Recover'){
+            Account-Step 'CONFIRM_SHARED_AGENT_UNCHANGED' 65 {Assert-PaytmRepairAgent}
+        }else{Account-Step 'ENABLE_EXISTING_CLIENT_AGENT' 65 {
             # Journal intent first so a failure after Set-Service is not reported as untouched.
             $report.agentChanged=$true;Save-AccountCheckpoint
             Set-Service -Name ssh-agent -StartupType Automatic -ErrorAction Stop
             Start-Service -Name ssh-agent -ErrorAction Stop
             (Get-Service ssh-agent).WaitForStatus('Running',[TimeSpan]::FromSeconds(15))
-        }
+        }}
     }else{
         $saved=Read-PaytmOwnedAccount;$report.accountSid=$saved.sid
         if($Mode -ceq 'Disable'){
@@ -155,12 +185,13 @@ try{
     Write-Progress -Activity 'Paytm restricted Windows account' -Completed
     Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
     Write-Host "Share this ONE file: $path"
+    if($report.recovery.archiveMoveAttempted){Write-Host "Preserved-folder target (do not delete or restore manually): $($report.recovery.archivePath)"}
     Write-Host ('Accepted progress at script release: '+(($report.acceptedProgressAtScriptRelease|ForEach-Object { "$($_.id)=$($_.percent)%" }) -join ', '))
     if($null -ne $report.candidateGroup2PercentIfReviewed){Write-Host "This account result is a candidate for G2=$($report.candidateGroup2PercentIfReviewed)%, pending evidence review."}
     if($report.failure){
         if($report.stage -ceq 'PASSWORD_CONFIRMATION'){
-            Write-Host 'Stopped before account/service changes. You may run Apply again later; it rechecks that the account/folder are absent. Do not delete anything. Share only the JSON, never passwords.'
-        }else{Write-Host 'STOP: do not rerun Apply or delete the account/folder. Share the JSON; it records completed and possibly partial steps.'}
+            Write-Host "Stopped before account/service/storage changes. You may run the same $Mode command again later; it rechecks its required baseline. Do not delete anything. Share only the JSON, never passwords."
+        }else{Write-Host 'STOP: do not rerun Apply/Recover or delete the account/folder. Share the JSON; it records completed and possibly partial steps.'}
     }
 }
 if($report.failure){throw $report.failure}

@@ -4,7 +4,7 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
-Current E191 hold: owner reports deleting the Windows gateway account after E189. The next action is [read-only recovery inventory](paytm-gateway-account.md), not the earlier Verify/Apply handoff. Current residual state is unverified; no checkpoint added or erased. Percentages remain100/20/0/0/0/0; G2.2 cannot close until reviewed recovery and actual account verification.
+Current E192/E193: residual inventory accepted, owner-approved [controlled Recover](paytm-gateway-account.md) locally verified. Old storage preserved, new account/SID/protected storage plus exact-account probe prepared; existing agent untouched. Runtime recovery pending. No checkpoint added or erased:100/20/0/0/0/0; G2.2 success plus review targets40%. This supersedes earlier Apply/Verify/inventory-only next actions below.
 
 Latest review, 2026-10-26 E189/E190: six account/storage/agent setup stages passed, but the credentialed verification process did not start. Its command-line contract is corrected and locally tested. **No percentage increase:** the snapshot below remains100/20/0/0/0/0 until the full exact-account probe passes. Next action is [Verify existing account](paytm-gateway-account.md), not Apply, reset, deletion or maintenance repeat.
 
