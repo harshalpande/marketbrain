@@ -97,6 +97,13 @@ function ConvertTo-PaytmPinnedHost([string]$Text) {
     $wrong=[byte[]]$blob.Clone();$wrong[$wrong.Length-1]=$wrong[$wrong.Length-1] -bxor 2
     [pscustomobject]@{knownHost=$rows[0]+"`n";wrongHost='130.250.191.137 ssh-rsa '+[Convert]::ToBase64String($wrong)+"`n";fingerprint=Get-PaytmKeyFingerprint $blob}
 }
+function ConvertFrom-PaytmHostPublicKey([string]$Text) {
+    # Accept only a single .pub line, never private key material or a replacement trust pin.
+    if($Text.Length -gt 8192 -or $Text -cmatch '[\r\n\x00]' -or
+        $Text.Trim() -cnotmatch '^ssh-rsa[ \t]+([A-Za-z0-9+/=]+)(?:[ \t]+[^\r\n\x00]*)?$'){throw 'KEY_HOST_PUBLIC_FORMAT'}
+    $blob=$Matches[1]
+    ConvertTo-PaytmPinnedHost ('130.250.191.137 ssh-rsa '+$blob)
+}
 function Get-PaytmCustodySshArguments([string]$KnownHosts,[string]$PublicKey) {
     foreach($path in @($KnownHosts,$PublicKey)){
         if($path -cnotmatch '^C:\\ProgramData\\MarketBrainPaytmGateway\\key-custody\\[a-z_.]+$'){throw 'KEY_SSH_PATH_INVALID'}
@@ -157,7 +164,7 @@ function Get-PaytmSshOutcome($Result) {
     $reason='UNCLASSIFIED'
     foreach($pair in @(@('Host key verification failed\.','HOST_VERIFICATION_FAILED'),@('Permission denied','AUTHENTICATION_DENIED'),
         @('Connection refused','CONNECTION_REFUSED'),@('Connection timed out|Operation timed out','CONNECTION_TIMEOUT'),
-        @('No route to host|Network is unreachable','NETWORK_UNREACHABLE'),@('no matching host key type|no matching key exchange','ALGORITHM_MISMATCH'),
+        @('No route to host|Network is unreachable','NETWORK_UNREACHABLE'),@('choose_kex: unsupported KEX method','CLIENT_KEX_UNSUPPORTED'),@('no matching host key type|no matching key exchange','ALGORITHM_MISMATCH'),
         @('Bad configuration option|Unsupported option','CLIENT_OPTION_UNSUPPORTED'),@('Authenticated to .* using "publickey"','PUBLICKEY_AUTHENTICATED'))){
         if($Result.Stderr -match $pair[0]){$reason=$pair[1];break}
     }

@@ -1,0 +1,33 @@
+{
+  "evidenceId": "E197",
+  "date": "2026-10-27",
+  "sourceFile": "paytm-host-scan-20261027-110417-b22278749dc44b11b245df57acfbbeb9.json",
+  "sourceSha256": "512257B5D40E79E1E088AC846CC2F8EC3F6FD8C970A14D35E313E6A3C77446A9",
+  "sourceRevision": "9f59ad5",
+  "sourceHashesVerifiedAgainstCrLfCheckout": 3,
+  "clientVersion": "OpenSSH_for_Windows_9.5p1, LibreSSL 3.8.2",
+  "serverBanner": "OpenSSH_10.0p2 Debian-7+deb13u4",
+  "nativeError": "choose_kex: unsupported KEX method sntrup761x25519-sha512@openssh.com",
+  "nativeExitCode": 1,
+  "nativeStoppedByRunner": false,
+  "scanElapsedSeconds": 5.384,
+  "totalElapsedSeconds": 5.997,
+  "reference": "https://github.com/PowerShell/Win32-OpenSSH/issues/2140",
+  "resolution": "Allow a single owner-supplied RSA public host key only after matching the existing pinned fingerprint. Skip scanner on this path; retain all worker live authentication and negative tests.",
+  "serverConfigurationChange": false,
+  "newTrustPin": false,
+  "keyImported": false,
+  "acceptedGroupPercentages": [100, 40, 0, 0, 0, 0],
+  "acceptedCheckpointDelta": 0,
+  "localVerification": {
+    "keyAssertions": 122,
+    "mockedWorkerSequences": 9,
+    "controllerAssertions": 141,
+    "mockedControllerWorkflows": 19,
+    "diagnosticAssertions": 25,
+    "mockedDiagnosticWorkflows": 5,
+    "nativeSshConfigParsedWithoutNetwork": true,
+    "realPrivateKeyOrAccountChanges": false
+  },
+  "runtimeCustodyPending": true
+}

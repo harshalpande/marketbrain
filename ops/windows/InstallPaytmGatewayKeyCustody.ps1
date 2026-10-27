@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]param([Parameter(Mandatory)][string]$EncryptedKeyPath,
+    [string]$HostPublicKey,
     [string]$AccountReportPath='C:\MarketBrainData\Review\paytm-gateway-account-20261026-220639-ed64356fd5d84c02b0c156f1fc3ef1b4.json',
     [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
@@ -9,8 +10,9 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmTunnelVerification.ps1')
 $c=Get-PaytmKeyContract;$run=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $password=$null;$bytes=$null;$stream=$null;$window=$null;$windowStarted=$false;$privateHash=$null
+$providedHostKey=$PSBoundParameters.ContainsKey('HostPublicKey')
 $report=[ordered]@{schemaVersion=1;runId=$run;status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;
-    acceptedAccountRun=$c.accountRun;accountSid=$c.accountSid;sourceHashes=[ordered]@{};input=$null;hostPin=$null;hostScan=$null;
+    acceptedAccountRun=$c.accountRun;accountSid=$c.accountSid;sourceHashes=[ordered]@{};input=$null;hostPin=$null;hostScan=$null;hostKeySource=$null;
     stagingCreated=$false;stagedEncryptedCopyRemoved=$false;operatorSigningDeniedBefore=$false;operatorSigningDeniedAfter=$false;
     emptyAgentProbe=$null;worker=$null;workerExit=$null;windowStopConfirmed=$null;freshProcess=$null;
     events=@();elapsedSeconds=0;acceptedProgressAtScriptRelease=@();candidateGroup2PercentIfReviewed=$null;
@@ -50,7 +52,12 @@ try{
     $saved=Read-PaytmOwnedAccount
     if($saved.sid -cne $c.accountSid -or $saved.runId -cne $c.accountRun -or -not (Get-LocalUser -SID $saved.sid).Enabled){throw 'KEY_ACCOUNT_CHANGED'}
     Assert-PaytmRepairAgent
-    foreach($exe in @('ssh.exe','ssh-add.exe','ssh-keyscan.exe')){if(-not (Test-Path -LiteralPath ('C:\Windows\System32\OpenSSH\'+$exe) -PathType Leaf)){throw 'KEY_CLIENT_MISSING'}}
+    $tools=@('ssh.exe','ssh-add.exe');if(-not $providedHostKey){$tools+='ssh-keyscan.exe'}
+    foreach($exe in $tools){if(-not (Test-Path -LiteralPath ('C:\Windows\System32\OpenSSH\'+$exe) -PathType Leaf)){throw 'KEY_CLIENT_MISSING'}}
+    if($providedHostKey){
+        $pins=ConvertFrom-PaytmHostPublicKey $HostPublicKey
+        $report.hostPin=$pins.fingerprint;$report.hostKeySource='OWNER_SUPPLIED_PUBLIC_KEY_EXISTING_PIN_VERIFIED';Save-KeyCheckpoint
+    }
     $null=Assert-PaytmAccountPath $c.root
     if(Test-Path -LiteralPath $c.root){throw 'KEY_STAGING_ALREADY_EXISTS_REVIEW_REQUIRED'}
     $inputPath=Assert-PaytmAccountPath $EncryptedKeyPath
@@ -75,11 +82,15 @@ try{
         Assert-PaytmAccountProbe $report.emptyAgentProbe $run
     }
     Key-Step 'VERIFY_EXISTING_HOST_PIN' 20 {
-        $report.vpsContactAttempted=$true;Save-KeyCheckpoint
-        $scan=Invoke-PaytmCustodyNative 'ssh-keyscan.exe' @('-v','-4','-T','5','-t','rsa',$c.hostAddress) 10
-        $report.hostScan=Get-PaytmHostScanEvidence $scan;Save-KeyCheckpoint
-        if($scan.StoppedByRunner -or $scan.ExitCode -ne 0){throw 'KEY_HOST_SCAN_FAILED'}
-        $script:pins=ConvertTo-PaytmPinnedHost $scan.Stdout;$report.hostPin=$pins.fingerprint
+        if($providedHostKey){
+            Write-Host 'Supplied public host key matches the previously verified fingerprint. Scanner is not used; live pinned authentication follows in the worker.'
+        }else{
+            $report.vpsContactAttempted=$true;Save-KeyCheckpoint
+            $scan=Invoke-PaytmCustodyNative 'ssh-keyscan.exe' @('-v','-4','-T','5','-t','rsa',$c.hostAddress) 10
+            $report.hostScan=Get-PaytmHostScanEvidence $scan;Save-KeyCheckpoint
+            if($scan.StoppedByRunner -or $scan.ExitCode -ne 0){throw 'KEY_HOST_SCAN_FAILED'}
+            $script:pins=ConvertTo-PaytmPinnedHost $scan.Stdout;$report.hostPin=$pins.fingerprint;$report.hostKeySource='NETWORK_SCAN_EXISTING_PIN_VERIFIED'
+        }
     }
     Key-Step 'PROTECTED_STAGING' 30 {
         # Fresh absence/ownership checks before mutation. Never adopt or replace a previous custody attempt.
@@ -148,6 +159,7 @@ try{
     if($report.stagingCreated -and $null -eq $report.worker -and $null -ne $childReport -and (Test-Path -LiteralPath $childReport)){
         try{$report.worker=Read-KeyWorkerReport $childReport}catch{} # Preserve safe partial output; never infer import absence.
     }
+    if($null -ne $report.worker -and $report.worker.vpsContactAttempted -eq $true){$report.vpsContactAttempted=$true}
     if($null -ne $password){$password.Dispose()};if($null -ne $bytes){[Array]::Clear($bytes,0,$bytes.Length)}
     $timer.Stop();if($null -ne $stream){try{Save-KeyCheckpoint}finally{$stream.Dispose()}}
     Write-Progress -Activity 'Gateway key custody' -Completed

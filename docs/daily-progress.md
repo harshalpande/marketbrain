@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-27 Scanner compatibility cause identified; pinned public-key input prepared
+
+- E197: diagnostic b22278749dc44b11b245df57acfbbeb9 reached VPS SSH and failed on Windows9.5p1 unsupported sntrup KEX in ssh-keyscan (exit1,5.384s; total5.997s). Three source hashes match9f59ad5 CRLF. This is the documented Windows scanner bug; no password, private-key or broker failure is implicated.
+- Added optional HostPublicKey input: single RSA .pub line copied from verified administrator session, validated against the existing fixed SHA256 pin before passwords/staging. No scan on this path, no new trust or server/client installation changes; live pinned SSH and wrong-host tests remain mandatory in the worker. Wrong input blocks.
+- Next action: [resume custody using the public-key handoff](paytm-gateway-key-custody.md); no account reset or repeat diagnostic. Accepted percentages100/40/0/0/0/0, delta0; runtime key import still pending.
+- Local checks passed:122 key assertions/nine worker sequences,141 controller assertions/19 workflows,25 diagnostic assertions/five workflows. Supplied-key success, wrong fingerprint, blank/multiline/private input and zero scanner invocations covered; normal SSH configuration parsed locally without network contact.
+
 ## 2026-10-27 Key import stopped before staging; host-scan evidence gap corrected
 
 - E196: run7459b40ca0e749f79eaf8a7f421a0799 failed at VERIFY_EXISTING_HOST_PIN / KEY_HOST_SCAN_FAILED in83.782s total including owner input. Encrypted identity and real non-admin/empty-agent probe passed (10.175s stage). No staging, worker, import, task, proxy or order. Six source hashes match b3fd126 CRLF bytes.

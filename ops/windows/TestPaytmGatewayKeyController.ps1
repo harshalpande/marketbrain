@@ -36,7 +36,7 @@ function Invoke-PaytmAccountProbe($Sid,$RunId,$Password,$Diagnostics){
     [pscustomobject]@{version=1;runId=$RunId;failure=$null;agentExit=1;sidMatched=$true;nonAdmin=$true;protectedWriteDenied=$true;workWriteReadDelete=$true;agentEmpty=$true}
 }
 function ConvertTo-PaytmPinnedHost($Text){
-    if($global:keyFixture.case -ceq 'hostPinFailure'){throw 'KEY_HOST_PIN_MISMATCH'}
+    if($global:keyFixture.case -cin @('hostPinFailure','publicPinFailure')){throw 'KEY_HOST_PIN_MISMATCH'}
     [pscustomobject]@{knownHost='fixture public host';wrongHost='fixture negative public host';fingerprint=$global:keyFixtureContract.hostPin}
 }
 function Invoke-PaytmCustodyNative($Tool,[string[]]$Arguments,$Seconds){
@@ -81,22 +81,27 @@ foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','Pa
     if($name -ceq 'PaytmGatewayKeyCustody.ps1'){$source+="`n"+$mock}
     [IO.File]::WriteAllText((Join-Path $fixtureScripts $name),$source)
 }
-$scenarios=@('pass','cancel','wrongReceipt','accountDrift','probeFailure','hostPinFailure','hostScanFailure','hostScanTimeout','aclFailure','operatorHasKey','startFailure','workerFailure','waitFailure','badWorkerBinding','missingWorkerReport','freshFailure')
+$scenarios=@('pass','publicPass','publicPinFailure','publicBlank','cancel','wrongReceipt','accountDrift','probeFailure','hostPinFailure','hostScanFailure','hostScanTimeout','aclFailure','operatorHasKey','startFailure','workerFailure','waitFailure','badWorkerBinding','missingWorkerReport','freshFailure')
 foreach($case in $scenarios){
     $caseRoot=Join-Path $temp $case;$app=Join-Path $caseRoot 'app';$null=New-Item -ItemType Directory -Path (Join-Path $app 'work') -Force
     $inputKey=Join-Path $caseRoot 'fixture.openssh';[IO.File]::WriteAllBytes($inputKey,$bytes)
     $receipt=Join-Path $caseRoot 'accepted.json';[IO.File]::WriteAllText($receipt,'{}')
     $global:keyFixture=@{case=$case;app=$app;receipt=$receipt;password=$null;nativeCalls=@();kills=0;run=$null}
     $output=Join-Path $caseRoot 'output';$failed=$false;$console=@()
-    try{$console=@(& (Join-Path $fixtureScripts 'InstallPaytmGatewayKeyCustody.ps1') -EncryptedKeyPath $inputKey -AccountReportPath $receipt -OutputDirectory $output 6>&1)}catch{$failed=$true}
+    $parameters=@{EncryptedKeyPath=$inputKey;AccountReportPath=$receipt;OutputDirectory=$output}
+    if($case.StartsWith('public')){$parameters.HostPublicKey=if($case -ceq 'publicBlank'){''}else{'ssh-rsa AAAA fixture public key'}}
+    try{$console=@(& (Join-Path $fixtureScripts 'InstallPaytmGatewayKeyCustody.ps1') @parameters 6>&1)}catch{$failed=$true}
     $files=@(Get-ChildItem -LiteralPath $output -Filter '*.json');Check ($files.Count -eq 1) ('one evidence '+$case)
     $raw=[IO.File]::ReadAllText($files[0].FullName);$r=$raw|ConvertFrom-Json
-    Check ($failed -eq ($case -cne 'pass')) ('controller result '+$case+' '+$r.failure+' '+($r.failureDetails|ConvertTo-Json -Compress))
+    Check ($failed -eq ($case -cnotin @('pass','publicPass'))) ('controller result '+$case+' '+$r.failure+' '+($r.failureDetails|ConvertTo-Json -Compress))
     Check ($raw -notmatch 'FixtureOnly|BEGIN OPENSSH PRIVATE KEY' -and ($console -join '') -notmatch 'FixtureOnly') 'no private material/password in evidence'
     Check (-not $r.ordersEnabled -and -not $r.serviceConfigurationChanged -and -not $r.tunnelStarted -and -not $r.taskInstalled) 'authority unchanged'
     Check ([Convert]::ToBase64String([IO.File]::ReadAllBytes($inputKey)) -ceq [Convert]::ToBase64String($bytes)) 'original encrypted input preserved'
     if($null -ne $global:keyFixture.password){$disposed=$false;try{$copy=$global:keyFixture.password.Copy();$copy.Dispose()}catch{$disposed=$true};Check $disposed 'Windows password disposed'}
-    if($case -ceq 'pass'){Check ($r.stagedEncryptedCopyRemoved -and $r.operatorSigningDeniedAfter -and $r.freshProcess.signingVerified -and $r.candidateGroup2PercentIfReviewed -eq 60) 'pass includes copy removal and fresh process';Check (-not (Test-Path -LiteralPath (Join-Path $app 'key-custody\gateway.openssh'))) 'no staged encrypted private file after success'}
+    if($case -cin @('pass','publicPass')){Check ($r.stagedEncryptedCopyRemoved -and $r.operatorSigningDeniedAfter -and $r.freshProcess.signingVerified -and $r.candidateGroup2PercentIfReviewed -eq 60) 'pass includes copy removal and fresh process';Check (-not (Test-Path -LiteralPath (Join-Path $app 'key-custody\gateway.openssh'))) 'no staged encrypted private file after success'}
+    if($case.StartsWith('public')){Check (-not (($global:keyFixture.nativeCalls -join '|') -match 'ssh-keyscan')) 'public input path never invokes broken scanner'}
+    if($case -ceq 'publicPass'){Check ($r.hostKeySource -ceq 'OWNER_SUPPLIED_PUBLIC_KEY_EXISTING_PIN_VERIFIED' -and $r.hostPin -ceq $global:keyFixtureContract.hostPin -and $null -eq $r.hostScan) 'public pin evidence recorded'}
+    if($case -cin @('publicPinFailure','publicBlank')){Check (-not $r.stagingCreated -and $null -eq $global:keyFixture.password -and $global:keyFixture.nativeCalls.Count -eq 0) 'bad public input stops before password or native calls'}
     if($case -cin @('cancel','wrongReceipt','accountDrift','probeFailure','hostPinFailure','hostScanFailure','hostScanTimeout')){Check (-not $r.stagingCreated) 'stop before staging'}
     if($case -cin @('hostScanFailure','hostScanTimeout')){
         Check ($r.failure -ceq 'KEY_HOST_SCAN_FAILED' -and $r.hostScan.stderr -ceq 'fixture scan negotiation failure' -and $r.hostScan.exitCode -eq 1) 'native scan cause checkpointed before throw'

@@ -60,6 +60,7 @@ Assert-PaytmAuthenticationResult $goodAuth $true;$script:checks++
 Assert-PaytmAuthenticationResult $badAuth $false;$script:checks++
 Check ((Get-PaytmSshOutcome $badAuth).reason -ceq 'HOST_VERIFICATION_FAILED') 'safe host failure classification'
 Check ((Get-PaytmSshOutcome $goodAuth).reason -ceq 'PUBLICKEY_AUTHENTICATED') 'safe success classification'
+Check ((Get-PaytmSshOutcome (Result 1 '' 'choose_kex: unsupported KEX method sntrup761x25519-sha512@openssh.com')).reason -ceq 'CLIENT_KEX_UNSUPPORTED') 'reported Windows scanner defect classified'
 Check ((Get-PaytmSshOutcome (Result 255 '' 'Permission denied (publickey).')).reason -ceq 'AUTHENTICATION_DENIED') 'safe authentication denial'
 Reject {Assert-PaytmAuthenticationResult (Result 255 '' 'Connection timed out') $false} 'network failure is not negative host proof'
 Reject {Assert-PaytmAuthenticationResult (Result 0 '' $goodAuth.Stderr) $true} 'authentication must remain connected until deliberate stop'
@@ -83,6 +84,13 @@ Check ($pins.knownHost.Trim() -ceq $hostLine -and $pins.wrongHost -cne $pins.kno
 Reject {ConvertTo-PaytmPinnedHost ($hostLine+"`n"+$hostLine)} 'duplicate host scan'
 Reject {ConvertTo-PaytmPinnedHost ($hostLine.Replace('130.250.191.137','127.0.0.1'))} 'wrong scan target'
 Reject {ConvertTo-PaytmPinnedHost $pins.wrongHost} 'wrong scanned pin'
+$publicLine='ssh-rsa '+[Convert]::ToBase64String($rsa)
+Check ((ConvertFrom-PaytmHostPublicKey ($publicLine+' server comment')).fingerprint -ceq $script:fakePin) 'pasted public key checked against fixed pin'
+Check ((ConvertFrom-PaytmHostPublicKey ('  '+$publicLine+'  ')).knownHost.Trim() -ceq $hostLine) 'public whitespace normalized'
+Reject {ConvertFrom-PaytmHostPublicKey ($pins.wrongHost -replace '^130\.250\.191\.137 ','').Trim()} 'pasted wrong pin rejected'
+foreach($badText in @('',"$publicLine`n$publicLine",'-----BEGIN OPENSSH PRIVATE KEY-----','ssh-ed25519 AAAA','ssh-rsa !!!',('a'*8193))){
+    Reject {ConvertFrom-PaytmHostPublicKey $badText} 'invalid public input rejected'
+}
 Set-Item Function:Get-PaytmKeyContract $originalContract
 # Run the actual worker orchestration with a synthetic ciphertext file and mocked identity/native operations.
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('marketbrain-key-tests-'+[guid]::NewGuid().ToString('N'))

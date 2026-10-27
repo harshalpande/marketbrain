@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E197, 2026-10-27:** Windows scanner compatibility defect identified. [Corrected key-custody handoff](docs/paytm-gateway-key-custody.md) accepts the VPS public key only after matching the existing fingerprint; normal SSH authentication remains required. No account reset, server reconfiguration or repeat diagnostic. Groups100/40/0/0/0/0; runtime custody pending.
+
 **Current E196, 2026-10-27:** key import stopped before staging at the VPS public host-key scan. [Credential-free diagnostic is next](docs/paytm-gateway-key-custody.md); native failure evidence is now retained. No account reset or key regeneration. Groups100/40/0/0/0/0 unchanged. Earlier import handoff below is paused pending diagnostic review.
 
 **Current E195, 2026-10-26:** encrypted gateway OpenSSH export owner-verified; [controlled key-custody batch ready](docs/paytm-gateway-key-custody.md). Exact-account import/revoke/reload, pinned authentication and fresh-process signing; one private-entry window and one shareable JSON. No task/tunnel/proxy/broker activation. Local checks112+97 and account regression320 pass; real import pending. Accepted groups100/40/0/0/0/0 unchanged. This supersedes earlier format-confirmation and account-run instructions below.

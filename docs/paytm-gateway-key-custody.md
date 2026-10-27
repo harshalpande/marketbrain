@@ -1,6 +1,31 @@
 # Gateway key custody: next checkpoint G2.3
 
-## Current handoff: host scan diagnostic, 2026-10-27
+## Current handoff: pinned public host key, 2026-10-27 (E197)
+
+Diagnostic run `b22278749dc44b11b245df57acfbbeb9` reached the VPS, then Windows OpenSSH9.5p1 `ssh-keyscan` failed with `choose_kex: unsupported KEX method sntrup761x25519-sha512@openssh.com`. Native exit1 in5.384s, total5.997s; no credentials, import or mutation. Three source hashes match9f59ad5 CRLF bytes. This matches [Windows OpenSSH issue2140](https://github.com/PowerShell/Win32-OpenSSH/issues/2140), which distinguishes the scanner defect from normal ssh.exe negotiation. No server algorithm/configuration or Windows client installation change is required for this workaround.
+
+In the existing verified **administrator PuTTY session**, run:
+
+```bash
+cat /etc/ssh/ssh_host_rsa_key.pub
+```
+
+Copy the complete single public line beginning `ssh-rsa`, including its base64 value (comment optional). Read only the `.pub` file. In **64-bit PowerShell7 as Administrator on the spare**, update a clean main checkout, then:
+
+```powershell
+$publicHostKey = Read-Host 'Paste the VPS ssh-rsa PUBLIC key line'
+$encryptedKey = (Read-Host 'Full path to the verified ENCRYPTED OpenSSH gateway export, not PPK').Trim().Trim('"')
+& '.\ops\windows\InstallPaytmGatewayKeyCustody.ps1' `
+    -EncryptedKeyPath $encryptedKey `
+    -HostPublicKey $publicHostKey `
+    -AccountReportPath 'C:\MarketBrainData\Review\paytm-gateway-account-20261026-220639-ed64356fd5d84c02b0c156f1fc3ef1b4.json'
+```
+
+The supplied public key must match the unchanged pin `SHA256:YTQ8GV8J4qOQkY4j3dGGyCTAzyR2iX/KSJoGK0p2dKI`. Wrong/blank/multiline/private input stops before password prompts or key staging. No scanner runs on this path. The worker still performs live wrong-pin rejection and correct-pin authentication; copying a public key alone never counts as authentication. Existing staging blocks replay, so preserve any later partial result for review.
+
+Original PowerShell window: type `IMPORT-GATEWAY-KEY`, then the existing **Windows gateway account password**. New GATEWAY KEY window: enter the **SSH key passphrase** twice, each when prompted; wait for automatic checks and return to PowerShell. Share one `paytm-key-custody-*.json`. No Pageant, START-TEST, proxy activation or server settings change is needed. Reviewed batch success is still the candidate G2.3/60%, not automatic acceptance. Current percentages remain100/40/0/0/0/0.
+
+## Historical host-scan diagnostic (E196; superseded)
 
 E196 reviews run `7459b40ca0e749f79eaf8a7f421a0799`: encrypted input and actual non-admin/empty-agent probe passed, but `ssh-keyscan` failed before staging or import. All six source hashes match b3fd126 CRLF checkout bytes. The previous report omitted the native exit, timeout flag and stderr, so the network/client cause is **not established**. Do not reset the account, regenerate keys or rerun the import yet. The installer now checkpoints bounded public scan output before throwing.
 
@@ -12,7 +37,7 @@ Run the following in **PowerShell 7 on the spare laptop**, after updating a clea
 
 It reads the Windows OpenSSH version and makes one public RSA host-key scan of the existing VPS, with a ten-second process limit. It saves native output, exit status, timing and the unchanged fingerprint check in one `paytm-host-scan-*.json`. Share that file whether the result is `REVIEW_REQUIRED` or `HOST_SCAN_PIN_VERIFIED_KEY_IMPORT_NOT_RUN`. No automatic import follows; no downgrade, new host trust, service change or authentication is attempted. The original PPK/export remain untouched. G1/G2/G3/G4/G5/G6 remains **100/40/0/0/0/0**; accepted checkpoint delta is zero.
 
-The import instructions below are retained for context and are **not the current next command**. A diagnostic pass establishes public host-key retrieval only, not key custody or unattended operation.
+The scanner-only handoff above is superseded by E197. A diagnostic pass establishes public host-key retrieval only, not key custody or unattended operation.
 
 ## Status and purpose — 2026-10-26
 
