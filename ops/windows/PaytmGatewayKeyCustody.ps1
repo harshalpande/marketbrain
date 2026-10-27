@@ -163,6 +163,15 @@ function Get-PaytmSshOutcome($Result) {
     }
     [pscustomobject]@{exitCode=$Result.ExitCode;stoppedByRunner=$Result.StoppedByRunner;elapsedSeconds=$Result.ElapsedSeconds;reason=$reason}
 }
+function Get-PaytmHostScanEvidence($Result) {
+    # Only use for fixed, credential-free ssh-keyscan / ssh -V commands.
+    # Preserve the native cause instead of reducing every failure to KEY_HOST_SCAN_FAILED.
+    $out=[string]$Result.Stdout;$err=[string]$Result.Stderr
+    [pscustomobject]@{exitCode=$Result.ExitCode;stoppedByRunner=$Result.StoppedByRunner;
+        elapsedSeconds=$Result.ElapsedSeconds;reason=(Get-PaytmSshOutcome $Result).reason;
+        stdout=$out.Substring(0,[math]::Min(8192,$out.Length));stderr=$err.Substring(0,[math]::Min(8192,$err.Length));
+        outputTruncated=($out.Length -gt 8192 -or $err.Length -gt 8192)}
+}
 function Get-PaytmCustodyIdentity {
     $id=[Security.Principal.WindowsIdentity]::GetCurrent()
     [pscustomobject]@{sid=$id.User.Value;nonAdmin=-not ([Security.Principal.WindowsPrincipal]::new($id)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)}

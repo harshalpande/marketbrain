@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+**Current E196, 2026-10-27:** key custody stopped at public host-key scan, before import. Account and encrypted-input checks passed; native scan cause was omitted and remains unknown. [Run only the new password-free host diagnostic](paytm-gateway-key-custody.md), then share one JSON. Do not reset the account or rerun import yet. Accepted groups100/40/0/0/0/0 unchanged; older handoffs below are superseded.
+
 **Current E195, 2026-10-26:** encrypted export confirmed; [key import/verification handoff](paytm-gateway-key-custody.md) prepared with private native passphrase entry under the accepted account, targeted revocation/reload, host-pin negative/positive and fresh-process signing. Local112 key/97 controller assertions and320 account regressions pass. Runtime pending,100/40/0/0/0/0 unchanged. No rebuild/PuTTY/VPS proxy start/account recovery needed; earlier next steps below are historical.
 
 **Current E194, 2026-10-26:** dedicated gateway account runtime accepted: eight stages,46.068s, exact-account probe6.497s, archived old storage and unchanged agent; three source hashes match. G2.2 closed, **100/40/0/0/0/0** accepted percentages. [Next key-custody plan](paytm-gateway-key-custody.md) awaits format confirmation, not another account run. Previous Apply/Recover/Verify handoffs below are historical. No rebuild or runtime change for this evidence update.

@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E196, 2026-10-27:** key import stopped before staging at the VPS public host-key scan. [Credential-free diagnostic is next](docs/paytm-gateway-key-custody.md); native failure evidence is now retained. No account reset or key regeneration. Groups100/40/0/0/0/0 unchanged. Earlier import handoff below is paused pending diagnostic review.
+
 **Current E195, 2026-10-26:** encrypted gateway OpenSSH export owner-verified; [controlled key-custody batch ready](docs/paytm-gateway-key-custody.md). Exact-account import/revoke/reload, pinned authentication and fresh-process signing; one private-entry window and one shareable JSON. No task/tunnel/proxy/broker activation. Local checks112+97 and account regression320 pass; real import pending. Accepted groups100/40/0/0/0/0 unchanged. This supersedes earlier format-confirmation and account-run instructions below.
 
 **Current E194, 2026-10-26: gateway account recovery ACCEPTED.** Eight stages and the real non-admin login/storage/empty-agent probe passed; old folder preserved, shared agent unchanged, three source hashes verified. **G1=100%, G2=40%, G3–G6=0%.** Do not rerun account recovery. [Next: protected gateway-key custody](docs/paytm-gateway-key-custody.md); confirm encrypted PPK versus encrypted OpenSSH format before the import handoff. Earlier commands below are historical and superseded. No key, task, tunnel or broker activation yet.

@@ -1,0 +1,32 @@
+{
+  "evidenceId": "E196",
+  "date": "2026-10-27",
+  "status": "HOST_SCAN_FAILURE_REVIEWED_CUSTODY_PENDING",
+  "sourceFile": "paytm-key-custody-20261027-104922-7459b40ca0e749f79eaf8a7f421a0799.json",
+  "sourceSha256": "3BD354AD076950FAE75388684328B3155F146D9401B35B7A60EB124166BD6262",
+  "sourceRevision": "b3fd126",
+  "sourceHashesVerifiedAgainstCrLfCheckout": 6,
+  "failureStage": "VERIFY_EXISTING_HOST_PIN",
+  "failure": "KEY_HOST_SCAN_FAILED",
+  "elapsedSecondsIncludingOwnerInput": 83.782,
+  "passed": ["encrypted gateway identity", "exact non-admin account", "protected-write denial", "work directory operations", "empty reachable agent"],
+  "stagingCreated": false,
+  "workerStarted": false,
+  "keyImportedByThisRun": false,
+  "underlyingNativeCauseKnown": false,
+  "reportingDefect": "Previous report did not preserve host scan exit, timeout or stderr.",
+  "nextStep": "GetPaytmHostScanDiagnostic.ps1: fixed credential-free version and public host scan, unchanged pin, one report, no automatic import.",
+  "acceptedGroupPercentages": [100, 40, 0, 0, 0, 0],
+  "acceptedCheckpointDelta": 0,
+  "localVerification": {
+    "controllerAssertions": 117,
+    "mockedControllerWorkflows": 16,
+    "diagnosticAssertions": 25,
+    "mockedDiagnosticWorkflows": 5,
+    "keyCustodyRegressionAssertions": 112,
+    "mockedKeyWorkerSequences": 9,
+    "nativeNetworkContact": false,
+    "scriptSyntaxAndArchitectureXmlChecked": true
+  },
+  "runtimeRetestPending": true
+}

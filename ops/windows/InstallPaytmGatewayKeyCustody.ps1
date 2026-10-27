@@ -10,7 +10,7 @@ $ErrorActionPreference='Stop'
 $c=Get-PaytmKeyContract;$run=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $password=$null;$bytes=$null;$stream=$null;$window=$null;$windowStarted=$false;$privateHash=$null
 $report=[ordered]@{schemaVersion=1;runId=$run;status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;
-    acceptedAccountRun=$c.accountRun;accountSid=$c.accountSid;sourceHashes=[ordered]@{};input=$null;hostPin=$null;
+    acceptedAccountRun=$c.accountRun;accountSid=$c.accountSid;sourceHashes=[ordered]@{};input=$null;hostPin=$null;hostScan=$null;
     stagingCreated=$false;stagedEncryptedCopyRemoved=$false;operatorSigningDeniedBefore=$false;operatorSigningDeniedAfter=$false;
     emptyAgentProbe=$null;worker=$null;workerExit=$null;windowStopConfirmed=$null;freshProcess=$null;
     events=@();elapsedSeconds=0;acceptedProgressAtScriptRelease=@();candidateGroup2PercentIfReviewed=$null;
@@ -76,7 +76,8 @@ try{
     }
     Key-Step 'VERIFY_EXISTING_HOST_PIN' 20 {
         $report.vpsContactAttempted=$true;Save-KeyCheckpoint
-        $scan=Invoke-PaytmCustodyNative 'ssh-keyscan.exe' @('-4','-T','5','-t','rsa',$c.hostAddress) 10
+        $scan=Invoke-PaytmCustodyNative 'ssh-keyscan.exe' @('-v','-4','-T','5','-t','rsa',$c.hostAddress) 10
+        $report.hostScan=Get-PaytmHostScanEvidence $scan;Save-KeyCheckpoint
         if($scan.StoppedByRunner -or $scan.ExitCode -ne 0){throw 'KEY_HOST_SCAN_FAILED'}
         $script:pins=ConvertTo-PaytmPinnedHost $scan.Stdout;$report.hostPin=$pins.fingerprint
     }
@@ -153,7 +154,10 @@ try{
     Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
     Write-Host "Share this ONE file: $path"
     if($report.stagedEncryptedCopyRemoved){Write-Host 'Removed only this run staged encrypted copy. Your original encrypted export and PPK remain available.'}
-    if($report.failure){Write-Host 'STOP: keep the report and protected staging. Do not rerun, reset the account, clear agent keys or change the VPS. A key may already be loaded.'}
+    if($report.failure){
+        if($report.stagingCreated){Write-Host 'STOP: keep the report and protected staging. Do not rerun, reset the account, clear agent keys or change the VPS. A key may already be loaded.'}
+        else{Write-Host 'Stopped before key staging/import. Share the report for review; no account reset or key removal is needed.'}
+    }
     else{Write-Host 'Candidate G2=60% after evidence review. No scheduled task, tunnel, proxy, broker login or trade was activated.'}
 }
 if($report.failure){throw $report.failure}

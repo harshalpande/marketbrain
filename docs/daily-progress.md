@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-10-27 Key import stopped before staging; host-scan evidence gap corrected
+
+- E196: run7459b40ca0e749f79eaf8a7f421a0799 failed at VERIFY_EXISTING_HOST_PIN / KEY_HOST_SCAN_FAILED in83.782s total including owner input. Encrypted identity and real non-admin/empty-agent probe passed (10.175s stage). No staging, worker, import, task, proxy or order. Six source hashes match b3fd126 CRLF bytes.
+- Native scan output was missing, so the underlying connection/client cause is unknown. Corrected installer checkpointing and added one bounded credential-free diagnostic with version/verbose public scan output and existing fingerprint verification. No automatic retries or weakened host checks.
+- Next owner action: [host scan diagnostic](paytm-gateway-key-custody.md), one JSON; preserve account and encrypted exports. Accepted group percentages100/40/0/0/0/0, delta0. Runtime custody remains pending.
+- Local verification:117 installer assertions/16 mocked workflows,25 diagnostic assertions/five mocked workflows,112 key-custody regressions/nine worker sequences passed. Changed PowerShell syntax, evidence JSON and architecture XML checked; no real network or account/key mutation during development.
+
 ## 2026-10-26 Encrypted key confirmed; custody and pinned-authentication batch prepared
 
 - Owner verified encrypted OpenSSH export from existing gateway PPK; no new identity or server change. E195 implements [one controlled custody batch](paytm-gateway-key-custody.md), existing-account password in parent and two native key-passphrase prompts in a dedicated account console. No passphrase arguments/files/report.

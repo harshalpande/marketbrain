@@ -1,5 +1,19 @@
 # Gateway key custody: next checkpoint G2.3
 
+## Current handoff: host scan diagnostic, 2026-10-27
+
+E196 reviews run `7459b40ca0e749f79eaf8a7f421a0799`: encrypted input and actual non-admin/empty-agent probe passed, but `ssh-keyscan` failed before staging or import. All six source hashes match b3fd126 CRLF checkout bytes. The previous report omitted the native exit, timeout flag and stderr, so the network/client cause is **not established**. Do not reset the account, regenerate keys or rerun the import yet. The installer now checkpoints bounded public scan output before throwing.
+
+Run the following in **PowerShell 7 on the spare laptop**, after updating a clean main checkout. No administrator elevation, PuTTY, Pageant, key path or passwords are needed:
+
+```powershell
+& '.\ops\windows\GetPaytmHostScanDiagnostic.ps1'
+```
+
+It reads the Windows OpenSSH version and makes one public RSA host-key scan of the existing VPS, with a ten-second process limit. It saves native output, exit status, timing and the unchanged fingerprint check in one `paytm-host-scan-*.json`. Share that file whether the result is `REVIEW_REQUIRED` or `HOST_SCAN_PIN_VERIFIED_KEY_IMPORT_NOT_RUN`. No automatic import follows; no downgrade, new host trust, service change or authentication is attempted. The original PPK/export remain untouched. G1/G2/G3/G4/G5/G6 remains **100/40/0/0/0/0**; accepted checkpoint delta is zero.
+
+The import instructions below are retained for context and are **not the current next command**. A diagnostic pass establishes public host-key retrieval only, not key custody or unattended operation.
+
 ## Status and purpose — 2026-10-26
 
 E194 accepts the dedicated Windows account and real credentialed storage/empty-agent probe. Owner has now confirmed the encrypted OpenSSH export was reloaded, prompted for its passphrase and matched the gateway fingerprint. E195 implements the controlled import/verification batch below. **Runtime import is pending; G2 remains40%.** Do not rerun Apply, Recover, account inventory or maintenance. Preserve the account, old archive, original encrypted export and PPK.
