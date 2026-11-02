@@ -1,0 +1,40 @@
+{
+  "evidenceId": "E204",
+  "status": "BATCH_LOGON_AND_BACKGROUND_SIGNING_ACCEPTED_SUPERVISOR_PENDING",
+  "sourceFile": "paytm-batch-logon-repair-20261102-135027-c3dec69b2f7c462fb383112ae388a596.json",
+  "sourceSha256": "29555DF556ED576F618E28BF7478911D3A002DC74C5A336636C80CD321BCBE27",
+  "sourceRevision": "4a505a8",
+  "matchingCrlfSourceHashes": 6,
+  "sourceRun": "c3dec69b2f7c462fb383112ae388a596",
+  "taskRun": "6b3bcee5eac24157aa38b858b96ae253",
+  "elapsedSeconds": 11.675,
+  "workerElapsedSeconds": 1.979,
+  "verified": {
+    "onlyGatewaySidAddedToBatchAllow": true,
+    "allPriorAllowAssignmentsPreserved": true,
+    "denyAssignmentsUnchanged": true,
+    "deniedSid1003ResolvedAsUnrelatedLocalUser": true,
+    "gatewaySid1010Identity": true,
+    "nonAdmin": true,
+    "nonInteractiveSession": true,
+    "sessionId": 0,
+    "stagedPrivateCopyAbsent": true,
+    "expectedAgentIdentity": true,
+    "signingChecks": 2,
+    "taskExitCode": 0,
+    "temporaryTaskDisabledAndRemoved": true,
+    "cleanupFailure": null
+  },
+  "scope": {
+    "batchLogonRightRetained": true,
+    "keyImported": false,
+    "passwordChanged": false,
+    "networkContacted": false,
+    "ordersEnabled": false
+  },
+  "acceptance": "G2.4 prerequisite accepted. Do not rerun the completed repair or reimport keys. Production supervisor, scheduled startup and managed VPS lifecycle remain pending.",
+  "limitations": "Proves background signing at this run only; not cold-boot/logoff recovery, production tunnel health, Paytm login or quotes.",
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "newFullGroupCheckpointsAccepted": 0,
+  "newPrerequisitesAccepted": 1
+}

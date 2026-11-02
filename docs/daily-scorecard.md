@@ -1,6 +1,6 @@
 # Daily delivery scorecard
 
-**Current E203, 2026-11-02:** repair stopped before changes because the deny-policy guard was overly broad. Denied SID1003 differs from gateway1010; updated preflight resolves unrelated local users and preserves their deny rules. [Run corrected combined repair/signing batch](paytm-scheduled-signing.md). Local82 assertions/22 workflows pass; actual identity/grant/signing pending. Groups **100/60/0/0/0/0**.
+**Current E204, 2026-11-02:** [Batch-logon correction and background signing accepted](evidence/paytm-scheduled-signing-accepted-20261102.json). Total11.675s/worker1.979s; exact non-admin session0,2/2 signatures, task exit0 and temporary task removed. Other policy assignments preserved; no key/password/network/order changes. **Do not rerun repair.** Next: production supervisor and scheduled startup. This G2.4 prerequisite is complete; full group checkpoints remain **100/60/0/0/0/0**.
 
 Established 2026-10-12 at the owner's request. This scorecard measures delivered scope, not confidence in forecasts or profitability. The [roadmap](roadmap.md) remains authoritative for full-goal progress; [daily progress](daily-progress.md) retains dated evidence.
 

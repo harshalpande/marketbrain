@@ -1,5 +1,9 @@
 # Gateway scheduled-account signing verification
 
+**Current E204, 2026-11-02: PASSED AND ACCEPTED. Do not rerun the repair, account creation or key import.** The supplied run c3dec69b2f7c462fb383112ae388a596 completed in11.675s, with1.979s in the worker. Six source hashes match4a505a8 CRLF. Only the gateway SID was added to batch allow; prior grants and the unrelated-user denial stayed unchanged. Exact non-admin/session0 worker verified agent identity, absence of the staged private copy, and two signatures. Task exit0; temporary task disabled/removed with no cleanup error. [Acceptance evidence](evidence/paytm-scheduled-signing-accepted-20261102.json).
+
+This completes the background-signing prerequisite of G2.4. Next work is production gateway supervisor and scheduled startup, followed by managed VPS lifecycle and real recovery testing. It does not prove reboot/logoff recovery, ongoing tunnel health or broker authentication. G2 stays60% until the full production-supervisor checkpoint is accepted. All correction/registration descriptions below are historical.
+
 Current 2026-11-02: E198 accepts key custody and pinned authentication. G2 is **60% (3/5)**. Do not rerun account creation or key import. E199 prepares the next bounded prerequisite for G2.4: prove that Windows Task Scheduler can use the existing agent key under the dedicated account, without an interactive console or a private key file.
 
 **E203 current handoff:** repair the observed batch-logon permission denial and run the existing task once, now with identity-aware deny assessment. The13:35 attempt stopped before any changes because the old validator rejected all non-guest deny entries. It observed SIDending1003 while the gateway is1010, but did not resolve whether1003 was an unrelated user. This was an overly broad validator, not a failed grant or signing attempt. The updated check resolves other same-machine SIDs with Get-LocalUser, preserves verified unrelated-user denies, and records the assessment. Gateway/group/unresolved denials still block. No SID is ignored solely because its numeric suffix differs.
@@ -34,20 +38,12 @@ The historical **inspection** adds the task's last-run metadata and Windows even
 
 The existing task/source/original-report checks remain. One new JSON is created; no task start/stop/removal, credential change, key import or VPS contact occurs. Inventory capture is not signing acceptance. Share the JSON to determine the targeted correction; do not retry signing or reset the account yet.
 
-## Run on the spare laptop
+## Sync the acceptance documentation on the spare laptop
 
-Open **64-bit PowerShell7 as Administrator**. No PuTTY, Pageant or SSH passphrase is required. Keep the main window open until it prints the report path.
+Use PowerShell7 in the existing repository. This update changes documentation only. No elevation, rebuild, restart, password entry or test rerun is required.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-if ($PSVersionTable.PSVersion.Major -lt 7 -or -not [Environment]::Is64BitProcess) {
-    throw 'Use 64-bit PowerShell 7 as Administrator.'
-}
-$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-if (-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw 'Open PowerShell 7 as Administrator.'
-}
 Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
 $branch = git branch --show-current
 if ($LASTEXITCODE -ne 0 -or $branch -ne 'main') { throw 'Expected main branch.' }
@@ -55,12 +51,10 @@ $changes = git status --porcelain
 if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Preserve local changes and stop for review.' }
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
-& '.\ops\windows\RepairPaytmGatewayScheduledSigning.ps1' `
-    -LaunchReportPath 'C:\MarketBrainData\Review\paytm-scheduled-signing-20261102-130045-8d26b08689d940ce8798fd4095b302c5.json' `
-    -CustodyReportPath 'C:\MarketBrainData\Review\paytm-key-custody-20261102-112446-29cb6394513a47f687351825698006d5.json'
+Write-Host 'Signing acceptance documented. No rebuild or test rerun needed.'
 ```
 
-No password or confirmation is requested: the task already stores its Windows-managed credential. Expected result: `BATCH_LOGON_AND_SIGNING_PASSED_SUPERVISOR_PENDING`. Share the printed single `paytm-batch-logon-repair-*.json`, including on failure. Do not rerun this recovery after a completed/partial execution without reviewing the result. The original signing/inspection modes are not the current handoff.
+The repair report has been reviewed and accepted. The temporary task no longer exists; preserve the remaining evidence files and retained agent key. No new diagnostic JSON is requested for this documentation sync.
 
 E200 local validation: 124 assertions across 17 mocked workflows, including empty inventory, matching retained task with original failure, source/definition drift, wrong-run report rejection, and arbitrary secret-field exclusion. Native task definition construction is checked without registration in Windows PowerShell 5.1. Actual scheduled execution and credential access remain unverified on the spare.
 

@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-11-02 Batch-logon correction and background signing accepted
+
+- E204: run c3dec69b2f7c462fb383112ae388a596 PASSED in11.675s; worker1.979s. All six source hashes match4a505a8 CRLF. Only gateway SID1010 was added to batch allow; every prior grantee and deny entry preserved. SID1003 resolved as an unrelated local user.
+- Actual non-admin background session0 worker verified exact identity, agent key, absent staged private copy and two signing checks. Task exit0; exact temporary task disabled/removed, no cleanup error. Existing key/password unchanged, no network/broker/order actions. Actual report passes worker/scope/cleanup assertions. [Acceptance](evidence/paytm-scheduled-signing-accepted-20261102.json).
+- Batch-signing prerequisite for G2.4 is complete. Do not rerun repair or import keys. Next implementation: production gateway supervisor and scheduled startup, followed by managed VPS lifecycle and recovery acceptance. Group milestones remain100/60/0/0/0/0 because G2.4 includes production installation/startup; no denominator change or artificial percentage increase. This acceptance/documentation turn changes no runtime code.
+
 ## 2026-11-02 Overly broad deny-policy guard corrected
 
 - E203: repaird8b3d5dc563443048e55c615761d38a1 stopped in REVALIDATE after8.436s; six hashes match5be38f0 CRLF. grantAttempted=false/startRequested=false: no grant or task run. Denied SIDends1003, gatewayends1010. Previous validator blocked any non-guest deny without resolving whether it applied; this implementation gap caused another operator round trip.

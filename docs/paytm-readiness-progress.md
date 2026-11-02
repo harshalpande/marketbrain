@@ -4,13 +4,15 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
-Latest **E203, 2026-11-02**: repair stopped before changes because its deny guard was overly broad. Identity-aware correction and regression coverage are ready; real batch signing is still pending. [Combined repair](paytm-scheduled-signing.md) remains next. Groups **100/60/0/0/0/0**, delta0; no accepted runtime checkpoint added.
+Latest **E204, 2026-11-02**: batch-logon correction and actual background signing accepted (11.675s total,1.979s worker,2/2 signatures, task exit0 and removal). This completes a prerequisite within G2.4; the checkpoint still requires production supervisor/startup installation and acceptance. Groups **100/60/0/0/0/0** remain unchanged. Real prerequisite progress is recorded separately; do not rerun repair. Next is production supervisor/startup implementation. Earlier handoffs below are historical.
 
-Latest **E202, 2026-11-02**: account batch-logon-right denial identified from Security4625/0xc000015b. [Scoped correction plus signing test](paytm-scheduled-signing.md) is next. No new accepted runtime checkpoint: **100/60/0/0/0/0**. Passing signing remains only a prerequisite for G2.4 production supervisor/startup, not automatic80% acceptance.
+Historical **E203, 2026-11-02**: repair stopped before changes because its deny guard was overly broad. Identity-aware correction and regression coverage are ready; real batch signing is still pending. [Combined repair](paytm-scheduled-signing.md) remains next. Groups **100/60/0/0/0/0**, delta0; no accepted runtime checkpoint added.
 
-Latest **E201, 2026-11-02**: retained probe inventory accepted, but task launch remains unproven (267011/not-yet-run, no worker result). Extended [read-only event capture](paytm-scheduled-signing.md) is next. G1/G2/G3/G4/G5/G6 remain **100/60/0/0/0/0**, delta0. E198 remains the accepted runtime baseline; E200 inventory handoff below is historical.
+Historical **E202, 2026-11-02**: account batch-logon-right denial identified from Security4625/0xc000015b. [Scoped correction plus signing test](paytm-scheduled-signing.md) is next. No new accepted runtime checkpoint: **100/60/0/0/0/0**. Passing signing remains only a prerequisite for G2.4 production supervisor/startup, not automatic80% acceptance.
 
-Latest **E200, 2026-11-02**: scheduled-signing attempt blocked by an existing probe before changes. Custody still passes; prior task failure is unknown. [Read-only inspection](paytm-scheduled-signing.md) is the next handoff. No new accepted checkpoint: groups **100/60/0/0/0/0**. E198 remains the accepted runtime baseline.
+Historical **E201, 2026-11-02**: retained probe inventory accepted, but task launch remains unproven (267011/not-yet-run, no worker result). Extended [read-only event capture](paytm-scheduled-signing.md) is next. G1/G2/G3/G4/G5/G6 remain **100/60/0/0/0/0**, delta0. E198 remains the accepted runtime baseline; E200 inventory handoff below is historical.
+
+Historical **E200, 2026-11-02**: scheduled-signing attempt blocked by an existing probe before changes. Custody still passes; prior task failure is unknown. [Read-only inspection](paytm-scheduled-signing.md) is the next handoff. No new accepted checkpoint: groups **100/60/0/0/0/0**. E198 remains the accepted runtime baseline.
 
 Current **E198, 2026-11-02**: key-custody runtime accepted. Six completed stages in62.802s; scoped import/removal/reload, wrong-host rejection, correct pinned authentication, staged-copy removal and fresh-process signing passed. Six source hashes match f44ef5e CRLF bytes. **G2.3 closes; G2 rises40% to60% (+20 percentage points).** Next [temporary scheduled-account signing](paytm-scheduled-signing.md) is a prerequisite for G2.4, not a repeat import or another completed checkpoint. Reboot/production-supervisor/server-policy retest remain pending.
 
