@@ -1,6 +1,40 @@
 # Locked Windows supervisor installation
 
-Current E205, 2026-11-02. E204 background signing is accepted. This batch installs the persistent Windows supervisor **host**, its startup task, process containment and monitoring. It deliberately has no transport-enable operation. Production SSH observation/reconnection adapters and managed VPS lifecycle remain to be integrated; this installation alone does not close G2.4 or enable Paytm login.
+**Current E206, 2026-11-02: run the recovery below, not the original installer.** The submitted installation registered the startup task but exited1 before a heartbeat (26.842s); cleanup recorded no failure. All11 source hashes match8a87ae5 CRLF. Account/custody/batch policy prerequisites passed. No broker contact or orders occurred.
+
+The runner mistakenly imported `host.ps1` as a script file. This fails under Restricted execution policy, unlike the inline-loading mechanism already used by the accepted signing worker. Local child-process tests reproduce the defect and pass with the corrected loading path. The original report omitted bootstrap errors and execution-policy values, so its exact remote exception is not proven. [Microsoft documents](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-5.1) Restricted as the Windows-client default when no scope supplies a policy; a different user's setting does not establish the gateway account's policy.
+
+The corrected runner verifies source hashes before inline evaluation, records startup stages and safe exception metadata even before the helper/native library is usable, and includes observed policy scopes in successful worker evidence. It does not change policy. Explicit managed MachinePolicy/UserPolicy settings stop for review rather than being bypassed. Bootstrap errors before identity verification or before acquiring the exclusive work lease cannot be written by the worker; task exit remains available for those cases.
+
+Recovery validates the exact supplied failure receipt, existing disabled/stopped task, root/work permissions, source/manifest hashes, STOP control and no unexpected worker evidence. It holds controller and worker locks, preserves original runner/manifest in a protected backup, replaces only the runner and its manifest hash, then reuses the stored task credential for heartbeat/duplicate/STOP/restart verification. It does not reset passwords, register a new task, import keys or rebuild the DLL. A failure retains STOP and disables the matched task; backups and diagnostics remain. No blind repeated recovery or automatic rollback of an unreviewed state.
+
+Local validation:25 bootstrap assertions across8 actual PowerShell5.1 child-process cases,19 recovery guards with actual file backup/replacement,48 host regressions and79 gateway regressions. Child fixtures substitute local identity/session checks; task/ACL operations are mocked in recovery tests. These are not spare-account acceptance. [Evidence](evidence/paytm-supervisor-startup-recovery-local-20261102.json).
+
+Run this once in **PowerShell7 as Administrator** on the spare laptop. No PuTTY, password entry, Pageant changes, Docker rebuild or VPS action is needed:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Open PowerShell 7 as Administrator.' }
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+if (-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'Open PowerShell 7 as Administrator.'
+}
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+$branch = git branch --show-current
+if ($LASTEXITCODE -ne 0 -or $branch -ne 'main') { throw 'Expected main branch.' }
+$changes = git status --porcelain
+if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Preserve local changes and stop for review.' }
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& '.\ops\windows\RepairPaytmGatewaySupervisor.ps1'
+```
+
+Expected result: `LOCKED_SUPERVISOR_RECOVERY_PASSED_TRANSPORT_PENDING`. Share the single printed `paytm-supervisor-recovery-*.json`. G1/G2/G3/G4/G5/G6 remain **100/60/0/0/0/0** until further runtime acceptance.
+
+## Original installation design and handoff (historical for this machine)
+
+E205, 2026-11-02. E204 background signing is accepted. This batch installs the persistent Windows supervisor **host**, its startup task, process containment and monitoring. It deliberately has no transport-enable operation. Production SSH observation/reconnection adapters and managed VPS lifecycle remain to be integrated; this installation alone does not close G2.4 or enable Paytm login.
 
 ## What one run does
 

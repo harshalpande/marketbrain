@@ -9,7 +9,7 @@ $c=Get-PaytmHostContract;$watch=[Diagnostics.Stopwatch]::StartNew();$password=$n
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';stage='PREFLIGHT';sourceHashes=@{};
  failure=$null;failureDetails=$null;cleanupFailure=$null;prerequisites=$null;policy=$null;denyAssessment=@();acceptedProgress=@();
  taskRegistered=$false;startupConfigured=$false;duplicateStartPassed=$false;persistentStopPassed=$false;restartPassed=$false;
- first=$null;duplicate=$null;stopped=$null;stoppedRestart=$null;final=$null;failureWorker=$null;taskInfo=$null;
+ first=$null;duplicate=$null;stopped=$null;stoppedRestart=$null;final=$null;failureWorker=$null;startupFailure=$null;taskInfo=$null;
  elapsedSeconds=0;networkContacted=$false;keyImported=$false;policyChanged=$false;passwordChanged=$false;ordersEnabled=$false;
  rebootTested=$false;transportImplemented=$false;productionTransportActivated=$false}
 $null=Assert-PaytmAccountPath $OutputDirectory;$null=New-Item -ItemType Directory -Path $OutputDirectory -Force
@@ -90,6 +90,7 @@ try {
             }
         }
         if(Test-Path -LiteralPath (Join-Path $c.work 'status.json')){$report.failureWorker=Read-PaytmHostJson (Join-Path $c.work 'status.json')}
+        if(Test-Path -LiteralPath (Join-Path $c.work 'startup-failure.json')){$report.startupFailure=Read-PaytmHostJson (Join-Path $c.work 'startup-failure.json')}
     }catch{$report.cleanupFailure='HOST_CLEANUP_REVIEW_REQUIRED'}
 }finally{
     if($password){$password.Dispose()};if($installLease){$installLease.Dispose()};Save-HostInstall

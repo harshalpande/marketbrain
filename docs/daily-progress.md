@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-02 Supervisor startup failure reviewed; scoped recovery prepared
+
+- E206: run ea8b91471cf048aa97a0f6b939b355c7 stopped after26.842s. All11 source hashes match8a87ae5 CRLF. Account/custody/batch policy and task registration passed; task exit1, no heartbeat/worker error, cleanupFailure null. No broker contact or trades.
+- Reproduced a launcher defect: direct helper-file loading fails under Restricted policy while the accepted inline-loading mechanism succeeds. Exact spare exception remains unproven because the old catch omitted errors before report initialization. Earlier tests missed this full bootstrap path.
+- Runner now verifies hashes before inline loading and captures bootstrap stage/type/HRESULT/line/native code and policy scopes without arbitrary error text. Managed policy settings stop for review; no execution-policy change.
+- Recovery preserves the disabled task/stored credential, validates original receipt and installed hashes/ACLs/STOP, backs up runner/manifest and updates only the runner/hash before combined lifecycle checks. No password entry, account recreation or key import.
+- Local:25 assertions/8 real child-process bootstrap cases,19 file-recovery guards,48 host and79 gateway regressions pass. Fixture identity/session and task/ACL mocks are explicit; spare recovery pending. Groups100/60/0/0/0/0 unchanged. [Current recovery handoff](paytm-supervisor-installation.md).
+
 ## 2026-11-02 Locked gateway supervisor host prepared
 
 - E205: implemented persistent non-admin startup host, bounded child-process handling with Windows Job Object containment, exclusive instance lease, atomic heartbeats, persistent STOP/block handling and validated startup task definition.

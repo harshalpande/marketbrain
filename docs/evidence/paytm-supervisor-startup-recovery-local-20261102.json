@@ -1,0 +1,37 @@
+{
+  "evidenceId": "E206",
+  "sourceFile": "paytm-supervisor-install-20261102-153600-ea8b91471cf048aa97a0f6b939b355c7.json",
+  "sourceSha256": "C4422FE831E1BAFEE49932335B96CFFEA57F741647C87288E3E3F43BC6CA9CD8",
+  "sourceRevision": "8a87ae5",
+  "matchingCrlfSourceHashes": 11,
+  "observed": {
+    "elapsedSeconds": 26.842,
+    "prerequisitesPassed": true,
+    "taskRegistered": true,
+    "startupConfigured": true,
+    "failure": "HOST_TASK_LAUNCH_FAILED",
+    "taskExitCode": 1,
+    "firstHeartbeat": null,
+    "workerFailureEvidence": null,
+    "cleanupFailure": null,
+    "networkContacted": false,
+    "ordersEnabled": false
+  },
+  "diagnosis": "A file-based helper import fails under Restricted execution policy; reproduced locally. The submitted report omitted bootstrap exceptions and policy values, so the exact remote underlying exception is not proven. This defect is corrected and bootstrap diagnostics are added.",
+  "repair": "Revalidate original receipt, exact disabled task, protected installation, manifest/source hashes, STOP state and absence of unreviewed worker evidence; back up runner/manifest, replace runner only and update its hash. Reuse stored task credential for combined lifecycle verification. Preserve DLL/helper/account/key/policy.",
+  "localTests": {
+    "bootstrapAssertions": 25,
+    "realChildProcessCases": 8,
+    "recoveryAssertions": 19,
+    "hostRegressionAssertions": 48,
+    "gatewayRegressionAssertions": 79,
+    "fixtureIdentityAndSessionSubstituted": true,
+    "taskAndAclApisMockedForRecovery": true,
+    "actualSpareAccountOrTaskTested": false,
+    "persistentExecutionPolicyChanged": false,
+    "networkContacted": false
+  },
+  "status": "STARTUP_DEFECT_CORRECTED_RUNTIME_RECOVERY_PENDING",
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "newRuntimeCheckpointsAccepted": 0
+}

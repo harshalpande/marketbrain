@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E206, 2026-11-02:** [Recover the retained supervisor task](docs/paytm-supervisor-installation.md). Installation prerequisites and registration passed, but task exit1 preceded any heartbeat. File-based helper loading fails under Restricted policy in local reproduction; the original report omitted its exact startup exception. Corrected inline loading, early diagnostics and scoped runner-only recovery are ready;171 local assertions pass. Do not reinstall, recreate the account or reimport keys. Accepted groups remain **100/60/0/0/0/0**.
+
 **Current E205, 2026-11-02:** [Locked supervisor/startup installation](docs/paytm-supervisor-installation.md) is ready for the spare laptop. One batch checks actual background heartbeat, duplicate start, persistent STOP and locked restart. Local 48 host checks plus 79 gateway regressions pass. Production transport adapters, VPS lifecycle and cold-boot acceptance remain pending. E204 signing remains accepted; do not rerun repair or key import. Accepted groups remain **100/60/0/0/0/0**.
 
 **Current E204, 2026-11-02:** [Batch-logon correction and background signing accepted](docs/evidence/paytm-scheduled-signing-accepted-20261102.json). Total11.675s/worker1.979s; exact non-admin session0,2/2 signatures, task exit0 and temporary task removed. Other policy assignments preserved; no key/password/network/order changes. **Do not rerun repair.** Next: production supervisor and scheduled startup. This G2.4 prerequisite is complete; full group checkpoints remain **100/60/0/0/0/0**.
