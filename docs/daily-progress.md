@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-02 Managed VPS lifecycle accepted from recovered evidence
+
+- E210: recovered original run25659b497afb4d088bf9fbf309f791b1 is valid JSON and passed in10s. Crash restart, persistent disable, missing-marker start prevention, certificate-validated TLS and three denial checks are accepted. Root503 is transport evidence, not Paytm API readiness.
+- Recovery5efb864e0b4f48d2b0c6a4dc487cc519 completed46.141s, no failures, one matching log. All five reviewed source hashes match1271e59 checkout bytes; envelope, decoded contents and embedded server fields independently verified. The earlier copied text contained padding; the original VPS JSON was correct.
+- Snapshot18:11:41Z: active/running, on-failure, boot-enabled; sole127.0.0.1:18888 listener belongs to service PID119060. Enable marker matches original run, no remaining guard timers. Recovery did not reinstall or change the service.
+- Bounded VPS lifecycle substage100% accepted. Full groups100/60/0/0/0/0 remain unchanged: production Windows transport and effective managed application route remain requirements of G2.4/G2.5. Actual reboot/logoff and fresh Windows after-check are not established by this recovery.
+- No code change or further test requested. Next planned implementation is Windows supervisor transport plus effective application route; preserve accepted VPS/account/custody work. Documentation and architecture updated; earlier install/recovery steps are historical.
+
 ## 2026-11-02 Managed-proxy report conversion failed; evidence recovery prepared
 
 - E209: run25659b497afb4d088bf9fbf309f791b1 stopped at JSON conversion after104.128s. Exception ArgumentException at PaytmManagedProxy.ps1:21. Matching boundaries passed, but raw JSON was not saved. VPS outcome remains unknown; do not characterize this as installation failure or success.

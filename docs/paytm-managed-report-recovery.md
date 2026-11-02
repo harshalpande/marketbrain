@@ -1,6 +1,8 @@
 # Recover the managed proxy report without reinstalling
 
-Current E209,2026-11-02: the104.128-second run25659b497afb4d088bf9fbf309f791b1 failed in PaytmManagedProxy.ps1 line21 while ConvertFrom-Json decoded the copied report. The matching report boundaries had already passed. System.ArgumentException/-2147024809 is recorded, but the input JSON and detailed parser error were not retained. We cannot determine the malformed content or whether the VPS installation succeeded from this receipt.
+**Current E210, 2026-11-02:** [Managed VPS lifecycle accepted](evidence/paytm-managed-proxy-accepted-20261102.json). Original valid report proves a10-second pass;46.141-second recovery confirms running/boot-enabled loopback proxy, matching PID/marker and no guard timers. Earlier pasted JSON was corrupted; installation was not repeated. No VPS rerun or further recovery is needed. Next is Windows supervisor transport and effective application-route integration. This VPS substage is100%; full groups remain100/60/0/0/0/0 until their remaining checkpoint requirements pass. Earlier install/recovery instructions below are historical.
+
+Historical E209,2026-11-02: the104.128-second run25659b497afb4d088bf9fbf309f791b1 failed in PaytmManagedProxy.ps1 line21 while ConvertFrom-Json decoded the copied report. The matching report boundaries had already passed. System.ArgumentException/-2147024809 is recorded, but the input JSON and detailed parser error were not retained. We cannot determine the malformed content or whether the VPS installation succeeded from this receipt.
 
 Windows had a fresh LOCKED heartbeat from the accepted instance24e01ce286d244c18ddb1f948eb0496a, PID16704, sequence7593 before the remote step. There is no after-check and server is null. This is not evidence of an account, signing or SSH authentication failure. It is also not proof that the VPS remained unchanged. Do not repeat the managed installer or earlier recovery/account/key steps.
 

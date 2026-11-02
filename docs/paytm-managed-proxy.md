@@ -1,6 +1,8 @@
 # Managed VPS proxy lifecycle
 
-**Current E209, 2026-11-02:** Managed-proxy collection failed at JSON decoding after104.128s; VPS outcome is unconfirmed because the original report was not retained. Windows was LOCKED before the remote step. **Do not rerun installation.** [Recover the saved VPS report and current state](paytm-managed-report-recovery.md) without service changes. Collector now preserves malformed report evidence. Accepted groups remain100/60/0/0/0/0; earlier installation handoffs are on hold.
+**Current E210, 2026-11-02:** [Managed VPS lifecycle accepted](evidence/paytm-managed-proxy-accepted-20261102.json). Original valid report proves a10-second pass;46.141-second recovery confirms running/boot-enabled loopback proxy, matching PID/marker and no guard timers. Earlier pasted JSON was corrupted; installation was not repeated. No VPS rerun or further recovery is needed. Next is Windows supervisor transport and effective application-route integration. This VPS substage is100%; full groups remain100/60/0/0/0/0 until their remaining checkpoint requirements pass. Earlier install/recovery instructions below are historical.
+
+**Historical E209, 2026-11-02:** Managed-proxy collection failed at JSON decoding after104.128s; VPS outcome is unconfirmed because the original report was not retained. Windows was LOCKED before the remote step. **Do not rerun installation.** [Recover the saved VPS report and current state](paytm-managed-report-recovery.md) without service changes. Collector now preserves malformed report evidence. Accepted groups remain100/60/0/0/0/0; earlier installation handoffs are on hold.
 
 Current stage: E207 locked Windows supervisor accepted; E208 managed VPS implementation ready for runtime testing. The accepted Paytm groups remain **100/60/0/0/0/0**. Existing recovery, account creation and key import must not be repeated.
 
