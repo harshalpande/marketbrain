@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E202 BATCH_LOGON_DENIAL_IDENTIFIED_REPAIR_PENDING:** [review/local evidence](evidence/paytm-batch-logon-repair-local-20261102.json), [handoff](paytm-scheduled-signing.md). Inspection7.173s, five source hashes match1fcfc49 CRLF; Security4625/Type4/0xc000015b identifies batch-logon denial. Scoped exact-SID additive allow correction plus retained signing test prepared;72 assertions/20 repair/report workflows and137 assertions/17 signing workflows pass. Policy/task mutation remains spare-only; groups100/60/0/0/0/0.
+
 - **E201 INVENTORY_ACCEPTED_LAUNCH_CAUSE_PENDING:** [review](evidence/paytm-scheduled-launch-review-20261102.json). Inspection3.016s; five e699817 CRLF hashes match; exact disabled task/source verified. Prior timeout has Windows267011/not-yet-run and no worker report. Extended [inspection](paytm-scheduled-signing.md) collects bounded task/logon events without mutation;137 assertions/17 workflows pass. No new runtime checkpoint;100/60/0/0/0/0.
 
 - **E200 SCHEDULED_PROBE_RETAINED_INSPECTION_PREPARED:** [review](evidence/paytm-scheduled-signing-review-20261102.json), [inspection handoff](paytm-scheduled-signing.md). Latest run stopped in 2.119s before changes because a prior probe exists; custody passed, five 5e73a05 CRLF hashes match. Earlier task/failure unknown. Added bounded read-only inventory, with 124 assertions/17 mocked workflows. No runtime checkpoint increase; groups100/60/0/0/0/0.

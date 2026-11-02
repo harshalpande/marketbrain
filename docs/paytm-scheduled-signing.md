@@ -2,7 +2,9 @@
 
 Current 2026-11-02: E198 accepts key custody and pinned authentication. G2 is **60% (3/5)**. Do not rerun account creation or key import. E199 prepares the next bounded prerequisite for G2.4: prove that Windows Task Scheduler can use the existing agent key under the dedicated account, without an interactive console or a private key file.
 
-## What the batch does
+**E202 current handoff:** repair the observed batch-logon permission denial and run the existing task once; see the correction section and script below. The original registration flow here is background context, not an instruction to create another task.
+
+## Original registration batch
 
 1. Binds to the exact accepted custody JSON hash; rechecks account/SID/ACLs, enabled account, running agent, custody manifest and the previously installed helper hashes/public identity. Refuses residual encrypted staging or an existing probe task.
 2. Creates a uniquely named administrator-protected worker folder and one temporary **disabled** task. Uses the existing gateway Windows password through the Windows API, with Password logon and Limited run level. No automatic trigger, restart or wake policy. Task Scheduler manages the registration credential; it is never written to source, command arguments or reports. The API requires a transient managed password string; memory erasure is not claimed.
@@ -12,11 +14,21 @@ Current 2026-11-02: E198 accepts key custody and pinned authentication. G2 is **
 
 One shareable `paytm-scheduled-signing-*.json` embeds the worker result, source hashes, elapsed times, task-result code, cleanup and unchanged-authority flags. Public worker/source evidence remains under the unique protected directory; no recursive cleanup. The existing agent key, original encrypted export and PPK remain untouched. On a failed or interrupted run, share the report and do not rerun or reset the account. A failed task may be retained disabled; hard task termination is not proof of production descendant-process recovery.
 
-## Current next step: capture the Windows launch error (E201)
+## Current next step: correct batch-logon permission and test signing (E202)
+
+The 13:00 inspection completed in7.173s with five source hashes matching1fcfc49 CRLF. Security4625 records621335/621336 report Status0xc000015b, SubStatus0x0, LogonType4 for the gateway account. This establishes batch-logon-right denial; it does not identify a wrong password or broken SSH key. The Scheduler Operational channel is disabled and has no matching retained events. The retained task is still disabled/unchanged with no worker result. Earlier inventory/event commands below are historical.
+
+The next batch revalidates the exact reviewed receipt, custody, Users-only account, protected worker hash and never-run disabled task. It reads local batch allow/deny assignments, refuses a domain-joined computer and any deny except known guest-only assignments, then adds `SeBatchLogonRight` to **only** the exact gateway SID if absent. It uses LSA's additive API, preserves existing grantees/deny rules, and verifies the resulting assignment set. No password reset, administrator membership, broad policy import or deny removal.
+
+It reuses the stored task credential for one demand start, checks the real background worker's identity/agent/two signatures and zero task exit code, then disables/removes only the matched temporary task on success. Failure preserves the task disabled where its definition remains owned, captures launch evidence, and does not retry. An added batch right remains in place and is recorded even if later signing fails; this batch does not silently roll back policy. Existing worker/evidence files remain. No tunnel, VPS contact, login or trade occurs.
+
+Local verification: **72 assertions,17 mocked recovery workflows and3 report-launcher workflows**, plus the existing137-assertion/17-workflow signing suite. Actual C# interop compiles via Windows PowerShell5.1 and loads in PS7; native mutation rejects any other SID before OS access. Policy/task APIs are mocked for recovery testing; actual grant and scheduled signing require the spare run. No local Windows policy/task changes were made.
+
+## Earlier launch investigation (E201)
 
 The supplied 12:51 inspection completed in 3.016 seconds. All five source hashes match e699817 CRLF checkout bytes. One retained task, run6b3bcee5eac24157aa38b858b96ae253, is disabled with the expected definition and unchanged worker source. Its original report timed out in RUN_BACKGROUND_SIGNING_CHECKS (131.447 seconds total). Windows LastTaskResult267011 / 0x41303 means the task has not yet run; no worker result exists. The historical `taskStarted=true` records successful return from the start-request API, not observed worker execution. The cause of the launch failure is not established. Account/key recreation is not justified by this evidence.
 
-Run **inspection only** below. It now adds the task's last-run metadata and Windows events: up to32 exact-task Scheduler events and32 account-specific Security4625 batch-logon failures over the last seven days, per task. Account events are correlated by name/logon type/time, not proof of a particular task's failure. Only IDs, timestamps, numeric error codes and instance IDs are shared; arbitrary event messages, arguments and credentials are omitted. Disabled logs are still queried for retained history. Empty/unavailable logs and result caps are explicit; no logging policy changes or claim that events must exist.
+The historical **inspection** adds the task's last-run metadata and Windows events: up to32 exact-task Scheduler events and32 account-specific Security4625 batch-logon failures over the last seven days, per task. Account events are correlated by name/logon type/time, not proof of a particular task's failure. Only IDs, timestamps, numeric error codes and instance IDs are shared; arbitrary event messages, arguments and credentials are omitted. Disabled logs are still queried for retained history. Empty/unavailable logs and result caps are explicit; no logging policy changes or claim that events must exist.
 
 The existing task/source/original-report checks remain. One new JSON is created; no task start/stop/removal, credential change, key import or VPS contact occurs. Inventory capture is not signing acceptance. Share the JSON to determine the targeted correction; do not retry signing or reset the account yet.
 
@@ -41,11 +53,12 @@ $changes = git status --porcelain
 if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Preserve local changes and stop for review.' }
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
-& '.\ops\windows\TestPaytmGatewayScheduledSigning.ps1' -InspectExisting `
+& '.\ops\windows\RepairPaytmGatewayScheduledSigning.ps1' `
+    -LaunchReportPath 'C:\MarketBrainData\Review\paytm-scheduled-signing-20261102-130045-8d26b08689d940ce8798fd4095b302c5.json' `
     -CustodyReportPath 'C:\MarketBrainData\Review\paytm-key-custody-20261102-112446-29cb6394513a47f687351825698006d5.json'
 ```
 
-No password or confirmation is requested in inspection mode. Expected result: `SCHEDULED_PROBE_INVENTORY_CAPTURED`. Share the printed single JSON, including on failure. Keep existing task/files and account intact. The original signing mode (without `-InspectExisting`) remains available but is not the current handoff; its retained task must be reviewed first.
+No password or confirmation is requested: the task already stores its Windows-managed credential. Expected result: `BATCH_LOGON_AND_SIGNING_PASSED_SUPERVISOR_PENDING`. Share the printed single `paytm-batch-logon-repair-*.json`, including on failure. Do not rerun this recovery after a completed/partial execution without reviewing the result. The original signing/inspection modes are not the current handoff.
 
 E200 local validation: 124 assertions across 17 mocked workflows, including empty inventory, matching retained task with original failure, source/definition drift, wrong-run report rejection, and arbitrary secret-field exclusion. Native task definition construction is checked without registration in Windows PowerShell 5.1. Actual scheduled execution and credential access remain unverified on the spare.
 

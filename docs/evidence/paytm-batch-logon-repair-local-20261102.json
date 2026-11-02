@@ -1,0 +1,35 @@
+{
+  "evidenceId": "E202",
+  "status": "BATCH_LOGON_DENIAL_IDENTIFIED_REPAIR_RUNTIME_PENDING",
+  "sourceFile": "paytm-scheduled-signing-20261102-130045-8d26b08689d940ce8798fd4095b302c5.json",
+  "sourceSha256": "F7E3EAEF6A5FCB175550939ECA86BB811C912DDEF8E52CDC7388B747D14CBAAB",
+  "sourceRevision": "1fcfc49",
+  "matchingCrlfSourceHashes": 5,
+  "inspectionElapsedSeconds": 7.173,
+  "retainedTaskRun": "6b3bcee5eac24157aa38b858b96ae253",
+  "schedulerOperationalLogEnabled": false,
+  "securityEventIds": [4625, 4625],
+  "securityRecordIds": [621335, 621336],
+  "logonType": 4,
+  "statusCode": "0xc000015b",
+  "subStatusCode": "0x0",
+  "interpretation": "Gateway batch logon right denied. Missing allow versus effective deny requires policy preflight; not proof of incorrect password/key. Events are account scoped.",
+  "repair": "Exact-SID additive SeBatchLogonRight only if missing, conservative deny/domain guard, preserve existing policy, reuse validated stored-credential task for one signing run, success-only exact task removal.",
+  "onFailure": "Retain any added right with grant-intent evidence; disable/stop still-owned task if touched, preserve files and failure codes, no retry or account/key reset.",
+  "localVerification": {
+    "batchAssertions": 72,
+    "mockedRecoveryWorkflows": 17,
+    "mockedReportLauncherWorkflows": 3,
+    "scheduledAssertions": 137,
+    "mockedScheduledWorkflows": 17,
+    "interop": "Actual C# compiled in Windows PowerShell 5.1, loaded in PS7; wrong SID rejected before OS mutation. Real policy/task calls not exercised locally.",
+    "realPolicyTaskCredentialKeyOrNetworkMutations": false
+  },
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "newRuntimeCheckpointsAccepted": 0,
+  "references": [
+    "https://learn.microsoft.com/windows/security/threat-protection/auditing/event-4625",
+    "https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsaaddaccountrights",
+    "https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsaenumerateaccountswithuserright"
+  ]
+}

@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-11-02 Gateway batch-logon denial identified and correction prepared
+
+- E202: inspection8d26b08689d940ce8798fd4095b302c5 completed7.173s; all five hashes match1fcfc49 CRLF. Two Security4625 events identify LogonType4/Status0xc000015b/SubStatus0x0. Scheduler history disabled/empty; account-specific batch-logon-right denial is established. Missing allow versus deny is checked before repair; no password/key error inferred.
+- Added [combined correction and signing handoff](paytm-scheduled-signing.md): exact reviewed receipt/account/task/worker preflight, standalone-machine and conservative deny-policy check, add only exact gateway SID to batch-logon allow if absent, verify assignments, reuse stored-credential task once, verify background signatures and successful task removal. Failure disables/stops the still-owned task and preserves evidence. Any added right remains recorded; no automatic rollback/retry, broad group grant or deny removal.
+-72 assertions/17 mocked recovery and3 actual report-launcher fixture workflows passed; actual C# native API source compiled and loaded, wrong SID rejected before OS mutation. Existing137-assertion/17-workflow signing suite passes. Native policy grant/scheduled execution not run locally. Groups100/60/0/0/0/0 remain unchanged; no runtime checkpoint accepted from preparation.
+
 ## 2026-11-02 Retained probe inventory accepted; launch error collection
 
 - E201: inspection284ea45eda184fdca892efcd80c9964a succeeded in3.016s, five source hashes match e699817 CRLF. Exactly one disabled probe6b3bcee5eac24157aa38b858b96ae253 has matching definition/source. Prior attempt timed out in RUN_BACKGROUND_SIGNING_CHECKS,131.447s total; LastTaskResult267011 means not yet run, no worker result. Start-request return is not worker-execution proof. Specific cause remains unknown.

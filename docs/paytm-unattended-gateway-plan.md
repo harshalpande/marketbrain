@@ -1,6 +1,6 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
-**Current E201, 2026-11-02:** inspection accepted: retained probe is disabled, definition/source match, earlier attempt timed out with Windows task-not-yet-run status and no worker result. [Capture Windows launch events next](paytm-scheduled-signing.md) using extended read-only inspection. No account/key reset or signing retry. Local137 assertions/17 workflows passed; groups **100/60/0/0/0/0**, no new runtime checkpoint.
+**Current E202, 2026-11-02:** Windows Security4625/0xc000015b identifies gateway batch-logon denial. [Run scoped permission correction and retained signing test](paytm-scheduled-signing.md). Only exact-account batch allow right may be added; deny policies preserved, no password/key reset. Local72 repair assertions/20 workflows plus137 signing assertions/17 workflows pass. Spare repair/signing pending; groups **100/60/0/0/0/0**.
 
 **Current E195:** owner verified encrypted OpenSSH export; [custody batch implementation and handoff](paytm-gateway-key-custody.md) is ready for one-time private provisioning and pinned no-session authentication. Existing agent/account preserved, no tunnel/service/task/broker activation. Local tests pass, actual import still pending; G2 stays40%. Success after review can close G2.3/60%; account recovery must not be rerun. Existing server restrictions/reboot/lifecycle tests are not substituted by the new key test.
 

@@ -1,6 +1,6 @@
 # Roadmap and completion dashboard
 
-**Current E201, 2026-11-02:** inspection accepted: retained probe is disabled, definition/source match, earlier attempt timed out with Windows task-not-yet-run status and no worker result. [Capture Windows launch events next](paytm-scheduled-signing.md) using extended read-only inspection. No account/key reset or signing retry. Local137 assertions/17 workflows passed; groups **100/60/0/0/0/0**, no new runtime checkpoint.
+**Current E202, 2026-11-02:** Windows Security4625/0xc000015b identifies gateway batch-logon denial. [Run scoped permission correction and retained signing test](paytm-scheduled-signing.md). Only exact-account batch allow right may be added; deny policies preserved, no password/key reset. Local72 repair assertions/20 workflows plus137 signing assertions/17 workflows pass. Spare repair/signing pending; groups **100/60/0/0/0/0**.
 
 **Current E195, 2026-10-26:** G2.3 [controlled custody and pinned-authentication implementation](paytm-gateway-key-custody.md) locally verified after owner-confirmed encrypted export. One batch includes protected staging, private console, targeted revoke/reload, host-pin negative/positive and new-process signing. Actual spare acceptance pending;100/40/0/0/0/0 unchanged. No account recovery rerun. Subsequent supervisor/task, managed lifecycle and true installed-system/reboot recovery remain gates.
 

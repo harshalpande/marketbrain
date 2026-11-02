@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E202,2026-11-02: gateway batch-logon permission denial is now evidenced (Security4625/Type4/0xc000015b). Correct through exact-SID additive LSA SeBatchLogonRight, after standalone-machine, Users-only membership, deny-policy and retained-task checks. Preserve other grants/denies; unknown/non-guest denial blocks rather than broadens policy. Run reviewed stored-credential task once; clean up only verified successful task. Added right remains recorded on later failure. [Current handoff](paytm-scheduled-signing.md); G2 remains60% until further runtime acceptance.
+
 Current E201,2026-11-02: task inventory confirms the retained disabled definition/worker match. Prior start request timed out without a worker result; Windows reports267011/not-yet-run. Extended inspection reads bounded exact-task Scheduler and gateway batch-logon events (safe codes only). No task/credential/policy changes. It distinguishes absent/inaccessible history from a proven cause. [Current handoff](paytm-scheduled-signing.md); G2 remains60%.
 
 Current E200, 2026-11-02: an earlier scheduled probe blocks a new signing attempt. Read-only inspection now collects its definition, worker/source evidence and whitelisted original failure before any recovery decision. No existing task or credential is modified; G2 remains60%. [Current handoff](paytm-scheduled-signing.md). E198/E199 design below remains valid, but another signing run is not the current step.
