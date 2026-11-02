@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E203 OVERBROAD_DENY_GUARD_CORRECTED_RUNTIME_PENDING:** [review](evidence/paytm-batch-deny-review-20261102.json). Repair stopped8.436s before changes; six5be38f0 CRLF hashes match. Denied SID1003 differs from gateway1010; old blanket guard did not resolve it. Added local-user identity resolution with preserved deny,82 assertions/22 workflows pass. [Combined repair](paytm-scheduled-signing.md) remains next; groups100/60/0/0/0/0.
+
 - **E202 BATCH_LOGON_DENIAL_IDENTIFIED_REPAIR_PENDING:** [review/local evidence](evidence/paytm-batch-logon-repair-local-20261102.json), [handoff](paytm-scheduled-signing.md). Inspection7.173s, five source hashes match1fcfc49 CRLF; Security4625/Type4/0xc000015b identifies batch-logon denial. Scoped exact-SID additive allow correction plus retained signing test prepared;72 assertions/20 repair/report workflows and137 assertions/17 signing workflows pass. Policy/task mutation remains spare-only; groups100/60/0/0/0/0.
 
 - **E201 INVENTORY_ACCEPTED_LAUNCH_CAUSE_PENDING:** [review](evidence/paytm-scheduled-launch-review-20261102.json). Inspection3.016s; five e699817 CRLF hashes match; exact disabled task/source verified. Prior timeout has Windows267011/not-yet-run and no worker report. Extended [inspection](paytm-scheduled-signing.md) collects bounded task/logon events without mutation;137 assertions/17 workflows pass. No new runtime checkpoint;100/60/0/0/0/0.

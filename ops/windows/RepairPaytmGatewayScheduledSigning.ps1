@@ -7,7 +7,7 @@ $ErrorActionPreference='Stop'
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmGatewayBatchLogon.ps1')){. (Join-Path $PSScriptRoot $name)}
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;
  taskRunId='6b3bcee5eac24157aa38b858b96ae253';sourceHashes=[ordered]@{};acceptedProgress=@();prerequisites=$null;
- policyBefore=$null;policyAfter=$null;grantAttempted=$false;rightVerified=$false;startRequested=$false;signingPassed=$false;
+ policyBefore=$null;policyAfter=$null;denyAssessment=@();grantAttempted=$false;rightVerified=$false;startRequested=$false;signingPassed=$false;
  lastTaskResult=$null;taskState=$null;worker=$null;taskDisabled=$false;taskRemoved=$false;cleanupFailure=$null;launchEvidence=$null;
  keyImported=$false;passwordChanged=$false;networkContacted=$false;ordersEnabled=$false;elapsedSeconds=0}
 $timer=[Diagnostics.Stopwatch]::StartNew();$stream=$null;$lastStage=''

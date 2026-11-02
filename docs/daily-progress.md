@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-11-02 Overly broad deny-policy guard corrected
+
+- E203: repaird8b3d5dc563443048e55c615761d38a1 stopped in REVALIDATE after8.436s; six hashes match5be38f0 CRLF. grantAttempted=false/startRequested=false: no grant or task run. Denied SIDends1003, gatewayends1010. Previous validator blocked any non-guest deny without resolving whether it applied; this implementation gap caused another operator round trip.
+- Added explicit same-machine local-user resolution and report denyAssessment. Verified unrelated users' denial is preserved and does not block the gateway grant; gateway/group/unresolved identities still block. No blanket ignore of unequal SIDs, no deny-policy changes. [Same combined repair handoff](paytm-scheduled-signing.md), no new diagnostic-only run.
+-82 assertions/19 mocked recovery plus3 report-launcher workflows pass, including observed SID pattern and failed identity-resolution cases. Real identity/permission/signing verification remains spare-only. Groups100/60/0/0/0/0; delta0.
+
 ## 2026-11-02 Gateway batch-logon denial identified and correction prepared
 
 - E202: inspection8d26b08689d940ce8798fd4095b302c5 completed7.173s; all five hashes match1fcfc49 CRLF. Two Security4625 events identify LogonType4/Status0xc000015b/SubStatus0x0. Scheduler history disabled/empty; account-specific batch-logon-right denial is established. Missing allow versus deny is checked before repair; no password/key error inferred.

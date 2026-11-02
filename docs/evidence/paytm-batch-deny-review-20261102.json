@@ -1,0 +1,27 @@
+{
+  "evidenceId": "E203",
+  "status": "OVERBROAD_DENY_GUARD_CORRECTED_RUNTIME_PENDING",
+  "sourceFile": "paytm-batch-logon-repair-20261102-133521-d8b3d5dc563443048e55c615761d38a1.json",
+  "sourceSha256": "56728A322BFABC6BD1E83E211C4A1B4EC85F73E40A1AD6A4F07AF3BF61D7D9EA",
+  "sourceRevision": "5be38f0",
+  "matchingCrlfSourceHashes": 6,
+  "elapsedSeconds": 8.436,
+  "failure": "SCHEDULE_BATCH_DENY_POLICY_REVIEW_REQUIRED",
+  "stage": "REVALIDATE",
+  "gatewaySid": "S-1-5-21-3041730714-102984520-3202743044-1010",
+  "deniedSid": "S-1-5-21-3041730714-102984520-3202743044-1003",
+  "grantAttempted": false,
+  "startRequested": false,
+  "interpretation": "Old validator blocked every non-guest denial without resolving its identity. Denied SID differs from gateway but is not yet proven to be an unrelated local user. No policy or task change occurred.",
+  "correction": "Resolve same-machine denied SID with Get-LocalUser, require exact SID match, preserve unrelated-user deny. Gateway/group/unresolved denials still block. Record assessment before any grant. Same combined repair handoff; no account/key reset.",
+  "localVerification": {
+    "assertions": 82,
+    "mockedRecoveryWorkflows": 19,
+    "reportLauncherWorkflows": 3,
+    "coverage": "Observed SID pattern, unrelated-user deny preserved, missing/access-denied/wrong-SID lookups blocked, grant idempotency and mutation/cleanup failure guards",
+    "nativeInterop": "Compiled in Windows PowerShell 5.1 and loaded in PS7; no real policy/task/key/network mutations",
+    "limitation": "Local OS operations mocked. Real spare identity resolution and signing remain pending."
+  },
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "newRuntimeCheckpointsAccepted": 0
+}

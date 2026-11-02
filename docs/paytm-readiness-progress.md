@@ -4,6 +4,8 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
+Latest **E203, 2026-11-02**: repair stopped before changes because its deny guard was overly broad. Identity-aware correction and regression coverage are ready; real batch signing is still pending. [Combined repair](paytm-scheduled-signing.md) remains next. Groups **100/60/0/0/0/0**, delta0; no accepted runtime checkpoint added.
+
 Latest **E202, 2026-11-02**: account batch-logon-right denial identified from Security4625/0xc000015b. [Scoped correction plus signing test](paytm-scheduled-signing.md) is next. No new accepted runtime checkpoint: **100/60/0/0/0/0**. Passing signing remains only a prerequisite for G2.4 production supervisor/startup, not automatic80% acceptance.
 
 Latest **E201, 2026-11-02**: retained probe inventory accepted, but task launch remains unproven (267011/not-yet-run, no worker result). Extended [read-only event capture](paytm-scheduled-signing.md) is next. G1/G2/G3/G4/G5/G6 remain **100/60/0/0/0/0**, delta0. E198 remains the accepted runtime baseline; E200 inventory handoff below is historical.

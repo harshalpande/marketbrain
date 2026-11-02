@@ -19,6 +19,21 @@ Initialize-PaytmBatchPolicyApi
 Check ($null -ne ('MarketBrainBatchPolicyV1' -as [type])) 'actual LSA PInvoke source compiles without policy access'
 Reject {[MarketBrainBatchPolicyV1]::Grant('S-1-5-32-544')} 'native mutation boundary rejects any other SID before OS access'
 $sid=(Get-PaytmKeyContract).accountSid
+$otherSid=$sid.Substring(0,$sid.LastIndexOf('-'))+'-1003';$script:lookupMode='user'
+function Get-LocalUser {param($SID,$ErrorAction)
+ if($script:lookupMode -ceq 'denied' -or $script:case -ceq 'unresolvedDeny'){throw [UnauthorizedAccessException]::new()}
+ if($script:lookupMode -ceq 'absent'){return}
+ [pscustomobject]@{SID=[pscustomobject]@{Value=if($script:lookupMode -ceq 'wrongSid'){'S-1-5-21-1-2-3-1003'}else{$SID.Value}}}
+}
+$assessment=@(Get-PaytmBatchDenyAssessment @($otherSid))
+Check ($assessment.Count -eq 1 -and -not $assessment[0].blocksRepair -and $assessment[0].classification -ceq 'UNRELATED_LOCAL_USER') 'reported RID1003 resolved as unrelated local user, not ignored by RID alone'
+foreach($mode in @('absent','denied','wrongSid')){
+ $script:lookupMode=$mode;Check (@(Get-PaytmBatchDenyAssessment @($otherSid))[0].blocksRepair) ('unresolved identity blocks '+$mode)
+}
+$script:lookupMode='user'
+$differentUserPolicy=[pscustomobject]@{allow=@('S-1-5-32-544');deny=@($otherSid)}
+Assert-PaytmBatchPolicyDelta $differentUserPolicy ([pscustomobject]@{allow=@('S-1-5-32-544',$sid);deny=@($otherSid)})
+Check $true 'unrelated user deny preserved during scoped grant'
 $before=[pscustomobject]@{allow=@('S-1-5-32-544');deny=@('S-1-5-32-546')}
 Assert-PaytmBatchPolicy $before;Check $true 'guest-only deny allowed with standalone Users-only preconditions'
 $after=[pscustomobject]@{allow=@('S-1-5-32-544',$sid);deny=@('S-1-5-32-546')}
@@ -40,7 +55,7 @@ function Get-PaytmBatchPolicy {
  if($script:case -ceq 'readDenied'){throw [ComponentModel.Win32Exception]::new(5)}
  $allow=@('S-1-5-32-544');if($script:grants -or $script:case -ceq 'alreadyGranted'){$allow+=@($sid)}
  if($script:case -ceq 'postDrift' -and $script:grants){$allow+=@('S-1-1-0')}
- [pscustomobject]@{allow=$allow;deny=if($script:case -ceq 'deny'){@($sid)}else{@('S-1-5-32-546')}}
+ [pscustomobject]@{allow=$allow;deny=if($script:case -ceq 'deny'){@($sid)}elseif($script:case -cin @('otherUserDeny','unresolvedDeny')){@($otherSid)}else{@('S-1-5-32-546')}}
 }
 function Add-PaytmBatchRight {$script:grants++;if($script:case -ceq 'grantDenied'){throw [ComponentModel.Win32Exception]::new(5)}}
 function Enable-ScheduledTask {param($TaskName,$TaskPath,$ErrorAction) $script:enables++;$script:task.Settings.Enabled=$true;$script:task.State='Ready';if($script:case -ceq 'enableThrows'){throw 'SCHEDULE_ENABLE_FAILED'}}
@@ -55,17 +70,18 @@ function Assert-PaytmScheduledWorker($Worker,$RunId){if($script:case -ceq 'worke
 function Disable-ScheduledTask {param($TaskName,$TaskPath,$ErrorAction) $script:disables++;$script:task.Settings.Enabled=$false;if($script:task.State -cne 'Running'){$script:task.State='Disabled'}}
 function Stop-ScheduledTask {param($TaskName,$TaskPath,$ErrorAction) $script:stops++;$script:task.State='Disabled'}
 function Unregister-ScheduledTask {param($TaskName,$TaskPath,$Confirm,$ErrorAction) $script:removes++;if($script:case -ceq 'removeFailed'){throw 'SCHEDULE_REMOVE_FAILED'};$script:removed=$true}
-$cases=@('pass','alreadyGranted','receipt','custody','domain','taskDrift','deny','readDenied','grantDenied','postDrift','enableThrows','startThrows','timeout','workerFailed','nonzero','cleanupDrift','removeFailed')
+$cases=@('pass','alreadyGranted','otherUserDeny','unresolvedDeny','receipt','custody','domain','taskDrift','deny','readDenied','grantDenied','postDrift','enableThrows','startThrows','timeout','workerFailed','nonzero','cleanupDrift','removeFailed')
 foreach($case in $cases){
  $script:case=$case;$script:grants=0;$script:enables=0;$script:starts=0;$script:disables=0;$script:stops=0;$script:removes=0;$script:removed=$false
  $script:task=[pscustomobject]@{Settings=[pscustomobject]@{Enabled=$false};State='Disabled'}
  $report=[ordered]@{stage='';policyBefore=$null;policyAfter=$null;grantAttempted=$false;rightVerified=$false;startRequested=$false;signingPassed=$false;taskDisabled=$false;taskRemoved=$false;cleanupFailure=$null;worker=$null;lastTaskResult=$null}
  $failed=$false;try{Invoke-PaytmBatchRecovery $report {} 'custody' 'launch'}catch{$failed=$true}
- if($case -cin @('pass','alreadyGranted')){
+ if($case -cin @('pass','alreadyGranted','otherUserDeny')){
   Check (-not $failed -and $report.signingPassed -and $report.taskRemoved -and $script:starts -eq 1 -and $script:disables -eq 1) ('one run and exact successful cleanup '+$case)
-  Check ($script:grants -eq $(if($case -ceq 'pass'){1}else{0})) ('grant idempotency '+$case)
+  Check ($script:grants -eq $(if($case -ceq 'alreadyGranted'){0}else{1})) ('grant idempotency '+$case)
  }else{Check ($failed -or $report.cleanupFailure) ('failure surfaced '+$case)}
- if($case -cin @('receipt','custody','domain','taskDrift','deny','readDenied')){Check ($script:grants -eq 0 -and $script:enables -eq 0) ('no mutation on preflight '+$case)}
+ if($case -cin @('receipt','custody','domain','taskDrift','deny','readDenied','unresolvedDeny')){Check ($script:grants -eq 0 -and $script:enables -eq 0) ('no mutation on preflight '+$case)}
+ if($case -ceq 'otherUserDeny'){Check ($report.denyAssessment[0].classification -ceq 'UNRELATED_LOCAL_USER' -and @($report.policyAfter.deny)[0] -ceq $otherSid) 'complete workflow records identity decision and unchanged deny'}
  if($case -cin @('grantDenied','postDrift')){Check ($report.grantAttempted -and $script:enables -eq 0) ('partial policy evidence before launch '+$case)}
  if($case -cin @('enableThrows','startThrows','timeout','workerFailed','nonzero')){Check ($script:disables -eq 1 -and -not $script:removed -and $report.taskDisabled) ('failed task disabled retained '+$case)}
  if($case -ceq 'timeout'){Check ($script:stops -eq 1) 'running timeout stopped'}

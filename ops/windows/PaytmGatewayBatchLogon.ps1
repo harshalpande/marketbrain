@@ -47,15 +47,36 @@ function Add-PaytmBatchRight {
  Initialize-PaytmBatchPolicyApi
  [MarketBrainBatchPolicyV1]::Grant((Get-PaytmKeyContract).accountSid)
 }
-function Assert-PaytmBatchPolicy($Policy) {
- $sid=(Get-PaytmKeyContract).accountSid;$guest=$sid.Substring(0,$sid.LastIndexOf('-'))+'-501'
+function Get-PaytmBatchDenyAssessment([string[]]$DeniedSids) {
+ $sid=(Get-PaytmKeyContract).accountSid;$machineSid=$sid.Substring(0,$sid.LastIndexOf('-'));$guest=$machineSid+'-501'
+ foreach($denied in $DeniedSids){
+  $entry=[ordered]@{sid=$denied;classification='UNRESOLVED_OR_GROUP';blocksRepair=$true}
+  if($denied -ceq $sid){$entry.classification='GATEWAY_ACCOUNT'}
+  elseif($denied -cin @('S-1-5-32-546',$guest)){
+   # Exact Users-only membership is required by custody preflight.
+   $entry.classification='GUEST_ONLY';$entry.blocksRepair=$false
+  }elseif($denied -cmatch ('^'+[regex]::Escape($machineSid)+'-[0-9]+$')){
+   try{
+    # Resolve a local USER, not an arbitrary principal/group or just a different RID.
+    $users=@(Get-LocalUser -SID ([Security.Principal.SecurityIdentifier]::new($denied)) -ErrorAction Stop)
+    if($users.Count -eq 1 -and $users[0].SID.Value -ceq $denied){
+     $entry.classification='UNRELATED_LOCAL_USER';$entry.blocksRepair=$false
+    }
+   }catch{$entry.classification='IDENTITY_LOOKUP_FAILED'}
+  }
+  [pscustomobject]$entry
+ }
+}
+function Assert-PaytmBatchPolicy($Policy,$Evidence=$null) {
  foreach($name in @('allow','deny')){
   if($null -eq $Policy.$name -or @($Policy.$name).Count -gt 512){throw 'SCHEDULE_POLICY_INVALID'}
   foreach($value in $Policy.$name){if($value -cnotmatch '^S-1-[0-9]+(-[0-9]+)+$'){throw 'SCHEDULE_POLICY_INVALID'}}
  }
- # Standalone machine and exact Users-only membership are checked before this.
- # Only known guest-only denials can be excluded confidently; preserve every other deny for review.
- if(@($Policy.deny|Where-Object {$_ -cnotin @('S-1-5-32-546',$guest)}).Count){throw 'SCHEDULE_BATCH_DENY_POLICY_REVIEW_REQUIRED'}
+ # A deny for a different verified local USER cannot be inherited by the gateway.
+ # Group, gateway and unresolved denials still stop; no deny rule is removed.
+ $assessment=@(Get-PaytmBatchDenyAssessment @($Policy.deny))
+ if($null -ne $Evidence){$Evidence.denyAssessment=$assessment}
+ if(@($assessment|Where-Object {$_.blocksRepair}).Count){throw 'SCHEDULE_BATCH_DENY_POLICY_REVIEW_REQUIRED'}
 }
 function Assert-PaytmBatchPolicyDelta($Before,$After) {
  Assert-PaytmBatchPolicy $After
@@ -92,7 +113,7 @@ function Invoke-PaytmBatchRecovery($Report,[scriptblock]$Checkpoint,[string]$Cus
   $machine=@(Get-CimInstance -ClassName Win32_ComputerSystem -Property PartOfDomain -ErrorAction Stop)
   if($machine.Count -ne 1 -or $machine[0].PartOfDomain -ne $false){throw 'SCHEDULE_DOMAIN_POLICY_REVIEW_REQUIRED'}
   Assert-PaytmBatchRecoveryTask
-  $Report.policyBefore=Get-PaytmBatchPolicy;Assert-PaytmBatchPolicy $Report.policyBefore; &$Checkpoint
+  $Report.policyBefore=Get-PaytmBatchPolicy;Assert-PaytmBatchPolicy $Report.policyBefore $Report; &$Checkpoint
   $Report.stage='GRANT_ACCOUNT_BATCH_LOGON'; &$Checkpoint
   # Recheck account/task after policy capture, before the only policy mutation.
   $null=Assert-PaytmScheduledPrerequisites $CustodyReportPath;Assert-PaytmBatchRecoveryTask

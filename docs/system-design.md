@@ -1,5 +1,7 @@
 # System and INR 100,000 paper-portal design
 
+Current E203,2026-11-02: batch-logon policy preflight now resolves other same-machine denied SIDs as local users before excluding them from gateway applicability. Verified unrelated-user denials remain unchanged; gateway, group and unresolved denials block. Record denyAssessment in one repair report. Corrects the earlier blanket non-guest guard without widening the mutation beyond exact gateway SeBatchLogonRight. [Current handoff](paytm-scheduled-signing.md); G2 remains60%.
+
 Current E202,2026-11-02: gateway batch-logon permission denial is now evidenced (Security4625/Type4/0xc000015b). Correct through exact-SID additive LSA SeBatchLogonRight, after standalone-machine, Users-only membership, deny-policy and retained-task checks. Preserve other grants/denies; unknown/non-guest denial blocks rather than broadens policy. Run reviewed stored-credential task once; clean up only verified successful task. Added right remains recorded on later failure. [Current handoff](paytm-scheduled-signing.md); G2 remains60% until further runtime acceptance.
 
 Current E201,2026-11-02: task inventory confirms the retained disabled definition/worker match. Prior start request timed out without a worker result; Windows reports267011/not-yet-run. Extended inspection reads bounded exact-task Scheduler and gateway batch-logon events (safe codes only). No task/credential/policy changes. It distinguishes absent/inaccessible history from a proven cause. [Current handoff](paytm-scheduled-signing.md); G2 remains60%.

@@ -1,6 +1,6 @@
 # Daily delivery scorecard
 
-**Current E202, 2026-11-02:** Windows Security4625/0xc000015b identifies gateway batch-logon denial. [Run scoped permission correction and retained signing test](paytm-scheduled-signing.md). Only exact-account batch allow right may be added; deny policies preserved, no password/key reset. Local72 repair assertions/20 workflows plus137 signing assertions/17 workflows pass. Spare repair/signing pending; groups **100/60/0/0/0/0**.
+**Current E203, 2026-11-02:** repair stopped before changes because the deny-policy guard was overly broad. Denied SID1003 differs from gateway1010; updated preflight resolves unrelated local users and preserves their deny rules. [Run corrected combined repair/signing batch](paytm-scheduled-signing.md). Local82 assertions/22 workflows pass; actual identity/grant/signing pending. Groups **100/60/0/0/0/0**.
 
 Established 2026-10-12 at the owner's request. This scorecard measures delivered scope, not confidence in forecasts or profitability. The [roadmap](roadmap.md) remains authoritative for full-goal progress; [daily progress](daily-progress.md) retains dated evidence.
 
