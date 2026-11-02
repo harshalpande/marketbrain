@@ -4,6 +4,8 @@ Owner request, 2026-10-23: after **every shared test report**, publish all six g
 
 ## Measurement rule
 
+Latest **E200, 2026-11-02**: scheduled-signing attempt blocked by an existing probe before changes. Custody still passes; prior task failure is unknown. [Read-only inspection](paytm-scheduled-signing.md) is the next handoff. No new accepted checkpoint: groups **100/60/0/0/0/0**. E198 remains the accepted runtime baseline.
+
 Current **E198, 2026-11-02**: key-custody runtime accepted. Six completed stages in62.802s; scoped import/removal/reload, wrong-host rejection, correct pinned authentication, staged-copy removal and fresh-process signing passed. Six source hashes match f44ef5e CRLF bytes. **G2.3 closes; G2 rises40% to60% (+20 percentage points).** Next [temporary scheduled-account signing](paytm-scheduled-signing.md) is a prerequisite for G2.4, not a repeat import or another completed checkpoint. Reboot/production-supervisor/server-policy retest remain pending.
 
 Historical E194: actual recovery and exact-account probe accepted. Eight completed stages,46.068s total including owner input,6.497s child probe; three reviewed CRLF source hashes match. G2.2 closed and raised G2 from20% to40%. E198 now supersedes that snapshot with60%. Do not rerun account recovery or key custody.

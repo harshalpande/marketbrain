@@ -47,6 +47,22 @@ function Read-Host {param($Prompt,[switch]$AsSecureString)
 }
 function Get-ScheduledTask {param($TaskPath,$ErrorAction)
  if($global:fixture.case -ceq 'existingTask'){return [pscustomobject]@{TaskName='MarketBrain-Gateway-Key-Probe-existing';TaskPath='\'}}
+ if($global:fixture.case -cin @('inspectExisting','inspectDrift') -and -not $global:fixture.existingSeeded){
+  $oldRun='c'*32;$old=Get-PaytmScheduledProbeContract $oldRun
+  $action=New-ScheduledTaskAction -Execute $old.executable -Argument (Get-PaytmScheduledArguments $oldRun) -WorkingDirectory $old.directory
+  $principal=New-ScheduledTaskPrincipal -UserId $global:scheduledKeyContract.accountSid -LogonType Password -RunLevel Limited
+  $settings=New-ScheduledTaskSettingsSet -Disable -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::FromSeconds(120)) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+  $task=New-ScheduledTask -Action $action -Principal $principal -Settings $settings -Description ('MarketBrain temporary signing probe '+$oldRun)
+  $task.TaskName=$old.name;$task.TaskPath='\';$global:fixture.task=$task;$global:fixture.lastResult=1
+  $null=New-Item -ItemType Directory -Path $old.directory
+  [IO.File]::WriteAllText((Join-Path $old.directory 'worker.ps1'),(New-PaytmScheduledWorkerSource $oldRun))
+  $worker=[ordered]@{runId=$oldRun;stage='AGENT';failure='KEY_AGENT_IDENTITY_MISMATCH';signingChecks=0;sessionId=0;identityVerified=$true}
+  [IO.File]::WriteAllText($old.result,($worker|ConvertTo-Json))
+  $prior=[ordered]@{runId=$oldRun;status='REVIEW_REQUIRED';stage='RUN_BACKGROUND_SIGNING_CHECKS';failure='SCHEDULE_WORKER_NOT_PASSED';taskDisabled=$true;worker=$worker;arbitrarySecret='PRIVATE_SENTINEL_DO_NOT_COPY'}
+  if($global:fixture.case -ceq 'inspectDrift'){$prior.runId='wrong';$task.Actions[0].Arguments='changed';[IO.File]::WriteAllText((Join-Path $old.directory 'worker.ps1'),'changed')}
+  [IO.File]::WriteAllText((Join-Path $global:fixture.output ('paytm-scheduled-signing-20000101-'+$oldRun+'.json')),($prior|ConvertTo-Json -Depth 5))
+  $global:fixture.existingSeeded=$true
+ }
  if($null -ne $global:fixture.task){$global:fixture.task}
 }
 function New-ScheduledTaskAction {param($Execute,$Argument,$WorkingDirectory) [pscustomobject]@{Execute=$Execute;Arguments=$Argument;WorkingDirectory=$WorkingDirectory}}
@@ -103,19 +119,19 @@ foreach($name in @('PaytmGatewayScheduledProbe.ps1','TestPaytmGatewayScheduledSi
  $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot $name));if($name -ceq 'PaytmGatewayScheduledProbe.ps1'){$source+="`n"+$mock}
  [IO.File]::WriteAllText((Join-Path $scripts $name),$source)
 }
-$cases=@('pass','cancel','prerequisiteFailure','existingTask','registrationFailure','registrationAfterCreate','workerIdentity','interactiveSession','agentMissing','signFailure','taskTimeout','definitionDrift','removalFailure','malformedReport')
+$cases=@('pass','cancel','prerequisiteFailure','existingTask','registrationFailure','registrationAfterCreate','workerIdentity','interactiveSession','agentMissing','signFailure','taskTimeout','definitionDrift','removalFailure','malformedReport','inspectEmpty','inspectExisting','inspectDrift')
 foreach($case in $cases){
  $root=Join-Path $temp $case;$null=New-Item -ItemType Directory -Path (Join-Path $root 'work') -Force
  $keyRoot=Join-Path $root 'key-custody';$null=New-Item -ItemType Directory -Path $keyRoot
  [IO.File]::WriteAllText((Join-Path $keyRoot 'library.ps1'),([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmGatewayKeyCustody.ps1'))+"`n"+$workerMock))
  [IO.File]::WriteAllText((Join-Path $keyRoot 'native.ps1'),'# Test fixture, no native tool invoked.')
  $global:fixture=@{root=$root;case=$case;task=$null;registers=0;starts=0;disables=0;stops=0;removes=0;password=$null;passwordSupplied=$false;nativeCalls=@();lastResult=267011}
- $failed=$false;$output=Join-Path $root 'output';$console=@()
- try{$console=@(& (Join-Path $scripts 'TestPaytmGatewayScheduledSigning.ps1') -CustodyReportPath 'fixture' -OutputDirectory $output 6>&1)}catch{$failed=$true}
- $files=@(Get-ChildItem -LiteralPath $output -Filter '*.json');Check ($files.Count -eq 1) ('one report '+$case)
+ $failed=$false;$output=Join-Path $root 'output';$global:fixture.output=$output;$console=@();$inspect=$case.StartsWith('inspect')
+ try{$console=@(& (Join-Path $scripts 'TestPaytmGatewayScheduledSigning.ps1') -CustodyReportPath 'fixture' -OutputDirectory $output -InspectExisting:$inspect 6>&1)}catch{$failed=$true}
+ $files=@(Get-ChildItem -LiteralPath $output -Filter '*.json'|Where-Object {$_.Name -cne ('paytm-scheduled-signing-20000101-'+('c'*32)+'.json')});Check ($files.Count -eq 1) ('one report '+$case)
  $raw=[IO.File]::ReadAllText($files[0].FullName);$r=$raw|ConvertFrom-Json
- Check ($failed -eq ($case -cne 'pass')) ('result '+$case+' '+$r.failure+' '+($r.failureDetails|ConvertTo-Json -Compress))
- Check ($raw -notmatch 'FixturePassword|PRIVATE KEY' -and ($console -join '') -notmatch 'FixturePassword') 'no secrets in report/console'
+ Check ($failed -eq ($case -cne 'pass' -and -not $inspect)) ('result '+$case+' '+$r.failure+' '+($r.failureDetails|ConvertTo-Json -Compress))
+ Check ($raw -notmatch 'FixturePassword|PRIVATE KEY|PRIVATE_SENTINEL' -and ($console -join '') -notmatch 'FixturePassword') 'no secrets in report/console'
  Check (-not $r.networkContacted -and -not $r.agentChanged -and -not $r.keyImported -and -not $r.ordersEnabled -and -not $r.productionSupervisorInstalled) 'scope unchanged'
  if($null -ne $global:fixture.password){$disposed=$false;try{$p=$global:fixture.password.Copy();$p.Dispose()}catch{$disposed=$true};Check $disposed 'secure password disposed'}
  if($case -cin @('cancel','prerequisiteFailure','existingTask')){Check ($global:fixture.registers -eq 0 -and -not $r.stagingCreated) 'preflight no mutations'}
@@ -128,6 +144,11 @@ foreach($case in $cases){
  }
  if($case -ceq 'definitionDrift'){Check ($r.cleanupFailure -ceq 'SCHEDULE_CLEANUP_REVIEW_REQUIRED' -and $global:fixture.disables -eq 0 -and $global:fixture.starts -eq 0 -and -not $r.taskDefinition.argumentsMatch) 'do not operate changed task; capture mismatch'}
  if($case -ceq 'registrationFailure'){Check ($null -eq $global:fixture.task -and $global:fixture.disables -eq 0) 'no cleanup of absent task'}
+ if($case -ceq 'existingTask'){Check ($r.existingProbes.Count -eq 1 -and $r.existingProbes[0].definitionFailure -ceq 'SCHEDULE_UNRECOGNIZED_PROBE_NAME') 'ordinary guard now preserves existing probe evidence'}
+ if($inspect){Check ($r.status -ceq 'SCHEDULED_PROBE_INVENTORY_CAPTURED' -and $null -eq $global:fixture.password -and $global:fixture.registers -eq 0 -and $global:fixture.starts -eq 0 -and $global:fixture.disables -eq 0 -and $global:fixture.removes -eq 0 -and $global:fixture.nativeCalls.Count -eq 0) 'inspection never changes task or asks password'}
+ if($case -ceq 'inspectEmpty'){Check ($r.existingProbes.Count -eq 0 -and ($console -join '') -notmatch 'Temporary task removed') 'empty inventory does not claim cleanup'}
+ if($case -ceq 'inspectExisting'){Check ($r.existingProbes.Count -eq 1 -and $r.existingProbes[0].definitionMatches -and $r.existingProbes[0].workerMatchesCurrentSource -and $r.existingProbes[0].previousReport.failure -ceq 'SCHEDULE_WORKER_NOT_PASSED' -and $r.existingProbes[0].workerResult.failure -ceq 'KEY_AGENT_IDENTITY_MISMATCH') 'collect prior task worker and root failure in one report'}
+ if($case -ceq 'inspectDrift'){Check (-not $r.existingProbes[0].definitionMatches -and -not $r.existingProbes[0].workerMatchesCurrentSource -and $r.existingProbes[0].previousReportFailure -ceq 'SCHEDULE_PRIOR_REPORT_UNAVAILABLE_OR_UNBOUND') 'drift and wrong-run evidence refused'}
 }
 # Test task-definition guards independently of the controller fixtures.
 $run='a'*32;$global:fixture=@{root=(Join-Path $temp 'guards')};$c=Get-PaytmScheduledProbeContract $run

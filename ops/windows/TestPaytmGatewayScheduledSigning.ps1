@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
+    [switch]$InspectExisting,
     [string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-key-custody-20261102-112446-29cb6394513a47f687351825698006d5.json',
     [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
@@ -11,6 +12,7 @@ $run=[guid]::NewGuid().ToString('N');$c=Get-PaytmScheduledProbeContract $run
 $timer=[Diagnostics.Stopwatch]::StartNew();$password=$null;$stream=$null;$registered=$false;$mayBeRegistered=$false;$enabled=$false
 $report=[ordered]@{version=1;runId=$run;status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;
  sourceHashes=[ordered]@{};acceptedProgress=@();prerequisites=$null;taskName=$c.name;taskRegistered=$false;
+ inspectionOnly=[bool]$InspectExisting;existingProbes=@();
  taskDefinitionVerified=$false;taskDefinition=$null;taskStarted=$false;lastTaskResult=$null;taskState=$null;worker=$null;
  taskDisabled=$false;taskRemoved=$false;cleanupFailure=$null;stagingCreated=$false;elapsedSeconds=0;
  schedulerPasswordSupplied=$false;keyImported=$false;agentChanged=$false;networkContacted=$false;
@@ -40,6 +42,12 @@ try {
  if((Get-Service -Name Schedule -ErrorAction Stop).Status -ne 'Running'){throw 'SCHEDULE_SERVICE_NOT_RUNNING'}
  if(-not (Test-Path -LiteralPath $c.executable -PathType Leaf)){throw 'SCHEDULE_EXECUTABLE_MISSING'}
  $existing=@(Get-ScheduledTask -ErrorAction Stop|Where-Object {$_.TaskPath -ceq '\' -and $_.TaskName -clike 'MarketBrain-Gateway-Key-Probe-*'})
+ $report.existingProbes=@(Get-PaytmExistingProbeEvidence $existing $OutputDirectory);Save-ScheduledCheckpoint
+ if($InspectExisting){
+  $report.stage='INSPECT_EXISTING';$report.status='SCHEDULED_PROBE_INVENTORY_CAPTURED'
+  Write-Host 'Existing task definitions and prior result summaries captured. No task or credential changes.'
+  return
+ }
  if($existing.Count){throw 'SCHEDULE_PREVIOUS_PROBE_REVIEW_REQUIRED'}
  foreach($p in @($c.directory,$c.result)){$null=Assert-PaytmAccountPath $p;if(Test-Path -LiteralPath $p){throw 'SCHEDULE_PATH_COLLISION'}}
  Write-Host 'Creates one temporary, non-admin, demand-start task with a 2-minute execution limit and no triggers.'
@@ -109,6 +117,7 @@ try {
  Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
  Write-Host "Share this ONE file: $path"
  if($report.status -ceq 'REVIEW_REQUIRED'){Write-Host 'Preserve the report and any retained task/files for review. Do not rerun or reset the account.'}
+ elseif($InspectExisting){Write-Host 'Read-only inspection finished. Share the report before retrying; existing tasks and keys are unchanged.'}
  else{Write-Host 'Temporary task removed. Key retained in its existing agent; no tunnel/proxy or production supervisor was started.'}
 }
 if($report.status -ceq 'REVIEW_REQUIRED'){throw 'Scheduled signing requires review; share the printed JSON.'}

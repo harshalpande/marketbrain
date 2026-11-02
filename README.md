@@ -1,6 +1,6 @@
 # MarketBrain
 
-**Current E198/E199, 2026-11-02:** key custody and pinned VPS authentication accepted; **G2 advances40% to60%**. [Run temporary scheduled-account signing next](docs/paytm-scheduled-signing.md), using the existing Windows account password; no key reimport or PuTTY. One JSON,105 local assertions/14 mocked workflows. Production supervisor/lifecycle and Paytm login remain pending. Earlier handoffs below are historical.
+**Current E200, 2026-11-02:** scheduled-signing attempt stopped before changes because an earlier probe task exists. Custody revalidation passed; original task/failure still needs review. [Run read-only task inspection next](docs/paytm-scheduled-signing.md). No password, key import or task cleanup. Local 124 assertions/17 mocked workflows passed. Paytm groups remain **100/60/0/0/0/0**; no additional runtime checkpoint accepted.
 
 **Current E197, 2026-10-27:** Windows scanner compatibility defect identified. [Corrected key-custody handoff](docs/paytm-gateway-key-custody.md) accepts the VPS public key only after matching the existing fingerprint; normal SSH authentication remains required. No account reset, server reconfiguration or repeat diagnostic. Groups100/40/0/0/0/0; runtime custody pending.
 

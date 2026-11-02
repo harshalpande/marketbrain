@@ -1,0 +1,28 @@
+{
+  "evidenceId": "E200",
+  "status": "PREVIOUS_PROBE_BLOCKED_READ_ONLY_INSPECTION_PREPARED",
+  "sourceFile": "paytm-scheduled-signing-20261102-121715-5f88a2199a6746779e1b9a27b0ac795a.json",
+  "sourceSha256": "555BB3A4C8ECC715A818CB01E910BB48A84C50D633FC6AD74F1876546D65504C",
+  "sourceRevision": "5e73a05",
+  "matchingCrlfSourceHashes": 5,
+  "sourceRun": "5f88a2199a6746779e1b9a27b0ac795a",
+  "observedFailure": "SCHEDULE_PREVIOUS_PROBE_REVIEW_REQUIRED",
+  "observedStage": "REVALIDATE_ACCEPTED_CUSTODY",
+  "elapsedSeconds": 2.119,
+  "custodyRevalidationPassed": true,
+  "taskRegistered": false,
+  "taskStarted": false,
+  "stagingCreated": false,
+  "schedulerPasswordSupplied": false,
+  "unknown": "Existing task identity and earlier failure are absent from the supplied report. No root cause for that earlier run is inferred.",
+  "nextAction": "TestPaytmGatewayScheduledSigning.ps1 -InspectExisting; collect existing task and whitelisted earlier evidence, without changing the task or key.",
+  "localVerification": {
+    "assertions": 124,
+    "mockedWorkflows": 17,
+    "nativeTaskDefinitionConstruction": "Windows PowerShell 5.1; no registration",
+    "realTaskCredentialKeyOrNetworkChanges": false,
+    "limitation": "Controller OS calls are mocked; portable local PowerShell 7 lacks System.Reflection.Emit needed for ScheduledTasks import. Spare background execution remains pending."
+  },
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "newRuntimeCheckpointsAccepted": 0
+}

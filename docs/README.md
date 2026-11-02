@@ -1,6 +1,6 @@
 # MarketBrain: canonical project baseline
 
-**Current E198/E199, 2026-11-02:** key-custody spare run accepted, G2.3 complete; groups **100/60/0/0/0/0**. [Next: temporary scheduled-account signing](paytm-scheduled-signing.md), no PuTTY/SSH passphrase, one Windows account password, one JSON.105 local assertions/14 mocked workflows pass; real scheduled execution awaits owner. No production supervisor or broker activation yet. Earlier key-import instructions below are historical; do not replay them.
+**Current E200, 2026-11-02:** scheduled-signing attempt stopped before changes because an earlier probe task exists. Custody revalidation passed; original task/failure still needs review. [Run read-only task inspection next](paytm-scheduled-signing.md). No password, key import or task cleanup. Local 124 assertions/17 mocked workflows passed. Paytm groups remain **100/60/0/0/0/0**; no additional runtime checkpoint accepted.
 
 **Current E197, 2026-10-27:** diagnostic identifies Windows ssh-keyscan unsupported-KEX bug. [Resume custody with the VPS public RSA key](paytm-gateway-key-custody.md), checked against the existing fingerprint before any import. Normal pinned SSH tests remain mandatory; no server changes or repeat diagnostic. Accepted groups100/40/0/0/0/0 unchanged. Earlier scanner-only instructions below are superseded.
 

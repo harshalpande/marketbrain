@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-11-02 Scheduled probe retained; evidence collection prepared
+
+- E200 reviews run5f88a2199a6746779e1b9a27b0ac795a: stopped in 2.119s with SCHEDULE_PREVIOUS_PROBE_REVIEW_REQUIRED, before registration/start/staging/password submission. All five source hashes match 5e73a05 CRLF. Accepted custody checks passed. Earlier task identity/failure was omitted by the old report; no cause for that earlier run is inferred.
+- Added read-only `-InspectExisting` and embedded existing-probe evidence on normal blocked runs. Collects exact task definition/settings, worker hash/source match, native result and bounded whitelisted prior reports. No task/account/key/credential changes; one shareable JSON. [Current handoff](paytm-scheduled-signing.md).
+- 124 assertions/17 mocked workflows passed, including empty inventory, retained failed task, definition/source drift, report binding and secret-field exclusion. Native unregistered task CIM verification remains local; actual scheduled signing is pending. G1/G2/G3/G4/G5/G6 remain 100/60/0/0/0/0; delta0 for this report.
+
 ## 2026-11-02 Key custody accepted; background signing batch prepared
 
 - E198 closes G2.3: supplied run29cb6394513a47f687351825698006d5 completed six stages in62.802s; worker40.754s; wrong host rejected in0.754s; correct pinned authentication held20.025s then deliberately stopped (exit-1 is expected, worker exit0). Six source hashes verified against f44ef5e CRLF bytes. Key import/removal/reload, staged-copy deletion, fresh-process signing and operator denial before/after passed.

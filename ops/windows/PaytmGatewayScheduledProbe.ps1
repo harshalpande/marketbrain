@@ -146,3 +146,77 @@ function Assert-PaytmScheduledWorker($Worker,[string]$RunId) {
     }
     if($Worker.sessionId -ne 0 -or $Worker.processId -le 0 -or $Worker.keyImported -ne $false -or $Worker.networkContacted -ne $false -or $Worker.ordersEnabled -ne $false){throw 'SCHEDULE_WORKER_SCOPE'}
 }
+function Get-PaytmSafeProbeSummary($Value) {
+    # Whitelist known diagnostic fields; never copy a prior report's arbitrary strings/arguments.
+    $result=[ordered]@{}
+    foreach($name in @('runId','status','stage','failure','cleanupFailure')){
+        $text=[string]$Value.$name
+        $result[$name]=if($text -cmatch '^[A-Za-z0-9_]{1,120}$'){$text}elseif(-not $text){$null}else{'UNEXPECTED_VALUE'}
+    }
+    foreach($name in @('taskRegistered','taskStarted','taskDisabled','taskRemoved','identityVerified','nonAdmin','nonInteractiveSession','privateCopyAbsent','agentIdentityVerified','stagingCreated','keyImported','agentChanged','networkContacted','ordersEnabled')){
+        if($null -ne $Value.$name){$result[$name]=if($Value.$name -is [bool]){$Value.$name}else{$null}}
+    }
+    foreach($name in @('elapsedSeconds','lastTaskResult','signingChecks','sessionId','processId')){
+        $number=0D
+        if($null -ne $Value.$name -and [decimal]::TryParse([string]$Value.$name,[ref]$number)){$result[$name]=$number}
+    }
+    if($null -ne $Value.failureDetails){
+        $type=[string]$Value.failureDetails.type;$code=0L;$line=0
+        $result.failureDetails=[pscustomobject]@{
+            type=if($type -cmatch '^[A-Za-z0-9_.]{1,160}$'){$type}else{'UNEXPECTED_TYPE'};
+            hresult=if([long]::TryParse([string]$Value.failureDetails.hresult,[ref]$code)){$code}else{$null};
+            line=if([int]::TryParse([string]$Value.failureDetails.line,[ref]$line)){$line}else{$null}}
+    }
+    [pscustomobject]$result
+}
+function Get-PaytmExistingProbeEvidence([object[]]$Tasks,[string]$ReviewDirectory) {
+    if($Tasks.Count -gt 20){throw 'SCHEDULE_TOO_MANY_EXISTING_PROBES'}
+    $directory=Assert-PaytmAccountPath $ReviewDirectory
+    foreach($task in $Tasks){
+        $item=[ordered]@{taskName=$null;runId=$null;state=$null;definition=$null;definitionMatches=$false;
+            definitionFailure=$null;lastTaskResult=$null;taskInfoFailure=$null;workerFilePresent=$false;
+            workerHash=$null;workerMatchesCurrentSource=$false;workerSourceFailure=$null;
+            workerResult=$null;workerResultFailure=$null;previousReport=$null;previousReportSha256=$null;
+            previousWorker=$null;previousReportFailure=$null}
+        if($task.TaskName -cnotmatch '^MarketBrain-Gateway-Key-Probe-([a-f0-9]{32})$' -or $task.TaskPath -cne '\'){
+            $item.definitionFailure='SCHEDULE_UNRECOGNIZED_PROBE_NAME';[pscustomobject]$item;continue
+        }
+        $oldRun=$Matches[1];$c=Get-PaytmScheduledProbeContract $oldRun
+        $item.taskName=$c.name;$item.runId=$oldRun
+        $item.state=if([string]$task.State -cmatch '^[A-Za-z0-9]{1,20}$'){[string]$task.State}else{'UNKNOWN'}
+        $item.definition=Get-PaytmProbeTaskShape $task $oldRun
+        try{Assert-PaytmProbeTask $task $oldRun ([bool]$task.Settings.Enabled);$item.definitionMatches=$true}
+        catch{$item.definitionFailure=if($_.Exception.Message -cmatch '^SCHEDULE_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_DEFINITION_UNREADABLE'}}
+        try{$info=Get-ScheduledTaskInfo -TaskName $c.name -TaskPath $c.path -ErrorAction Stop;$item.lastTaskResult=[long]$info.LastTaskResult}
+        catch{$item.taskInfoFailure='SCHEDULE_TASK_INFO_UNAVAILABLE'}
+        try{
+            $worker=Assert-PaytmAccountPath (Join-Path $c.directory 'worker.ps1')
+            if(Test-Path -LiteralPath $worker -PathType Leaf){
+                $item.workerFilePresent=$true
+                if((Get-Item -LiteralPath $worker).Length -gt 65536){throw 'SCHEDULE_WORKER_SIZE'}
+                $item.workerHash=(Get-FileHash -LiteralPath $worker).Hash
+                $item.workerMatchesCurrentSource=([IO.File]::ReadAllText($worker).Replace("`r`n","`n") -ceq (New-PaytmScheduledWorkerSource $oldRun).Replace("`r`n","`n"))
+            }
+        }catch{$item.workerSourceFailure='SCHEDULE_WORKER_SOURCE_UNAVAILABLE'}
+        try{
+            $null=Assert-PaytmAccountPath $c.result
+            if(Test-Path -LiteralPath $c.result -PathType Leaf){
+                $value=Read-PaytmRepairJson $c.result 8192
+                if($value.runId -cne $oldRun){throw 'SCHEDULE_WORKER_BINDING'}
+                $item.workerResult=Get-PaytmSafeProbeSummary $value
+            }
+        }catch{$item.workerResultFailure='SCHEDULE_WORKER_RESULT_UNAVAILABLE_OR_UNBOUND'}
+        try{
+            $files=@(Get-ChildItem -LiteralPath $directory -Filter ('paytm-scheduled-signing-*-'+$oldRun+'.json') -File -ErrorAction Stop)
+            if($files.Count -gt 1){throw 'SCHEDULE_AMBIGUOUS_PRIOR_REPORT'}
+            if($files.Count -eq 1){
+                $value=Read-PaytmRepairJson $files[0].FullName 65536
+                if($value.runId -cne $oldRun){throw 'SCHEDULE_PRIOR_REPORT_BINDING'}
+                $item.previousReport=Get-PaytmSafeProbeSummary $value
+                $item.previousReportSha256=(Get-FileHash -LiteralPath $files[0].FullName).Hash
+                if($null -ne $value.worker){$item.previousWorker=Get-PaytmSafeProbeSummary $value.worker}
+            }
+        }catch{$item.previousReportFailure='SCHEDULE_PRIOR_REPORT_UNAVAILABLE_OR_UNBOUND'}
+        [pscustomobject]$item
+    }
+}

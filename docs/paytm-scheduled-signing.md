@@ -12,6 +12,12 @@ Current 2026-11-02: E198 accepts key custody and pinned authentication. G2 is **
 
 One shareable `paytm-scheduled-signing-*.json` embeds the worker result, source hashes, elapsed times, task-result code, cleanup and unchanged-authority flags. Public worker/source evidence remains under the unique protected directory; no recursive cleanup. The existing agent key, original encrypted export and PPK remain untouched. On a failed or interrupted run, share the report and do not rerun or reset the account. A failed task may be retained disabled; hard task termination is not proof of production descendant-process recovery.
 
+## Current next step: inspect the retained task (E200)
+
+The supplied 12:17 run stopped in 2.119 seconds with `SCHEDULE_PREVIOUS_PROBE_REVIEW_REQUIRED`. All five source hashes match commit 5e73a05 with CRLF checkout bytes. Custody revalidation passed; this run did not register/start a task, stage files or request a password. It does not tell us which earlier probe remains or why that earlier run stopped.
+
+Run **inspection only** below. It reads up to 20 matching tasks, checks their definitions and worker source, and captures bounded, whitelisted worker/original report summaries from the same review directory. It creates one new evidence JSON and does not start, stop, disable or remove tasks, change credentials, import keys or contact the VPS. Missing/mismatched evidence is reported explicitly. Inventory capture is not signing acceptance; share it before attempting another signing run.
+
 ## Run on the spare laptop
 
 Open **64-bit PowerShell7 as Administrator**. No PuTTY, Pageant or SSH passphrase is required. Keep the main window open until it prints the report path.
@@ -33,11 +39,13 @@ $changes = git status --porcelain
 if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Preserve local changes and stop for review.' }
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
-& '.\ops\windows\TestPaytmGatewayScheduledSigning.ps1' `
+& '.\ops\windows\TestPaytmGatewayScheduledSigning.ps1' -InspectExisting `
     -CustodyReportPath 'C:\MarketBrainData\Review\paytm-key-custody-20261102-112446-29cb6394513a47f687351825698006d5.json'
 ```
 
-Type **TEST-SCHEDULED-KEY**, then enter the existing **Windows marketbrain-gateway account password** privately in that same window. No second console opens. Expected result: `SCHEDULED_SIGNING_PASSED_SUPERVISOR_INSTALLATION_PENDING`. Share the printed single JSON, including on failure. If a stored credential or batch-logon right is rejected, preserve the exact native task result for review; do not grant broad rights or change policy blindly.
+No password or confirmation is requested in inspection mode. Expected result: `SCHEDULED_PROBE_INVENTORY_CAPTURED`. Share the printed single JSON, including on failure. Keep existing task/files and account intact. The original signing mode (without `-InspectExisting`) remains available but is not the current handoff; its retained task must be reviewed first.
+
+E200 local validation: 124 assertions across 17 mocked workflows, including empty inventory, matching retained task with original failure, source/definition drift, wrong-run report rejection, and arbitrary secret-field exclusion. Native task definition construction is checked without registration in Windows PowerShell 5.1. Actual scheduled execution and credential access remain unverified on the spare.
 
 ## Acceptance and remaining work
 
