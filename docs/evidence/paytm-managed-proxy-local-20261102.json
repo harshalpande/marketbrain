@@ -1,0 +1,30 @@
+{
+  "evidenceId": "E208",
+  "status": "MANAGED_VPS_PROXY_ENGINEERING_PASSED_RUNTIME_PENDING",
+  "prerequisite": "E207",
+  "implementation": "Managed service restart/boot policy and persistent enable marker; one combined baseline, backup, crash recovery, disable, TLS and denial batch. Windows supervisor remains LOCKED before and after.",
+  "localTests": {
+    "reportAndLauncherAssertions": 47,
+    "controllerAssertions": 22,
+    "controllerWorkflows": 6,
+    "bashWorkflowAssertions": 62,
+    "bashWorkflows": 11,
+    "controllerRuntimeApisMocked": true,
+    "systemdNetworkAndIdentityMocked": true,
+    "actualFixtureFilesUsed": true,
+    "composedLauncherAndBashSourcesSyntaxChecked": true,
+    "vpsContacted": false,
+    "windowsAccountTaskOrPolicyChanged": false
+  },
+  "failureCoverage": [
+    "Wrong platform, unexpected drop-in, hash drift and old timers stop before managed installation",
+    "Unit verification failure, wildcard listener and missing automatic restart",
+    "Missing enable-marker condition ignored, TLS verification failure and guard retirement failure",
+    "Strict typed report proofs, run binding, duplicate/missing report and scope violations",
+    "Wrong receipt, failed remote proof retained, wrong confirmation and Windows host instance change",
+    "Failure leaves enable marker absent and does not report final running or boot-enabled success"
+  ],
+  "limitations": "Mocks and native Bash parsing are not real systemd/VPS acceptance. Actual reboot, unattended Windows transport, login, quote and trading remain pending. A root HTTP503 proves no API readiness.",
+  "acceptedPaytmGroupPercentages": [100,60,0,0,0,0],
+  "newRuntimeCheckpointsAccepted": 0
+}

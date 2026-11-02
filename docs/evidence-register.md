@@ -6,6 +6,11 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E208 MANAGED_VPS_PROXY_ENGINEERING_PASSED_RUNTIME_PENDING:** [local evidence](evidence/paytm-managed-proxy-local-20261102.json), [combined handoff](paytm-managed-proxy.md).47 report/launcher,22 controller and62 Bash assertions; six mocked controller and11 mocked installer workflows. Actual files and native Bash parsing, no real systemd/network/account changes. Managed restart, persistent disable, boot configuration and TLS/denial checks prepared. Windows remains locked; runtime acceptance pending.
+
+- **E207 LOCKED_SUPERVISOR_RUNTIME_ACCEPTED_TRANSPORT_PENDING:** [acceptance](evidence/paytm-supervisor-recovery-accepted-20261102.json). Recovery36.582s; ten ab4ce2e CRLF source hashes match. Background signing, advancing heartbeat, duplicate same process, STOP across a new launch, and fresh LOCKED restart pass; no failure/cleanup error. Account/key/password/policy unchanged. G2.4 locked-host prerequisite accepted; production transport/cold boot remain open. Groups100/60/0/0/0/0 unchanged; do not rerun recovery.
+
+
 - **E206 STARTUP_DEFECT_CORRECTED_RUNTIME_RECOVERY_PENDING:** [review and local evidence](evidence/paytm-supervisor-startup-recovery-local-20261102.json), [recovery handoff](paytm-supervisor-installation.md). Prerequisites/registration passed; exit1 before heartbeat, bootstrap error omitted. Restricted-policy file loading failure reproduced and corrected; exact remote cause remains unproven.25 bootstrap/19 recovery/48 host/79 gateway checks pass. Existing task/credential reused, runner-only update with backup; no runtime completion credit, groups100/60/0/0/0/0.
 
 - **E205 LOCKED_SUPERVISOR_ENGINEERING_PASSED_RUNTIME_PENDING:** [local evidence](evidence/paytm-supervisor-host-local-20261102.json), [installation handoff](paytm-supervisor-installation.md). 48 new host checks and79 regressions pass; real process containment/native task construction verified locally, no local task registration or account/policy change. Actual locked startup installation pending. Production transport integration and G2.4 completion remain pending; groups100/60/0/0/0/0.

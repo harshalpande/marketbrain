@@ -1,8 +1,10 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E206, 2026-11-02:** [Recover the retained supervisor task](paytm-supervisor-installation.md). Installation prerequisites and registration passed, but task exit1 preceded any heartbeat. File-based helper loading fails under Restricted policy in local reproduction; the original report omitted its exact startup exception. Corrected inline loading, early diagnostics and scoped runner-only recovery are ready;171 local assertions pass. Do not reinstall, recreate the account or reimport keys. Accepted groups remain **100/60/0/0/0/0**.
+**Current E207/E208, 2026-11-02:** Locked supervisor recovery accepted in **36.582 seconds**: background signing, same-process duplicate start, persistent STOP and fresh locked restart passed; ten source hashes verified. Do not rerun recovery or import keys. Next: [managed VPS proxy lifecycle](paytm-managed-proxy.md), combining crash recovery, durable disable, TLS and denial checks while Windows stays locked. Runtime installation is pending; accepted groups remain **100/60/0/0/0/0**. Production Windows transport and actual boot/logoff remain open. Earlier handoffs below are historical.
 
-**Current E205, 2026-11-02:** [Locked supervisor/startup installation](paytm-supervisor-installation.md) is ready for the spare laptop. One batch checks actual background heartbeat, duplicate start, persistent STOP and locked restart. Local 48 host checks plus 79 gateway regressions pass. Production transport adapters, VPS lifecycle and cold-boot acceptance remain pending. E204 signing remains accepted; do not rerun repair or key import. Accepted groups remain **100/60/0/0/0/0**.
+**Historical E206, 2026-11-02:** [Recover the retained supervisor task](paytm-supervisor-installation.md). Installation prerequisites and registration passed, but task exit1 preceded any heartbeat. File-based helper loading fails under Restricted policy in local reproduction; the original report omitted its exact startup exception. Corrected inline loading, early diagnostics and scoped runner-only recovery are ready;171 local assertions pass. Do not reinstall, recreate the account or reimport keys. Accepted groups remain **100/60/0/0/0/0**.
+
+**Historical E205, 2026-11-02:** [Locked supervisor/startup installation](paytm-supervisor-installation.md) is ready for the spare laptop. One batch checks actual background heartbeat, duplicate start, persistent STOP and locked restart. Local 48 host checks plus 79 gateway regressions pass. Production transport adapters, VPS lifecycle and cold-boot acceptance remain pending. E204 signing remains accepted; do not rerun repair or key import. Accepted groups remain **100/60/0/0/0/0**.
 
 Owner request, 2026-10-23: after **every shared test report**, publish all six group percentages, what advanced, what remains, and the next action. This is now the reporting baseline, not an estimate of effort or a confidence score.
 
@@ -24,12 +26,12 @@ Historical E194: actual recovery and exact-account probe accepted. Eight complet
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 
-## Current accepted snapshot — E198
+## Current accepted snapshot — E207 (full-checkpoint count unchanged)
 
 | Group | Accepted checkpoints | Accepted completion | Remaining |
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
-| G2 Unattended gateway |3/5|60%|Production supervisor/task, managed VPS lifecycle |
+| G2 Unattended gateway |3/5|60%|Locked host accepted; production transport, managed VPS route/lifecycle pending |
 | G3 Real recovery/safe failure |0/5|0%|Installed-system interruption, negatives, stop, logoff/boot, health/no-fallback acceptance |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |

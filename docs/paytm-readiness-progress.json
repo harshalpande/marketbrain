@@ -14,7 +14,7 @@
       {"id":"G2.1","goal":"Supervisor foundation and spare native client configuration accepted","evidence":"E185"},
       {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":"E194"},
       {"id":"G2.3","goal":"Protected key custody and pinned restricted OpenSSH authentication under exact account accepted","evidence":"E198"},
-      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204"],"prerequisiteStatus":"Background signing accepted; locked task registered but exit1 before heartbeat; E206 scoped runner recovery prepared, runtime and production transport integration pending"},
+      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204","E207"],"prerequisiteStatus":"Background signing and installed LOCKED host lifecycle accepted; production transport integration and actual startup recovery remain pending"},
       {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":null}
     ]},
     {"id":"G3","name":"Real recovery and safe failure","checkpoints":[

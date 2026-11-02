@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-02 Locked supervisor accepted; managed VPS lifecycle batch prepared
+
+- E207: recovery a7d2909100d7409e8cec8160806195ff passed36.582s with ten reviewed source matches. Same-process duplicate start, persistent STOP, fresh locked restart and session0 signing passed. No failure or cleanup error; retained task/key/password/policy preserved. Earlier recovery handoffs are historical.
+- E208: combines baseline verification, three-file configuration backup, bounded crash restart, durable disable and skipped start without marker, certificate-validated TLS, three destination/protocol denials and final boot-enabled loopback-only service. Windows host is checked LOCKED before and after; production transport remains pending.
+- Local verification:47 report/launcher assertions,22 controller assertions across6 workflows and62 Bash assertions across11 workflows. Tests caught and corrected an AND-list/errexit false-success path before handoff. All real VPS/systemd/task APIs are substituted; no runtime completion inferred.
+- Metrics: locked-host prerequisite accepted; full Paytm checkpoints remain8/30, groups100/60/0/0/0/0, delta0 percentage points. Counts measure accepted scope, not time remaining or profitability. No whole-project rebaseline.
+- Next: [run the managed VPS batch once](paytm-managed-proxy.md), then integrate Windows managed transport/effective route and complete installed-system recovery. No repeated account/custody diagnostics and no login/orders in this batch.
+
 ## 2026-11-02 Supervisor startup failure reviewed; scoped recovery prepared
 
 - E206: run ea8b91471cf048aa97a0f6b939b355c7 stopped after26.842s. All11 source hashes match8a87ae5 CRLF. Account/custody/batch policy and task registration passed; task exit1, no heartbeat/worker error, cleanupFailure null. No broker contact or trades.
