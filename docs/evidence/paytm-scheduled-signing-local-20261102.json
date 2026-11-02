@@ -1,0 +1,18 @@
+{
+  "evidenceId": "E199",
+  "date": "2026-11-02",
+  "status": "SCHEDULED_SIGNING_LOCAL_VERIFIED_RUNTIME_PENDING",
+  "prerequisite": "E198",
+  "script": "ops/windows/TestPaytmGatewayScheduledSigning.ps1",
+  "tests": {"assertions": 105, "mockedTaskWorkflows": 14, "generatedWorkerExercised": true, "prerequisiteFileHashChecksExercised": true, "nativeTaskDefinitionValidatedInWindowsPowerShell51WithoutRegistration": true},
+  "taskScope": "Unique temporary demand-start Password-logon task, Limited privilege, no triggers, 120-second execution limit, no automatic restart.",
+  "workerScope": "Exact non-admin identity, background session zero, no staged private file, expected agent identity, two independent local signing commands.",
+  "cleanupScope": "Successful owned task disabled and removed; failed owned task disabled/stopped and retained. Definition drift blocks cleanup of unreviewed actions.",
+  "realTaskInstalledLocally": false,
+  "realKeyUsedLocally": false,
+  "networkContactedLocally": false,
+  "productionSupervisorInstalled": false,
+  "acceptedGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "runtimeAcceptancePending": true,
+  "limitations": ["Mocks do not prove Windows Task Scheduler credentials or batch-logon rights", "Local portable PS7 runtime lacks System.Reflection.Emit for ScheduledTasks import; native CIM defaults checked via Windows PS5.1, PS7 controller module calls mocked", "No logoff/cold-boot recovery proved", "No production forwarding/managed VPS lifecycle acceptance", "No broker readiness or order authority"]
+}

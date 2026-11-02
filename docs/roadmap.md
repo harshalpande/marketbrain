@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+**Current 2026-11-02 E198/E199:** G2.3 key-custody runtime accepted, **Paytm readiness100/60/0/0/0/0**, G2 +20 points. Six stages62.802s and six source hashes verified. [Scheduled-account signing](paytm-scheduled-signing.md) prepared as a G2.4 prerequisite; production supervisor/task and managed VPS lifecycle still open. No whole-platform percentage change. Earlier account/import next steps below are historical.
+
 **Current E195, 2026-10-26:** G2.3 [controlled custody and pinned-authentication implementation](paytm-gateway-key-custody.md) locally verified after owner-confirmed encrypted export. One batch includes protected staging, private console, targeted revoke/reload, host-pin negative/positive and new-process signing. Actual spare acceptance pending;100/40/0/0/0/0 unchanged. No account recovery rerun. Subsequent supervisor/task, managed lifecycle and true installed-system/reboot recovery remain gates.
 
 **Current E194, 2026-10-26:** real gateway account recovery/probe accepted, G2.2 closed: **G1=100%, G2=40%, G3–G6=0%; G2 delta +20 points**. Old storage preserved and service unchanged. [Next G2.3: key custody and pinned restricted authentication](paytm-gateway-key-custody.md), format confirmation pending. No more Apply/Recover/Verify/account inventory runs. Earlier next-step instructions below are historical. This is Paytm readiness checkpoint credit, not whole-platform completion.

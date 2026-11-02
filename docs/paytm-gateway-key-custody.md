@@ -1,5 +1,7 @@
 # Gateway key custody: next checkpoint G2.3
 
+**Accepted E198, 2026-11-02:** run29cb6394513a47f687351825698006d5 passed all six stages in62.802s. Import/revocation/reload, wrong-host rejection, correct pinned authentication, staged-copy removal and fresh-process signing/operator isolation verified. Six CRLF source hashes match f44ef5e. G2.3 complete, **G2=60%**. Do not rerun any import handoff below. [Next: scheduled-account signing](paytm-scheduled-signing.md). Production supervisor, managed VPS lifecycle and reboot recovery remain unaccepted.
+
 ## Current handoff: pinned public host key, 2026-10-27 (E197)
 
 Diagnostic run `b22278749dc44b11b245df57acfbbeb9` reached the VPS, then Windows OpenSSH9.5p1 `ssh-keyscan` failed with `choose_kex: unsupported KEX method sntrup761x25519-sha512@openssh.com`. Native exit1 in5.384s, total5.997s; no credentials, import or mutation. Three source hashes match9f59ad5 CRLF bytes. This matches [Windows OpenSSH issue2140](https://github.com/PowerShell/Win32-OpenSSH/issues/2140), which distinguishes the scanner defect from normal ssh.exe negotiation. No server algorithm/configuration or Windows client installation change is required for this workaround.

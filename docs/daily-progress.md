@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-11-02 Key custody accepted; background signing batch prepared
+
+- E198 closes G2.3: supplied run29cb6394513a47f687351825698006d5 completed six stages in62.802s; worker40.754s; wrong host rejected in0.754s; correct pinned authentication held20.025s then deliberately stopped (exit-1 is expected, worker exit0). Six source hashes verified against f44ef5e CRLF bytes. Key import/removal/reload, staged-copy deletion, fresh-process signing and operator denial before/after passed.
+- **Paytm G2:40% to60%, +20 percentage points.** G1/G2/G3/G4/G5/G6=100/60/0/0/0/0; whole-project percentage unchanged. Production supervisor, managed lifecycle, logoff/boot and broker readiness remain pending. No account/key rerun.
+- E199 prepares [temporary scheduled-account signing](paytm-scheduled-signing.md): accepted receipt and live storage revalidation, private Windows credential registration, limited/no-trigger bounded task, session0 identity and two local signing checks, verified cleanup. One report; successful temporary task removed, failure retained disabled when still owned. No key import, network, proxy or orders.
+- Local105 assertions/14 mocked workflows plus real parser/hash fixtures pass; native task CIM defaults/enums checked in Windows PowerShell5.1 without registration. No real scheduled task or credential was installed locally. The portable PS7 verification runtime lacks System.Reflection.Emit for native ScheduledTasks import, so controller module calls are mocked locally; the spare must verify its installed PS7/module. This preparation does not award G2.4 completion.
+
 ## 2026-10-27 Scanner compatibility cause identified; pinned public-key input prepared
 
 - E197: diagnostic b22278749dc44b11b245df57acfbbeb9 reached VPS SSH and failed on Windows9.5p1 unsupported sntrup KEX in ssh-keyscan (exit1,5.384s; total5.997s). Three source hashes match9f59ad5 CRLF. This is the documented Windows scanner bug; no password, private-key or broker failure is implicated.

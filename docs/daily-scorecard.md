@@ -1,5 +1,7 @@
 # Daily delivery scorecard
 
+**2026-11-02 E198:** G2.3 runtime accepted, **Paytm G2 +20 percentage points (40% to60%)**. Six stages in62.802s, six source hashes verified; pinned authentication, wrong-host rejection, key lifecycle and fresh-process signing passed. G1/G2/G3/G4/G5/G6=100/60/0/0/0/0. E199 scheduled-signing implementation is local-only preparation with105 assertions/14 mocked workflows; no further checkpoint or whole-project percentage added. [Next script](paytm-scheduled-signing.md); no repeat key import.
+
 Established 2026-10-12 at the owner's request. This scorecard measures delivered scope, not confidence in forecasts or profitability. The [roadmap](roadmap.md) remains authoritative for full-goal progress; [daily progress](daily-progress.md) retains dated evidence.
 
 ## Measurement rules
