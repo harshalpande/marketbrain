@@ -1,0 +1,32 @@
+{
+  "evidenceId": "E205",
+  "date": "2026-11-02",
+  "status": "LOCKED_SUPERVISOR_ENGINEERING_PASSED_SPARE_INSTALL_PENDING",
+  "newHostAssertions": 48,
+  "existingSupervisorAssertions": 79,
+  "nativeWindowsPowerShellVersion": "5.1",
+  "verifiedLocally": [
+    "C# compilation and bounded output capture including output without newline",
+    "Owned native process timeout and safe argument quoting",
+    "Real owner termination kills child through Windows Job Object",
+    "Unrelated concurrently running process remains alive",
+    "Exclusive lease and reacquisition",
+    "Atomic bounded heartbeat replacement",
+    "Stale, wrong-instance and unsafe status rejection",
+    "Actual host observation loop with mocked signing and waits",
+    "Persistent STOP skips signing; persistent failure blocks restart",
+    "Real native task-definition constructors without registration",
+    "Mocked duplicate-start, stop, stopped restart and locked restart orchestration",
+    "Existing supervisor state-machine and fixed SSH configuration regressions"
+  ],
+  "actualTaskRegisteredLocally": false,
+  "accountOrPolicyChangedLocally": false,
+  "networkContacted": false,
+  "ordersEnabled": false,
+  "spareInstallationTested": false,
+  "coldBootTested": false,
+  "productionTransportAdaptersImplemented": false,
+  "newRuntimeCheckpointsAccepted": 0,
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "next": "Install and verify the locked Windows supervisor host. Review one spare evidence JSON before transport integration and managed VPS lifecycle."
+}

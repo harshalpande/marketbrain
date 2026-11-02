@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E205 LOCKED_SUPERVISOR_ENGINEERING_PASSED_RUNTIME_PENDING:** [local evidence](evidence/paytm-supervisor-host-local-20261102.json), [installation handoff](paytm-supervisor-installation.md). 48 new host checks and79 regressions pass; real process containment/native task construction verified locally, no local task registration or account/policy change. Actual locked startup installation pending. Production transport integration and G2.4 completion remain pending; groups100/60/0/0/0/0.
+
 - **E204 BACKGROUND_SIGNING_RUNTIME_ACCEPTED:** [acceptance](evidence/paytm-scheduled-signing-accepted-20261102.json). Run11.675s/worker1.979s; six4a505a8 CRLF hashes match. Exact gateway-only batch allow added; other allows/denies preserved. Non-admin/session0/exact-agent two signatures passed, task exit0 and cleanup complete. No key/password/network/order changes. G2.4 signing prerequisite accepted; production supervisor/startup remains pending, groups100/60/0/0/0/0. Do not rerun repair.
 
 - **E203 OVERBROAD_DENY_GUARD_CORRECTED_RUNTIME_PENDING:** [review](evidence/paytm-batch-deny-review-20261102.json). Repair stopped8.436s before changes; six5be38f0 CRLF hashes match. Denied SID1003 differs from gateway1010; old blanket guard did not resolve it. Added local-user identity resolution with preserved deny,82 assertions/22 workflows pass. [Combined repair](paytm-scheduled-signing.md) remains next; groups100/60/0/0/0/0.

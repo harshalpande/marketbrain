@@ -1,5 +1,7 @@
 # Paytm readiness: evidence-based group percentages
 
+**Current E205, 2026-11-02:** [Locked supervisor/startup installation](paytm-supervisor-installation.md) is ready for the spare laptop. One batch checks actual background heartbeat, duplicate start, persistent STOP and locked restart. Local 48 host checks plus 79 gateway regressions pass. Production transport adapters, VPS lifecycle and cold-boot acceptance remain pending. E204 signing remains accepted; do not rerun repair or key import. Accepted groups remain **100/60/0/0/0/0**.
+
 Owner request, 2026-10-23: after **every shared test report**, publish all six group percentages, what advanced, what remains, and the next action. This is now the reporting baseline, not an estimate of effort or a confidence score.
 
 ## Measurement rule

@@ -1,5 +1,7 @@
 # Gateway scheduled-account signing verification
 
+Next handoff E205: [install and verify the locked supervisor host](paytm-supervisor-installation.md). The signing repair below is completed and must not be repeated.
+
 **Current E204, 2026-11-02: PASSED AND ACCEPTED. Do not rerun the repair, account creation or key import.** The supplied run c3dec69b2f7c462fb383112ae388a596 completed in11.675s, with1.979s in the worker. Six source hashes match4a505a8 CRLF. Only the gateway SID was added to batch allow; prior grants and the unrelated-user denial stayed unchanged. Exact non-admin/session0 worker verified agent identity, absence of the staged private copy, and two signatures. Task exit0; temporary task disabled/removed with no cleanup error. [Acceptance evidence](evidence/paytm-scheduled-signing-accepted-20261102.json).
 
 This completes the background-signing prerequisite of G2.4. Next work is production gateway supervisor and scheduled startup, followed by managed VPS lifecycle and real recovery testing. It does not prove reboot/logoff recovery, ongoing tunnel health or broker authentication. G2 stays60% until the full production-supervisor checkpoint is accepted. All correction/registration descriptions below are historical.

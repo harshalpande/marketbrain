@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-11-02 Locked gateway supervisor host prepared
+
+- E205: implemented persistent non-admin startup host, bounded child-process handling with Windows Job Object containment, exclusive instance lease, atomic heartbeats, persistent STOP/block handling and validated startup task definition.
+- One spare installation batch verifies heartbeat, duplicate start, graceful stop, restart while STOP remains and explicit locked restart. It retains the task running LOCKED on success; no transport-enable operation exists yet.
+- Verification: 48 new host assertions and 79 existing gateway assertions pass. Actual local native child termination and task constructors tested; account/policy/task registration and broker/VPS contact were not performed locally.
+- Runtime acceptance pending. Groups remain100/60/0/0/0/0; no whole-project or production-transport completion inferred. Next handoff: [supervisor installation](paytm-supervisor-installation.md), then production transport adapters and managed VPS lifecycle.
+
 ## 2026-11-02 Batch-logon correction and background signing accepted
 
 - E204: run c3dec69b2f7c462fb383112ae388a596 PASSED in11.675s; worker1.979s. All six source hashes match4a505a8 CRLF. Only gateway SID1010 was added to batch allow; every prior grantee and deny entry preserved. SID1003 resolved as an unrelated local user.

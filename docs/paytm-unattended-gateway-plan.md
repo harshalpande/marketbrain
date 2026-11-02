@@ -1,5 +1,7 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
+**Current E205, 2026-11-02:** [Locked supervisor/startup installation](paytm-supervisor-installation.md) is ready for the spare laptop. One batch checks actual background heartbeat, duplicate start, persistent STOP and locked restart. Local 48 host checks plus 79 gateway regressions pass. Production transport adapters, VPS lifecycle and cold-boot acceptance remain pending. E204 signing remains accepted; do not rerun repair or key import. Accepted groups remain **100/60/0/0/0/0**.
+
 **Current E204, 2026-11-02:** [Batch-logon correction and background signing accepted](evidence/paytm-scheduled-signing-accepted-20261102.json). Total11.675s/worker1.979s; exact non-admin session0,2/2 signatures, task exit0 and temporary task removed. Other policy assignments preserved; no key/password/network/order changes. **Do not rerun repair.** Next: production supervisor and scheduled startup. This G2.4 prerequisite is complete; full group checkpoints remain **100/60/0/0/0/0**.
 
 **Current E195:** owner verified encrypted OpenSSH export; [custody batch implementation and handoff](paytm-gateway-key-custody.md) is ready for one-time private provisioning and pinned no-session authentication. Existing agent/account preserved, no tunnel/service/task/broker activation. Local tests pass, actual import still pending; G2 stays40%. Success after review can close G2.3/60%; account recovery must not be rerun. Existing server restrictions/reboot/lifecycle tests are not substituted by the new key test.

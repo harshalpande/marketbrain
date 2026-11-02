@@ -1,5 +1,7 @@
 # Roadmap and completion dashboard
 
+**Current E205, 2026-11-02:** [Locked supervisor/startup installation](paytm-supervisor-installation.md) is ready for the spare laptop. One batch checks actual background heartbeat, duplicate start, persistent STOP and locked restart. Local 48 host checks plus 79 gateway regressions pass. Production transport adapters, VPS lifecycle and cold-boot acceptance remain pending. E204 signing remains accepted; do not rerun repair or key import. Accepted groups remain **100/60/0/0/0/0**.
+
 **Current E204, 2026-11-02:** [Batch-logon correction and background signing accepted](evidence/paytm-scheduled-signing-accepted-20261102.json). Total11.675s/worker1.979s; exact non-admin session0,2/2 signatures, task exit0 and temporary task removed. Other policy assignments preserved; no key/password/network/order changes. **Do not rerun repair.** Next: production supervisor and scheduled startup. This G2.4 prerequisite is complete; full group checkpoints remain **100/60/0/0/0/0**.
 
 **Current E195, 2026-10-26:** G2.3 [controlled custody and pinned-authentication implementation](paytm-gateway-key-custody.md) locally verified after owner-confirmed encrypted export. One batch includes protected staging, private console, targeted revoke/reload, host-pin negative/positive and new-process signing. Actual spare acceptance pending;100/40/0/0/0/0 unchanged. No account recovery rerun. Subsequent supervisor/task, managed lifecycle and true installed-system/reboot recovery remain gates.
