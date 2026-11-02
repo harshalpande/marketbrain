@@ -1,5 +1,11 @@
 # Daily progress and decision log
 
+## 2026-11-02 Retained probe inventory accepted; launch error collection
+
+- E201: inspection284ea45eda184fdca892efcd80c9964a succeeded in3.016s, five source hashes match e699817 CRLF. Exactly one disabled probe6b3bcee5eac24157aa38b858b96ae253 has matching definition/source. Prior attempt timed out in RUN_BACKGROUND_SIGNING_CHECKS,131.447s total; LastTaskResult267011 means not yet run, no worker result. Start-request return is not worker-execution proof. Specific cause remains unknown.
+- Extended read-only inspection collects last-run metadata, up to32 exact-task Scheduler events and32 gateway batch-logon failure events in seven days, with safe fields only. Records disabled/missing/denied logs and caps; does not enable logging, retry tasks or change credentials/keys. [Handoff](paytm-scheduled-signing.md).
+-137 assertions/17 mocked workflows and event-parser/query fixtures passed. Actual OS event evidence pending; groups100/60/0/0/0/0 unchanged, delta0. No promise that retained logs can establish the cause if history was not recorded.
+
 ## 2026-11-02 Scheduled probe retained; evidence collection prepared
 
 - E200 reviews run5f88a2199a6746779e1b9a27b0ac795a: stopped in 2.119s with SCHEDULE_PREVIOUS_PROBE_REVIEW_REQUIRED, before registration/start/staging/password submission. All five source hashes match 5e73a05 CRLF. Accepted custody checks passed. Earlier task identity/failure was omitted by the old report; no cause for that earlier run is inferred.

@@ -1,6 +1,6 @@
 # Roadmap and completion dashboard
 
-**Current E200, 2026-11-02:** scheduled-signing attempt stopped before changes because an earlier probe task exists. Custody revalidation passed; original task/failure still needs review. [Run read-only task inspection next](paytm-scheduled-signing.md). No password, key import or task cleanup. Local 124 assertions/17 mocked workflows passed. Paytm groups remain **100/60/0/0/0/0**; no additional runtime checkpoint accepted.
+**Current E201, 2026-11-02:** inspection accepted: retained probe is disabled, definition/source match, earlier attempt timed out with Windows task-not-yet-run status and no worker result. [Capture Windows launch events next](paytm-scheduled-signing.md) using extended read-only inspection. No account/key reset or signing retry. Local137 assertions/17 workflows passed; groups **100/60/0/0/0/0**, no new runtime checkpoint.
 
 **Current E195, 2026-10-26:** G2.3 [controlled custody and pinned-authentication implementation](paytm-gateway-key-custody.md) locally verified after owner-confirmed encrypted export. One batch includes protected staging, private console, targeted revoke/reload, host-pin negative/positive and new-process signing. Actual spare acceptance pending;100/40/0/0/0/0 unchanged. No account recovery rerun. Subsequent supervisor/task, managed lifecycle and true installed-system/reboot recovery remain gates.
 

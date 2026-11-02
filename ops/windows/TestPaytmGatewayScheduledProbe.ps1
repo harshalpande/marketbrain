@@ -41,6 +41,9 @@ function Get-PaytmKeyContract {$v=$global:scheduledKeyContract.PSObject.Copy();$
 function Assert-PaytmScheduledPrerequisites($ReceiptPath){if($global:fixture.case -ceq 'prerequisiteFailure'){throw 'SCHEDULE_CUSTODY_RECEIPT_NOT_ACCEPTED'};[pscustomobject]@{sid=$global:scheduledKeyContract.accountSid}}
 function Set-PaytmAccountDirectoryAcl($Path,$AccountSid) {}
 function Get-Service {param($Name,$ErrorAction) [pscustomobject]@{Status='Running'}}
+function Get-WinEvent {param($ListLog,$LogName,$FilterXPath,$MaxEvents,$ErrorAction,$ErrorVariable)
+ if($ListLog){return [pscustomobject]@{IsEnabled=$false}}
+}
 function Read-Host {param($Prompt,[switch]$AsSecureString)
  if($AsSecureString){$global:fixture.password=ConvertTo-SecureString 'FixturePassword-NoRealCredential' -AsPlainText -Force;return $global:fixture.password}
  if($global:fixture.case -ceq 'cancel'){return 'CANCEL'};'TEST-SCHEDULED-KEY'
@@ -148,6 +151,7 @@ foreach($case in $cases){
  if($inspect){Check ($r.status -ceq 'SCHEDULED_PROBE_INVENTORY_CAPTURED' -and $null -eq $global:fixture.password -and $global:fixture.registers -eq 0 -and $global:fixture.starts -eq 0 -and $global:fixture.disables -eq 0 -and $global:fixture.removes -eq 0 -and $global:fixture.nativeCalls.Count -eq 0) 'inspection never changes task or asks password'}
  if($case -ceq 'inspectEmpty'){Check ($r.existingProbes.Count -eq 0 -and ($console -join '') -notmatch 'Temporary task removed') 'empty inventory does not claim cleanup'}
  if($case -ceq 'inspectExisting'){Check ($r.existingProbes.Count -eq 1 -and $r.existingProbes[0].definitionMatches -and $r.existingProbes[0].workerMatchesCurrentSource -and $r.existingProbes[0].previousReport.failure -ceq 'SCHEDULE_WORKER_NOT_PASSED' -and $r.existingProbes[0].workerResult.failure -ceq 'KEY_AGENT_IDENTITY_MISMATCH') 'collect prior task worker and root failure in one report'}
+ if($case -ceq 'inspectExisting'){Check ($r.existingProbes[0].launchEvidence.channels.Count -eq 2 -and $r.existingProbes[0].launchEvidence.channels[0].status -ceq 'NO_MATCHING_EVENTS' -and -not $r.existingProbes[0].launchEvidence.channels[0].enabled) 'inspection embeds disabled-log evidence without enabling it'}
  if($case -ceq 'inspectDrift'){Check (-not $r.existingProbes[0].definitionMatches -and -not $r.existingProbes[0].workerMatchesCurrentSource -and $r.existingProbes[0].previousReportFailure -ceq 'SCHEDULE_PRIOR_REPORT_UNAVAILABLE_OR_UNBOUND') 'drift and wrong-run evidence refused'}
 }
 # Test task-definition guards independently of the controller fixtures.
@@ -195,4 +199,43 @@ foreach($case in @('wrongSid','disabled','badAcl')){$script:prereqCase=$case;Rej
 [IO.File]::WriteAllText((Join-Path $keyRoot 'library.ps1'),'changed');Reject {Assert-PaytmScheduledPrerequisites $receiptPath} 'staged library drift';[IO.File]::WriteAllText((Join-Path $keyRoot 'library.ps1'),'fixture-source')
 $state.privateFileRetained=$true;[IO.File]::WriteAllText($statePath,($state|ConvertTo-Json));Reject {Assert-PaytmScheduledPrerequisites $receiptPath} 'custody state drift';$state.privateFileRetained=$false;[IO.File]::WriteAllText($statePath,($state|ConvertTo-Json))
 [IO.File]::WriteAllText((Join-Path $keyRoot 'gateway.pub'),'ssh-ed25519 wrong');Reject {Assert-PaytmScheduledPrerequisites $receiptPath} 'public key drift'
+# Launch diagnostics: actual XML/parser/filter construction, mocked Windows event API.
+$script:eventMode='captured';$script:eventQueries=@()
+function New-FixtureEvent([string]$Xml,[int]$Id=101){
+ $e=[pscustomobject]@{xml=$Xml;Id=$Id;RecordId=17;TimeCreated=[datetime]'2026-11-02T10:00:00Z'}
+ $e|Add-Member ScriptMethod ToXml { $this.xml };$e
+}
+$eventTask='MarketBrain-Gateway-Key-Probe-'+('a'*32)
+$script:taskEvent=New-FixtureEvent ('<Event><EventData><Data Name="TaskName">\'+$eventTask+'</Data><Data Name="ResultCode">2147943785</Data><Data Name="Arguments">PRIVATE_SENTINEL</Data></EventData></Event>')
+$script:accountEvent=New-FixtureEvent '<Event><EventData><Data Name="TargetUserName">marketbrain-gateway</Data><Data Name="LogonType">4</Data><Data Name="Status">0xc000015b</Data><Data Name="SubStatus">0x0</Data><Data Name="Password">PRIVATE_SENTINEL</Data></EventData></Event>' 4625
+function Get-WinEvent {
+ [CmdletBinding()]param($ListLog,$LogName,$FilterXPath,$MaxEvents)
+ if($ListLog){if($script:eventMode -ceq 'denied'){throw [UnauthorizedAccessException]::new('private error text')};return [pscustomobject]@{IsEnabled=($script:eventMode -cne 'disabled')}}
+ $script:eventQueries+=@([pscustomobject]@{channel=$LogName;filter=$FilterXPath;limit=$MaxEvents})
+ if($script:eventMode -ceq 'empty'){
+  Write-Error -Message 'No matching events' -ErrorId NoMatchingEventsFound;return
+ }
+ if($script:eventMode -ceq 'queryDenied'){Write-Error -Message 'private query detail' -ErrorId QueryAccessDenied;return}
+ if($LogName -ceq 'Security'){$script:accountEvent}else{
+  if($script:eventMode -ceq 'capped'){1..32|ForEach-Object {$script:taskEvent}}else{$script:taskEvent}
+ }
+}
+$e=Get-PaytmProbeLaunchEvidence ('a'*32)
+Check ($e.channels.Count -eq 2 -and $e.channels[0].status -ceq 'CAPTURED' -and $e.channels[1].events[0].fields.Status -ceq '0xc000015b') 'task and batch logon code evidence captured'
+Check (($e|ConvertTo-Json -Depth 10) -notmatch 'PRIVATE_SENTINEL') 'event arguments passwords and arbitrary messages excluded'
+Check ($script:eventQueries[0].filter.Contains($eventTask) -and $script:eventQueries[0].filter.Contains('604800000') -and $script:eventQueries[0].limit -eq 32) 'task exact filtered bounded seven day query'
+Check ($script:eventQueries[1].filter.Contains('EventID=4625') -and $script:eventQueries[1].filter.Contains("Data[@Name='LogonType']='4'")) 'security scoped to gateway batch logon failures'
+foreach($mode in @('disabled','empty','denied','queryDenied','capped')){
+ $script:eventMode=$mode;$e=Get-PaytmProbeLaunchEvidence ('a'*32)
+ switch($mode){
+  disabled {Check (-not $e.channels[0].enabled -and $e.channels[0].status -ceq 'CAPTURED') 'disabled log retains historical events'}
+  empty {Check ($e.channels[0].status -ceq 'NO_MATCHING_EVENTS') 'no matching events is explicit unknown evidence'}
+  denied {Check ($e.channels[0].status -ceq 'UNAVAILABLE' -and $e.channels[0].failureType -ceq 'UnauthorizedAccessException') 'log access denial recorded without private message'}
+  queryDenied {Check ($e.channels[0].status -ceq 'UNAVAILABLE') 'query failure distinct from empty results'}
+  capped {Check ($e.channels[0].limitReached -and $e.channels[0].events.Count -eq 32) 'bounded query cap explicit'}
+ }
+}
+Reject {ConvertTo-PaytmProbeEvent $script:taskEvent 'wrong' Task} 'unrelated task event refused'
+Reject {ConvertTo-PaytmProbeEvent $script:taskEvent $eventTask Account} 'unrelated account event refused'
+$bad=New-FixtureEvent '<!DOCTYPE Event><Event/>';Reject {ConvertTo-PaytmProbeEvent $bad $eventTask Task} 'DTD event refused'
 Write-Host "PASS: $checks assertions, $($cases.Count) mocked scheduled-task workflows; real generated worker with mocked identity/native tools. No real task, credential, key or network changes."

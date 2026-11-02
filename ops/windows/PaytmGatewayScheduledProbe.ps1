@@ -149,7 +149,7 @@ function Assert-PaytmScheduledWorker($Worker,[string]$RunId) {
 function Get-PaytmSafeProbeSummary($Value) {
     # Whitelist known diagnostic fields; never copy a prior report's arbitrary strings/arguments.
     $result=[ordered]@{}
-    foreach($name in @('runId','status','stage','failure','cleanupFailure')){
+    foreach($name in @('runId','status','stage','failure','cleanupFailure','taskState')){
         $text=[string]$Value.$name
         $result[$name]=if($text -cmatch '^[A-Za-z0-9_]{1,120}$'){$text}elseif(-not $text){$null}else{'UNEXPECTED_VALUE'}
     }
@@ -177,12 +177,13 @@ function Get-PaytmExistingProbeEvidence([object[]]$Tasks,[string]$ReviewDirector
             definitionFailure=$null;lastTaskResult=$null;taskInfoFailure=$null;workerFilePresent=$false;
             workerHash=$null;workerMatchesCurrentSource=$false;workerSourceFailure=$null;
             workerResult=$null;workerResultFailure=$null;previousReport=$null;previousReportSha256=$null;
-            previousWorker=$null;previousReportFailure=$null}
+            previousWorker=$null;previousReportFailure=$null;launchEvidence=$null}
         if($task.TaskName -cnotmatch '^MarketBrain-Gateway-Key-Probe-([a-f0-9]{32})$' -or $task.TaskPath -cne '\'){
             $item.definitionFailure='SCHEDULE_UNRECOGNIZED_PROBE_NAME';[pscustomobject]$item;continue
         }
         $oldRun=$Matches[1];$c=Get-PaytmScheduledProbeContract $oldRun
         $item.taskName=$c.name;$item.runId=$oldRun
+        $item.launchEvidence=Get-PaytmProbeLaunchEvidence $oldRun
         $item.state=if([string]$task.State -cmatch '^[A-Za-z0-9]{1,20}$'){[string]$task.State}else{'UNKNOWN'}
         $item.definition=Get-PaytmProbeTaskShape $task $oldRun
         try{Assert-PaytmProbeTask $task $oldRun ([bool]$task.Settings.Enabled);$item.definitionMatches=$true}
@@ -219,4 +220,62 @@ function Get-PaytmExistingProbeEvidence([object[]]$Tasks,[string]$ReviewDirector
         }catch{$item.previousReportFailure='SCHEDULE_PRIOR_REPORT_UNAVAILABLE_OR_UNBOUND'}
         [pscustomobject]$item
     }
+}
+function ConvertTo-PaytmProbeEvent($Event,[string]$TaskName,[ValidateSet('Task','Account')][string]$Scope) {
+    $source=$Event.ToXml()
+    if($source.Length -gt 65536 -or $source -match '<!DOCTYPE'){throw 'SCHEDULE_EVENT_XML_REJECTED'}
+    [xml]$xml=$source;$data=@{}
+    foreach($node in @($xml.Event.EventData.Data)){
+        if($null -ne $node -and $node.HasAttribute('Name')){$data[$node.GetAttribute('Name')]=$node.InnerText}
+    }
+    # Recheck server-side filtering. Account events correlate by identity/time, not task ID.
+    if($Scope -ceq 'Task'){
+        if($data.TaskName -cne ('\'+$TaskName)){throw 'SCHEDULE_EVENT_TASK_BINDING'}
+    }elseif($Event.Id -ne 4625 -or $data.TargetUserName -ine 'marketbrain-gateway' -or $data.LogonType -cne '4'){
+        throw 'SCHEDULE_EVENT_ACCOUNT_BINDING'
+    }
+    $fields=[ordered]@{}
+    foreach($key in @('ResultCode','ErrorCode','ErrorValue','Status','SubStatus','LogonType','ProcessId','EnginePID','TaskInstanceId','InstanceId')){
+        if($data.ContainsKey($key)){
+            $value=[string]$data[$key]
+            $fields[$key]=if($value -cmatch '^(0x[0-9a-fA-F]{1,16}|-?[0-9]{1,20}|\{?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\}?)$'){$value}else{'UNEXPECTED_VALUE'}
+        }
+    }
+    [pscustomobject]@{id=[int]$Event.Id;recordId=[long]$Event.RecordId;
+        utc=if($null -ne $Event.TimeCreated){$Event.TimeCreated.ToUniversalTime().ToString('o')}else{$null};fields=$fields}
+}
+function Get-PaytmProbeLaunchEvidence([string]$RunId) {
+    $c=Get-PaytmScheduledProbeContract $RunId
+    $result=[ordered]@{observedUtc=[datetime]::UtcNow.ToString('o');lookbackDays=7;taskInfo=$null;taskInfoFailure=$null;channels=@()}
+    try{
+        $info=Get-ScheduledTaskInfo -TaskName $c.name -TaskPath $c.path -ErrorAction Stop
+        $result.taskInfo=[pscustomobject]@{lastTaskResult=[long]$info.LastTaskResult;
+            lastRunTimeUtc=if($null -ne $info.LastRunTime){([datetime]$info.LastRunTime).ToUniversalTime().ToString('o')}else{$null};
+            missedRuns=if($null -ne $info.NumberOfMissedRuns){[long]$info.NumberOfMissedRuns}else{$null}}
+    }catch{$result.taskInfoFailure='SCHEDULE_TASK_INFO_UNAVAILABLE'}
+    foreach($scope in @('Task','Account')){
+        $channel=if($scope -ceq 'Task'){'Microsoft-Windows-TaskScheduler/Operational'}else{'Security'}
+        $entry=[ordered]@{scope=$scope;channel=$channel;enabled=$null;status='UNAVAILABLE';events=@();limitReached=$false;failureType=$null;failureHresult=$null}
+        try{
+            $log=Get-WinEvent -ListLog $channel -ErrorAction Stop;$entry.enabled=[bool]$log.IsEnabled
+            # Query retained events even if logging is currently disabled. Never enable/clear logs.
+            $filter=if($scope -ceq 'Task'){
+                "*[System[TimeCreated[timediff(@SystemTime) <= 604800000]] and EventData[Data[@Name='TaskName']='\"+$c.name+"']]"
+            }else{
+                "*[System[EventID=4625 and TimeCreated[timediff(@SystemTime) <= 604800000]] and EventData[Data[@Name='TargetUserName']='marketbrain-gateway' and Data[@Name='LogonType']='4']]"
+            }
+            $events=@();$queryErrors=@()
+            $events=@(Get-WinEvent -LogName $channel -FilterXPath $filter -MaxEvents 32 -ErrorAction SilentlyContinue -ErrorVariable queryErrors)
+            $unexpected=@($queryErrors|Where-Object {$_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*'})
+            if($unexpected.Count){throw $unexpected[0]}
+            $entry.limitReached=($events.Count -ge 32)
+            $entry.events=@(foreach($event in $events){ConvertTo-PaytmProbeEvent $event $c.name $scope})
+            $entry.status=if($events.Count){'CAPTURED'}else{'NO_MATCHING_EVENTS'}
+        }catch{
+            $entry.status='UNAVAILABLE';$entry.events=@();$base=$_.Exception.GetBaseException()
+            $entry.failureType=$base.GetType().Name;$entry.failureHresult=$base.HResult
+        }
+        $result.channels+=@([pscustomobject]$entry)
+    }
+    [pscustomobject]$result
 }

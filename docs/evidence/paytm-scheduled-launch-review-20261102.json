@@ -1,0 +1,33 @@
+{
+  "evidenceId": "E201",
+  "status": "INVENTORY_ACCEPTED_LAUNCH_CAUSE_PENDING",
+  "sourceFile": "paytm-scheduled-signing-20261102-125136-284ea45eda184fdca892efcd80c9964a.json",
+  "sourceSha256": "5BAC4127ABFB03713D18AC1811EDB325FFF02BF49FA9F21F21B68729A66C1CD1",
+  "sourceRevision": "e699817",
+  "matchingCrlfSourceHashes": 5,
+  "inspectionElapsedSeconds": 3.016,
+  "existingProbeCount": 1,
+  "existingRunId": "6b3bcee5eac24157aa38b858b96ae253",
+  "existingState": "Disabled",
+  "definitionMatches": true,
+  "workerMatchesCurrentSource": true,
+  "lastTaskResult": 267011,
+  "lastTaskResultMeaning": "0x41303 SCHED_S_TASK_HAS_NOT_RUN",
+  "workerResultPresent": false,
+  "priorFailure": "SCHEDULE_TASK_TIMEOUT",
+  "priorStage": "RUN_BACKGROUND_SIGNING_CHECKS",
+  "priorElapsedSeconds": 131.447,
+  "priorReportSha256ReportedByCollector": "FA2740391524FDC7EAE499EACEE74E2A2DB973E58CD37C212A13A59EB989E78E",
+  "interpretation": "Start-request API returned, but worker execution was not established. Specific launch cause remains unknown; no key/password fault is inferred.",
+  "nextAction": "Extended -InspectExisting captures last-run metadata, exact-task Scheduler events and account-specific batch-logon failure codes. No task or policy mutation.",
+  "localVerification": {
+    "assertions": 137,
+    "mockedWorkflows": 17,
+    "eventTests": "Exact binding, numeric codes, seven-day/32-event limits, disabled/empty/denied logs, query errors, DTD and arbitrary-secret exclusion",
+    "nativeTaskDefinitionConstruction": "Windows PowerShell 5.1; no registration",
+    "realTaskCredentialKeyOrNetworkChanges": false,
+    "limitation": "Controller/event APIs mocked; actual background signing and real launch logs remain pending. Portable local PS7 ScheduledTasks import limitation remains as recorded in E200."
+  },
+  "acceptedPaytmGroupPercentages": [100, 60, 0, 0, 0, 0],
+  "newRuntimeCheckpointsAccepted": 0
+}

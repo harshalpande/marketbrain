@@ -1,6 +1,6 @@
 # Unattended Paytm gateway: proposed design and acceptance
 
-**Current E198/E199, 2026-11-02:** runtime key custody and pinned authentication accepted; G2.3 closes and G2 reaches60%. [Temporary scheduled-account signing](paytm-scheduled-signing.md) is implemented next: no automatic trigger, non-admin Password-logon task, actual background session/agent/two-signature proof, successful task removal or failure disable/review. This is a G2.4 prerequisite, not the production supervisor or reboot acceptance. Earlier key-import instructions below are historical and must not be replayed.
+**Current E201, 2026-11-02:** inspection accepted: retained probe is disabled, definition/source match, earlier attempt timed out with Windows task-not-yet-run status and no worker result. [Capture Windows launch events next](paytm-scheduled-signing.md) using extended read-only inspection. No account/key reset or signing retry. Local137 assertions/17 workflows passed; groups **100/60/0/0/0/0**, no new runtime checkpoint.
 
 **Current E195:** owner verified encrypted OpenSSH export; [custody batch implementation and handoff](paytm-gateway-key-custody.md) is ready for one-time private provisioning and pinned no-session authentication. Existing agent/account preserved, no tunnel/service/task/broker activation. Local tests pass, actual import still pending; G2 stays40%. Success after review can close G2.3/60%; account recovery must not be rerun. Existing server restrictions/reboot/lifecycle tests are not substituted by the new key test.
 

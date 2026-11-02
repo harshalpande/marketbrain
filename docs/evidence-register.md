@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E201 INVENTORY_ACCEPTED_LAUNCH_CAUSE_PENDING:** [review](evidence/paytm-scheduled-launch-review-20261102.json). Inspection3.016s; five e699817 CRLF hashes match; exact disabled task/source verified. Prior timeout has Windows267011/not-yet-run and no worker report. Extended [inspection](paytm-scheduled-signing.md) collects bounded task/logon events without mutation;137 assertions/17 workflows pass. No new runtime checkpoint;100/60/0/0/0/0.
+
 - **E200 SCHEDULED_PROBE_RETAINED_INSPECTION_PREPARED:** [review](evidence/paytm-scheduled-signing-review-20261102.json), [inspection handoff](paytm-scheduled-signing.md). Latest run stopped in 2.119s before changes because a prior probe exists; custody passed, five 5e73a05 CRLF hashes match. Earlier task/failure unknown. Added bounded read-only inventory, with 124 assertions/17 mocked workflows. No runtime checkpoint increase; groups100/60/0/0/0/0.
 
 - **E198 GATEWAY_KEY_CUSTODY_RUNTIME_ACCEPTED:** [acceptance](evidence/paytm-key-custody-accepted-20261102.json). Six stages62.802s; six f44ef5e CRLF hashes match. Exact-account import/removal/reload, wrong-host rejection, pinned authentication20.025s then deliberate stop, encrypted staging removal and fresh-process signing/operator denial passed. Closes G2.3, **G2=60% (+20 points)**; other groups100/0/0/0/0 unchanged. No reboot/production-supervisor/broker acceptance.

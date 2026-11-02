@@ -12,11 +12,13 @@ Current 2026-11-02: E198 accepts key custody and pinned authentication. G2 is **
 
 One shareable `paytm-scheduled-signing-*.json` embeds the worker result, source hashes, elapsed times, task-result code, cleanup and unchanged-authority flags. Public worker/source evidence remains under the unique protected directory; no recursive cleanup. The existing agent key, original encrypted export and PPK remain untouched. On a failed or interrupted run, share the report and do not rerun or reset the account. A failed task may be retained disabled; hard task termination is not proof of production descendant-process recovery.
 
-## Current next step: inspect the retained task (E200)
+## Current next step: capture the Windows launch error (E201)
 
-The supplied 12:17 run stopped in 2.119 seconds with `SCHEDULE_PREVIOUS_PROBE_REVIEW_REQUIRED`. All five source hashes match commit 5e73a05 with CRLF checkout bytes. Custody revalidation passed; this run did not register/start a task, stage files or request a password. It does not tell us which earlier probe remains or why that earlier run stopped.
+The supplied 12:51 inspection completed in 3.016 seconds. All five source hashes match e699817 CRLF checkout bytes. One retained task, run6b3bcee5eac24157aa38b858b96ae253, is disabled with the expected definition and unchanged worker source. Its original report timed out in RUN_BACKGROUND_SIGNING_CHECKS (131.447 seconds total). Windows LastTaskResult267011 / 0x41303 means the task has not yet run; no worker result exists. The historical `taskStarted=true` records successful return from the start-request API, not observed worker execution. The cause of the launch failure is not established. Account/key recreation is not justified by this evidence.
 
-Run **inspection only** below. It reads up to 20 matching tasks, checks their definitions and worker source, and captures bounded, whitelisted worker/original report summaries from the same review directory. It creates one new evidence JSON and does not start, stop, disable or remove tasks, change credentials, import keys or contact the VPS. Missing/mismatched evidence is reported explicitly. Inventory capture is not signing acceptance; share it before attempting another signing run.
+Run **inspection only** below. It now adds the task's last-run metadata and Windows events: up to32 exact-task Scheduler events and32 account-specific Security4625 batch-logon failures over the last seven days, per task. Account events are correlated by name/logon type/time, not proof of a particular task's failure. Only IDs, timestamps, numeric error codes and instance IDs are shared; arbitrary event messages, arguments and credentials are omitted. Disabled logs are still queried for retained history. Empty/unavailable logs and result caps are explicit; no logging policy changes or claim that events must exist.
+
+The existing task/source/original-report checks remain. One new JSON is created; no task start/stop/removal, credential change, key import or VPS contact occurs. Inventory capture is not signing acceptance. Share the JSON to determine the targeted correction; do not retry signing or reset the account yet.
 
 ## Run on the spare laptop
 
@@ -46,6 +48,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 No password or confirmation is requested in inspection mode. Expected result: `SCHEDULED_PROBE_INVENTORY_CAPTURED`. Share the printed single JSON, including on failure. Keep existing task/files and account intact. The original signing mode (without `-InspectExisting`) remains available but is not the current handoff; its retained task must be reviewed first.
 
 E200 local validation: 124 assertions across 17 mocked workflows, including empty inventory, matching retained task with original failure, source/definition drift, wrong-run report rejection, and arbitrary secret-field exclusion. Native task definition construction is checked without registration in Windows PowerShell 5.1. Actual scheduled execution and credential access remain unverified on the spare.
+
+E201 local validation: 137 assertions across the same17 workflows plus event parsing/query fixtures. Tests cover launch codes, exact task binding, batch-logon scope, disabled logs with retained events, empty/access-denied logs, query errors, caps, DTD rejection and omission of arbitrary secrets. Event APIs are mocked locally; no real task/credential/key/network changes. See [Microsoft task status constants](https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-error-and-success-constants) and [task-history troubleshooting](https://learn.microsoft.com/en-us/troubleshoot/windows-server/system-management-components/troubleshoot-scheduled-tasks-not-running).
 
 ## Acceptance and remaining work
 
