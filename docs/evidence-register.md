@@ -6,6 +6,9 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E209 REPORT_DECODING_FAILED_VPS_OUTCOME_UNCONFIRMED:** [review](evidence/paytm-managed-proxy-report-review-20261102.json), [read-only recovery](paytm-managed-report-recovery.md).104.128s; JSON conversion at line21, raw server block lost. Windows LOCKED before; no after-check. Actual VPS changes unknown. Corrected pre-parse retention and typed error;15 recovery,26 controller and47 report/launcher assertions pass. Recover original log without reinstalling. Groups100/60/0/0/0/0 unchanged.
+
+
 - **E208 MANAGED_VPS_PROXY_ENGINEERING_PASSED_RUNTIME_PENDING:** [local evidence](evidence/paytm-managed-proxy-local-20261102.json), [combined handoff](paytm-managed-proxy.md).47 report/launcher,22 controller and62 Bash assertions; six mocked controller and11 mocked installer workflows. Actual files and native Bash parsing, no real systemd/network/account changes. Managed restart, persistent disable, boot configuration and TLS/denial checks prepared. Windows remains locked; runtime acceptance pending.
 
 - **E207 LOCKED_SUPERVISOR_RUNTIME_ACCEPTED_TRANSPORT_PENDING:** [acceptance](evidence/paytm-supervisor-recovery-accepted-20261102.json). Recovery36.582s; ten ab4ce2e CRLF source hashes match. Background signing, advancing heartbeat, duplicate same process, STOP across a new launch, and fresh LOCKED restart pass; no failure/cleanup error. Account/key/password/policy unchanged. G2.4 locked-host prerequisite accepted; production transport/cold boot remain open. Groups100/60/0/0/0/0 unchanged; do not rerun recovery.

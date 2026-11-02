@@ -18,7 +18,7 @@ function Read-PaytmManagedProxyReport([string]$Text,[string]$RunId) {
     $pattern='(?m)^BEGIN_MANAGED_REPORT_'+$RunId+'\r?\n(?<json>\{[^\r\n]+\})\r?\nEND_MANAGED_REPORT_'+$RunId+'\r?$'
     $matches=[regex]::Matches($Text,$pattern)
     if($matches.Count -ne 1){throw 'MANAGED_REPORT_MISSING_OR_DUPLICATE'}
-    $value=$matches[0].Groups['json'].Value|ConvertFrom-Json -ErrorAction Stop
+    try{$value=$matches[0].Groups['json'].Value|ConvertFrom-Json -ErrorAction Stop}catch{throw 'MANAGED_REPORT_INVALID_JSON'}
     foreach($field in @('version','exitCode','failureLine','elapsedSeconds','httpStatus')){
         if($value.$field -isnot [int] -and $value.$field -isnot [long]){throw 'MANAGED_REPORT_NUMBER_REQUIRED'}
     }

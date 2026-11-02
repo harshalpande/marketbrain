@@ -32,10 +32,11 @@ function Get-Clipboard {
  $id=if($managedFixture.case -eq 'wrong_run'){'b'*32}else{$managedFixture.run}
  $value=[ordered]@{version=1;runId=$id;success=$true;stage='COMPLETE';exitCode=0;failureLine=0;elapsedSeconds=45;baselineVerified=$true;backupVerified=$true;effectivePolicyVerified=$true;crashRestartVerified=$true;disableVerified=$true;conditionBlocksStart=$true;tlsVerified=$true;httpStatus=503;denialsVerified=$true;bootEnabled=$true;finalRunning=$true;cleanupPassed=$true;credentialsUsed=$false;ordersEnabled=$false}
  if($managedFixture.case -eq 'server_failure'){$value.success=$false;$value.exitCode=1;$value.bootEnabled=$false;$value.finalRunning=$false}
+ if($managedFixture.case -eq 'malformed_json'){return "BEGIN_MANAGED_REPORT_$id`n{broken-json}`nEND_MANAGED_REPORT_$id"}
  "BEGIN_MANAGED_REPORT_$id`n"+($value|ConvertTo-Json -Compress)+"`nEND_MANAGED_REPORT_$id"
 }
 try{
- foreach($caseName in @('success','bad_receipt','server_failure','wrong_run','wrong_confirmation','host_changed')){
+ foreach($caseName in @('success','bad_receipt','server_failure','wrong_run','wrong_confirmation','host_changed','malformed_json')){
   $managedFixture.case=$caseName
   $managedFixture.waits=0;$managedFixture.clipboard=$null;$managedFixture.run=$null;$failed=$false
   $output=Join-Path $fixture $managedFixture.case
@@ -51,9 +52,10 @@ try{
    if($managedFixture.case -eq 'bad_receipt'){Check ($null -eq $managedFixture.clipboard -and $managedFixture.waits -eq 0) 'PREMUTATION_GUARD'}
    if($managedFixture.case -eq 'server_failure'){Check ($null -ne $r.server -and -not $r.server.success -and $managedFixture.waits -eq 1) 'FAILED_SERVER_PRESERVED'}
    if($managedFixture.case -eq 'host_changed'){Check ($r.server.success -and $r.failure -eq 'HOST_INSTANCE_CHANGED') 'REMOTE_SUCCESS_LOCAL_FAILURE'}
+   if($managedFixture.case -eq 'malformed_json'){Check ($r.serverReportText.Contains('{broken-json}') -and $r.failure -eq 'MANAGED_REPORT_INVALID_JSON' -and $null -eq $r.server) 'MALFORMED_REPORT_RETAINED'}
   }
  }
- [pscustomobject]@{status='MANAGED_PROXY_CONTROLLER_PASSED';assertions=$script:checks;workflows=6;runtimeApisMocked=$true;networkContacted=$false}|ConvertTo-Json
+ [pscustomobject]@{status='MANAGED_PROXY_CONTROLLER_PASSED';assertions=$script:checks;workflows=7;runtimeApisMocked=$true;networkContacted=$false}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($fixture)
  $temp=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'

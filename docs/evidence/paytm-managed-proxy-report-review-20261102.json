@@ -1,0 +1,38 @@
+{
+  "evidenceId": "E209",
+  "status": "REPORT_DECODING_FAILED_VPS_OUTCOME_UNCONFIRMED",
+  "sourceFile": "paytm-managed-proxy-20261102-231326-25659b497afb4d088bf9fbf309f791b1.json",
+  "sourceSha256": "485EEFFBAC25692488BDF641226BE5CD865BCBD76B1170F5B274F845042ABBFC",
+  "sourceRevision": "a1bed62",
+  "matchingCheckoutSourceHashes": 6,
+  "checkoutLineEndings": "Linux LF per .gitattributes; PowerShell CRLF",
+  "observed": {
+    "elapsedSeconds": 104.128,
+    "stage": "VERIFY_VPS_RESULT",
+    "exceptionType": "System.ArgumentException",
+    "hresult": -2147024809,
+    "script": "PaytmManagedProxy.ps1",
+    "line": 21,
+    "server": null,
+    "lockedAfter": null,
+    "lockedBeforePhase": "LOCKED",
+    "lockedBeforeProcessId": 16704,
+    "lockedBeforeSequence": 7593,
+    "windowsTaskChanged": false,
+    "windowsTunnelStarted": false,
+    "ordersEnabled": false
+  },
+  "diagnosis": "Report boundaries matched, then JSON conversion failed. Original report text was not checkpointed. Malformed input and VPS success/failure cannot be reconstructed from this file alone; no account or SSH failure is established.",
+  "correction": "Preserve bounded matching report text before parsing; classify JSON errors. Recover original log and current service snapshot without reinstalling or changing service state; encoded clipboard transfer retains original malformed content for review.",
+  "localVerification": {
+    "recoveryAssertions": 15,
+    "nativeBashExtractionCases": 4,
+    "controllerAssertions": 26,
+    "controllerMockWorkflows": 7,
+    "reportAndLauncherRegressionAssertions": 47,
+    "vpsContacted": false,
+    "realServiceOrTaskChanged": false
+  },
+  "acceptedPaytmGroupPercentages": [100,60,0,0,0,0],
+  "newRuntimeCheckpointsAccepted": 0
+}

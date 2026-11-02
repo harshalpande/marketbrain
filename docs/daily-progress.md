@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-02 Managed-proxy report conversion failed; evidence recovery prepared
+
+- E209: run25659b497afb4d088bf9fbf309f791b1 stopped at JSON conversion after104.128s. Exception ArgumentException at PaytmManagedProxy.ps1:21. Matching boundaries passed, but raw JSON was not saved. VPS outcome remains unknown; do not characterize this as installation failure or success.
+- Windows supervisor was LOCKED, PID16704/sequence7593, before the remote step. Original account/signing recovery remains accepted. No full checkpoint closed; groups100/60/0/0/0/0 and whole-project baseline unchanged.
+- Collector corrected to checkpoint matching bounded report text before parsing. New read-only recovery retrieves the original run block from bounded root-owned logs plus current service/listener/marker/timer state, using encoded clipboard transfer. It performs no service/account/key/order change and does not repeat installation.
+- Local verification:15 recovery assertions including4 real Bash extraction cases,26 controller assertions/seven mocked workflows,47 parser/launcher regressions. Malformed JSON is deliberately retained and cannot become a successful acceptance. Exact original malformed content still awaits recovery.
+- [Current recovery steps](paytm-managed-report-recovery.md); share one JSON. Earlier managed-install command is paused pending evidence review.
+
 ## 2026-11-02 Locked supervisor accepted; managed VPS lifecycle batch prepared
 
 - E207: recovery a7d2909100d7409e8cec8160806195ff passed36.582s with ten reviewed source matches. Same-process duplicate start, persistent STOP, fresh locked restart and session0 signing passed. No failure or cleanup error; retained task/key/password/policy preserved. Earlier recovery handoffs are historical.

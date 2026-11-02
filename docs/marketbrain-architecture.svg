@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1060" viewBox="0 0 1200 1060" role="img" aria-labelledby="title desc">
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">PG1 full intelligence uses a planned 15-year history target, fundamentals, news, 5/20/60-session and separate intraday forecasts with controlled learning. PG2 is its shared-workflow INR 100000 paper deployment with ACCEPT/REJECT. Research simulation has separate accounting. E207 locked Windows host accepted; E208 managed VPS lifecycle implementation awaits runtime acceptance. Production Windows transport and boot tests remain pending. Paytm real execution is deferred and disconnected. Dashed boxes are planned or incomplete.</desc>
+  <desc id="desc">PG1 full intelligence uses a planned 15-year history target, fundamentals, news, 5/20/60-session and separate intraday forecasts with controlled learning. PG2 is its shared-workflow INR 100000 paper deployment with ACCEPT/REJECT. Research simulation has separate accounting. E207 locked Windows host accepted; E209 managed VPS report decoding failed; outcome awaits read-only evidence recovery. Production Windows transport and boot tests remain pending. Paytm real execution is deferred and disconnected. Dashed boxes are planned or incomplete.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -25,7 +25,7 @@
   <rect x="425" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="443" y="121" class="label">Upstox + Paytm live feeds</text>
   <text x="443" y="148" class="body">Paytm synthetic rehearsal accepted</text>
-  <text x="443" y="173" class="body">Gateway 60%; locked host accepted</text>
+  <text x="443" y="173" class="body">Gateway 60%; VPS result under review</text>
   <rect x="820" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="838" y="121" class="label">Marketaux / news events</text>
   <text x="838" y="148" class="body">Connector exists; entity/event work pending</text>

@@ -5,7 +5,7 @@
 $ErrorActionPreference='Stop'
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmTunnelVerification.ps1','PaytmManagedProxy.ps1')){. (Join-Path $PSScriptRoot $name)}
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;
-    sourceHashes=@{};supervisorReceiptHash=$null;lockedBefore=$null;lockedAfter=$null;server=$null;elapsedSeconds=0;
+    sourceHashes=@{};supervisorReceiptHash=$null;lockedBefore=$null;lockedAfter=$null;server=$null;serverReportText=$null;elapsedSeconds=0;
     acceptedProgress=@();windowsTaskChanged=$false;windowsTunnelStarted=$false;credentialsUsed=$false;ordersEnabled=$false}
 $clock=[Diagnostics.Stopwatch]::StartNew()
 $null=Assert-PaytmAccountPath $OutputDirectory;$null=New-Item -ItemType Directory -Path $OutputDirectory -Force
@@ -38,7 +38,13 @@ try {
     Write-Progress -Activity 'Managed VPS proxy' -Status 'Waiting for VPS result; real progress is displayed in PuTTY' -PercentComplete 20
     $answer=Read-Host 'When the complete VPS report block is copied, type REPORT-COPIED here'
     if($answer -cne 'REPORT-COPIED'){throw 'MANAGED_REPORT_COPY_NOT_CONFIRMED'}
-    $report.stage='VERIFY_VPS_RESULT';$report.server=Read-PaytmManagedProxyReport (Get-Clipboard -Raw) $report.runId;Save-ManagedReport
+    $report.stage='VERIFY_VPS_RESULT'
+    $copied=Get-Clipboard -Raw
+    if($copied.Length -gt 65536){throw 'MANAGED_REPORT_BOUNDARY'}
+    # Retain only a bounded matching report envelope, never an unrelated clipboard.
+    $envelope=[regex]::Match($copied,'(?ms)^BEGIN_MANAGED_REPORT_'+$report.runId+'\r?\n.*?^END_MANAGED_REPORT_'+$report.runId+'\r?$')
+    if($envelope.Success){$report.serverReportText=$envelope.Value;Save-ManagedReport}
+    $report.server=Read-PaytmManagedProxyReport $copied $report.runId;Save-ManagedReport
     Assert-PaytmManagedProxyPassed $report.server
     $report.lockedAfter=Wait-PaytmHost $receipt.installationId LOCKED
     Assert-PaytmHostAdvance $report.lockedBefore $report.lockedAfter
