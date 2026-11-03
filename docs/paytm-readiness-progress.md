@@ -1,6 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E215, 2026-11-03:** The after-restart report shows a new session-0 worker running with transport ready. Verification stopped after 24.798s because an unsupported 15-second task/process timestamp comparison rejected a 31.352325-second difference. Five source hashes match the reviewed CRLF checkout. The corrected collector validates both timestamps within the new boot window and records their difference; 94 local assertions pass. [Retry After only](paytm-gateway-windows-restart.md#retry-this-interrupted-after-phase): preserve the baseline, no reboot or reinstall. Application/account checks were not reached. Groups remain **100/80/0/0/0/0**, 9/30 accepted checkpoints; full startup acceptance is pending.
+**Current E216/E217, 2026-11-03:** Windows restart accepted in14.623s: new background worker, application TLS route, preserved INR100000 account and final locked application/writer. Five source hashes verified. G2.4 closes; groups **100/100/0/0/0/0**,10/30 accepted checkpoints (33.33% of this bounded plan). [Next: task cancellation and application recovery](paytm-gateway-cancellation.md), one combined batch with orphan/listener cleanup, failure locking and explicit restart without automatic rearm. No reinstall, reboot, key import or VPS change. Remaining G3 and Paytm login/quotes still pending; HTTP503 is transport-only evidence.
+
+**Historical E215, 2026-11-03:** The after-restart report shows a new session-0 worker running with transport ready. Verification stopped after 24.798s because an unsupported 15-second task/process timestamp comparison rejected a 31.352325-second difference. Five source hashes match the reviewed CRLF checkout. The corrected collector validates both timestamps within the new boot window and records their difference; 94 local assertions pass. [Retry After only](paytm-gateway-windows-restart.md#retry-this-interrupted-after-phase): preserve the baseline, no reboot or reinstall. Application/account checks were not reached. Groups remain **100/80/0/0/0/0**, 9/30 accepted checkpoints; full startup acceptance is pending.
 
 **Historical E213/E214, 2026-11-03:** Managed transport accepted in64.115s: all4 application-route checks, duplicate start, deliberate disable, child reconnect and persistent STOP pass; account remains INR100000 and application/writer finish locked. Seven source hashes verified. G2.5 closes: groups **100/80/0/0/0/0**,9/30 checkpoints. [Next: before/after Windows restart verification](paytm-gateway-windows-restart.md),66 local assertions, one report. No installer/key/VPS rerun. Actual Windows startup, remaining G3 recovery/security cases, login and quotes remain pending; HTTP503 is TLS-route evidence only.
 
@@ -38,18 +40,18 @@ Historical E194: actual recovery and exact-account probe accepted. Eight complet
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 
-## Current accepted snapshot — E215 (E213 checkpoint count retained)
+## Current accepted snapshot — E216 (G2.4 closed)
 
 | Group | Accepted checkpoints | Accepted completion | Remaining |
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
-| G2 Unattended gateway |4/5|80%|Managed transport and VPS lifecycle accepted; post-reboot application/account checks need After-only retry |
+| G2 Unattended gateway |5/5|100%|Windows startup, managed transport and application/account checks accepted; remaining resilience cases belong to G3 |
 | G3 Real recovery/safe failure |0/5|0%|Installed-system interruption, negatives, stop, logoff/boot, health/no-fallback acceptance |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |
 | G6 Telegram review |0/5|0%|Real review-only ACCEPT, REJECT, expiry, replay and unauthorized cases |
 
-Earlier tunnel/container/application-route evidence remains accepted as prerequisite work. Zeros in G3–G6 mean no checkpoint in this **managed-system acceptance baseline** is closed, not that no supporting code or past tests exist. One complete group out of six remains true; do not equate that count with estimated remaining time.
+Earlier tunnel/container/application-route evidence remains accepted as prerequisite work. Zeros in G3–G6 mean no checkpoint in this **managed-system acceptance baseline** is closed, not that no supporting code or past tests exist. Two complete groups out of six are now accepted; do not equate that count with estimated remaining time.
 
 E185 report passed79 assertions,12 unsafe-configuration cases and31 effective SSH settings in2.335s; all five source hashes matched the reviewed Windows checkout. This closes G2.1. It did not start an agent, import a key, install a task or contact the VPS. Previous foundation engineering was locally verified; its spare acceptance is now confirmed.
 

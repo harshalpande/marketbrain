@@ -1,0 +1,17 @@
+{
+  "evidenceId":"E217",
+  "date":"2026-11-03",
+  "status":"CANCELLATION_ENGINEERING_PASSED_SPARE_PENDING",
+  "rules":{"script":"TestPaytmGatewayCancellationRules.ps1","assertions":31,"scope":"Restart receipt guards, boolean exit proofs, owner/session/child/birth identity, listener ownership, native handle disposal and bounded orphan polling."},
+  "workflows":{"script":"TestPaytmGatewayCancellationWorkflow.ps1","assertions":49,"cases":12,"scope":"Success, invalid receipt, unlocked app, task drift, cancellation failure, orphan, unexpected restart, direct fallback, authority replay, recovery failure, account drift and final-lock failure."},
+  "totalAssertions":80,
+  "runtimeApisMocked":true,
+  "realAtomicReportFiles":true,
+  "runtimeTaskCancelledLocally":false,
+  "spareAcceptance":false,
+  "taskRegistrationChanged":false,
+  "credentialsUsed":false,
+  "ordersEnabled":false,
+  "checkpointPercentages":[100,100,0,0,0,0],
+  "nextCheckpoint":"Runtime cancellation plus accepted E213 duplicate/persistent STOP evidence can close G3.3. Other G3 requirements remain pending."
+}

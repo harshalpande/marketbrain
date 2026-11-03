@@ -1,5 +1,7 @@
 # Gateway verification across a Windows restart
 
+**Accepted E216, 2026-11-03:** The corrected After-only run passed in14.623s. G2.4 and the full G2 group are now accepted at100%. Do not repeat either restart phase. [Next: combined cancellation and application recovery](paytm-gateway-cancellation.md). The retry instructions below are historical.
+
 ## Retry this interrupted After phase
 
 **E215, 2026-11-03:** Run `eb86108cc1e247d68d06e135eb580bf6` stopped at `STARTUP_TASK_START_MISMATCH` after 24.798 seconds. The Windows boot changed and a new session-0 worker was already running, with transport ready, signing and denial checks true. Task metadata reports 12:20:20 UTC and native worker creation reports 12:20:51.352325 UTC: the old 15-second comparison was not a valid acceptance requirement. The cause of that timestamp difference is not established by this report.

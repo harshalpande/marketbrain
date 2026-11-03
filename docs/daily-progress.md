@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-11-03 Windows restart accepted; cancellation and recovery prepared
+
+- E216: corrected After-only run `eb86108cc1e247d68d06e135eb580bf6` passed in14.623s, five CRLF source hashes verified against1297b49. New Windows boot and session0 worker, new application boot, TLS route, preserved INR100000 cash/reserved0/revision0 and final application/writer lock accepted. No credentials/orders or task start by the restart collector.
+- G2.4 closes: G2 moves80% to100% (+20pp). Accepted groups100/100/0/0/0/0;10/30 checkpoints =33.33% of this bounded Paytm readiness plan (+3.33pp). This is not whole-project completion or a prediction-quality result.
+- Evidence limitations:13 worker connection attempts and433 cumulative outage seconds are observed. Their causes are unknown; this report proves successful recovery at collection time, not uninterrupted connectivity, full cold-power-loss/logoff coverage or unattended Docker startup.
+- E217: [combined task cancellation/orphan cleanup/application recovery](paytm-gateway-cancellation.md).31 rule and49 workflow assertions pass;12 workflow scenarios with runtime APIs mocked, actual atomic JSON output. Reuses existing task/key/VPS; no installation or reboot. Accepted E213 duplicate/persistent-STOP results plus successful cancellation can close G3.3. Remaining network, security negatives, cold-boot/logoff and clock-health gates still need their own evidence.
+
 ## 2026-11-03 Post-reboot worker observed; collector timestamp defect corrected
 
 - E215: reviewed run `eb86108cc1e247d68d06e135eb580bf6`, SHA and five CRLF source hashes verified. New Windows boot and new session-0 worker with transport ready; failure at24.798s preceded application/account checks.

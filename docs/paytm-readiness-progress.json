@@ -14,13 +14,13 @@
       {"id":"G2.1","goal":"Supervisor foundation and spare native client configuration accepted","evidence":"E185"},
       {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":"E194"},
       {"id":"G2.3","goal":"Protected key custody and pinned restricted OpenSSH authentication under exact account accepted","evidence":"E198"},
-      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204","E207","E213","E215"],"prerequisiteStatus":"E213 managed transport accepted. E215 observes a new post-reboot session-0 worker ready; collector rejected task/process timestamp gap before application/account checks. Corrected After-only follow-up pending; full startup checkpoint not closed."},
+      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":"E216","prerequisiteEvidence":["E204","E207","E213","E215"],"prerequisiteStatus":"E216 accepts actual Windows restart, fresh worker and application TLS route, unchanged account and final locked authority. Complete G2.4 checkpoint; independent logoff/cold-power-loss remains in G3.4."},
       {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":"E213","prerequisiteEvidence":["E210"],"prerequisiteStatus":"VPS crash recovery, persistent disable, local TLS/denials and running boot-enabled loopback service accepted. E213 accepts managed Windows/application TLS route, deliberate disable/fail-closed behavior and recovery. Complete checkpoint accepted."}
     ]},
     {"id":"G3","name":"Real recovery and safe failure","checkpoints":[
       {"id":"G3.1","goal":"Installed system process and network interruption/recovery accepted","evidence":null,"prerequisiteEvidence":["E213"],"prerequisiteStatus":"Verified SSH child termination/reconnect accepted; actual network interruption remains pending"},
       {"id":"G3.2","goal":"Actual wrong-key/host/listener/destination/TLS negative cases accepted","evidence":null},
-      {"id":"G3.3","goal":"Managed-system duplicate-start, cancellation and persistent stop accepted","evidence":null,"prerequisiteEvidence":["E213"],"prerequisiteStatus":"Duplicate start and persistent STOP across fresh worker accepted; cancellation acceptance remains pending"},
+      {"id":"G3.3","goal":"Managed-system duplicate-start, cancellation and persistent stop accepted","evidence":null,"prerequisiteEvidence":["E213"],"prerequisiteStatus":"E213 duplicate start and persistent STOP across fresh worker accepted; E217 combined abrupt task cancellation and application recovery prepared, runtime acceptance pending"},
       {"id":"G3.4","goal":"Exact-account logoff/cold-boot recovery with no authority replay accepted","evidence":null},
       {"id":"G3.5","goal":"Clock/health drift policy, observability and application no-direct-fallback accepted","evidence":null}
     ]},
