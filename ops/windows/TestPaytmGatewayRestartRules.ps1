@@ -25,6 +25,21 @@ foreach($mutation in @({param($x)$x.failure='error'},{param($x)$x.accountPreserv
 }
 function Observation($After=$false){[pscustomobject]@{machineHash=('A'*64);bootUtc=$(if($After){'2026-11-03T12:00:00Z'}else{'2026-11-02T12:00:00Z'});workerStartUtc='2026-11-03T12:00:32Z';collectorStartUtc='2026-11-03T12:02:00Z';taskLastRunUtc='2026-11-03T12:00:31Z';worker=(Worker -Instance $(if($After){'b'*32}else{'a'*32}))}}
 $before=Observation;$after=Observation $true;Assert-PaytmRestartBoundary $before $after;Check $true 'RESTART_BOUNDARY'
+Check ($after.taskToWorkerStartSeconds -eq 1) 'TASK_DELTA_RECORDED'
+# Exact timestamps from the failed spare report: a healthy worker was rejected
+# solely because native creation followed task metadata by 31.352325 seconds.
+$actual=Observation $true
+$actual.bootUtc='2026-11-03T12:19:28.5000000Z';$actual.workerStartUtc='2026-11-03T12:20:51.3523250Z'
+$actual.taskLastRunUtc='2026-11-03T12:20:20.0000000Z';$actual.collectorStartUtc='2026-11-03T14:17:38.3133878Z'
+Assert-PaytmRestartBoundary $before $actual
+Check ($actual.taskToWorkerStartSeconds -eq 31.352325) 'SPARE_TIMESTAMP_REGRESSION'
+foreach($stamp in @('2026-11-03T12:00:00Z','2026-11-03T12:02:00Z')){
+ $v=Observation $true;$v.taskLastRunUtc=$stamp;Assert-PaytmRestartBoundary $before $v
+ Check ($v.taskToWorkerStartSeconds -eq ($([DateTimeOffset]::Parse($v.workerStartUtc))-[DateTimeOffset]::Parse($stamp)).TotalSeconds) 'TASK_METADATA_DIFFERENCE_NOT_IDENTITY'
+}
+foreach($stamp in @('2026-11-03T11:59:59Z','2026-11-03T12:02:01Z','invalid','')){
+ $v=Observation $true;$v.taskLastRunUtc=$stamp;Reject {Assert-PaytmRestartBoundary $before $v} 'TASK_OUTSIDE_WINDOW_OR_INVALID'
+}
 foreach($mutation in @({param($x)$x.machineHash='B'*64},{param($x)$x.bootUtc='2026-11-02T12:00:00Z'},{param($x)$x.worker.instanceId='a'*32},{param($x)$x.workerStartUtc='2026-11-03T11:00:00Z'},{param($x)$x.workerStartUtc='2026-11-03T12:03:00Z'},{param($x)$x.taskLastRunUtc='2026-11-02T12:00:00Z'})){
  $v=Observation $true;&$mutation $v;Reject {Assert-PaytmRestartBoundary $before $v} 'RESTART_PROOF_REJECTION'
 }

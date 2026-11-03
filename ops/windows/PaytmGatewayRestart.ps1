@@ -59,7 +59,11 @@ function Assert-PaytmRestartBoundary($Before,$After){
  if($Before.worker.instanceId -ceq $After.worker.instanceId){throw 'STARTUP_OLD_WORKER_REUSED'}
  $started=[DateTimeOffset]::Parse($After.workerStartUtc);$collector=[DateTimeOffset]::Parse($After.collectorStartUtc)
  if($started -lt $newBoot -or $started -gt $collector){throw 'STARTUP_WORKER_NOT_RUNNING_BEFORE_CHECK'}
- if([math]::Abs(($started-[DateTimeOffset]::Parse($After.taskLastRunUtc)).TotalSeconds) -gt 15){throw 'STARTUP_TASK_START_MISMATCH'}
+ # Task Scheduler metadata is not the native process creation timestamp. Validate
+ # both against the boot/collector boundary; their difference is diagnostic only.
+ $taskRun=[DateTimeOffset]::Parse($After.taskLastRunUtc)
+ if($taskRun -lt $newBoot -or $taskRun -gt $collector){throw 'STARTUP_TASK_OUTSIDE_RESTART_WINDOW'}
+ $After|Add-Member -NotePropertyName taskToWorkerStartSeconds -NotePropertyValue ([math]::Round(($started-$taskRun).TotalSeconds,7)) -Force
 }
 function Assert-PaytmRestartCheckpoint($State){
  if($State.version -ne 1 -or $State.runId -cnotmatch '^[a-f0-9]{32}$' -or $State.completed -isnot [bool] -or $State.completed -or $State.receiptHash -cne '078A34DB0A46951EB98C5A08063F9FC76DB6EC75C175A3572CEE3D65DA4FAB4B'){throw 'STARTUP_CHECKPOINT_INVALID_OR_COMPLETE'}

@@ -1,12 +1,37 @@
 # Gateway verification across a Windows restart
 
+## Retry this interrupted After phase
+
+**E215, 2026-11-03:** Run `eb86108cc1e247d68d06e135eb580bf6` stopped at `STARTUP_TASK_START_MISMATCH` after 24.798 seconds. The Windows boot changed and a new session-0 worker was already running, with transport ready, signing and denial checks true. Task metadata reports 12:20:20 UTC and native worker creation reports 12:20:51.352325 UTC: the old 15-second comparison was not a valid acceptance requirement. The cause of that timestamp difference is not established by this report.
+
+The collector now independently requires the task timestamp and native process start to fall between the observed boot and collector start. It records `taskToWorkerStartSeconds` for review, without treating equality or a small difference as proof of launch causality. Existing exact task/principal/trigger, executable/session, child ownership, advancing heartbeat, installation and owner-confirmation checks remain required. Microsoft documents [LastRunTime](https://learn.microsoft.com/en-us/windows/win32/taskschd/registeredtask-lastruntime) and [Process.StartTime](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.starttime) as different observations; neither documents a 15-second correspondence guarantee.
+
+**No additional reboot, Before phase, installation, key import, PuTTY session or VPS change is needed.** Keep the existing Docker application running. Do not manually start the gateway task. Open PowerShell 7 as Administrator:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'Continue'
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Use PowerShell 7 as Administrator.' }
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+$changes = @(git status --porcelain)
+if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect repository.' }
+if ($changes.Count) { throw 'Preserve local changes before updating.' }
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& '.\ops\windows\TestPaytmGatewayRestart.ps1' -Phase After -ConfirmNoManualGatewayStart
+```
+
+This uses the retained protected baseline and updates the same `paytm-gateway-restart-eb86108cc1e247d68d06e135eb580bf6.json` report. Share it after completion. Do not use the confirmation switch if you manually started the gateway since the reboot; report that fact instead. Expected success is `WINDOWS_RESTART_TRANSPORT_AND_APPLICATION_ROUTE_PASSED`, after unchanged account/container/image, new application boot, TLS route and final lock checks. Those checks were not reached in the failed run.
+
+Local correction verification: 31 rule assertions and 63 assertions across nine two-phase workflows, including the exact 31.352325-second regression, invalid task times, failed-After recovery using the same baseline/report, account/image drift and final-lock protection. Runtime APIs are mocked; real atomic checkpoint/report operations are exercised. [E215 review](evidence/paytm-gateway-restart-review-20261103.json) preserves the source hash and limitations. G2 remains 80% pending the completed runtime result. Original fresh-baseline instructions below are retained for reference and must not be repeated for this retry.
+
 2026-11-03, E213/E214. Managed Windows transport and all four application-route checks are accepted from run `8ac7cdda3ca7475eb001df485797cb70` in 64.115 seconds. G2.5 is complete; G2 is now **80%**. Do not rerun installation, key import or the VPS lifecycle test.
 
 ## What this next batch establishes
 
 The existing scheduled task should start its non-admin worker automatically after Windows restarts, use the retained agent key, restore its pinned SSH connection and pass TLS/denial checks. The collector observes the task; it never starts, enables or restarts it. The installed startup trigger/settings are validated, and the owner explicitly confirms no manual gateway start.
 
-The Before phase records a fresh worker heartbeat, installed hashes, machine hash, Windows boot time, account and locked application state in an administrator-protected checkpoint. After checks a newer Windows boot, a different worker instance that started before collection, corresponding task start time, unchanged installation, advancing heartbeat and owned listener. It also verifies a fresh application boot ID, unchanged container/image/account, locked paper writer and credential-free application TLS routing. The final application route is locked.
+The Before phase records a fresh worker heartbeat, installed hashes, machine hash, Windows boot time, account and locked application state in an administrator-protected checkpoint. After checks a newer Windows boot, a different worker instance that started before collection, task metadata within that boot window, unchanged installation, advancing heartbeat and owned listener. It also verifies a fresh application boot ID, unchanged container/image/account, locked paper writer and credential-free application TLS routing. The final application route is locked.
 
 This proves the observed Windows restart scenario, not an independent sign-out-only test, full power-loss/cold-boot scenario or accurate UTC synchronization. Docker Desktop may need to be opened after login, and the existing MarketBrain application may need to be started manually. Those actions are separate from unattended gateway startup; do not claim unattended application startup from this test.
 

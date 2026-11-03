@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-11-03 Post-reboot worker observed; collector timestamp defect corrected
+
+- E215: reviewed run `eb86108cc1e247d68d06e135eb580bf6`, SHA and five CRLF source hashes verified. New Windows boot and new session-0 worker with transport ready; failure at24.798s preceded application/account checks.
+- Root cause of rejection: unsupported15s task/process timestamp tolerance; actual difference31.352325s. The cause of that difference is unknown. Both timestamps now must independently lie within the observed reboot window; delta remains in report/checkpoint. Exact identity/task/heartbeat protections remain.
+- 31 rule assertions plus63 workflow assertions pass, nine two-phase scenarios including actual timestamps and an After-only recovery without baseline replay. Tests substitute runtime APIs; no spare acceptance inferred.
+- Next: [After-only retry](paytm-gateway-windows-restart.md#retry-this-interrupted-after-phase), same protected baseline and one report. No reboot, installation, key or VPS repeat. Groups100/80/0/0/0/0;9/30 checkpoints, delta0. The report also records8 transport attempts and356 closed-outage seconds; their causes are not established and continuous availability is not claimed.
+
 ## 2026-11-03 Managed application route accepted; Windows restart verification prepared
 
 - E213: run8ac7cdda3ca7475eb001df485797cb70 PASSED in64.115s. Seven source hashes match29f7348 CRLF. Four application-route checks and15 application observations verified, constant application boot ID. Duplicate start retained worker/child; disable locked the route; child replacement increased attempts1 to2; persistent STOP skipped signing/network in a fresh worker; explicit restart restored transport. No failure/cleanup error.

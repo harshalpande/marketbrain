@@ -14,7 +14,7 @@
       {"id":"G2.1","goal":"Supervisor foundation and spare native client configuration accepted","evidence":"E185"},
       {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":"E194"},
       {"id":"G2.3","goal":"Protected key custody and pinned restricted OpenSSH authentication under exact account accepted","evidence":"E198"},
-      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204","E207","E213"],"prerequisiteStatus":"Managed production transport and application route accepted in E213; installed startup trigger verified, actual Windows startup recovery remains pending via E214"},
+      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204","E207","E213","E215"],"prerequisiteStatus":"E213 managed transport accepted. E215 observes a new post-reboot session-0 worker ready; collector rejected task/process timestamp gap before application/account checks. Corrected After-only follow-up pending; full startup checkpoint not closed."},
       {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":"E213","prerequisiteEvidence":["E210"],"prerequisiteStatus":"VPS crash recovery, persistent disable, local TLS/denials and running boot-enabled loopback service accepted. E213 accepts managed Windows/application TLS route, deliberate disable/fail-closed behavior and recovery. Complete checkpoint accepted."}
     ]},
     {"id":"G3","name":"Real recovery and safe failure","checkpoints":[

@@ -1,6 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E213/E214, 2026-11-03:** Managed transport accepted in64.115s: all4 application-route checks, duplicate start, deliberate disable, child reconnect and persistent STOP pass; account remains INR100000 and application/writer finish locked. Seven source hashes verified. G2.5 closes: groups **100/80/0/0/0/0**,9/30 checkpoints. [Next: before/after Windows restart verification](paytm-gateway-windows-restart.md),66 local assertions, one report. No installer/key/VPS rerun. Actual Windows startup, remaining G3 recovery/security cases, login and quotes remain pending; HTTP503 is TLS-route evidence only.
+**Current E215, 2026-11-03:** The after-restart report shows a new session-0 worker running with transport ready. Verification stopped after 24.798s because an unsupported 15-second task/process timestamp comparison rejected a 31.352325-second difference. Five source hashes match the reviewed CRLF checkout. The corrected collector validates both timestamps within the new boot window and records their difference; 94 local assertions pass. [Retry After only](paytm-gateway-windows-restart.md#retry-this-interrupted-after-phase): preserve the baseline, no reboot or reinstall. Application/account checks were not reached. Groups remain **100/80/0/0/0/0**, 9/30 accepted checkpoints; full startup acceptance is pending.
+
+**Historical E213/E214, 2026-11-03:** Managed transport accepted in64.115s: all4 application-route checks, duplicate start, deliberate disable, child reconnect and persistent STOP pass; account remains INR100000 and application/writer finish locked. Seven source hashes verified. G2.5 closes: groups **100/80/0/0/0/0**,9/30 checkpoints. [Next: before/after Windows restart verification](paytm-gateway-windows-restart.md),66 local assertions, one report. No installer/key/VPS rerun. Actual Windows startup, remaining G3 recovery/security cases, login and quotes remain pending; HTTP503 is TLS-route evidence only.
 
 **Historical E212, 2026-11-03:** [Managed transport retry](paytm-managed-windows-transport.md) corrects application discovery. Run6fa5d4c881224b6d8dd61a775123fb2b stopped after7.907s before backup/upgrade; the existing supervisor remained LOCKED. Seven source hashes match378a53b. The old report cannot distinguish no running container from multiple candidates. New lookup matches the exact Compose workspace and records stopped/paused/restarting/duplicate states without secrets or automatic restart.25 assertions/11 discovery scenarios and10 deployment regressions pass. Confirm the existing app is running, pull and retry the same batch. Groups100/60/0/0/0/0 unchanged; no VPS/account/key rerun.
 
@@ -36,12 +38,12 @@ Historical E194: actual recovery and exact-account probe accepted. Eight complet
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 
-## Current accepted snapshot — E207 (full-checkpoint count unchanged)
+## Current accepted snapshot — E215 (E213 checkpoint count retained)
 
 | Group | Accepted checkpoints | Accepted completion | Remaining |
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
-| G2 Unattended gateway |3/5|60%|Locked host accepted; production transport, managed VPS route/lifecycle pending |
+| G2 Unattended gateway |4/5|80%|Managed transport and VPS lifecycle accepted; post-reboot application/account checks need After-only retry |
 | G3 Real recovery/safe failure |0/5|0%|Installed-system interruption, negatives, stop, logoff/boot, health/no-fallback acceptance |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |

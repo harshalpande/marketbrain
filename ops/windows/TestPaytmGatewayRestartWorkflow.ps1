@@ -20,7 +20,13 @@ function Get-FileHash($LiteralPath){if($LiteralPath -eq $fixture.receipt){@{Hash
 function Assert-PaytmTransportAcceptance {}
 function Assert-PaytmInstalledTransport {[pscustomobject]@{installationId='fixture';hashes=@{'runner.ps1'='1';'host.ps1'='2';'native.dll'='3';'gateway.ps1'='4';'transport.ps1'='5';'transport.dll'='6'}}}
 function Get-PaytmRestartObservation {
- if($Phase -eq 'After' -and $fixture.scenario -ne 'no_restart'){Observation $true}else{Observation}
+ $v=if($Phase -eq 'After' -and $fixture.scenario -ne 'no_restart'){Observation $true}else{Observation}
+ if($Phase -eq 'After' -and $fixture.scenario -eq 'delayed_task_start'){
+  $v.bootUtc='2026-11-03T12:19:28.5000000Z';$v.workerStartUtc='2026-11-03T12:20:51.3523250Z'
+  $v.taskLastRunUtc='2026-11-03T12:20:20.0000000Z';$v.collectorStartUtc='2026-11-03T14:17:38.3133878Z'
+ }
+ if($Phase -eq 'After' -and $fixture.scenario -eq 'invalid_task_time'){$v.taskLastRunUtc='2026-11-02T12:00:00Z'}
+ $v
 }
 function Initialize-PaytmManagedApplication {
  if($fixture.scenario -eq 'unlocked' -and $Phase -eq 'After'){throw 'APP_ROUTE_EXPECTED_LOCKED'}
@@ -41,7 +47,7 @@ function Read-PaytmPaperAccount {$application.BeforeAccount}
 function Start-ScheduledTask {throw 'TEST_COLLECTOR_MUST_NOT_START_TASK'}
 function Set-PaytmHostControl {throw 'TEST_COLLECTOR_MUST_NOT_CHANGE_CONTROL'}
 try{
- foreach($scenario in @('pass','no_restart','account_drift','image_drift','unlocked','missing_confirmation','mid_phase_restart')){
+ foreach($scenario in @('pass','delayed_task_start','invalid_task_time','no_restart','account_drift','image_drift','unlocked','missing_confirmation','mid_phase_restart')){
   $base=Join-Path $temp $scenario;$root=Join-Path $base 'host';$out=Join-Path $base 'out';$source=Join-Path $base 'ops/windows';$null=New-Item -ItemType Directory -Path $root,$out,$source -Force
   $fixture=@{root=$root;out=$out;scenario=$scenario;receipt=(Join-Path $base 'receipt.json')};[IO.File]::WriteAllText($fixture.receipt,'{}')
   foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1')){[IO.File]::WriteAllText((Join-Path $source $name),'# fixture')}
@@ -54,17 +60,30 @@ try{
   $failed=$false
   try{& $scriptPath -Phase After -ConfirmNoManualGatewayStart:($scenario -ne 'missing_confirmation') -TransportReportPath $fixture.receipt 6>$null}catch{$failed=$true}
   $after=Read-PaytmHostJson $file[0].FullName
-  Check ($failed -eq ($scenario -ne 'pass')) 'EXPECTED_OUTCOME'
+  $expectedPass=$scenario -in @('pass','delayed_task_start')
+  Check ($failed -eq (-not $expectedPass)) 'EXPECTED_OUTCOME'
   $state=Read-PaytmHostJson (Join-Path $root 'restart-checkpoint.json')
-  if($scenario -eq 'pass'){
+  if($expectedPass){
    Check ($after.status -eq 'WINDOWS_RESTART_TRANSPORT_AND_APPLICATION_ROUTE_PASSED' -and $state.completed -and $after.applicationRouteChecks.Count -eq 1) 'AFTER_SUCCESS'
    Check ($state.after.worker.instanceId -ne $state.before.worker.instanceId) 'PROTECTED_AFTER_PROOF'
+   Check ($state.after.taskToWorkerStartSeconds -eq $after.observation.taskToWorkerStartSeconds) 'TASK_DELTA_CHECKPOINT_AND_REPORT'
+   if($scenario -eq 'delayed_task_start'){Check ($after.observation.taskToWorkerStartSeconds -eq 31.352325) 'SPARE_DELTA'}
   }else{Check ($after.status -eq 'REVIEW_REQUIRED' -and -not $state.completed) 'FAILED_AFTER_RETRYABLE_WITHOUT_BASELINE_REPLAY'}
   Check (@(Get-ChildItem -LiteralPath $out -Filter '*.json').Count -eq 1) 'SAME_REPORT'
   $raw=[IO.File]::ReadAllText($file[0].FullName)
   Check (-not $raw.Contains('PRIVATE_TOKEN_NEVER_REPORT') -and -not $after.taskStartedByCollector -and -not $after.configurationChanged -and -not $after.ordersEnabled) 'SCOPE'
+  if($scenario -eq 'invalid_task_time'){
+   Check ($after.failure -eq 'STARTUP_TASK_OUTSIDE_RESTART_WINDOW' -and $after.applicationRouteChecks.Count -eq 0) 'INVALID_TIME_STOPS_BEFORE_APPLICATION'
+   $baseline=$state.before|ConvertTo-Json -Depth 8 -Compress
+   $fixture.scenario='delayed_task_start'
+   & $scriptPath -Phase After -ConfirmNoManualGatewayStart -TransportReportPath $fixture.receipt 6>$null
+   $retried=Read-PaytmHostJson $file[0].FullName;$completed=Read-PaytmHostJson (Join-Path $root 'restart-checkpoint.json')
+   Check ($completed.completed -and $retried.status -eq 'WINDOWS_RESTART_TRANSPORT_AND_APPLICATION_ROUTE_PASSED' -and $retried.runId -eq $after.runId) 'AFTER_ONLY_RETRY_COMPLETES_SAME_RUN'
+   Check (($completed.before|ConvertTo-Json -Depth 8 -Compress) -ceq $baseline) 'RETRY_PRESERVES_ORIGINAL_BASELINE'
+   Check (@(Get-ChildItem -LiteralPath $out -Filter '*.json').Count -eq 1) 'RETRY_ONE_REPORT'
+  }
  }
- [pscustomobject]@{status='GATEWAY_RESTART_WORKFLOWS_PASSED';assertions=$checks;twoPhaseWorkflows=7;runtimeApisMocked=$true;realAtomicCheckpointFiles=$true}|ConvertTo-Json
+ [pscustomobject]@{status='GATEWAY_RESTART_WORKFLOWS_PASSED';assertions=$checks;twoPhaseWorkflows=9;runtimeApisMocked=$true;realAtomicCheckpointFiles=$true}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($temp);$base=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
  if(-not $resolved.StartsWith($base,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($resolved) -notmatch '^mb-restart-test-[a-f0-9]{32}$'){throw 'UNSAFE_FIXTURE_CLEANUP'}

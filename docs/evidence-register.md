@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E215 POST_REBOOT_WORKER_OBSERVED_AFTER_RETRY_PENDING:** [review](evidence/paytm-gateway-restart-review-20261103.json), [After-only retry](paytm-gateway-windows-restart.md#retry-this-interrupted-after-phase). Five source hashes verified; new session-0 worker ready after reboot. Collector failed at24.798s because task/process timestamps differ31.352325s, exceeding an unsupported15s rule. Corrected independent boot-window checks and diagnostic delta pass94 local assertions including same-checkpoint retry. Application/account checks not reached; G2 stays80%, no restart/reinstall repeat.
+
 - **E214 RESTART_VERIFICATION_ENGINEERING_PASSED_SPARE_PENDING:** [local evidence](evidence/paytm-gateway-restart-local-20261103.json), [before/after Windows restart handoff](paytm-gateway-windows-restart.md).23 rule and43 workflow assertions pass,7 two-phase workflows. Collector never starts task/reboots/configures runtime; one persisted report, protected baseline and After-only follow-up. Owner no-manual-start confirmation plus native process/task/OS observations; actual startup not yet accepted.
 - **E213 MANAGED_TRANSPORT_AND_APPLICATION_ROUTE_ACCEPTED_WINDOWS_STARTUP_PENDING:** [acceptance](evidence/paytm-managed-transport-accepted-20261103.json).64.115s,7 source matches,4/4 application route checks; duplicate, disable, verified-child recovery, persistent STOP/new worker and explicit restart passed. INR100000 account unchanged, final route/writer locked, no credentials/orders. G2.5 closes, groups100/80/0/0/0/0. G2.4 startup and remaining complete G3 cases stay pending; root503 is not broker readiness.
 
