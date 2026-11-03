@@ -1,0 +1,16 @@
+{
+  "evidenceId":"E214",
+  "status":"RESTART_VERIFICATION_ENGINEERING_PASSED_SPARE_PENDING",
+  "date":"2026-11-03",
+  "rules":{"script":"TestPaytmGatewayRestartRules.ps1","assertions":23,"scope":"Accepted transport proof, machine and reboot boundaries, pre-existing worker/task start timing, checkpoint identity and replay/path rejection"},
+  "workflows":{"script":"TestPaytmGatewayRestartWorkflow.ps1","assertions":43,"twoPhaseCases":7,"scope":"Success, missing reboot, account drift, image drift, unlocked application, missing owner confirmation and application restart during collection. Actual atomic checkpoint/report file operations with runtime APIs and ACL checks substituted."},
+  "totalAssertions":66,
+  "actualAcceptedReportValidated":true,
+  "actualSpareRestartTested":false,
+  "nativeLocalWindowsBootQueryPassed":true,
+  "taskStarted":false,
+  "runtimeConfigurationChanged":false,
+  "brokerCredentialsUsed":false,
+  "ordersEnabled":false,
+  "checkpointPercentages":[100,80,0,0,0,0]
+}

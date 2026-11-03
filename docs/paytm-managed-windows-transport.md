@@ -1,5 +1,7 @@
 # Managed Windows transport and application-route batch
 
+**Accepted E213:** run8ac7cdda3ca7475eb001df485797cb70 passed64.115s,4/4 routes, account unchanged and final application locked. Do not rerun installation. [Proceed to Windows restart verification](paytm-gateway-windows-restart.md). G2 is80%; the earlier installation/retry instructions below are historical.
+
 E211, 2026-11-03. Implementation and local verification complete; spare acceptance pending. E207 Windows account/task/signing and E210 VPS lifecycle remain accepted. Do not repeat provisioning, key import, the VPS installer or report recovery.
 
 **E212 retry update:** run `6fa5d4c881224b6d8dd61a775123fb2b` stopped in 7.907 seconds during application discovery, before backup or upgrade. Existing supervisor was LOCKED with signing verified. Docker commands exited successfully, but the old collector discarded the count/state needed to distinguish a missing running container from duplicates. The corrected lookup includes stopped containers, matches the exact repository working directory and records only allowlisted container state. It does not automatically start/recreate any container. Ensure the existing application is running, then use the same command below after pulling the correction. Do not repeat the VPS/account/key steps. [Report review](evidence/paytm-managed-transport-preflight-review-20261103.json).

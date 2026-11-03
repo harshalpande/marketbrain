@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-03 Managed application route accepted; Windows restart verification prepared
+
+- E213: run8ac7cdda3ca7475eb001df485797cb70 PASSED in64.115s. Seven source hashes match29f7348 CRLF. Four application-route checks and15 application observations verified, constant application boot ID. Duplicate start retained worker/child; disable locked the route; child replacement increased attempts1 to2; persistent STOP skipped signing/network in a fresh worker; explicit restart restored transport. No failure/cleanup error.
+- Final application/writer LOCKED; account100000, reserved0, ledger revision0 unchanged; no credentials, orders, key import, task registration or VPS change. Root503 establishes transport TLS only. Owner confirmed the earlier app was stopped; the corrected run found exactly one running workspace container.
+- G2.5 accepted; G2 rises60% to80%. G1/G2/G3/G4/G5/G6 now100/80/0/0/0/0,9/30 checkpoints (30%, up3.33 percentage points for this bounded readiness plan, not whole-project completion). Partial G3 process/duplicate/STOP evidence is recorded without closing mixed checkpoints whose network/cancellation requirements remain pending.
+- E214: before/after Windows restart collector prepared. Verifies preserved installation, newer OS boot, new session0 worker existing before collection, task start timing, agent-backed readiness, application fresh boot/locked authority, route and account. No task start/enable, reboot, deployment or key operation by collector. Owner performs Windows Restart; Docker/application may require manual startup, which is not counted as unattended app behavior.
+- Local verification:23 rule assertions and43 assertions across7 two-phase workflows pass. Runtime APIs/ACLs mocked, actual checkpoint/report file mechanism exercised. Actual acceptance report independently validated. Actual startup remains pending; [one-file handoff](paytm-gateway-windows-restart.md).
+
 ## 2026-11-03 Application preflight failure and corrected discovery
 
 - E212: managed transport run6fa5d4c881224b6d8dd61a775123fb2b failed after7.907s at CHECK_EXISTING_APPLICATION / APP_ROUTE_AMBIGUOUS_CONTAINER. All seven source hashes match378a53b CRLF. Docker context, endpoint and locate exited0; count/output were not captured, so absence versus multiple matches remains unknown.
