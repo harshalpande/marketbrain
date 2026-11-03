@@ -9,7 +9,8 @@ function Check([bool]$Value,[string]$Name){if(-not $Value){throw "BOOTSTRAP_TEST
 $runnerSource=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'RunPaytmGatewaySupervisor.ps1'))
 try {
     $dll=Join-Path $temp 'native.dll';Add-Type -Path (Join-Path $PSScriptRoot 'PaytmSupervisorNative.cs') -OutputAssembly $dll
-    foreach($kind in @('RestrictedSuccess','FileLoaderRegression','SourceDrift','HelperFailure','NativeFailure','DuplicateLease','ManagedPolicy','SigningFailure')){
+    $transportDll=Join-Path $temp 'transport.dll';Add-Type -Path (Join-Path $PSScriptRoot 'PaytmTransportNative.cs') -OutputAssembly $transportDll
+    foreach($kind in @('RestrictedSuccess','FileLoaderRegression','SourceDrift','HelperFailure','NativeFailure','DuplicateLease','ManagedPolicy','SigningFailure','TransportStop','TransportSourceDrift','TransportHelperFailure')){
         $cases++;$root=Join-Path $temp $kind;$null=New-Item -ItemType Directory -Path $root
         $work=Join-Path $root 'work';$null=New-Item -ItemType Directory -Path $work
         $source=$runnerSource.Replace('C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1',$root).Replace('C:\ProgramData\MarketBrainPaytmGateway\supervisor-work-v1',$work).Replace('C:\ProgramData\MarketBrainPaytmGateway\key-custody',$root)
@@ -29,7 +30,17 @@ try {
         $hashes=@{};foreach($n in @('host.ps1','runner.ps1','native.dll')){$hashes[$n]=(Get-FileHash -LiteralPath (Join-Path $root $n)).Hash}
         if($kind -ceq 'SourceDrift'){$hashes['host.ps1']='0'*64}
         $id='a'*32
-        @{version=1;installationId=$id;hashes=$hashes}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'manifest.json')
+        $manifest=@{version=1;installationId=$id;hashes=$hashes}
+        if($kind -like 'Transport*'){
+            $manifest.transportVersion=1
+            Copy-Item -LiteralPath $transportDll -Destination (Join-Path $root 'transport.dll')
+            Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'PaytmSupervisorTransport.ps1') -Destination (Join-Path $root 'transport.ps1')
+            Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'PaytmGatewaySupervisor.ps1') -Destination (Join-Path $root 'gateway.ps1')
+            if($kind -ceq 'TransportHelperFailure'){[IO.File]::WriteAllText((Join-Path $root 'transport.ps1'),"throw 'SECRET_SHOULD_NOT_LEAK'")}
+            foreach($n in @('transport.dll','transport.ps1','gateway.ps1')){$hashes[$n]=(Get-FileHash -LiteralPath (Join-Path $root $n)).Hash}
+            if($kind -ceq 'TransportSourceDrift'){$hashes['transport.ps1']='0'*64}
+        }
+        $manifest|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'manifest.json')
         @{version=1;installationId=$id;mode=if($kind -ceq 'SigningFailure'){'LOCKED'}else{'STOP'}}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'control.json')
         $code="&([scriptblock]::Create([IO.File]::ReadAllText('"+(Join-Path $root 'runner.ps1')+"')))"
         if($kind -ceq 'ManagedPolicy'){$code="function Get-ExecutionPolicy { [pscustomobject]@{Scope='MachinePolicy';ExecutionPolicy='Restricted'} };"+$code}
@@ -41,7 +52,7 @@ try {
             $handles.Add($h);$result=Complete-TunnelProcess $h 15
             Check (-not $result.StoppedByRunner) ($kind+'_BOUNDED_EXIT')
             $failure=Join-Path $work 'startup-failure.json';$status=Join-Path $work 'status.json'
-            if($kind -ceq 'RestrictedSuccess'){
+            if($kind -cin @('RestrictedSuccess','TransportStop')){
                 $s=[IO.File]::ReadAllText($status)|ConvertFrom-Json
                 Check ($result.ExitCode -eq 0 -and $s.phase -ceq 'STOPPED' -and $s.jobContained -and -not $s.networkContacted -and -not $s.signingVerified) 'RESTRICTED_INLINE_SUCCESS'
                 Check (-not (Test-Path -LiteralPath $failure)) 'NO_FALSE_FAILURE'
@@ -50,7 +61,7 @@ try {
             }else{
                 Check ($result.ExitCode -eq 1 -and (Test-Path -LiteralPath $failure)) ($kind+'_FAILURE_RECORDED')
                 $text=[IO.File]::ReadAllText($failure);$f=$text|ConvertFrom-Json
-                $expected=switch($kind){FileLoaderRegression{'LOAD_HELPER'} SourceDrift{'VERIFY_SOURCES'} HelperFailure{'LOAD_HELPER'} NativeFailure{'LOAD_NATIVE'} ManagedPolicy{'EXECUTION_POLICY'} SigningFailure{'OBSERVATION_LOOP'}}
+                $expected=switch($kind){FileLoaderRegression{'LOAD_HELPER'} SourceDrift{'VERIFY_SOURCES'} HelperFailure{'LOAD_HELPER'} NativeFailure{'LOAD_NATIVE'} ManagedPolicy{'EXECUTION_POLICY'} SigningFailure{'OBSERVATION_LOOP'} TransportSourceDrift{'VERIFY_SOURCES'} TransportHelperFailure{'LOAD_TRANSPORT'}}
                 Check ($f.stage -ceq $expected -and $f.details.type -and $text.Length -lt 4096 -and $text -notmatch 'SECRET_SHOULD_NOT_LEAK' -and -not $f.networkContacted) ($kind+'_SAFE_DIAGNOSTICS')
                 if($kind -ceq 'FileLoaderRegression'){Check ($f.details.outerType -ceq 'PSSecurityException') 'ORIGINAL_LOADER_DEFECT_REPRODUCED'}
                 if($kind -ceq 'SigningFailure'){

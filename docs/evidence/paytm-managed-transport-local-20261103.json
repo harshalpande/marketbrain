@@ -1,0 +1,23 @@
+{
+  "evidenceId": "E211",
+  "date": "2026-11-03",
+  "status": "LOCAL_ENGINEERING_PASSED_SPARE_TRANSPORT_ACCEPTANCE_PENDING",
+  "scope": "Extend accepted Windows supervisor; reuse accepted VPS and existing Java credential-free diagnostic route",
+  "verification": [
+    {"script":"TestPaytmManagedTransport.ps1","assertions":39,"workflows":5,"boundary":"Real atomic heartbeat files; signing, clock and network substituted"},
+    {"script":"TestPaytmTransportNative.ps1","assertions":7,"boundary":"Actual Windows child lifetime/output, IPv4 and IPv6 PID ownership, and Windows curl against local denial fixture; no external network"},
+    {"script":"TestPaytmManagedTransportController.ps1","assertions":23,"workflows":4,"boundary":"Actual installer file backup/replacement/report paths; task, ACL, compiler, account and application APIs substituted"},
+    {"script":"TestPaytmSupervisorBootstrap.ps1","assertions":34,"childProcessCases":11,"boundary":"Actual Restricted-policy PowerShell children and native DLL loading; identity/session substituted only in fixtures"},
+    {"script":"TestPaytmSupervisorHost.ps1","assertions":48,"boundary":"Native output, owner-death job containment and task constructors; no actual task registration"},
+    {"script":"TestPaytmGatewaySupervisor.ps1","assertions":79,"boundary":"Existing state/configuration foundation regression"}
+  ],
+  "totalAssertions":230,
+  "spareRuntimeTested":false,
+  "vpsChanged":false,
+  "brokerCredentialsUsed":false,
+  "ordersEnabled":false,
+  "checkpointPercentages":[100,60,0,0,0,0],
+  "acceptedCheckpointCount":8,
+  "totalCheckpointCount":30,
+  "pending":["Spare managed transport and Java route report", "Actual startup/logoff/network and remaining security/clock acceptance", "Paytm owner login and token lifecycle", "Fresh market-hours read-only quotes", "Telegram review-only ACCEPT/REJECT/expiry batch"]
+}

@@ -6,6 +6,8 @@ Baseline inspection: 2026-09-18; source revision **142f3bd** before this documen
 
 ### Paytm login preparation
 
+- **E211 LOCAL_ENGINEERING_PASSED_SPARE_TRANSPORT_ACCEPTANCE_PENDING:** [local evidence](evidence/paytm-managed-transport-local-20261103.json), [combined handoff](paytm-managed-windows-transport.md). 230 assertions: 39 adapter, 7 actual native loopback/process/curl, 23 controller, 34 bootstrap, 48 host and 79 gateway. Task/signing/remote route APIs are mocked where stated. New extension preserves accepted task/key/VPS and tests managed Java routing without rebuilding. Compile failure preserves old host; post-mutation failure persists STOP and verifies owned-task shutdown. Spare acceptance pending; groups100/60/0/0/0/0 unchanged.
+
 - **E210 VPS_MANAGED_LIFECYCLE_ACCEPTED_WINDOWS_TRANSPORT_PENDING:** [acceptance](evidence/paytm-managed-proxy-accepted-20261102.json). Original valid JSON:10-second success, all recorded lifecycle/TLS/denial proofs pass. Recovery46.141s, one matching log, five source hashes match1271e59. Snapshot: active/running, enabled, on-failure, sole loopback18888 listener owned by PID119060, matching marker and no guard timers. No reinstall/service change. VPS substage100%; G2.5 effective managed application route and G2.4 production transport still pending, groups100/60/0/0/0/0 unchanged. No rerun.
 
 

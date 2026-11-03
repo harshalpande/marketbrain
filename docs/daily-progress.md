@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-03 Managed Windows transport and application-route implementation
+
+- E211: extends the retained task with pinned SSH, exact-agent signing, native listener ownership, TLS/denial probes, monotonic backoff, persistent STOP and security-failure blocking. Existing VPS/account/custody remain accepted; no repeat installer or key import.
+- One spare batch backs up/replaces the owned worker extension and tests connection, existing Java route, duplicate start, disable/fail-closed route, verified-child failure/reconnect, STOP across restart and explicit restart. Final route/writer locked; account, ledger/history and application container must remain unchanged.
+- Local verification: 39 adapter, 7 native transport, 23 upgrade-controller, 34 restricted-bootstrap, 48 host and 79 gateway assertions pass (230 total). Native curl fixture found CONNECT denial exit 7 versus 56; both now require an actual proxy 403. Controller tests verify compile/route/account failure behavior and persistent STOP/owned-task disable after mutation. Real spare networking/task/account acceptance remains pending.
+- Metrics: implementation batch prepared; runtime checkpoint delta 0. G1/G2/G3/G4/G5/G6 remain 100/60/0/0/0/0 (8/30 equal-weight checkpoints). Whole-project percentage is not rebased by engineering fixtures. Actual cold boot/logoff and remaining network/security/clock cases remain next-stage work.
+- [Spare command and expected result](paytm-managed-windows-transport.md), [local evidence](evidence/paytm-managed-transport-local-20261103.json). No application rebuild, restart, VPS changes, broker credentials or trades in this batch.
+
 ## 2026-11-02 Managed VPS lifecycle accepted from recovered evidence
 
 - E210: recovered original run25659b497afb4d088bf9fbf309f791b1 is valid JSON and passed in10s. Crash restart, persistent disable, missing-marker start prevention, certificate-validated TLS and three denial checks are accepted. Root503 is transport evidence, not Paytm API readiness.

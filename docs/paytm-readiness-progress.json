@@ -14,8 +14,8 @@
       {"id":"G2.1","goal":"Supervisor foundation and spare native client configuration accepted","evidence":"E185"},
       {"id":"G2.2","goal":"Dedicated non-admin Windows account, protected storage and exact-account empty-agent probe accepted","evidence":"E194"},
       {"id":"G2.3","goal":"Protected key custody and pinned restricted OpenSSH authentication under exact account accepted","evidence":"E198"},
-      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204","E207"],"prerequisiteStatus":"Background signing and installed LOCKED host lifecycle accepted; production transport integration and actual startup recovery remain pending"},
-      {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":null,"prerequisiteEvidence":["E210"],"prerequisiteStatus":"VPS crash recovery, persistent disable, local TLS/denials and running boot-enabled loopback service accepted. Managed Windows-to-application effective route remains pending."}
+      {"id":"G2.4","goal":"Production supervisor and scheduled startup installed and verified","evidence":null,"prerequisiteEvidence":["E204","E207"],"prerequisiteStatus":"Background signing and installed LOCKED host lifecycle accepted; E211 transport extension implemented and locally verified, spare acceptance and actual startup recovery pending"},
+      {"id":"G2.5","goal":"Managed VPS lifecycle, effective route and deliberate disable verified","evidence":null,"prerequisiteEvidence":["E210"],"prerequisiteStatus":"VPS crash recovery, persistent disable, local TLS/denials and running boot-enabled loopback service accepted. E211 managed Windows-to-application route batch prepared; spare acceptance remains pending."}
     ]},
     {"id":"G3","name":"Real recovery and safe failure","checkpoints":[
       {"id":"G3.1","goal":"Installed system process and network interruption/recovery accepted","evidence":null},
