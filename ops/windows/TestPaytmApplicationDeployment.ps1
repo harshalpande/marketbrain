@@ -72,7 +72,8 @@ foreach($scenario in @('pass','cancel','writer-unlocked','environment-drift','bu
     $runId=[guid]::NewGuid().ToString('N');$ContainerEvidencePath='fixture-evidence'
     $application=[ordered]@{Docker=$null;Id=$null;Token=$null;BeforeAccount=$null;Before=$null;BootId=$null;Ready=$false}
     $report=[ordered]@{deploymentAttempted=$false;applicationCommands=[Collections.Generic.List[object]]::new();applicationObservations=[Collections.Generic.List[object]]::new();applicationRouteChecks=[Collections.Generic.List[object]]::new();startupLockedVerified=$false;restartLockedVerified=$false;finalApplicationLockVerified=$false;accountPreserved=$false}
-    $c=Container -Memory;$c.Config.Env+=@('MARKETBRAIN_PAYTM_ENABLED=false','MARKETBRAIN_PAYTM_ACCESS_TOKEN=')
+    $c=Container -Memory;$c.State|Add-Member Restarting $false;$c.State|Add-Member ExitCode 0;$c.State|Add-Member OOMKilled $false
+    $c.Config.Env+=@('MARKETBRAIN_PAYTM_ENABLED=false','MARKETBRAIN_PAYTM_ACCESS_TOKEN=')
     $script:fakeAppState=@{Current=$c;Deployed=$false;Restarted=$false;Armed=$false;Boot='11111111-1111-1111-1111-111111111111'}
     $original=[Environment]::GetEnvironmentVariable('MARKETBRAIN_DB_PASSWORD','Process');$failed=$false
     $reason=''

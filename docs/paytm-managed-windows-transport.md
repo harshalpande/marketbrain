@@ -2,6 +2,8 @@
 
 E211, 2026-11-03. Implementation and local verification complete; spare acceptance pending. E207 Windows account/task/signing and E210 VPS lifecycle remain accepted. Do not repeat provisioning, key import, the VPS installer or report recovery.
 
+**E212 retry update:** run `6fa5d4c881224b6d8dd61a775123fb2b` stopped in 7.907 seconds during application discovery, before backup or upgrade. Existing supervisor was LOCKED with signing verified. Docker commands exited successfully, but the old collector discarded the count/state needed to distinguish a missing running container from duplicates. The corrected lookup includes stopped containers, matches the exact repository working directory and records only allowlisted container state. It does not automatically start/recreate any container. Ensure the existing application is running, then use the same command below after pulling the correction. Do not repeat the VPS/account/key steps. [Report review](evidence/paytm-managed-transport-preflight-review-20261103.json).
+
 ## Purpose and scope
 
 The existing scheduled task currently signs and monitors in LOCKED mode. This extension lets that same non-admin, session-0 worker own the SSH connection from Windows `127.0.0.1:18889` to the accepted VPS loopback proxy `127.0.0.1:18888`. The existing Java diagnostic route is then tested through that connection. The task identity, stored password, key custody, VPS configuration and application container are retained.

@@ -14,12 +14,35 @@ function Invoke-PaytmPrivateDocker([string[]]$Arguments,[string]$Phase,[int]$Lim
     return $v.stdout.Trim()
 }
 function Get-PaytmApplicationContainer {
-    $id=Invoke-PaytmPrivateDocker @('ps','--filter','label=com.docker.compose.service=marketbrain-service','--format','{{.ID}}') 'LOCATE'
-    if($id -cnotmatch '^[a-f0-9]{12,64}$'){throw 'APP_ROUTE_AMBIGUOUS_CONTAINER'}
-    $rows=@(ConvertFrom-PaytmPrivateJson (Invoke-PaytmPrivateDocker @('inspect',$id) 'PRIVATE_INSPECT'))
-    if($rows.Count -ne 1){throw 'APP_ROUTE_CONTAINER_COUNT'}
-    Assert-PaperRuntimeContainer $rows[0] $route.Root -Memory
-    return $rows[0]
+    # Include stopped containers so absence, stopped state and duplicate deployment
+    # are distinguishable. Compose service names alone are not workspace identity.
+    $summary=[ordered]@{candidateCount=0;workspaceMatchCount=0;selectedId=$null;result='DISCOVERING';candidates=[Collections.Generic.List[object]]::new()}
+    $report.applicationDiscovery=$summary
+    $text=Invoke-PaytmPrivateDocker @('ps','--all','--no-trunc','--filter','label=com.docker.compose.service=marketbrain-service','--format','{{.ID}}') 'LOCATE'
+    $ids=@($text -split '\r?\n'|Where-Object {$_.Trim()})
+    $summary.candidateCount=$ids.Count
+    if($ids.Count -gt 32 -or @($ids|Where-Object {$_ -cnotmatch '^[a-f0-9]{64}$'}).Count -or @($ids|Select-Object -Unique).Count -ne $ids.Count){
+        $summary.result='INVALID_LIST';Save-Report;throw 'APP_ROUTE_CONTAINER_LIST_INVALID'
+    }
+    $workspaceContainers=[Collections.Generic.List[object]]::new()
+    foreach($id in $ids){
+        $rows=@(ConvertFrom-PaytmPrivateJson (Invoke-PaytmPrivateDocker @('inspect',$id) 'PRIVATE_INSPECT'))
+        if($rows.Count -ne 1 -or $rows[0].Id -cne $id){$summary.result='INSPECT_IDENTITY_MISMATCH';Save-Report;throw 'APP_ROUTE_CONTAINER_COUNT'}
+        $v=$rows[0];$sameWorkspace=$false
+        try{$sameWorkspace=(ConvertTo-PaperHostMount $v.Config.Labels.'com.docker.compose.project.working_dir') -ceq (ConvertTo-PaperHostMount $route.Root)}catch{}
+        # Export only allowlisted state. Inspect output contains credentials and is never retained.
+        $summary.candidates.Add([ordered]@{id=$id;workspaceMatches=$sameWorkspace;running=[bool]$v.State.Running;paused=[bool]$v.State.Paused;restarting=[bool]$v.State.Restarting;exitCode=$v.State.ExitCode;oomKilled=[bool]$v.State.OOMKilled})
+        if($sameWorkspace){$workspaceContainers.Add($v)}
+    }
+    $summary.workspaceMatchCount=$workspaceContainers.Count
+    if($workspaceContainers.Count -eq 0){$summary.result='APPLICATION_NOT_FOUND';Save-Report;throw 'APP_ROUTE_APPLICATION_NOT_FOUND'}
+    if($workspaceContainers.Count -ne 1){$summary.result='MULTIPLE_WORKSPACE_CONTAINERS';Save-Report;throw 'APP_ROUTE_MULTIPLE_WORKSPACE_CONTAINERS'}
+    $selected=$workspaceContainers[0];$summary.selectedId=$selected.Id
+    if(-not $selected.State.Running -or $selected.State.Paused -or $selected.State.Restarting){$summary.result='APPLICATION_NOT_RUNNING';Save-Report;throw 'APP_ROUTE_APPLICATION_NOT_RUNNING'}
+    $summary.result='VALIDATING_CONFIGURATION';Save-Report
+    Assert-PaperRuntimeContainer $selected $route.Root -Memory
+    $summary.result='VERIFIED';Save-Report
+    return $selected
 }
 function Invoke-PaytmApplicationHttp([string]$Command,[switch]$WithoutToken) {
     if($Command -cnotin @('status','arm','head','lock')){throw 'APP_ROUTE_INVALID_COMMAND'}

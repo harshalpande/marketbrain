@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-11-03 Application preflight failure and corrected discovery
+
+- E212: managed transport run6fa5d4c881224b6d8dd61a775123fb2b failed after7.907s at CHECK_EXISTING_APPLICATION / APP_ROUTE_AMBIGUOUS_CONTAINER. All seven source hashes match378a53b CRLF. Docker context, endpoint and locate exited0; count/output were not captured, so absence versus multiple matches remains unknown.
+- Existing non-admin supervisor PID16704 was LOCKED, sequence18858, signing verified and no network contact. No backup/upgrade/task registration/key import/VPS change occurred. The preflight did not establish application account preservation; that later check was not reached.
+- Corrected service discovery includes stopped containers, matches exact Compose working directory, rejects duplicate deployments and records only selected safe state fields. No arbitrary first-container selection, auto-start, recreation or private inspect output.25 assertions across11 discovery scenarios and10 deployment regressions pass with Docker/HTTP mocked.
+- Retry is the same managed transport command after pulling and ensuring the existing application is running. One JSON records precise state if still blocked. Runtime checkpoint delta0; groups100/60/0/0/0/0. [Evidence](evidence/paytm-managed-transport-preflight-review-20261103.json), [steps](paytm-managed-windows-transport.md).
+
 ## 2026-11-03 Managed Windows transport and application-route implementation
 
 - E211: extends the retained task with pinned SSH, exact-agent signing, native listener ownership, TLS/denial probes, monotonic backoff, persistent STOP and security-failure blocking. Existing VPS/account/custody remain accepted; no repeat installer or key import.

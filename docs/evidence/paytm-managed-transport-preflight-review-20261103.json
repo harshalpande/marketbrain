@@ -1,0 +1,18 @@
+{
+  "evidenceId":"E212",
+  "date":"2026-11-03",
+  "status":"APPLICATION_DISCOVERY_FAILED_BEFORE_TRANSPORT_UPGRADE",
+  "sourceFile":"paytm-managed-transport-20261103-170110-6fa5d4c881224b6d8dd61a775123fb2b.json",
+  "sourceSha256":"96248C7B126A4DFC2A90DD6B3771CBBD390434785D200CABA9C74080ED8DC70D",
+  "sourceRevision":"378a53b",
+  "elapsedSeconds":7.907,
+  "failure":"APP_ROUTE_AMBIGUOUS_CONTAINER",
+  "stage":"CHECK_EXISTING_APPLICATION",
+  "observed":{"dockerCommandsSucceeded":["CONTEXT","ENDPOINT","LOCATE"],"supervisorPhase":"LOCKED","supervisorProcessId":16704,"supervisorSequence":18858,"signingVerified":true,"networkContacted":false,"upgradeApplied":false,"backup":null,"cleanupFailure":null},
+  "unknown":"The old collector did not retain container count or state. No-running, multiple-running and invalid-output cases cannot be distinguished from this report.",
+  "correction":"Discover stopped and running service candidates, select the exact Compose working directory, retain allowlisted state, and report distinct absence, stopped/paused/restarting, duplicate and malformed-list failures. No automatic start/recreate.",
+  "verification":{"discoveryAssertions":25,"discoveryScenarios":11,"deploymentRegressionScenarios":10,"dockerAndHttpMocked":true},
+  "acceptedGroupPercentages":[100,60,0,0,0,0],
+  "runtimeCheckpointDelta":0,
+  "next":"Confirm existing application is running; retry the corrected managed transport batch. Same report includes precise discovery evidence if it remains blocked."
+}
