@@ -39,8 +39,8 @@ function ConvertTo-PaytmWorkerEvidence($Value){
   foreach($n in @('version','stderrCharacters')){$v=Get-PaytmEvidenceProperty $ssh $n;if(($v -is [int] -or $v -is [long]) -and $v -ge 0){$o[$n]=$v}}
   $v=Get-PaytmEvidenceProperty $ssh stderrSha256;if([string]$v -cmatch '^[A-F0-9]{64}$'){$o.stderrSha256=$v}
   $v=Get-PaytmEvidenceProperty $ssh reason;if([string]$v -cin @('UNKNOWN','NETWORK_UNAVAILABLE','HOST_KEY_CHANGED','KEY_DENIED','LISTENER_CONFLICT','DESTINATION_DRIFT')){$o.reason=$v}
-  $allowed=@('TCP_CONNECT_UNKNOWN','TCP_CONNECT_TIMEOUT','TCP_CONNECT_REFUSED','NETWORK_UNREACHABLE','CONNECTION_RESET','BROKEN_PIPE','KEX_CLOSED','SSH_TIMEOUT','HOST_KEY_FAILURE','PERMISSION_DENIED','SIGNING_FAILURE','LISTENER_FAILURE','DESTINATION_DENIED')
-  $o.tags=@((Get-PaytmEvidenceProperty $ssh tags)|Where-Object {$_ -is [string] -and $_ -cin $allowed}|Select-Object -First 13)
+  $allowed=@('TCP_CONNECT_DENIED','TCP_CONNECT_UNKNOWN','TCP_CONNECT_TIMEOUT','TCP_CONNECT_REFUSED','NETWORK_UNREACHABLE','CONNECTION_RESET','BROKEN_PIPE','KEX_CLOSED','SSH_TIMEOUT','HOST_KEY_FAILURE','PERMISSION_DENIED','SIGNING_FAILURE','LISTENER_FAILURE','DESTINATION_DENIED')
+  $o.tags=@((Get-PaytmEvidenceProperty $ssh tags)|Where-Object {$_ -is [string] -and $_ -cin $allowed}|Select-Object -First 14)
   $out.lastSshObservation=$o
   foreach($n in @('lastSshAttempt','lastSshElapsedSeconds')){$v=Get-PaytmEvidenceProperty $Value $n;if(($v -is [int] -or $v -is [long]) -and $v -ge 0){$out[$n]=$v}}
  }

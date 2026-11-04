@@ -16,6 +16,11 @@ try{
  foreach($pair in @(@('Host key verification failed','HOST_KEY_CHANGED'),@('Permission denied (publickey)','KEY_DENIED'),@('bind: Address already in use','LISTENER_CONFLICT'),@('administratively prohibited','DESTINATION_DRIFT'),@('Connection reset by peer','NETWORK_UNAVAILABLE'),@('other','UNKNOWN'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'ERROR_CLASSIFICATION'}
  foreach($pair in @(@('ssh: connect to host 130.250.191.137 port 22: Unknown error','NETWORK_UNAVAILABLE'),@('Unknown error','UNKNOWN'),@('ssh: connect to host 192.0.2.1 port 22: Unknown error','UNKNOWN'),@('kex_exchange_identification: Connection closed by remote host','NETWORK_UNAVAILABLE'),@("Host key verification failed`nssh: connect to host 130.250.191.137 port 22: Unknown error",'HOST_KEY_CHANGED'),@("Permission denied (publickey)`nssh: connect to host 130.250.191.137 port 22: Unknown error",'KEY_DENIED'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'NARROW_TCP_AND_SECURITY_PRECEDENCE'}
  $late=[pscustomobject]@{Exited=$true;ErrorTail='';Disposed=$false}
+ $tcp='ssh: connect to host 130.250.191.137 port 22: Permission denied'
+ foreach($pair in @(@($tcp,'NETWORK_UNAVAILABLE'),@("$tcp`r`n",'NETWORK_UNAVAILABLE'),@("$tcp`nPermission denied (publickey)",'KEY_DENIED'),@("$tcp`nHost key verification failed",'HOST_KEY_CHANGED'),@("$tcp`nbind: Address already in use",'LISTENER_CONFLICT'),@('ssh: connect to host 192.0.2.1 port 22: Permission denied','KEY_DENIED'),@(($tcp+' unexpected'),'KEY_DENIED'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'TCP_DENIED_VS_AUTH_DENIED'}
+ $denied=[pscustomobject]@{Exited=$true;ErrorTail=$tcp};$denied|Add-Member ScriptMethod Dispose {}
+ $deniedObservation=Get-PaytmChildObservation $denied $false
+ Check ($deniedObservation.tags -contains 'TCP_CONNECT_DENIED' -and $deniedObservation.tags -notcontains 'PERMISSION_DENIED') 'TCP_TAG_NOT_AUTH_TAG'
  $late|Add-Member ScriptMethod Dispose {$this.Disposed=$true;$this.ErrorTail='ssh: connect to host 130.250.191.137 port 22: Unknown error'}
  $o=Get-PaytmChildObservation $late $false
  Check ($late.Disposed -and $o.stderrDrained -and $o.reason -eq 'NETWORK_UNAVAILABLE' -and $o.tags -contains 'TCP_CONNECT_UNKNOWN') 'DRAIN_BEFORE_CLASSIFICATION'

@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 $ErrorActionPreference='Stop'
-foreach($n in @('PaytmSupervisorHost.ps1','PaytmGatewayNetwork.ps1')){. (Join-Path $PSScriptRoot $n)}
+foreach($n in @('PaytmSupervisorHost.ps1','PaytmGatewayFailureEvidence.ps1','PaytmGatewayNetwork.ps1')){. (Join-Path $PSScriptRoot $n)}
 Set-StrictMode -Version Latest
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('mb-network-test-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory -Path $temp
 $f=@{};$report=@{};$checks=0;$application=@{BootId='boot'}
@@ -22,7 +22,7 @@ function New-NetFirewallRule {
  $f.rules[$Name]=[pscustomobject]@{Name=$Name;Group=$Group;Description=$Description;Direction=$Direction;Action=$Action;Enabled=$Enabled;Profile=$Profile;Protocol=$Protocol;RemotePort=$RemotePort;RemoteAddress=$(if($f.case -eq 'scope'){'0.0.0.0/0'}else{$RemoteAddress});Program=$Program}
  if($f.case -eq 'program'){$f.rules[$Name].Program='Any'}
  if($f.case -eq 'port'){$f.rules[$Name].RemotePort='Any'}
- if($f.case -eq 'direction'){$f.rules[$Name].Direction='Outbound'}
+ if($f.case -eq 'direction'){$f.rules[$Name].Direction='Inbound'}
  if($Enabled -eq 'True'){$f.blocked=$true;$f.blocks++}
 }
 function Get-NetFirewallApplicationFilter {param([Parameter(ValueFromPipeline)]$InputObject);process{@{Program=$InputObject.Program}}}
@@ -57,7 +57,7 @@ function Get-PaytmTransportListeners {@()}
 function Assert-PaytmTransportListener {}
 function Assert-PaytmHostAdvance($A,$B){if($A.instanceId -ne $B.instanceId -or $A.sequence -ge $B.sequence){throw 'NETWORK_FIXTURE_HEARTBEAT'}}
 function Write-Backoff {
- Write-PaytmHostJson (Join-Path $f.root 'status.json') @{instanceId='same';processId=10;sequence=$f.seq;phase=$(if($f.case -eq 'blocked_worker'){'BLOCKED'}else{'BACKOFF'});failure=$null;brokerReady=$false;ordersEnabled=$false;transportState=@{attempts=2;failures=2}}
+ Write-PaytmHostJson (Join-Path $f.root 'status.json') @{instanceId='same';processId=10;sequence=$f.seq;phase=$(if($f.case -eq 'blocked_worker'){'BLOCKED'}elseif($f.case -eq 'ineffective_connection'){'TRANSPORT_READY'}else{'BACKOFF'});failure=$null;brokerReady=$false;ordersEnabled=$false;transportState=@{attempts=2;failures=2};lastSshAttempt=$(if($f.case -eq 'stale_attempt'){1}else{2});lastSshObservation=@{exited=$true;stderrDrained=($f.case -ne 'undrained');authenticated=($f.case -eq 'forced_kill_only');reason='NETWORK_UNAVAILABLE';tags=@('TCP_CONNECT_DENIED')}}
 }
 function Stop-PaytmReviewedChild {$f.kills++;$f.backoff=$true;Write-Backoff}
 function Invoke-PaytmApplicationHead($Label,$Expected){
@@ -67,19 +67,27 @@ function Invoke-PaytmApplicationHead($Label,$Expected){
 }
 function Invoke-PaytmApplicationHttp {@{status=$(if($f.case -eq 'rearm'){'ARMED'}else{'LOCKED'});bootId='boot'}}
 try{
- $cases=@('pass','profile','rehearsal','scope','program','port','direction','create_failure','ineffective','blocked_worker','fallback','new_worker','rearm','cleanup_failure')
+ $cases=@('pass','profile','rehearsal','scope','program','port','direction','create_failure','ineffective','ineffective_connection','blocked_worker','fallback','new_worker','rearm','cleanup_failure')
  foreach($case in $cases){
   $root=Join-Path $temp $case;$null=New-Item -ItemType Directory -Path $root
   $f=@{case=$case;root=$root;tasks=@{};rules=@{};blocked=$false;blocks=0;kills=0;backoff=$false;seq=10;locked=$true}
   $report=@{runId=[guid]::NewGuid().ToString('N');networkInterruptionAttempted=$false;networkCleanupRehearsalPassed=$false;networkLossObserved=$false;networkRecoveryPassed=$false;noAutomaticRearmPassed=$false;cleanupTasksRegistered=0;cleanupFailure=$null;applicationRouteChecks=[Collections.Generic.List[object]]::new()}
-  $failed=$false;try{Invoke-PaytmNetworkBatch 'installation' $PSScriptRoot}catch{$failed=$true;if($case -eq 'pass'){throw}}
+  $failed=$false;$reason='';try{Invoke-PaytmNetworkBatch 'installation' $PSScriptRoot}catch{$failed=$true;$reason=$_.Exception.Message;if($case -eq 'pass'){throw}}
   if($case -eq 'pass'){
    Check (-not $failed -and $report.networkCleanupRehearsalPassed -and $report.networkLossObserved -and $report.networkRecoveryPassed -and $report.noAutomaticRearmPassed) 'BATCH_PASS'
    Check ($f.blocks -eq 1 -and $f.kills -eq 1 -and $report.applicationRouteChecks.Count -eq 3) 'ONE_FAULT_THREE_APPLICATION_CHECKS'
+   Check ($report.networkObservations.Count -eq 1 -and $report.networkLastObservation.ssh.reason -ceq 'NETWORK_UNAVAILABLE') 'NETWORK_OBSERVATIONS_SAVED'
   }else{Check ($failed -or $null -ne $report.cleanupFailure) ($case+'_FAIL_CLOSED')}
+  if($case -eq 'ineffective_connection'){Check ($reason -ceq 'NETWORK_BLOCK_INEFFECTIVE' -and -not $report.networkLossObserved -and $report.networkLastObservation.waitSeconds -lt 5) 'INEFFECTIVE_FAULT_FAILS_EARLY'}
   if($case -eq 'cleanup_failure'){Check ($report.cleanupFailure -eq 'NETWORK_GUARD_CLEANUP_REVIEW_REQUIRED' -and $f.rules.Count -eq 1 -and $f.tasks.Count -eq 1) 'INDEPENDENT_GUARD_RETAINED'}
   else{Check ($f.rules.Count -eq 0 -and $f.tasks.Count -eq 0) ($case+'_OWNED_RESOURCES_REMOVED')}
   if($case -in @('profile','rehearsal','scope','program','port','direction')){Check ($f.blocks -eq 0 -and $f.kills -eq 0) 'FAILED_REHEARSAL_NO_OUTAGE'}
+ }
+ foreach($case in @('forced_kill_only','stale_attempt','undrained')){
+  $f.case=$case;$f.backoff=$true;$f.seq=10;Write-Backoff
+  $reason='';try{$null=Wait-PaytmNetworkBackoff (Snapshot) 1}catch{$reason=$_.Exception.Message}
+  Check ($reason -ceq 'NETWORK_BACKOFF_NOT_OBSERVED') ($case+'_NOT_NETWORK_PROOF')
+  Check ($report.networkObservations.Count -eq 1 -and $report.networkLastObservation.sequence -gt 10) ($case+'_OBSERVATIONS_RETAINED')
  }
  [pscustomobject]@{status='NETWORK_BATCH_ENGINEERING_PASSED';assertions=$checks;workflows=$cases.Count;realGuardTaskConstructionAndRuleValidation=$true;windowsRuntimeApisMocked=$true}|ConvertTo-Json
 }finally{

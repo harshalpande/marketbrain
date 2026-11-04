@@ -13,7 +13,7 @@ function Get-PaytmNetworkRule([string]$Name,[string]$Store='PersistentStore'){
  @(Get-NetFirewallRule -PolicyStore $Store -ErrorAction Stop|Where-Object Name -CEQ $Name)
 }
 function Assert-PaytmNetworkRule($Rule,[string]$RunId,[bool]$Enabled){
- if($Rule.Name -cne ('MarketBrain-Network-Test-'+$RunId) -or $Rule.Group -cne 'MarketBrain bounded network test' -or $Rule.Description -cne $RunId -or [string]$Rule.Direction -cne 'Inbound' -or [string]$Rule.Action -cne 'Block' -or [string]$Rule.Profile -cne 'Any' -or [string]$Rule.Enabled -ine [string]$Enabled){throw 'NETWORK_RULE_SHAPE'}
+ if($Rule.Name -cne ('MarketBrain-Network-Test-'+$RunId) -or $Rule.Group -cne 'MarketBrain bounded network test' -or $Rule.Description -cne $RunId -or [string]$Rule.Direction -cne 'Outbound' -or [string]$Rule.Action -cne 'Block' -or [string]$Rule.Profile -cne 'Any' -or [string]$Rule.Enabled -ine [string]$Enabled){throw 'NETWORK_RULE_SHAPE'}
  $app=@($Rule|Get-NetFirewallApplicationFilter -ErrorAction Stop);$port=@($Rule|Get-NetFirewallPortFilter -ErrorAction Stop);$addr=@($Rule|Get-NetFirewallAddressFilter -ErrorAction Stop)
  if($app.Count -ne 1 -or $app[0].Program -ine 'C:\Windows\System32\OpenSSH\ssh.exe' -or $port.Count -ne 1 -or [string]$port[0].Protocol -cnotin @('TCP','6') -or [string]$port[0].RemotePort -cne '22' -or [string]$port[0].LocalPort -cne 'Any' -or $addr.Count -ne 1 -or [string]$addr[0].RemoteAddress -cne '130.250.191.137' -or [string]$addr[0].LocalAddress -cne 'Any'){throw 'NETWORK_RULE_FILTERS'}
 }
@@ -75,7 +75,7 @@ function Add-PaytmNetworkRule($Guard,[bool]$Enabled){
  try{
  if($Enabled){Wait-PaytmNetworkGuard $Guard READY}
  $report.networkInterruptionAttempted=$report.networkInterruptionAttempted -or $Enabled;Save-Report
- $null=New-NetFirewallRule -PolicyStore PersistentStore -Name $Guard.name -DisplayName $Guard.name -Group 'MarketBrain bounded network test' -Description $Guard.runId -Direction Inbound -Action Block -Enabled $(if($Enabled){'True'}else{'False'}) -Profile Any -Protocol TCP -RemotePort 22 -RemoteAddress '130.250.191.137' -Program 'C:\Windows\System32\OpenSSH\ssh.exe' -ErrorAction Stop
+ $null=New-NetFirewallRule -PolicyStore PersistentStore -Name $Guard.name -DisplayName $Guard.name -Group 'MarketBrain bounded network test' -Description $Guard.runId -Direction Outbound -Action Block -Enabled $(if($Enabled){'True'}else{'False'}) -Profile Any -Protocol TCP -RemotePort 22 -RemoteAddress '130.250.191.137' -Program 'C:\Windows\System32\OpenSSH\ssh.exe' -ErrorAction Stop
  $Guard.ruleCreated=$true
  foreach($store in @('PersistentStore','ActiveStore')){
   $r=@(Get-PaytmNetworkRule $Guard.name $store)
@@ -118,20 +118,33 @@ function Close-PaytmNetworkGuard($Guard){
  }
  $Guard.taskRemoved=$true
 }
-function Wait-PaytmNetworkBackoff($Before){
- $clock=[Diagnostics.Stopwatch]::StartNew();$first=$null
+function Wait-PaytmNetworkBackoff($Before,[ValidateRange(1,75)][int]$TimeoutSeconds=75){
+ $clock=[Diagnostics.Stopwatch]::StartNew();$first=$null;$ready=$null;$lastKey=''
+ $report.networkObservations=[Collections.Generic.List[object]]::new()
  do{
   $task=Get-PaytmOwnedHostTask $Before.installationId
   if([string]$task.State -cne 'Running'){throw 'NETWORK_WORKER_NOT_RUNNING'}
   $v=Read-PaytmHostJson (Join-Path (Get-PaytmHostContract).work 'status.json')
+  $ssh=Get-PaytmEvidenceProperty $v lastSshObservation
+  $safe=ConvertTo-PaytmWorkerEvidence $v
+  $sample=[ordered]@{waitSeconds=[math]::Round($clock.Elapsed.TotalSeconds,3);phase=$v.phase;sequence=$v.sequence;attempts=$v.transportState.attempts;failures=$v.transportState.failures;ssh=(Get-PaytmEvidenceProperty $safe lastSshObservation);sshAttempt=(Get-PaytmEvidenceProperty $safe lastSshAttempt)}
+  $report.networkLastObservation=$sample
+  $key=$v.phase+':'+$v.transportState.attempts+':'+$v.transportState.failures
+  if($key -cne $lastKey){if($report.networkObservations.Count -ge 24){$report.networkObservations.RemoveAt(0)};$report.networkObservations.Add($sample);$lastKey=$key;Save-Report}
   if($v.instanceId -cne $Before.instanceId -or $v.processId -ne $Before.processId -or $v.phase -ceq 'BLOCKED' -or $v.failure -or $v.brokerReady -or $v.ordersEnabled){throw 'NETWORK_WORKER_CHANGED_OR_BLOCKED'}
-  if($v.phase -ceq 'BACKOFF' -and $v.transportState.attempts -gt $Before.transportState.attempts -and $v.transportState.failures -gt $Before.transportState.failures){
+  # A real replacement connection must fail before authentication. The deliberate
+  # kill alone is not network-loss evidence, even if it produces BACKOFF.
+  $tcpFailure=(Get-PaytmEvidenceProperty $ssh exited) -eq $true -and (Get-PaytmEvidenceProperty $ssh stderrDrained) -eq $true -and (Get-PaytmEvidenceProperty $ssh authenticated) -eq $false -and (Get-PaytmEvidenceProperty $ssh reason) -ceq 'NETWORK_UNAVAILABLE' -and $sample.sshAttempt -eq $v.transportState.attempts
+  if($v.phase -ceq 'BACKOFF' -and $v.transportState.attempts -gt $Before.transportState.attempts -and $v.transportState.failures -gt $Before.transportState.failures -and $tcpFailure){
    Assert-PaytmTransportListener (Get-PaytmTransportListeners)
    if($first -and $v.sequence -gt $first.sequence){Assert-PaytmHostAdvance $first $v;return $v};$first=$v
   }
-  Write-Progress -Activity 'Gateway network recovery' -Status ("Waiting for network retry evidence: $([int]$clock.Elapsed.TotalSeconds)/75 seconds") -PercentComplete 50
+  if($v.phase -ceq 'TRANSPORT_READY' -and $v.transportState.attempts -gt $Before.transportState.attempts){
+   if($ready -and $v.sequence -gt $ready.sequence){Assert-PaytmHostAdvance $ready $v;throw 'NETWORK_BLOCK_INEFFECTIVE'};$ready=$v
+  }else{$ready=$null}
+  Write-Progress -Activity 'Gateway network recovery' -Status ("$($v.phase), attempts=$($v.transportState.attempts), waiting $([int]$clock.Elapsed.TotalSeconds)/$TimeoutSeconds seconds") -PercentComplete 50
   Start-Sleep -Milliseconds 500
- }while($clock.Elapsed.TotalSeconds -lt 75)
+ }while($clock.Elapsed.TotalSeconds -lt $TimeoutSeconds)
  throw 'NETWORK_BACKOFF_NOT_OBSERVED'
 }
 function Invoke-PaytmNetworkBatch([string]$Id,[string]$SourceDirectory){
@@ -149,7 +162,7 @@ function Invoke-PaytmNetworkBatch([string]$Id,[string]$SourceDirectory){
   Cancellation-Step 'BLOCK_ONLY_OPENSSH_TO_VPS_AND_OBSERVE_RETRY' 40
   $guard=New-PaytmNetworkGuard $SourceDirectory $false
   Add-PaytmNetworkRule $guard $true
-  # Drop only incoming SSH replies; outbound access-denied is not an auth failure test.
+  # Block new outbound TCP connections; inbound rules do not establish this fault.
   # End only the verified existing SSH child so new connections encounter the block.
   Stop-PaytmReviewedChild $report.before
   $report.networkBackoff=Wait-PaytmNetworkBackoff $report.before

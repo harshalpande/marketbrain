@@ -19,7 +19,11 @@ function Test-PaytmFirstFailureRunnerHash([string]$Hash){
 }
 function Test-PaytmObservedTransportHash([string]$Hash){
  # E224: bounded stderr drain and structured SSH observations, exact LF/CRLF sources.
- $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81')
+ $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash)
+}
+function Test-PaytmOutboundTransportHash([string]$Hash){
+ # E225: exact TCP connect denial is network loss; SSH authentication denial stays blocked.
+ $Hash -cin @('86249FB0CDF7A1D1316C3B3AD6C7F313FDC9E3B7ED2DDA192115759AC612D59F','0C9405BE49E04763C3FA757A79119A7E5B9D1EC6EC6657EF1B2E7AD0E6AA3656')
 }
 function Assert-PaytmTransportInstallationSources($Receipt){
  $c=Get-PaytmHostContract;$sid=(Get-PaytmKeyContract).accountSid
