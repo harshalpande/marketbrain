@@ -63,13 +63,17 @@ try {
     $bootstrap.details=@{type=$base.GetType().Name;outerType=$_.Exception.GetType().Name;hresult=$base.HResult;line=$_.InvocationInfo.ScriptLineNumber;
         nativeErrorCode=if($base -is [ComponentModel.Win32Exception]){$base.NativeErrorCode}else{$null}}
     # This does not depend on the helper loading successfully. Exclusive lease prevents competing writers.
-    if($lease){
+    # Preserve the first cause until reviewed recovery archives it. A later launch
+    # may fail only because this latch exists; that is not the original cause.
+    if($lease -and -not [IO.File]::Exists((Join-Path $work 'startup-failure.json'))){
         try{[IO.File]::WriteAllText((Join-Path $work 'startup-failure.json'),($bootstrap|ConvertTo-Json -Depth 5 -Compress),[Text.UTF8Encoding]::new($false))}catch{}
     }
     if($lease -and $report){
         $report.phase='BLOCKED';$report.sequence++
         $report.failure=if($_.Exception.Message -cmatch '^(HOST|TRANSPORT|GATEWAY)_[A-Z_]+$'){$_.Exception.Message}else{'HOST_RUNTIME_FAILED'}
-        Write-PaytmHostJson (Join-Path $work 'blocked.json') @{failure=$report.failure;instanceId=$report.instanceId}
+        if(-not [IO.File]::Exists((Join-Path $work 'blocked.json'))){
+            Write-PaytmHostJson (Join-Path $work 'blocked.json') @{failure=$report.failure;instanceId=$report.instanceId}
+        }
         Write-PaytmHostJson (Join-Path $work 'status.json') $report
     }
 }finally{if($lease){$lease.Dispose()}}

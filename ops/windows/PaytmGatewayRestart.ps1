@@ -13,7 +13,11 @@ function Assert-PaytmTransportAcceptance($Value){
  foreach($name in @('stopped','stoppedRestart')){Assert-PaytmManagedStatus $Value.$name $Value.before.installationId STOPPED}
  if($Value.stopped.instanceId -ceq $Value.stoppedRestart.instanceId -or $Value.stoppedRestart.networkContacted -or $Value.stoppedRestart.signingVerified -or $Value.final.instanceId -ceq $Value.stoppedRestart.instanceId){throw 'STARTUP_RECEIPT_STOP'}
 }
-function Assert-PaytmInstalledTransport($Receipt){
+function Test-PaytmFirstFailureRunnerHash([string]$Hash){
+ # E220 reviewed first-cause preservation patch, exact LF and CRLF bytes only.
+ $Hash -cin @('991BCFF40E468E5C88DC905BED9E3CBA025A4C1D1BBF79F797F84F4A66557633','B05057A4A0409F76CC2F55B941FBA5EF46483F0B6697F7842E3AA4B3C5089C3F')
+}
+function Assert-PaytmTransportInstallationSources($Receipt){
  $c=Get-PaytmHostContract;$sid=(Get-PaytmKeyContract).accountSid
  foreach($p in @($c.root,$c.work)){$null=Assert-PaytmAccountPath $p;Assert-PaytmAccountAcl (Get-Acl -LiteralPath $p) $sid -Writable:($p -ceq $c.work)}
  $m=Read-PaytmHostJson (Join-Path $c.root 'manifest.json')
@@ -21,7 +25,15 @@ function Assert-PaytmInstalledTransport($Receipt){
  foreach($name in @('runner.ps1','host.ps1','native.dll','gateway.ps1','transport.ps1','transport.dll')){
   if((Get-FileHash -LiteralPath (Assert-PaytmAccountPath (Join-Path $c.root $name))).Hash -cne $m.hashes.$name){throw 'STARTUP_INSTALLED_HASH_DRIFT'}
  }
- foreach($pair in @(@('runner.ps1','RunPaytmGatewaySupervisor.ps1'),@('gateway.ps1','PaytmGatewaySupervisor.ps1'),@('transport.ps1','PaytmSupervisorTransport.ps1'))){if($m.hashes.($pair[0]) -cne $Receipt.sourceHashes.($pair[1])){throw 'STARTUP_UNACCEPTED_SOURCE'}}
+ foreach($pair in @(@('runner.ps1','RunPaytmGatewaySupervisor.ps1'),@('gateway.ps1','PaytmGatewaySupervisor.ps1'),@('transport.ps1','PaytmSupervisorTransport.ps1'))){
+  $accepted=$m.hashes.($pair[0]) -ceq $Receipt.sourceHashes.($pair[1])
+  if($pair[0] -ceq 'runner.ps1' -and (Test-PaytmFirstFailureRunnerHash $m.hashes.'runner.ps1')){$accepted=$true}
+  if(-not $accepted){throw 'STARTUP_UNACCEPTED_SOURCE'}
+ }
+ $m
+}
+function Assert-PaytmInstalledTransport($Receipt){
+ $c=Get-PaytmHostContract;$m=Assert-PaytmTransportInstallationSources $Receipt
  $control=Read-PaytmHostJson (Join-Path $c.root 'control.json');Assert-PaytmHostControl $control $m.installationId
  if($control.mode -cne 'LOCKED' -or (Read-PaytmTransportControl $c.root $m.installationId) -cne 'ENABLED'){throw 'STARTUP_TRANSPORT_NOT_ENABLED'}
  foreach($name in @('blocked.json','startup-failure.json')){if(Test-Path -LiteralPath (Join-Path $c.work $name)){throw 'STARTUP_WORKER_FAILURE_PRESENT'}}

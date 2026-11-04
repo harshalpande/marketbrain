@@ -67,6 +67,14 @@ try {
                 if($kind -ceq 'SigningFailure'){
                     $s=[IO.File]::ReadAllText($status)|ConvertFrom-Json
                     Check ($s.phase -ceq 'BLOCKED' -and $s.failure -ceq 'HOST_SIGNING_FAILED') 'SIGNING_BLOCK_PRESERVED'
+                    $firstHash=(Get-FileHash -LiteralPath $failure).Hash
+                    $blockHash=(Get-FileHash -LiteralPath (Join-Path $work 'blocked.json')).Hash
+                    $again=Start-TunnelProcess 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' @('-NoProfile','-NonInteractive','-ExecutionPolicy','Restricted','-EncodedCommand',$encoded)
+                    $handles.Add($again);$second=Complete-TunnelProcess $again 15
+                    Check ($second.ExitCode -eq 1 -and -not $second.StoppedByRunner) 'LATCH_RELAUNCH_EXIT'
+                    Check ((Get-FileHash -LiteralPath $failure).Hash -ceq $firstHash -and (Get-FileHash -LiteralPath (Join-Path $work 'blocked.json')).Hash -ceq $blockHash) 'FIRST_CAUSE_BYTES_RETAINED'
+                    $latest=[IO.File]::ReadAllText($status)|ConvertFrom-Json
+                    Check ($latest.failure -ceq 'HOST_PREVIOUS_FAILURE_REVIEW_REQUIRED' -and $latest.instanceId -cne $s.instanceId) 'LATEST_ATTEMPT_SEPARATE_FROM_CAUSE'
                 }
             }
         }finally{if($lease){$lease.Dispose()}}

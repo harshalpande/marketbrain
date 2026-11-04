@@ -1,5 +1,12 @@
 # Daily progress and decision log
 
+## 2026-11-04 Worker diagnosis captured; first-cause preservation and one recovery prepared
+
+- E220: inspection `8c0d2d14cb304f9493a08f87ba281250` succeeded in3.802s; all eight c1718eb CRLF source hashes verified. No cancellation or application calls. Task idle/last result1; worker exited; three saved files contain the previous-failure latch. The runner's overwrite behavior obscured the original cause; it remains unknown.
+- Corrected runner retains first startup/blocked bytes while updating latest status. Added exact-receipt recovery with application preflight, source/ACL/task checks, leases, verified archives, durable STOP during replacement, exact reviewed runner hash, one fresh start, then existing cancellation/application checks if healthy. Partial updates/new failures are not silently retried. One bounded JSON records progress, timings, hashes, backup location and outcomes.
+- Local verification:312 assertions:37 native PS5 bootstrap assertions (11 scenario families plus repeated launch),43 recovery assertions/17 workflows,79 combined-controller assertions/18 workflows,28 diagnostic reader,31 cancellation rules,31 restart rules and63 restart-controller assertions/9 workflows. Real file backup/replacement/atomic reports; Task Scheduler, application and network boundaries mocked except native fixture children.
+- Accepted groups **100/100/0/0/0/0**,10/30=33.3%, delta0. Current gateway health blocked. Next is [one recovery plus cancellation run](paytm-gateway-cancellation.md#current-handoff-recover-once-and-test-cancellation). If accepted, G3.3 closes and G3 becomes20%; no current runtime credit, broker authentication or trade readiness claimed.
+
 ## 2026-11-04 Inspection reader strict-mode defect reproduced and corrected
 
 - E219: run `c40d3055237f49c6b2e42996ef9e41ea` failed in4.489s during read-only collection; eight CRLF source hashes verified against0b722c7. No cancellation, application call or runtime change.

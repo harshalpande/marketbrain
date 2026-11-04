@@ -1,23 +1,39 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
  [switch]$InspectOnly,
+ [switch]$RecoverReviewedLatch,
+ [string]$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-gateway-cancellation-8c0d2d14cb304f9493a08f87ba281250.json',
  [string]$RestartReportPath='C:\MarketBrainData\Review\paytm-gateway-restart-eb86108cc1e247d68d06e135eb580bf6.json',
  [string]$TransportReportPath='C:\MarketBrainData\Review\paytm-managed-transport-20261103-171133-8ac7cdda3ca7475eb001df485797cb70.json',
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewayCancellation.ps1','PaytmGatewayFailureEvidence.ps1')){. (Join-Path $PSScriptRoot $name)}
+if($RecoverReviewedLatch){foreach($name in @('PaytmSupervisorRecovery.ps1','PaytmGatewayLatchRecovery.ps1')){. (Join-Path $PSScriptRoot $name)}}
 $clock=[Diagnostics.Stopwatch]::StartNew();$c=Get-PaytmHostContract;$lease=$null;$finished=$false
 $route=@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path};$application=@{Ready=$false;Token=$null}
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;cleanupFailure=$null;elapsedSeconds=0;sourceHashes=@{};
- inspectionOnly=[bool]$InspectOnly;cancellationAttempted=$false;cancellationPassed=$false;recoveryPassed=$false;noAutomaticRearmPassed=$false;accountPreserved=$false;finalApplicationLockVerified=$false;failureStopVerified=$false;
+ inspectionOnly=[bool]$InspectOnly;latchRecoveryAttempted=$false;cancellationAttempted=$false;cancellationPassed=$false;recoveryPassed=$false;noAutomaticRearmPassed=$false;accountPreserved=$false;finalApplicationLockVerified=$false;failureStopVerified=$false;
  applicationCommands=[Collections.Generic.List[object]]::new();applicationObservations=[Collections.Generic.List[object]]::new();applicationRouteChecks=[Collections.Generic.List[object]]::new();
  credentialsUsed=$false;ordersEnabled=$false;vpsChanged=$false;keyImported=$false;taskReRegistered=$false;rebootRequested=$false}
 $null=Assert-PaytmAccountPath $OutputDirectory;$null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory ('paytm-gateway-cancellation-'+$report.runId+'.json')
-function Save-Report {$report.elapsedSeconds=[math]::Round($clock.Elapsed.TotalSeconds,3);Write-PaytmHostJson $path $report}
+function Save-Report {
+ $report.elapsedSeconds=[math]::Round($clock.Elapsed.TotalSeconds,3)
+ # Recovery archives and failure projections share this one bounded report.
+ $bytes=[Text.Encoding]::UTF8.GetBytes(($report|ConvertTo-Json -Depth 12 -Compress))
+ if($bytes.Length -gt 65536){throw 'CANCEL_REPORT_TOO_LARGE'}
+ $temporary=$path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+ try{
+  $f=[IO.File]::Open($temporary,'CreateNew','Write','None')
+  try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
+  if([IO.File]::Exists($path)){[IO.File]::Replace($temporary,$path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temporary,$path)}
+ }finally{if([IO.File]::Exists($temporary)){[IO.File]::Delete($temporary)}}
+}
 function Cancellation-Step($Stage,$Percent){$report.stage=$Stage;Save-Report;Write-Host "[$Percent%] $Stage";Write-Progress -Activity 'Gateway cancellation and recovery' -Status $Stage -PercentComplete $Percent}
 try{
  Assert-PaytmCustodyController;Import-Module ScheduledTasks
+ if($InspectOnly -and $RecoverReviewedLatch){throw 'HOST_LATCH_INCOMPATIBLE_MODES'}
+ if($RecoverReviewedLatch){foreach($name in @('PaytmSupervisorRecovery.ps1','PaytmGatewayLatchRecovery.ps1','RunPaytmGatewaySupervisor.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}}
  foreach($name in @('TestPaytmGatewayCancellation.ps1','PaytmGatewayCancellation.ps1','PaytmGatewayFailureEvidence.ps1','PaytmGatewayRestart.ps1','PaytmManagedTransport.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}
  $null=Assert-PaytmAccountPath $c.root;Assert-PaytmAccountAcl (Get-Acl -LiteralPath $c.root) (Get-PaytmKeyContract).accountSid
  $lease=[IO.File]::Open((Assert-PaytmAccountPath (Join-Path (Get-PaytmAccountContract).root 'supervisor-install.lock')),'OpenOrCreate','ReadWrite','None')
@@ -32,8 +48,14 @@ try{
  $restart=Read-PaytmHostJson $RestartReportPath;Assert-PaytmRestartAcceptance $restart
  $receipt=Read-PaytmHostJson $TransportReportPath 65536;Assert-PaytmTransportAcceptance $receipt
  Cancellation-Step 'VERIFY_UNCHANGED_INSTALLATION_AND_APPLICATION' 15
+ if($RecoverReviewedLatch){
+  $manifest=Assert-PaytmTransportInstallationSources $receipt
+  Initialize-PaytmManagedApplication
+  Cancellation-Step 'ARCHIVE_REVIEWED_FAILURE_AND_RECOVER_ONCE' 20
+  Invoke-PaytmReviewedLatchRecovery $receipt $DiagnosticReportPath $PSScriptRoot
+ }
  $manifest=Assert-PaytmInstalledTransport $receipt
- Initialize-PaytmManagedApplication
+ if(-not $application.Ready){Initialize-PaytmManagedApplication}
  Invoke-PaytmCancellationBatch $manifest.installationId
  $finished=$true;Cancellation-Step 'VERIFY_FINAL_ACCOUNT_AND_LOCK' 95
  }
@@ -53,7 +75,7 @@ try{
  }catch{$report.cleanupFailure='CANCEL_FINAL_LOCK_OR_ACCOUNT_FAILED'}
  $application.Token=$null
  if($report.failure){try{$report.workerDiagnostics=Get-PaytmWorkerFailureEvidence}catch{$report.diagnosticCaptureError=$_.Exception.GetBaseException().GetType().Name}}
- if(($report.failure -or $report.cleanupFailure) -and $report.cancellationAttempted){
+ if(($report.failure -or $report.cleanupFailure) -and ($report.cancellationAttempted -or $report.latchRecoveryAttempted)){
   try{Stop-PaytmFailedManagedHost $manifest.installationId;$report.failureStopVerified=$true}catch{$report.cleanupFailure='CANCEL_FAILURE_STOP_REVIEW_REQUIRED'}
  }
  if($lease){$lease.Dispose()}
