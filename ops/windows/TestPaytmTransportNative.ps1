@@ -47,6 +47,15 @@ try{
  $id=$child.Id;$ticks=$child.StartTicks;$p=Get-Process -Id $id
  Check ($ticks -eq $p.StartTime.ToUniversalTime().Ticks) 'PID_AND_BIRTH'
  $child.Dispose();$child=$null;Check ($p.WaitForExit(3000)) 'OWNED_CHILD_STOP';$p.Dispose()
+ . ([scriptblock]::Create([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmSupervisorTransport.ps1'))))
+ $code='[Console]::Out.Write((''y''*80000));[Console]::Error.WriteLine(''ssh: connect to host 130.250.191.137 port 22: Unknown error'');exit 255'
+ $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code))
+ $child=[MarketBrain.Transport.Child]::new('C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',[string[]]@('-NoProfile','-NonInteractive','-EncodedCommand',$encoded))
+ $timer=[Diagnostics.Stopwatch]::StartNew()
+ while(-not $child.Exited -and $timer.Elapsed.TotalSeconds -lt 15){Start-Sleep -Milliseconds 10}
+ Check $child.Exited 'NATIVE_EXIT_OBSERVED'
+ $o=Get-PaytmChildObservation $child $false;$child=$null
+ Check ($o.stderrDrained -and $o.reason -eq 'NETWORK_UNAVAILABLE' -and $o.tags -contains 'TCP_CONNECT_UNKNOWN') 'NATIVE_FINAL_STDERR_DRAINED'
  # Exercise actual Windows curl/argument quoting/response formatting against a loopback-only
  # denial fixture. No external connection or TLS endpoint is contacted.
  $proxy=[DenyProxyFixture]::new()

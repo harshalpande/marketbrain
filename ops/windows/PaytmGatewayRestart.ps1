@@ -17,6 +17,10 @@ function Test-PaytmFirstFailureRunnerHash([string]$Hash){
  # E220 reviewed first-cause preservation patch, exact LF and CRLF bytes only.
  $Hash -cin @('991BCFF40E468E5C88DC905BED9E3CBA025A4C1D1BBF79F797F84F4A66557633','B05057A4A0409F76CC2F55B941FBA5EF46483F0B6697F7842E3AA4B3C5089C3F')
 }
+function Test-PaytmObservedTransportHash([string]$Hash){
+ # E224: bounded stderr drain and structured SSH observations, exact LF/CRLF sources.
+ $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81')
+}
 function Assert-PaytmTransportInstallationSources($Receipt){
  $c=Get-PaytmHostContract;$sid=(Get-PaytmKeyContract).accountSid
  foreach($p in @($c.root,$c.work)){$null=Assert-PaytmAccountPath $p;Assert-PaytmAccountAcl (Get-Acl -LiteralPath $p) $sid -Writable:($p -ceq $c.work)}
@@ -28,6 +32,7 @@ function Assert-PaytmTransportInstallationSources($Receipt){
  foreach($pair in @(@('runner.ps1','RunPaytmGatewaySupervisor.ps1'),@('gateway.ps1','PaytmGatewaySupervisor.ps1'),@('transport.ps1','PaytmSupervisorTransport.ps1'))){
   $accepted=$m.hashes.($pair[0]) -ceq $Receipt.sourceHashes.($pair[1])
   if($pair[0] -ceq 'runner.ps1' -and (Test-PaytmFirstFailureRunnerHash $m.hashes.'runner.ps1')){$accepted=$true}
+  if($pair[0] -ceq 'transport.ps1' -and (Test-PaytmObservedTransportHash $m.hashes.'transport.ps1')){$accepted=$true}
   if(-not $accepted){throw 'STARTUP_UNACCEPTED_SOURCE'}
  }
  $m

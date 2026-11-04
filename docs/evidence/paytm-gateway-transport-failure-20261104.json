@@ -1,0 +1,65 @@
+{
+  "evidenceId": "E224",
+  "date": "2026-11-04",
+  "status": "PREEXISTING_WORKER_FAILURE_REVIEWED_TRANSPORT_RECOVERY_PENDING",
+  "report": {
+    "runId": "b49f51c3f0db4ad996892fcdcd6b14b7",
+    "sha256": "E2C70C7DDCDB5B3E0EA3E742DE094FC568D1728D2CF6D51A5C8876B7D19A128E",
+    "sourceRevision": "83b323d",
+    "matchingCrlfSourceHashes": 10,
+    "elapsedSeconds": 4.161,
+    "failure": "STARTUP_WORKER_FAILURE_PRESENT",
+    "cleanupFailure": null,
+    "networkInterruptionAttempted": false,
+    "cleanupTasksRegistered": 0,
+    "applicationChecksPerformed": 0,
+    "workerInstance": "f9d773e4554a4d9fbd26d0dc62c52e2a",
+    "workerElapsedSeconds": 5166.534,
+    "workerFailure": "TRANSPORT_UNKNOWN",
+    "workerPhase": "BLOCKED",
+    "sshAttempts": 4,
+    "priorTransientFailures": 1,
+    "taskLastResult": 1,
+    "taskEnabled": true,
+    "taskState": "Ready",
+    "workerProcessExists": false
+  },
+  "diagnosis": {
+    "nativeCauseEstablished": false,
+    "errorTailRetainedByOldWorker": false,
+    "observedFailurePredatesNetworkTest": true,
+    "codeDefectsFound": [
+      "Exit classification could precede final asynchronous stderr drain.",
+      "Exact Windows SSH TCP-connect Unknown error and additional unreachable/closed messages were unrecognized.",
+      "The worker did not persist structured SSH exit observations."
+    ],
+    "theseCodeDefectsProvenToCauseThisHistoricalFailure": false,
+    "externalCorroborationNotDiagnosis": "https://github.com/PowerShell/Win32-OpenSSH/issues/2482"
+  },
+  "correction": {
+    "boundedNativeDrainBeforeExitClassification": true,
+    "onlyExactPinnedEndpointTcpUnknownBecomesTransient": true,
+    "securityFailuresAndArbitraryUnknownStillBlocked": true,
+    "structuredTagsAndStderrHashNoRawOutput": true,
+    "reviewedReceiptAndCurrentEvidenceMustMatch": true,
+    "verifiedSevenFileArchiveBeforeMutation": true,
+    "onlyTransportHelperAndManifestUpdated": true,
+    "oneFreshStartThenExistingNetworkBatch": true,
+    "failedRecoveryCannotProceedToNetworkFault": true
+  },
+  "localVerification": {
+    "assertions": 282,
+    "transportAdapter": {"assertions":47,"loopWorkflows":5},
+    "nativeWindowsChildAndLoopback": {"assertions":9,"externalNetworkContacted":false},
+    "reviewedRecovery": {"assertions":41,"workflows":17,"realArchivesReplacementAndReports":true,"runtimeApisMocked":true},
+    "failureEvidence": {"assertions":30,"realReadsAndProjection":true},
+    "networkRegression": {"assertions":35,"workflows":14,"runtimeApisMocked":true},
+    "combinedCollector": {"assertions":120,"workflows":27,"runtimeApisMocked":true},
+    "actualUploadedReceiptAndLfCrlfSourcePinsVerified": true,
+    "spareRecoveryAndNetworkAcceptance": false
+  },
+  "acceptedProgress": {"groupPercentages":[100,100,20,0,0,0],"acceptedCheckpoints":11,"totalCheckpoints":30,"percent":36.6666666667,"deltaPercentagePoints":0},
+  "currentGatewayHealthAtCapture": "BLOCKED_WORKER_EXITED",
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}

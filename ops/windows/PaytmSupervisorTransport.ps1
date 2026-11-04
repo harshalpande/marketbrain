@@ -23,11 +23,39 @@ function Assert-PaytmTransportIdentity([string]$Custody) {
 }
 function Get-PaytmTransportFailure([string]$ErrorText) {
     if($ErrorText -match 'REMOTE HOST IDENTIFICATION HAS CHANGED|Host key verification failed'){return 'HOST_KEY_CHANGED'}
+    # This exact local TCP-connect diagnostic precedes authentication. Do not
+    # reinterpret arbitrary "Unknown error" output or authentication denials.
+    $tcpUnknown='(?m)^ssh: connect to host 130\.250\.191\.137 port 22: Unknown error\r?$'
     if($ErrorText -match 'Permission denied|sign_and_send_pubkey: signing failed|no mutual signature'){return 'KEY_DENIED'}
     if($ErrorText -match 'Address already in use|cannot listen to port|Could not request local forwarding'){return 'LISTENER_CONFLICT'}
     if($ErrorText -match 'administratively prohibited'){return 'DESTINATION_DRIFT'}
-    if($ErrorText -match 'Connection timed out|Connection refused|No route to host|Network is unreachable|Connection reset|Broken pipe|Timeout, server|Connection to .* closed'){return 'NETWORK_UNAVAILABLE'}
+    if($ErrorText -match $tcpUnknown -or $ErrorText -match 'Connection timed out|Connection refused|No route to host|Network is unreachable|Host is unreachable|Network unreachable|Connection reset|Broken pipe|Timeout, server|Connection to .* closed|kex_exchange_identification: Connection closed by remote host'){return 'NETWORK_UNAVAILABLE'}
     'UNKNOWN'
+}
+function Get-PaytmChildObservation($Child,[bool]$PreviouslyAuthenticated){
+    $exited=$Child.Exited
+    # HasExited does not imply redirected stderr has drained. Dispose performs
+    # the native bounded drain before classification; ErrorTail survives disposal.
+    if($exited){$Child.Dispose()}
+    $text=$Child.ErrorTail
+    $authenticated=$PreviouslyAuthenticated -or ($text -match 'Authenticated to .+ using "publickey"|Authentication succeeded \(publickey\)')
+    $reason=Get-PaytmTransportFailure $text
+    $tags=@()
+    foreach($pair in @(
+        @('TCP_CONNECT_UNKNOWN','(?m)^ssh: connect to host 130\.250\.191\.137 port 22: Unknown error\r?$'),
+        @('TCP_CONNECT_TIMEOUT','Connection timed out'),@('TCP_CONNECT_REFUSED','Connection refused'),
+        @('NETWORK_UNREACHABLE','No route to host|Network is unreachable|Host is unreachable|Network unreachable'),
+        @('CONNECTION_RESET','Connection reset'),@('BROKEN_PIPE','Broken pipe'),
+        @('KEX_CLOSED','kex_exchange_identification: Connection closed by remote host'),
+        @('SSH_TIMEOUT','Timeout, server'),@('HOST_KEY_FAILURE','REMOTE HOST IDENTIFICATION HAS CHANGED|Host key verification failed'),
+        @('PERMISSION_DENIED','Permission denied'),@('SIGNING_FAILURE','sign_and_send_pubkey: signing failed|no mutual signature'),
+        @('LISTENER_FAILURE','Address already in use|cannot listen to port|Could not request local forwarding'),
+        @('DESTINATION_DENIED','administratively prohibited'))){if($text -match $pair[1]){$tags+=$pair[0]}}
+    $sha=[Security.Cryptography.SHA256]::Create()
+    try{$hash=[BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text))).Replace('-','')}finally{$sha.Dispose()}
+    # Never persist raw debug output, identities, paths, server banners or secrets.
+    [pscustomobject]@{version=1;exited=[bool]$exited;stderrDrained=[bool]$exited;authenticated=[bool]$authenticated;
+        reason=$reason;stderrCharacters=$text.Length;stderrSha256=$hash;tags=@($tags)}
 }
 function Start-PaytmTransportChild([string]$Custody) {
     Assert-PaytmTransportIdentity $Custody
@@ -91,17 +119,22 @@ function Invoke-PaytmTransportLoop([string]$Root,[string]$Work,[string]$Custody,
                     $state.action='NONE'
                 }
                 if($child){
-                    $reason=Get-PaytmTransportFailure $child.ErrorTail
+                    $observation=Get-PaytmChildObservation $child $authenticated
+                    $reason=$observation.reason;$authenticated=$observation.authenticated
+                    if($observation.exited -or $reason -cne 'UNKNOWN'){
+                        $Report.lastSshObservation=$observation
+                        $Report.lastSshAttempt=$state.attempts
+                        $Report.lastSshElapsedSeconds=$seconds
+                    }
                     if($reason -cnotin @('UNKNOWN','NETWORK_UNAVAILABLE')){
                         $state=Step-PaytmGatewayState $state SECURITY_FAILURE $seconds $reason
-                    }elseif($child.Exited){
+                    }elseif($observation.exited){
                         # Locally forced child exit and ordinary transport loss may reconnect; explicit authentication/configuration failures latch.
                         if($authenticated -or $reason -ceq 'NETWORK_UNAVAILABLE'){$state=Step-PaytmGatewayState $state TRANSIENT_FAILURE $seconds SSH_EXITED}
                         else{$state=Step-PaytmGatewayState $state SECURITY_FAILURE $seconds UNKNOWN}
                     }else{
                         $rows=@(Get-PaytmTransportListeners)
                         if(@($rows).Count){Assert-PaytmTransportListener $rows $child.Id}
-                        $authenticated=$authenticated -or ($child.ErrorTail -match 'Authenticated to .+ using "publickey"|Authentication succeeded \(publickey\)')
                         if(@($rows).Count -eq 1 -and $authenticated -and ($seconds-$lastHealth) -ge 10){
                             $probe=Test-PaytmTransportTls
                             if($probe.ok -and -not $denials){Assert-PaytmTransportDenials;$denials=$true;$Report.denialsVerified=$true}

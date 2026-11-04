@@ -17,6 +17,11 @@ function Get-PaytmHostContract {@{root=$fixture.root;work=$fixture.root;name='fi
 function Assert-PaytmRestartAcceptance {}
 function Assert-PaytmTransportAcceptance {}
 function Assert-PaytmCancellationReceipt {if($fixture.case -eq 'network_preflight'){throw 'NETWORK_CANCELLATION_RECEIPT_INVALID'}}
+function Invoke-PaytmReviewedTransportRecovery {
+ $report.transportRecoveryAttempted=$true;$fixture.latchCalls++;Save-Report
+ if($fixture.case -eq 'transport_failure'){throw 'TRANSPORT_WORKER_BLOCKED'}
+ $report.transportRecovery=@{healthy=$true;startAttempts=1}
+}
 function Invoke-PaytmNetworkBatch {
  $report.networkInterruptionAttempted=$true
  if($fixture.case -eq 'network_failure'){throw 'NETWORK_BACKOFF_NOT_OBSERVED'}
@@ -48,7 +53,7 @@ function Get-FileHash($LiteralPath){
  else{Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $LiteralPath}
 }
 function Initialize-PaytmManagedApplication {
- if($fixture.case -in @('unlocked','resume_unlocked','recover_unlocked')){throw 'APP_ROUTE_EXPECTED_LOCKED'}
+ if($fixture.case -in @('unlocked','resume_unlocked','recover_unlocked','transport_unlocked')){throw 'APP_ROUTE_EXPECTED_LOCKED'}
  $application.BeforeAccount='{"cash":100000}';$application.Id='container';$application.Before=@{Id='container';Image='image';State=@{StartedAt='unchanged'}}
  $application.Ready=$true;$application.BootId='boot';$application.Token='PRIVATE_TOKEN_NEVER_REPORT'
 }
@@ -94,15 +99,15 @@ function Get-PaytmApplicationContainer {$application.Before}
 function Read-PaytmPaperAccount {if($fixture.case -eq 'account_drift'){'changed'}else{$application.BeforeAccount}}
 function Stop-PaytmFailedManagedHost {$fixture.failureStopped=$true}
 try{
- foreach($caseName in @('network_pass','network_failure','network_preflight','pass','resume_pass','resume_failure','resume_unlocked','recover_pass','recover_failure','recover_unlocked','inspect','worker_failure','capture_failure','bad_receipt','unlocked','task_drift','cancel_failure','orphan','unexpected_restart','direct_fallback','authority_replay','recovery_failure','account_drift','final_lock_failure')){
+ foreach($caseName in @('transport_pass','transport_failure','transport_unlocked','network_pass','network_failure','network_preflight','pass','resume_pass','resume_failure','resume_unlocked','recover_pass','recover_failure','recover_unlocked','inspect','worker_failure','capture_failure','bad_receipt','unlocked','task_drift','cancel_failure','orphan','unexpected_restart','direct_fallback','authority_replay','recovery_failure','account_drift','final_lock_failure')){
   $base=Join-Path $temp $caseName;$source=Join-Path $base 'ops/windows';$root=Join-Path $base 'host';$out=Join-Path $base 'out';$null=New-Item -ItemType Directory -Path $source,$root -Force
   $fixture=@{case=$caseName;root=$root;restart=(Join-Path $base 'restart.json');transport=(Join-Path $base 'transport.json');app='LOCKED';cancelled=$false;cancelCalls=0;starts=0;disposed=0;failureStopped=$false;taskReads=0;latchCalls=0}
   [IO.File]::WriteAllText($fixture.restart,'{}');[IO.File]::WriteAllText($fixture.transport,'{}')
   if($caseName -in @('inspect','worker_failure')){Write-PaytmHostJson (Join-Path $root 'blocked.json') @{failure='TRANSPORT_UNKNOWN';instanceId=('a'*32)}}
   foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewayCancellation.ps1','PaytmGatewayFailureEvidence.ps1')){[IO.File]::WriteAllText((Join-Path $source $n),'# fixture')}
   $scriptPath=Join-Path $source 'TestPaytmGatewayCancellation.ps1';Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'TestPaytmGatewayCancellation.ps1') -Destination $scriptPath
-  foreach($n in @('PaytmSupervisorRecovery.ps1','PaytmGatewayLatchRecovery.ps1','RunPaytmGatewaySupervisor.ps1','PaytmGatewayNetwork.ps1','RunPaytmNetworkCleanup.ps1')){[IO.File]::WriteAllText((Join-Path $source $n),'# fixture')}
-  $failed=$false;try{& $scriptPath -NetworkInterruption:($caseName -like 'network_*') -ResumeReviewedRecovery:($caseName -like 'resume_*') -RecoverReviewedLatch:($caseName -like 'recover_*') -InspectOnly:($caseName -in @('inspect','capture_failure')) -RestartReportPath $fixture.restart -TransportReportPath $fixture.transport -OutputDirectory $out 6>$null}catch{$failed=$true}
+  foreach($n in @('PaytmSupervisorRecovery.ps1','PaytmGatewayLatchRecovery.ps1','RunPaytmGatewaySupervisor.ps1','PaytmGatewayNetwork.ps1','RunPaytmNetworkCleanup.ps1','PaytmGatewayTransportRecovery.ps1')){[IO.File]::WriteAllText((Join-Path $source $n),'# fixture')}
+  $failed=$false;try{& $scriptPath -RecoverReviewedTransport:($caseName -like 'transport_*') -NetworkInterruption:($caseName -like 'network_*' -or $caseName -like 'transport_*') -ResumeReviewedRecovery:($caseName -like 'resume_*') -RecoverReviewedLatch:($caseName -like 'recover_*') -InspectOnly:($caseName -in @('inspect','capture_failure')) -RestartReportPath $fixture.restart -TransportReportPath $fixture.transport -OutputDirectory $out 6>$null}catch{$failed=$true}
   $files=@(Get-ChildItem -LiteralPath $out -Filter '*.json');Check ($files.Count -eq 1) 'ONE_REPORT'
   $raw=[IO.File]::ReadAllText($files[0].FullName);$v=$raw|ConvertFrom-Json
   Check (-not $raw.Contains('PRIVATE_TOKEN_NEVER_REPORT') -and -not $v.ordersEnabled -and -not $v.keyImported -and -not $v.vpsChanged) 'SCOPE_AND_REDACTION'
@@ -110,9 +115,10 @@ try{
   if($caseName -eq 'inspect'){
    Check (-not $failed -and $v.status -eq 'WORKER_FAILURE_DIAGNOSTICS_CAPTURED' -and $v.workerDiagnostics.readOnly) 'INSPECTION_CAPTURED'
    Check (-not $fixture.cancelCalls -and -not $fixture.starts -and -not $fixture.failureStopped -and -not $v.accountPreserved -and $v.applicationRouteChecks.Count -eq 0) 'INSPECTION_NO_RUNTIME_MUTATION_OR_ACCEPTANCE'
-  }elseif($caseName -eq 'network_pass'){
+  }elseif($caseName -in @('network_pass','transport_pass')){
    Check (-not $failed -and $v.status -eq 'GATEWAY_NETWORK_INTERRUPTION_AND_RECOVERY_PASSED' -and $files[0].Name.StartsWith('paytm-gateway-network-')) 'NETWORK_SUCCESS'
    Check ($v.finalApplicationLockVerified -and $v.accountPreserved -and $v.applicationRouteChecks.Count -eq 3 -and -not $fixture.cancelCalls -and -not $fixture.starts) 'NETWORK_NO_TASK_CANCELLATION'
+   if($caseName -eq 'transport_pass'){Check ($v.transportRecoveryAttempted -and $v.transportRecovery.healthy -and $fixture.latchCalls -eq 1) 'RECOVERY_THEN_NETWORK'}
   }elseif($caseName -in @('pass','resume_pass','recover_pass')){
    Check (-not $failed -and $v.status -eq 'GATEWAY_CANCELLATION_AND_APPLICATION_RECOVERY_PASSED') 'SUCCESS'
    Check ($v.applicationRouteChecks.Count -eq 3 -and $v.noAutomaticRearmPassed -and $v.finalApplicationLockVerified -and $v.accountPreserved) 'ROUTE_AND_ACCOUNT'
@@ -121,14 +127,15 @@ try{
    if($caseName -eq 'resume_pass'){Check ($fixture.latchCalls -eq 1 -and $v.recoveryResume.healthy -and $v.resumeRecoveryAttempted -and -not $v.latchRecoveryAttempted) 'RESUME_THEN_CANCEL_NO_REINSTALL'}
   }else{
    Check ($failed -and $v.status -eq 'REVIEW_REQUIRED') 'FAILURE_RETAINED'
-   if($caseName -in @('network_preflight','bad_receipt','unlocked','resume_unlocked','recover_unlocked','task_drift','worker_failure','capture_failure')){Check (-not $fixture.cancelCalls -and -not $fixture.starts -and -not $fixture.failureStopped -and -not $fixture.latchCalls) 'PREFLIGHT_NO_MUTATION'}
+   if($caseName -in @('transport_unlocked','network_preflight','bad_receipt','unlocked','resume_unlocked','recover_unlocked','task_drift','worker_failure','capture_failure')){Check (-not $fixture.cancelCalls -and -not $fixture.starts -and -not $fixture.failureStopped -and -not $fixture.latchCalls) 'PREFLIGHT_NO_MUTATION'}
    else{Check ($fixture.failureStopped -and $v.failureStopVerified) 'FAILURE_DURABLE_STOP'}
    if($caseName -eq 'worker_failure'){Check ($v.workerDiagnostics.files.'blocked.json'.value.failure -eq 'TRANSPORT_UNKNOWN' -and $v.failure -eq 'STARTUP_WORKER_FAILURE_PRESENT') 'ORIGINAL_FAILURE_AND_MARKER_PRESERVED'}
    if($caseName -eq 'recover_failure'){Check ($fixture.latchCalls -eq 1 -and -not $fixture.cancelCalls -and -not $fixture.starts -and $v.finalApplicationLockVerified) 'FAILED_RECOVERY_NO_CANCELLATION_OR_RETRY'}
    if($caseName -eq 'resume_failure'){Check ($fixture.latchCalls -eq 1 -and -not $fixture.cancelCalls -and -not $fixture.starts -and $v.finalApplicationLockVerified) 'FAILED_RESUME_NO_CANCELLATION_OR_RETRY'}
+   if($caseName -eq 'transport_failure'){Check ($fixture.latchCalls -eq 1 -and -not $v.networkInterruptionAttempted -and $v.finalApplicationLockVerified) 'FAILED_TRANSPORT_RECOVERY_NO_NETWORK_FAULT'}
   }
  }
- [pscustomobject]@{status='GATEWAY_CANCELLATION_WORKFLOWS_PASSED';assertions=$checks;workflows=24;runtimeApisMocked=$true;realAtomicReports=$true}|ConvertTo-Json
+ [pscustomobject]@{status='GATEWAY_CANCELLATION_WORKFLOWS_PASSED';assertions=$checks;workflows=27;runtimeApisMocked=$true;realAtomicReports=$true}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($temp);$base=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
  if(-not $resolved.StartsWith($base,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($resolved) -notmatch '^mb-cancel-test-[a-f0-9]{32}$'){throw 'UNSAFE_FIXTURE_CLEANUP'}

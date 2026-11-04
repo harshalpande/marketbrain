@@ -14,6 +14,14 @@ try{
  Reject {Assert-PaytmTransportListener @($row,$row) 123} 'DUPLICATE_LISTENERS'
  Reject {Assert-PaytmTransportListener @($row) 124} 'FOREIGN_OWNER'
  foreach($pair in @(@('Host key verification failed','HOST_KEY_CHANGED'),@('Permission denied (publickey)','KEY_DENIED'),@('bind: Address already in use','LISTENER_CONFLICT'),@('administratively prohibited','DESTINATION_DRIFT'),@('Connection reset by peer','NETWORK_UNAVAILABLE'),@('other','UNKNOWN'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'ERROR_CLASSIFICATION'}
+ foreach($pair in @(@('ssh: connect to host 130.250.191.137 port 22: Unknown error','NETWORK_UNAVAILABLE'),@('Unknown error','UNKNOWN'),@('ssh: connect to host 192.0.2.1 port 22: Unknown error','UNKNOWN'),@('kex_exchange_identification: Connection closed by remote host','NETWORK_UNAVAILABLE'),@("Host key verification failed`nssh: connect to host 130.250.191.137 port 22: Unknown error",'HOST_KEY_CHANGED'),@("Permission denied (publickey)`nssh: connect to host 130.250.191.137 port 22: Unknown error",'KEY_DENIED'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'NARROW_TCP_AND_SECURITY_PRECEDENCE'}
+ $late=[pscustomobject]@{Exited=$true;ErrorTail='';Disposed=$false}
+ $late|Add-Member ScriptMethod Dispose {$this.Disposed=$true;$this.ErrorTail='ssh: connect to host 130.250.191.137 port 22: Unknown error'}
+ $o=Get-PaytmChildObservation $late $false
+ Check ($late.Disposed -and $o.stderrDrained -and $o.reason -eq 'NETWORK_UNAVAILABLE' -and $o.tags -contains 'TCP_CONNECT_UNKNOWN') 'DRAIN_BEFORE_CLASSIFICATION'
+ $late.ErrorTail='sensitive arbitrary text';$late.Exited=$false;$late.Disposed=$false
+ $o=Get-PaytmChildObservation $late $false
+ Check (-not $late.Disposed -and -not $o.stderrDrained -and -not ($o|ConvertTo-Json).Contains('sensitive')) 'LIVE_CHILD_UNTOUCHED_AND_NO_RAW_LOG'
  $id='a'*32
  Write-PaytmHostJson (Join-Path $temp 'transport-control.json') @{version=1;installationId=$id;mode='ENABLED'}
  Check ((Read-PaytmTransportControl $temp $id) -ceq 'ENABLED') 'CONTROL'
@@ -36,7 +44,7 @@ try{
   $v=[pscustomobject]@{Id=(100+$fixture.starts);StartTicks=12345L;Exited=$false;ErrorTail='Authenticated to 130.250.191.137 using "publickey"';Disposed=$false}
   if($fixture.scenario -eq 'host_change'){$v.ErrorTail='Host key verification failed'}
   if($fixture.scenario -eq 'unknown_exit'){$v.ErrorTail='unknown failure';$v.Exited=$true}
-  $v|Add-Member ScriptMethod Dispose {$this.Disposed=$true;$fixture.disposed++}
+  $v|Add-Member ScriptMethod Dispose {if(-not $this.Disposed){$this.Disposed=$true;$fixture.disposed++}}
   $fixture.child=$v;$v
  }
  function Get-PaytmTransportListeners {

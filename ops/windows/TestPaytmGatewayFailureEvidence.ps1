@@ -65,6 +65,9 @@ try{
  $minimal='{"failure":"TRANSPORT_UNKNOWN","instanceId":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}'|ConvertFrom-Json
  Check ((ConvertTo-PaytmWorkerEvidence $minimal).failure -eq 'TRANSPORT_UNKNOWN') 'STRICT_MINIMAL_MARKER'
  Check ($null -eq (Get-PaytmEvidenceProperty $null absent) -and $null -eq (Get-PaytmEvidenceProperty ([pscustomobject]@{}) absent) -and $null -eq (Get-PaytmEvidenceProperty @{} absent)) 'NULL_SAFE_LOOKUPS'
+ $ssh=ConvertTo-PaytmWorkerEvidence @{lastSshAttempt=4;lastSshElapsedSeconds=5166;lastSshObservation=@{version=1;exited=$true;stderrDrained=$true;authenticated=$false;reason='NETWORK_UNAVAILABLE';stderrCharacters=101;stderrSha256=('A'*64);tags=@('TCP_CONNECT_UNKNOWN','PRIVATE_TOKEN');raw='PRIVATE_NATIVE_TEXT'}}
+ Check ($ssh.lastSshObservation.stderrDrained -and $ssh.lastSshAttempt -eq 4 -and $ssh.lastSshObservation.tags.Count -eq 1) 'SSH_STRUCTURED_EVIDENCE_RETAINED'
+ Check (-not ($ssh|ConvertTo-Json -Depth 5).Contains('PRIVATE_')) 'SSH_ARBITRARY_FIELDS_AND_TAGS_DROPPED'
  [pscustomobject]@{status='WORKER_FAILURE_EVIDENCE_PASSED';assertions=$checks;runtimeApisMocked=$true;realBoundedFileReads=$true}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($temp);$base=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
