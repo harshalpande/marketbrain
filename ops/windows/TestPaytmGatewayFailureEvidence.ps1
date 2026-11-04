@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 $ErrorActionPreference='Stop'
-. (Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1')
-. (Join-Path $PSScriptRoot 'PaytmGatewayFailureEvidence.ps1')
+# Load the real production imports, including PaperAccountReadReview's strict
+# mode. Only OS boundaries below are substituted; the JSON readers remain real.
+foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewayCancellation.ps1','PaytmGatewayFailureEvidence.ps1')){. (Join-Path $PSScriptRoot $n)}
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('mb-failure-test-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory -Path $temp
 $checks=0;$advance=$false;$taskFailure=$false;$processFailure=$false;$disposed=0
 function Check($Ok,$Name){if(-not $Ok){throw "FAILURE_EVIDENCE_$Name"};$script:checks++}
@@ -46,6 +47,24 @@ try{
  Check (-not ($v|ConvertTo-Json -Depth 10).Contains('PRIVATE_EXCEPTION_TEXT')) 'EXCEPTION_TEXT_OMITTED'
  $out=Join-Path $temp 'report.json';Write-PaytmHostJson $out @{workerDiagnostics=$v}
  Check ((Read-PaytmHostJson $out).workerDiagnostics.readOnly) 'BOUNDED_REPORT_ROUNDTRIP'
+ $advance=$false;$taskFailure=$false;$processFailure=$false
+ # Each collection must keep valid failure markers even when the optional status
+ # is missing, broken, sparse or not an object. Exercise actual deserialization.
+ $safeFile=[IO.Path]::GetFullPath($file)
+ if([IO.Path]::GetDirectoryName($safeFile) -cne [IO.Path]::GetFullPath($temp)){throw 'UNSAFE_STATUS_FIXTURE'}
+ Remove-Item -LiteralPath $safeFile
+ $v=Get-PaytmWorkerFailureEvidence
+ Check (-not $v.files.'status.json'.present -and $null -eq $v.files.'status.json'.value -and $v.files.'blocked.json'.value.failure -eq 'TRANSPORT_UNKNOWN') 'STRICT_MISSING_STATUS_PRESERVES_MARKER'
+ foreach($payload in @('{broken','null','42','"scalar"','[]','{}','{"phase":"BLOCKED"}','{"instanceId":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}','{"processId":100}','{"details":null,"transportState":null}')){
+  [IO.File]::WriteAllText($file,$payload)
+  $v=Get-PaytmWorkerFailureEvidence
+  Check ($v.files.'blocked.json'.readSucceeded -and $v.files.'startup-failure.json'.readSucceeded -and -not $v.heartbeatAdvanced) 'STRICT_PARTIAL_STATUS_DOES_NOT_ABORT'
+ }
+ $strictStillOn=$false;try{$null=([pscustomobject]@{}).missingProperty}catch{$strictStillOn=$true}
+ Check $strictStillOn 'PRODUCTION_STRICT_MODE_REMAINS_ENABLED'
+ $minimal='{"failure":"TRANSPORT_UNKNOWN","instanceId":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}'|ConvertFrom-Json
+ Check ((ConvertTo-PaytmWorkerEvidence $minimal).failure -eq 'TRANSPORT_UNKNOWN') 'STRICT_MINIMAL_MARKER'
+ Check ($null -eq (Get-PaytmEvidenceProperty $null absent) -and $null -eq (Get-PaytmEvidenceProperty ([pscustomobject]@{}) absent) -and $null -eq (Get-PaytmEvidenceProperty @{} absent)) 'NULL_SAFE_LOOKUPS'
  [pscustomobject]@{status='WORKER_FAILURE_EVIDENCE_PASSED';assertions=$checks;runtimeApisMocked=$true;realBoundedFileReads=$true}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($temp);$base=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'

@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-04 Inspection reader strict-mode defect reproduced and corrected
+
+- E219: run `c40d3055237f49c6b2e42996ef9e41ea` failed in4.489s during read-only collection; eight CRLF source hashes verified against0b722c7. No cancellation, application call or runtime change.
+- Reproduced `PropertyNotFoundException` using real production imports: PaperAccountReadReview enables StrictMode; marker/status JSON deliberately has optional fields. The projection and subsequent `.value` access assumed those properties existed. Earlier fixture coverage did not expose this production import interaction.
+- Added null-safe property lookup, always-present nullable file value slots, object-shape checks and safe heartbeat/process field handling. StrictMode stays enabled. Regression coverage now loads the full production import chain and uses the real reader inside the controller workflow, including sparse/missing/malformed status while preserving marker evidence.
+- Verification passed:28 reader assertions plus64 controller assertions across15 workflows (92 total). Runtime OS APIs mocked; production imports, JSON reads/projection and atomic report writes exercised.
+- Next remains the [read-only InspectOnly handoff](paytm-gateway-cancellation.md#current-handoff-inspect-the-saved-worker-failure). Original worker failure/current health are unknown until capture succeeds. Accepted groups100/100/0/0/0/0, delta0; no G3 acceptance or runtime repair claimed.
+
 ## 2026-11-04 Cancellation preflight blocked by a saved worker failure
 
 - E218: run `f7a8cfeeafc04b2a9892d685d7324943` stopped after3.145s; seven source hashes match be19124 CRLF. Cancellation was not attempted, no application call occurred, and the collector changed no task/key/VPS configuration.
