@@ -65,7 +65,7 @@ function Invoke-PaytmCancellationBatch([string]$Id){
   Cancellation-Step 'EXPLICIT_RESTART_AND_AUTHORITY_CHECK' 70
   $null=Get-PaytmOwnedHostTask $Id
   Start-ScheduledTask -TaskName $c.name -TaskPath '\' -ErrorAction Stop
-  $report.recovered=Wait-PaytmManagedHost $Id TRANSPORT_READY $report.before.instanceId
+  $report.recovered=Wait-PaytmManagedHost $Id TRANSPORT_READY $report.before.instanceId -AwaitScheduledStart
   if($report.recovered.instanceId -ceq $report.before.instanceId -or ($report.recovered.childProcessId -eq $report.before.childProcessId -and $report.recovered.childStartTicks -eq $report.before.childStartTicks)){throw 'CANCEL_OLD_PROCESS_REUSED'}
   $v=Invoke-PaytmApplicationHttp 'head'
   if($v.status -cne 'LOCKED' -or $v.bootId -cne $application.BootId){throw 'CANCEL_APPLICATION_AUTHORITY_REPLAYED'}

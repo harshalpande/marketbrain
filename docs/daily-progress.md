@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-04 First-heartbeat race corrected; completed update can resume
+
+- E221: `c331433dafe242bca2d651c4625866aa`,20.68s,11 source hashes verified against83ac563. Archive, runner patch, manifest and marker archiving succeeded. Immediate first status read raised FileNotFoundException; later sample shows new CONNECTING worker with signing/identity/job proof. No cancellation or TLS readiness established.
+- Controller cleanup verified STOP and disabled task, final application/writer lock and unchanged INR100000 cash/reserved0/revision0. Diagnostic task Running/CONNECTING observations were collected before cleanup and must not be presented as current health.
+- Corrected bounded waiting for first file and task dispatch; other read/JSON/identity/health failures remain errors. New tests use actual wait/read functions together, addressing the earlier mocking gap. Exact-receipt resume verifies installation/archive, prior worker exit, disabled task and STOP, then enables/starts once and continues existing cancellation batch. No runner replacement, marker reset, key import, VPS edit or application rebuild.
+- Accepted percentages100/100/0/0/0/0 remain unchanged (10/30=33.3%). Original pre-recovery worker cause remains unknown. Next: [resume completed recovery](paytm-gateway-cancellation.md#current-handoff-resume-the-completed-recovery), one JSON.
+- Verification passed:363 local assertions (21 startup wait/cleanup,143 resume,94 combined controller,43 prior latch recovery,39 transport adapter,23 transport controller). Actual wait/file-reader/backup/report code exercised; runtime OS/application/network boundaries mocked. No runtime success inferred.
+
 ## 2026-11-04 Worker diagnosis captured; first-cause preservation and one recovery prepared
 
 - E220: inspection `8c0d2d14cb304f9493a08f87ba281250` succeeded in3.802s; all eight c1718eb CRLF source hashes verified. No cancellation or application calls. Task idle/last result1; worker exited; three saved files contain the previous-failure latch. The runner's overwrite behavior obscured the original cause; it remains unknown.

@@ -20,7 +20,7 @@
     {"id":"G3","name":"Real recovery and safe failure","checkpoints":[
       {"id":"G3.1","goal":"Installed system process and network interruption/recovery accepted","evidence":null,"prerequisiteEvidence":["E213"],"prerequisiteStatus":"Verified SSH child termination/reconnect accepted; actual network interruption remains pending"},
       {"id":"G3.2","goal":"Actual wrong-key/host/listener/destination/TLS negative cases accepted","evidence":null},
-      {"id":"G3.3","goal":"Managed-system duplicate-start, cancellation and persistent stop accepted","evidence":null,"prerequisiteEvidence":["E213"],"prerequisiteStatus":"E213 duplicate start and persistent STOP accepted. E220 inspection confirms an exited worker and previous-failure latch; old runner overwrote the initial cause. First-cause preservation and one scoped recovery prepared; runtime recovery/cancellation pending. Current gateway health blocked, no G3 credit."},
+      {"id":"G3.3","goal":"Managed-system duplicate-start, cancellation and persistent stop accepted","evidence":null,"prerequisiteEvidence":["E213"],"prerequisiteStatus":"E213 duplicate start and persistent STOP accepted. E221 recovery archived evidence and patched runner; controller read first heartbeat before publication. Later CONNECTING worker observed; cleanup stopped/disabled task, account/application preserved. Corrected bounded wait and scoped resume prepared; cancellation remains pending, no G3 credit."},
       {"id":"G3.4","goal":"Exact-account logoff/cold-boot recovery with no authority replay accepted","evidence":null},
       {"id":"G3.5","goal":"Clock/health drift policy, observability and application no-direct-fallback accepted","evidence":null}
     ]},

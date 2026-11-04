@@ -13,12 +13,23 @@ function Assert-PaytmManagedStatus($Value,[string]$Id,[ValidateSet('TRANSPORT_RE
         if($Value.childProcessId -le 0 -or $Value.childStartTicks -le 0 -or $Value.httpStatus -lt 200 -or $Value.httpStatus -gt 599 -or $Value.transportState.phase -cne 'TRANSPORT_READY'){throw 'TRANSPORT_READY_STATE'}
     }elseif($Value.transportEnabled -or $Value.childProcessId -ne 0){throw 'TRANSPORT_STOP_NOT_CLOSED'}
 }
-function Wait-PaytmManagedHost([string]$Id,[string]$Phase,[string]$PreviousInstance='', [int]$PreviousChild=0){
-    $c=Get-PaytmHostContract;$watch=[Diagnostics.Stopwatch]::StartNew();$first=$null
+function Wait-PaytmManagedHost([string]$Id,[string]$Phase,[string]$PreviousInstance='', [int]$PreviousChild=0,[ValidateRange(1,120)][int]$TimeoutSeconds=120,[switch]$AwaitScheduledStart){
+    $c=Get-PaytmHostContract;$watch=[Diagnostics.Stopwatch]::StartNew();$first=$null;$launchObserved=-not $AwaitScheduledStart
     do{
         $task=Get-PaytmOwnedHostTask $Id
-        $v=Read-PaytmHostJson (Join-Path $c.work 'status.json')
+        if([string]$task.State -cin @('Running','Queued')){$launchObserved=$true}
+        foreach($name in @('startup-failure.json','blocked.json')){
+            if(Test-Path -LiteralPath (Join-Path $c.work $name)){throw 'TRANSPORT_WORKER_BLOCKED'}
+        }
+        # Start-ScheduledTask returns before the worker publishes its first heartbeat.
+        # Catch only a missing file, including disappearance between observation/open.
+        # Malformed JSON, access failures and missing directories remain errors.
+        $v=$null;$missing=$false
+        try{$v=Read-PaytmHostJson (Join-Path $c.work 'status.json')}catch [IO.FileNotFoundException]{$missing=$true}
+        if(-not $missing){
+        if($null -eq $v){throw 'TRANSPORT_STATUS_INVALID'}
         if($v.installationId -cne $Id){throw 'TRANSPORT_STATUS_IDENTITY'}
+        if($PreviousInstance -and $v.instanceId -cne $PreviousInstance){$launchObserved=$true}
         if($v.phase -ceq 'BLOCKED'){throw 'TRANSPORT_WORKER_BLOCKED'}
         if($v.phase -ceq $Phase -and $v.instanceId -cne $PreviousInstance -and ($PreviousChild -eq 0 -or $v.childProcessId -ne $PreviousChild)){
             Assert-PaytmManagedStatus $v $Id $Phase
@@ -36,10 +47,11 @@ function Wait-PaytmManagedHost([string]$Id,[string]$Phase,[string]$PreviousInsta
                 if(-not $first){$first=$v}
             }
         }
-        if([string]$task.State -cnotin @('Running','Queued') -and (Get-ScheduledTaskInfo -TaskName $c.name -TaskPath '\').LastTaskResult -notin @(0,267011)){throw 'TRANSPORT_TASK_EXIT'}
-        Write-Progress -Activity 'Managed Windows transport' -Status ("Waiting for $Phase ($([int]$watch.Elapsed.TotalSeconds)/120 seconds)") -PercentComplete 70
+        }
+        if($launchObserved -and [string]$task.State -cnotin @('Running','Queued') -and (Get-ScheduledTaskInfo -TaskName $c.name -TaskPath '\').LastTaskResult -notin @(0,267011)){throw 'TRANSPORT_TASK_EXIT'}
+        Write-Progress -Activity 'Managed Windows transport' -Status ("Waiting for $Phase ($([int]$watch.Elapsed.TotalSeconds)/$TimeoutSeconds seconds)") -PercentComplete 70
         Start-Sleep -Milliseconds 500
-    }while($watch.Elapsed.TotalSeconds -lt 120)
+    }while($watch.Elapsed.TotalSeconds -lt $TimeoutSeconds)
     throw 'TRANSPORT_HEARTBEAT_TIMEOUT'
 }
 function Initialize-PaytmManagedApplication {
@@ -88,8 +100,11 @@ function Stop-PaytmReviewedChild($Snapshot){
 function Stop-PaytmFailedManagedHost([string]$Id){
     $c=Get-PaytmHostContract
     Set-PaytmHostControl $Id STOP
-    $null=Get-PaytmOwnedHostTask $Id
-    $null=Disable-ScheduledTask -TaskName $c.name -TaskPath '\'
+    $tasks=@(Get-PaytmProbeTask $c.name)
+    if($tasks.Count -ne 1){throw 'HOST_TASK_MISSING'}
+    $enabled=[bool]$tasks[0].Settings.Enabled
+    $null=Get-PaytmOwnedHostTask $Id $enabled
+    if($enabled){$null=Disable-ScheduledTask -TaskName $c.name -TaskPath '\'}
     Stop-ScheduledTask -TaskName $c.name -TaskPath '\'
     $watch=[Diagnostics.Stopwatch]::StartNew()
     do {

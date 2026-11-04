@@ -45,6 +45,7 @@ function Get-PaytmOwnedHostTask($Id,[bool]$Enabled=$true){
  if($Enabled -eq $fixture.disabled){throw 'FIXTURE_TASK_ENABLED_MISMATCH'}
  [pscustomobject]@{State=if($fixture.stopped){'Disabled'}else{'Running'}}
 }
+function Get-PaytmProbeTask {[pscustomobject]@{Settings=@{Enabled=(-not $fixture.disabled)}}}
 function Disable-ScheduledTask {$fixture.disabled=$true}
 function Stop-ScheduledTask {$fixture.stopped=$true}
 function Wait-PaytmManagedHost($Id,$Phase,$PreviousInstance='', $PreviousChild=0){

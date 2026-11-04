@@ -1,6 +1,42 @@
 # Gateway task cancellation and application recovery
 
-## Current handoff: recover once and test cancellation
+## Current handoff: resume the completed recovery
+
+**E221, 2026-11-04:** Run `c331433dafe242bca2d651c4625866aa` stopped after20.68s with FileNotFoundException when the controller immediately read the first heartbeat. Eleven source hashes match83ac563 CRLF bytes. Backup, runner replacement, manifest update and evidence archiving all succeeded; one start was requested. The later diagnostic sample captured a new CONNECTING worker with identity, signing, private-copy absence and job containment passing. This is not TLS or cancellation acceptance. The report's task-running observation precedes cleanup: final cleanup verified persistent STOP/task disable, unchanged INR100000 cash/revision0 and locked application/writer.
+
+The controller now tolerates only a missing heartbeat file within its120-second wait. For an explicitly requested start, it also waits for dispatch instead of treating an old task result as the new launch's result. Failure markers, malformed/null data, access errors, task exit after launch, stale heartbeat and listener drift still fail. It requires two advancing valid ready snapshots. The earlier tests mocked the wait itself; new regressions exercise the real wait and reader together, including delayed publication and file disappearance during open.
+
+Verification:363 local assertions passed across startup waiting/cleanup, resume, combined cancellation controller and existing transport/recovery regressions. Runtime APIs are mocked; actual spare resumption remains pending.
+
+Use the resume below, **not `-RecoverReviewedLatch`**. It pins this failed report, verifies the existing seven-file archive, installed sources, exact disabled task, STOP control, absent failure markers/listener and exited prior worker under the worker lease. It does not replace files or erase markers. It enables and starts the existing task once, then continues the cancellation/application recovery batch only if healthy. A new fault is preserved; cleanup reasserts STOP and task disable even if task enabling failed.
+
+Keep Docker Desktop and the existing application container running. Open **PowerShell7 as Administrator** on the spare laptop. No PuTTY, Pageant, reboot, password or application rebuild is needed. Run:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'Continue'
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Use PowerShell 7 as Administrator.' }
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = [Security.Principal.WindowsPrincipal]::new($identity)
+if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'Open PowerShell 7 using Run as administrator.'
+}
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+$changes = @(git status --porcelain)
+if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect repository.' }
+if ($changes.Count) { throw 'Preserve local changes before updating.' }
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& '.\ops\windows\TestPaytmGatewayCancellation.ps1' -ResumeReviewedRecovery
+```
+
+Allow roughly3–5 minutes when healthy. Share the one printed JSON even on failure. Expected success is `GATEWAY_CANCELLATION_AND_APPLICATION_RECOVERY_PASSED`. No broker authentication or orders. Accepted groups remain100/100/0/0/0/0,10/30=33.3%, until the resumed runtime result is reviewed. G3.3 closure would move G3 to20% and the bounded Paytm plan to11/30=36.7%.
+
+<a id="current-handoff-recover-once-and-test-cancellation"></a>
+
+## Historical E220 handoff: recover once and test cancellation
+
+The update below has already been applied on the spare laptop; use E221 resume above.
 
 E220, 2026-11-04: inspection `8c0d2d14cb304f9493a08f87ba281250` completed in **3.802s**, with all eight source hashes matching c1718eb CRLF bytes. The task is Ready, enabled, exact-definition verified, last result1; recorded worker PID6692 no longer exists and its heartbeat did not advance. All three saved files report `TRANSPORT_PREVIOUS_FAILURE_REVIEW_REQUIRED`. The original runner replaced the first failure during a subsequent launch. The initial cause is therefore unknown; there is no evidence here proving a new network, key or broker error.
 
