@@ -7,7 +7,7 @@
  [switch]$RecoverReviewedTransport,
  [switch]$ResumeReviewedNetwork,
  [switch]$RecoverReviewedNetworkFailure,
- [string]$NetworkDiagnosticReportPath='C:\MarketBrainData\Review\paytm-gateway-network-2ebb314193ad49af954ea8b1eeadbcec.json',
+ [string]$NetworkDiagnosticReportPath=(Join-Path $PSScriptRoot 'reviewed/paytm-network-e226.json'),
  [string]$NetworkFailureReportPath='C:\MarketBrainData\Review\paytm-gateway-network-1c972328b34c4a7e80fb637e05ec8a8c.json',
  [string]$TransportFailureReportPath='C:\MarketBrainData\Review\paytm-gateway-network-b49f51c3f0db4ad996892fcdcd6b14b7.json',
  [string]$CancellationReportPath='C:\MarketBrainData\Review\paytm-gateway-cancellation-1eebaa9b8dec4b9b82d8fa9f66b26859.json',
@@ -23,7 +23,7 @@ if($NetworkInterruption){. (Join-Path $PSScriptRoot 'PaytmGatewayNetwork.ps1')}
 if($ResumeReviewedNetwork){. (Join-Path $PSScriptRoot 'PaytmGatewayNetworkResume.ps1')}
 if($RecoverReviewedNetworkFailure){. (Join-Path $PSScriptRoot 'PaytmGatewayNetworkRecovery.ps1')}
 if($RecoverReviewedTransport){foreach($name in @('PaytmGatewayLatchRecovery.ps1','PaytmGatewayTransportRecovery.ps1')){. (Join-Path $PSScriptRoot $name)}}
-$clock=[Diagnostics.Stopwatch]::StartNew();$c=Get-PaytmHostContract;$lease=$null;$finished=$false
+$script:paytmCancellationClock=[Diagnostics.Stopwatch]::StartNew();$c=Get-PaytmHostContract;$lease=$null;$finished=$false
 $route=@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path};$application=@{Ready=$false;Token=$null}
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;cleanupFailure=$null;elapsedSeconds=0;sourceHashes=@{};
  inspectionOnly=[bool]$InspectOnly;latchRecoveryAttempted=$false;resumeRecoveryAttempted=$false;cancellationAttempted=$false;cancellationPassed=$false;recoveryPassed=$false;noAutomaticRearmPassed=$false;accountPreserved=$false;finalApplicationLockVerified=$false;failureStopVerified=$false;
@@ -32,17 +32,21 @@ $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIE
  credentialsUsed=$false;ordersEnabled=$false;vpsChanged=$false;keyImported=$false;taskReRegistered=$false;rebootRequested=$false}
 $null=Assert-PaytmAccountPath $OutputDirectory;$null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $prefix=if($NetworkInterruption){'paytm-gateway-network-'}else{'paytm-gateway-cancellation-'}
-$path=Join-Path $OutputDirectory ($prefix+$report.runId+'.json')
+$script:paytmCancellationReportPath=Join-Path $OutputDirectory ($prefix+$report.runId+'.json')
 function Save-Report {
- $report.elapsedSeconds=[math]::Round($clock.Elapsed.TotalSeconds,3)
+ # Helpers have parameters named Path and timers named clock. PowerShell resolves
+ # unqualified variables through their calling scopes, so checkpoint inputs must
+ # be bound explicitly to this collector, never to the helper's input receipt.
+ $script:report.elapsedSeconds=[math]::Round($script:paytmCancellationClock.Elapsed.TotalSeconds,3)
  # Recovery archives and failure projections share this one bounded report.
- $bytes=[Text.Encoding]::UTF8.GetBytes(($report|ConvertTo-Json -Depth 12 -Compress))
+ $bytes=[Text.Encoding]::UTF8.GetBytes(($script:report|ConvertTo-Json -Depth 12 -Compress))
  if($bytes.Length -gt 65536){throw 'CANCEL_REPORT_TOO_LARGE'}
- $temporary=$path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+ $destination=$script:paytmCancellationReportPath
+ $temporary=$destination+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
  try{
   $f=[IO.File]::Open($temporary,'CreateNew','Write','None')
   try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
-  if([IO.File]::Exists($path)){[IO.File]::Replace($temporary,$path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temporary,$path)}
+  if([IO.File]::Exists($destination)){[IO.File]::Replace($temporary,$destination,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temporary,$destination)}
  }finally{if([IO.File]::Exists($temporary)){[IO.File]::Delete($temporary)}}
 }
 function Cancellation-Step($Stage,$Percent){$report.stage=$Stage;Save-Report;Write-Host "[$Percent%] $Stage";Write-Progress -Activity 'Gateway cancellation and recovery' -Status $Stage -PercentComplete $Percent}
@@ -131,6 +135,6 @@ try{
  Save-Report;Write-Progress -Activity 'Gateway cancellation and recovery' -Completed;Write-Progress -Activity 'Managed Windows transport' -Completed
  if($NetworkInterruption){Write-Progress -Activity 'Gateway network recovery' -Completed}
  Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
- Write-Host "Share this ONE file: $path"
+ Write-Host "Share this ONE file: $script:paytmCancellationReportPath"
 }
 if($report.status -ceq 'REVIEW_REQUIRED'){throw 'Cancellation needs review. Share the JSON; do not rerun installation, enable a disabled task or clear STOP.'}

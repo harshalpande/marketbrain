@@ -1,2 +1,4 @@
 # Linux handoff scripts must remain runnable after a Windows checkout/upload.
 ops/linux/*.sh text eol=lf
+# Reviewed diagnostic snapshots are hash-pinned byte-for-byte on Windows and Linux.
+ops/windows/reviewed/*.json -text

@@ -1,0 +1,61 @@
+{
+  "evidenceId": "E227",
+  "date": "2026-11-05",
+  "status": "CHECKPOINT_INPUT_OVERWRITE_REPRODUCED_AND_FIXED_RUNTIME_RECOVERY_PENDING",
+  "report": {
+    "runId": "d69d38db5d544107bd5859fed8462d22",
+    "sha256": "7F97BF786C1E34BEA054E60187B8AD9CAC394959A6D3FF297FE1110B5177B9F5",
+    "sourceRevision": "ea69e3e",
+    "matchingCrlfSourceHashes": 11,
+    "elapsedSeconds": 5.083,
+    "failure": "HOST_NETWORK_RECOVERY_RECEIPT_INVALID",
+    "inputHashMatchedBeforeCheckpoint": true,
+    "cleanupFailure": null,
+    "networkFailureRecoveryAttempted": false,
+    "networkInterruptionAttempted": false,
+    "cleanupTasksRegistered": 0,
+    "accountPreserved": true,
+    "finalApplicationLockVerified": true,
+    "paperCash": 100000,
+    "reservedCash": 0,
+    "ledgerRevision": 0,
+    "savedWorkerInstance": "b7598556f2e4478dba5ea94c73eb1f92",
+    "savedWorkerFailure": "TRANSPORT_KEY_DENIED",
+    "unchangedFailureFileProjectionsLengthsAndTimestamps": 3,
+    "workerProcessExists": false,
+    "taskEnabled": false,
+    "controlMode": "STOP"
+  },
+  "diagnosis": {
+    "rootCause": "Save-Report resolved unqualified path to the calling helper's Path input parameter. The checkpoint replaced the input receipt after its hash was checked and before its contents were read.",
+    "previousCollectorReproducesInputMutation": true,
+    "previousTestsMockedTheReaderWriterBoundary": true,
+    "helperTimerAndReportShadowingAlsoCoveredByFix": true,
+    "marketDataOrAccountFilesAffectedByThisReproducedDefect": false
+  },
+  "correction": {
+    "collectorOutputPathTimerAndReportExplicitlyScriptScoped": true,
+    "atomicBoundedCheckpointWritingPreserved": true,
+    "reviewedInputSnapshot": "ops/windows/reviewed/paytm-network-e226.json",
+    "snapshotSha256": "3AC00E888E53B308D910EB889ABDCAE674917171D497240952C4C39FFBBD5977",
+    "snapshotByteIdenticalToUserUpload": true,
+    "snapshotContainsCredentials": false,
+    "snapshotLineEndingConversionDisabled": true,
+    "overwrittenSpareInputNotReplacedOrDeleted": true,
+    "existingExactStateRecoveryStillRequired": true,
+    "genericFailureResetAdded": false
+  },
+  "localVerification": {
+    "assertions": 239,
+    "combinedCollector": {"assertions":193,"workflows":35,"realValidatorReaderAndWriterBoundary":true,"inputHashPreservedAcrossAllWorkflows":true,"callerPathClockReportShadowingExercised":true},
+    "reviewedNetworkRecoveryRegression": {"assertions":46,"workflows":19,"realArchivesReplacementAndReports":true},
+    "previousCollectorNegativeControl": {"expectedFailure":"CANCEL_WORKFLOW_INPUT_RECEIPT_BYTES_UNCHANGED","observed":true},
+    "uploadedSourcesAndUnchangedMarkersVerified": true,
+    "gitFilteredAndUnfilteredSnapshotHashesEqual": true,
+    "runtimeApisMockedWhereRequired": true,
+    "spareRecoveryAndNetworkAcceptance": false
+  },
+  "acceptedProgress": {"groupPercentages":[100,100,20,0,0,0],"acceptedCheckpoints":11,"totalCheckpoints":30,"percent":36.6666666667,"deltaPercentagePoints":0},
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}
