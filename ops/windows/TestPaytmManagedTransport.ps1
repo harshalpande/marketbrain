@@ -16,6 +16,13 @@ try{
  foreach($pair in @(@('Host key verification failed','HOST_KEY_CHANGED'),@('Permission denied (publickey)','KEY_DENIED'),@('bind: Address already in use','LISTENER_CONFLICT'),@('administratively prohibited','DESTINATION_DRIFT'),@('Connection reset by peer','NETWORK_UNAVAILABLE'),@('other','UNKNOWN'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'ERROR_CLASSIFICATION'}
  foreach($pair in @(@('ssh: connect to host 130.250.191.137 port 22: Unknown error','NETWORK_UNAVAILABLE'),@('Unknown error','UNKNOWN'),@('ssh: connect to host 192.0.2.1 port 22: Unknown error','UNKNOWN'),@('kex_exchange_identification: Connection closed by remote host','NETWORK_UNAVAILABLE'),@("Host key verification failed`nssh: connect to host 130.250.191.137 port 22: Unknown error",'HOST_KEY_CHANGED'),@("Permission denied (publickey)`nssh: connect to host 130.250.191.137 port 22: Unknown error",'KEY_DENIED'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'NARROW_TCP_AND_SECURITY_PRECEDENCE'}
  $late=[pscustomobject]@{Exited=$true;ErrorTail='';Disposed=$false}
+ # Reconstructed public diagnostics, verified against E226's captured length/hash.
+ $captured=(@('OpenSSH_for_Windows_9.5p2, LibreSSL 3.8.2','debug1: Connecting to 130.250.191.137 [130.250.191.137] port 22.','debug1: connect to address 130.250.191.137 port 22: Permission denied','ssh: connect to host 130.250.191.137 port 22: Permission denied') -join "`r`n")+"`r`n"
+ $nativeDenied=[pscustomobject]@{Exited=$true;ErrorTail=$captured};$nativeDenied|Add-Member ScriptMethod Dispose {}
+ $capturedObservation=Get-PaytmChildObservation $nativeDenied $false
+ Check ($capturedObservation.stderrCharacters -eq 245 -and $capturedObservation.stderrSha256 -ceq '43292094F48E6EB533C45228EB0C423B128D31A54D3E56364EB949F4D4B6FA59') 'EXACT_UPLOADED_FAILURE_REPRODUCED'
+ Check ($capturedObservation.reason -ceq 'NETWORK_UNAVAILABLE' -and $capturedObservation.tags -contains 'TCP_CONNECT_DENIED' -and $capturedObservation.tags -notcontains 'PERMISSION_DENIED') 'VERBOSE_TCP_DENIAL_NOT_KEY_FAILURE'
+ foreach($pair in @(@(($captured+"Permission denied (publickey)`r`n"),'KEY_DENIED'),@(($captured+"Host key verification failed`r`n"),'HOST_KEY_CHANGED'),@(($captured+"sign_and_send_pubkey: signing failed`r`n"),'KEY_DENIED'),@(($captured+"administratively prohibited`r`n"),'DESTINATION_DRIFT'),@($captured.Replace('130.250.191.137','192.0.2.1'),'KEY_DENIED'),@($captured.Replace('port 22:','port 23:'),'KEY_DENIED'),@($captured.Replace('Permission denied','Permission denied extra'),'KEY_DENIED'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'VERBOSE_DENIAL_SECURITY_PRECEDENCE'}
  $tcp='ssh: connect to host 130.250.191.137 port 22: Permission denied'
  foreach($pair in @(@($tcp,'NETWORK_UNAVAILABLE'),@("$tcp`r`n",'NETWORK_UNAVAILABLE'),@("$tcp`nPermission denied (publickey)",'KEY_DENIED'),@("$tcp`nHost key verification failed",'HOST_KEY_CHANGED'),@("$tcp`nbind: Address already in use",'LISTENER_CONFLICT'),@('ssh: connect to host 192.0.2.1 port 22: Permission denied','KEY_DENIED'),@(($tcp+' unexpected'),'KEY_DENIED'))){Check ((Get-PaytmTransportFailure $pair[0]) -ceq $pair[1]) 'TCP_DENIED_VS_AUTH_DENIED'}
  $denied=[pscustomobject]@{Exited=$true;ErrorTail=$tcp};$denied|Add-Member ScriptMethod Dispose {}
@@ -49,6 +56,7 @@ try{
   $v=[pscustomobject]@{Id=(100+$fixture.starts);StartTicks=12345L;Exited=$false;ErrorTail='Authenticated to 130.250.191.137 using "publickey"';Disposed=$false}
   if($fixture.scenario -eq 'host_change'){$v.ErrorTail='Host key verification failed'}
   if($fixture.scenario -eq 'unknown_exit'){$v.ErrorTail='unknown failure';$v.Exited=$true}
+  if($fixture.scenario -eq 'verbose_network' -and $fixture.starts -eq 1){$v.ErrorTail=$captured;$v.Exited=$true}
   $v|Add-Member ScriptMethod Dispose {if(-not $this.Disposed){$this.Disposed=$true;$fixture.disposed++}}
   $fixture.child=$v;$v
  }
@@ -66,16 +74,17 @@ try{
   elseif($phase -eq 'LOCKED' -and $fixture.stage -eq 2){Write-PaytmHostJson (Join-Path $temp 'transport-control.json') @{version=1;installationId=$id;mode='ENABLED'};$fixture.stage=3}
   elseif($phase -eq 'TRANSPORT_READY' -and $fixture.stage -eq 3){Write-PaytmHostJson (Join-Path $temp 'control.json') @{version=1;installationId=$id;mode='STOP'}}
  }
- foreach($scenario in @('lifecycle','host_change','unknown_exit','tls_fail','persistent_stop')){
+ foreach($scenario in @('lifecycle','verbose_network','host_change','unknown_exit','tls_fail','persistent_stop')){
   $fixture.scenario=$scenario;$fixture.signs=0;$fixture.starts=0;$fixture.disposed=0;$fixture.sleeps=0;$fixture.stage=0;$fixture.child=$null;$fixture.observed.Clear()
   $fixture.clock=[pscustomobject]@{Elapsed=[TimeSpan]::Zero}
   $fixture.report=[ordered]@{installationId=$id;sequence=0;networkContacted=$false;brokerReady=$false;ordersEnabled=$false;signingVerified=$false}
   Write-PaytmHostJson (Join-Path $temp 'control.json') @{version=1;installationId=$id;mode=$(if($scenario -eq 'persistent_stop'){'STOP'}else{'LOCKED'})}
   Write-PaytmHostJson (Join-Path $temp 'transport-control.json') @{version=1;installationId=$id;mode='ENABLED'}
-  if($scenario -in @('lifecycle','persistent_stop')){
+  if($scenario -in @('lifecycle','verbose_network','persistent_stop')){
    Invoke-PaytmTransportLoop $temp $temp $temp $fixture.report $fixture.clock
    Check ($fixture.report.phase -eq 'STOPPED' -and $fixture.report.childProcessId -eq 0) 'STOPPED'
    if($scenario -eq 'lifecycle'){Check ($fixture.starts -eq 3 -and $fixture.disposed -eq 3) 'RECONNECT_DISABLE_STOP';Check ($fixture.observed.Contains('BACKOFF') -and $fixture.observed.Contains('LOCKED') -and $fixture.observed.Contains('TRANSPORT_READY')) 'PHASES'}
+   elseif($scenario -eq 'verbose_network'){Check ($fixture.starts -eq 4 -and $fixture.observed.Contains('BACKOFF') -and $fixture.observed.Contains('TRANSPORT_READY')) 'REAL_LOOP_RETRIES_VERBOSE_NETWORK_DENIAL'}
    else{Check ($fixture.signs -eq 0 -and $fixture.starts -eq 0 -and -not $fixture.report.networkContacted) 'STOP_STARTUP_NO_SIGN_OR_CONNECT'}
   }else{
    Reject {Invoke-PaytmTransportLoop $temp $temp $temp $fixture.report $fixture.clock} 'SECURITY_LATCH'
@@ -84,7 +93,7 @@ try{
   Check (-not $fixture.report.brokerReady -and -not $fixture.report.ordersEnabled) 'NO_AUTHORITY'
  }
  Remove-Item Function:\Start-Sleep
- [pscustomobject]@{status='TRANSPORT_ADAPTER_PASSED';assertions=$checks;loopWorkflows=5;networkAndSigningMocked=$true;realAtomicHeartbeatFiles=$true}|ConvertTo-Json
+ [pscustomobject]@{status='TRANSPORT_ADAPTER_PASSED';assertions=$checks;loopWorkflows=6;networkAndSigningMocked=$true;realAtomicHeartbeatFiles=$true}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($temp);$base=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
  if(-not $resolved.StartsWith($base,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($resolved) -notmatch '^mb-transport-tests-[a-f0-9]{32}$'){throw 'UNSAFE_TEST_CLEANUP'}

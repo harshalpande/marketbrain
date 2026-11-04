@@ -56,6 +56,16 @@ try{
  Check $child.Exited 'NATIVE_EXIT_OBSERVED'
  $o=Get-PaytmChildObservation $child $false;$child=$null
  Check ($o.stderrDrained -and $o.reason -eq 'NETWORK_UNAVAILABLE' -and $o.tags -contains 'TCP_CONNECT_UNKNOWN') 'NATIVE_FINAL_STDERR_DRAINED'
+ $captured=(@('OpenSSH_for_Windows_9.5p2, LibreSSL 3.8.2','debug1: Connecting to 130.250.191.137 [130.250.191.137] port 22.','debug1: connect to address 130.250.191.137 port 22: Permission denied','ssh: connect to host 130.250.191.137 port 22: Permission denied') -join "`r`n")+"`r`n"
+ $payload=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($captured))
+ $code='[Console]::Error.Write([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("'+$payload+'")));exit 255'
+ $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code))
+ $child=[MarketBrain.Transport.Child]::new('C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',[string[]]@('-NoProfile','-NonInteractive','-EncodedCommand',$encoded))
+ $timer=[Diagnostics.Stopwatch]::StartNew()
+ while(-not $child.Exited -and $timer.Elapsed.TotalSeconds -lt 15){Start-Sleep -Milliseconds 10}
+ Check $child.Exited 'NATIVE_VERBOSE_EXIT_OBSERVED'
+ $o=Get-PaytmChildObservation $child $false;$child=$null
+ Check ($o.stderrDrained -and $o.stderrCharacters -eq 245 -and $o.stderrSha256 -ceq '43292094F48E6EB533C45228EB0C423B128D31A54D3E56364EB949F4D4B6FA59' -and $o.reason -ceq 'NETWORK_UNAVAILABLE' -and $o.tags -notcontains 'PERMISSION_DENIED') 'NATIVE_CAPTURED_VERBOSE_TCP_DENIAL'
  # Exercise actual Windows curl/argument quoting/response formatting against a loopback-only
  # denial fixture. No external connection or TLS endpoint is contacted.
  $proxy=[DenyProxyFixture]::new()

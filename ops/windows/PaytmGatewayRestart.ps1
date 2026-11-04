@@ -23,7 +23,11 @@ function Test-PaytmObservedTransportHash([string]$Hash){
 }
 function Test-PaytmOutboundTransportHash([string]$Hash){
  # E225: exact TCP connect denial is network loss; SSH authentication denial stays blocked.
- $Hash -cin @('86249FB0CDF7A1D1316C3B3AD6C7F313FDC9E3B7ED2DDA192115759AC612D59F','0C9405BE49E04763C3FA757A79119A7E5B9D1EC6EC6657EF1B2E7AD0E6AA3656')
+ $Hash -cin @('86249FB0CDF7A1D1316C3B3AD6C7F313FDC9E3B7ED2DDA192115759AC612D59F','0C9405BE49E04763C3FA757A79119A7E5B9D1EC6EC6657EF1B2E7AD0E6AA3656') -or (Test-PaytmVerboseTcpTransportHash $Hash)
+}
+function Test-PaytmVerboseTcpTransportHash([string]$Hash){
+ # E226 exact verbose TCP-denial reproduction. Authentication denials still latch.
+ $Hash -cin @('4AA20733D04ED17930790B8F494078754CD129F0836E0F251C7ADAA567688E63','0E9DC20860BD68C66EB5B89D54B54D761888FE8501B265A8B5CBC68931716A69')
 }
 function Assert-PaytmTransportInstallationSources($Receipt){
  $c=Get-PaytmHostContract;$sid=(Get-PaytmKeyContract).accountSid

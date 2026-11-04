@@ -2,7 +2,10 @@
 # E225 completed recovery; resume its deliberately stopped worker with one adapter update.
 function Assert-PaytmReviewedNetworkFailure([string]$Path){
  $null=Assert-PaytmAccountPath $Path
- if((Get-FileHash -LiteralPath $Path).Hash -cne 'C548C0A71025967778C14BC7573D358FD9FD0A290DB6D1FED3FBA1C9B9053B3B'){throw 'HOST_NETWORK_RESUME_RECEIPT_NOT_REVIEWED'}
+ $actual=(Get-FileHash -LiteralPath $Path).Hash
+ $report.networkResumeReceipt=[ordered]@{fileName=[IO.Path]::GetFileName($Path);expectedSha256='C548C0A71025967778C14BC7573D358FD9FD0A290DB6D1FED3FBA1C9B9053B3B';actualSha256=$actual}
+ Save-Report
+ if($actual -cne $report.networkResumeReceipt.expectedSha256){throw 'HOST_NETWORK_RESUME_RECEIPT_NOT_REVIEWED'}
  $v=Read-PaytmHostJson $Path 65536
  if($v.runId -cne '1c972328b34c4a7e80fb637e05ec8a8c' -or $v.failure -cne 'NETWORK_BACKOFF_NOT_OBSERVED' -or $v.cleanupFailure -or $v.networkLossObserved -or $v.networkRecoveryPassed){throw 'HOST_NETWORK_RESUME_RECEIPT_INVALID'}
  foreach($n in @('failureStopVerified','accountPreserved','finalApplicationLockVerified','networkCleanupRehearsalPassed','transportRecoveryAttempted')){if($v.$n -ne $true){throw 'HOST_NETWORK_RESUME_RECEIPT_PROOF'}}

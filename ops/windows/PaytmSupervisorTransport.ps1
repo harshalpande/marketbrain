@@ -26,9 +26,9 @@ function Get-PaytmTransportFailure([string]$ErrorText) {
     # This exact local TCP-connect diagnostic precedes authentication. Do not
     # reinterpret arbitrary "Unknown error" output or authentication denials.
     $tcpUnknown='(?m)^ssh: connect to host 130\.250\.191\.137 port 22: Unknown error\r?$'
-    $tcpDenied='(?m)^ssh: connect to host 130\.250\.191\.137 port 22: Permission denied\r?$'
+    $tcpDenied='(?m)^(?:ssh: connect to host|debug1: connect to address) 130\.250\.191\.137 port 22: Permission denied\r?$'
     # A local connect() denial occurs before SSH authentication. Strip only that
-    # exact pinned-endpoint line for the credential check; all other denials latch.
+    # exact pinned-endpoint terminal/debug lines; all other denials latch.
     $securityText=$ErrorText -replace $tcpDenied,''
     if($securityText -match 'Permission denied|sign_and_send_pubkey: signing failed|no mutual signature'){return 'KEY_DENIED'}
     if($ErrorText -match 'Address already in use|cannot listen to port|Could not request local forwarding'){return 'LISTENER_CONFLICT'}
@@ -47,13 +47,13 @@ function Get-PaytmChildObservation($Child,[bool]$PreviouslyAuthenticated){
     $tags=@()
     foreach($pair in @(
         @('TCP_CONNECT_UNKNOWN','(?m)^ssh: connect to host 130\.250\.191\.137 port 22: Unknown error\r?$'),
-        @('TCP_CONNECT_DENIED','(?m)^ssh: connect to host 130\.250\.191\.137 port 22: Permission denied\r?$'),
+        @('TCP_CONNECT_DENIED','(?m)^(?:ssh: connect to host|debug1: connect to address) 130\.250\.191\.137 port 22: Permission denied\r?$'),
         @('TCP_CONNECT_TIMEOUT','Connection timed out'),@('TCP_CONNECT_REFUSED','Connection refused'),
         @('NETWORK_UNREACHABLE','No route to host|Network is unreachable|Host is unreachable|Network unreachable'),
         @('CONNECTION_RESET','Connection reset'),@('BROKEN_PIPE','Broken pipe'),
         @('KEX_CLOSED','kex_exchange_identification: Connection closed by remote host'),
         @('SSH_TIMEOUT','Timeout, server'),@('HOST_KEY_FAILURE','REMOTE HOST IDENTIFICATION HAS CHANGED|Host key verification failed'),
-        @('PERMISSION_DENIED','(?m)^(?!ssh: connect to host 130\.250\.191\.137 port 22: Permission denied\r?$).*Permission denied'),@('SIGNING_FAILURE','sign_and_send_pubkey: signing failed|no mutual signature'),
+        @('PERMISSION_DENIED','(?m)^(?!(?:ssh: connect to host|debug1: connect to address) 130\.250\.191\.137 port 22: Permission denied\r?$).*Permission denied'),@('SIGNING_FAILURE','sign_and_send_pubkey: signing failed|no mutual signature'),
         @('LISTENER_FAILURE','Address already in use|cannot listen to port|Could not request local forwarding'),
         @('DESTINATION_DENIED','administratively prohibited'))){if($text -match $pair[1]){$tags+=$pair[0]}}
     $sha=[Security.Cryptography.SHA256]::Create()
