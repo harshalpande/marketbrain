@@ -1,5 +1,13 @@
 # Daily progress and decision log
 
+## 2026-11-04 Cancellation preflight blocked by a saved worker failure
+
+- E218: run `f7a8cfeeafc04b2a9892d685d7324943` stopped after3.145s; seven source hashes match be19124 CRLF. Cancellation was not attempted, no application call occurred, and the collector changed no task/key/VPS configuration.
+- At least one `blocked.json`/`startup-failure.json` marker exists. The old collector did not preserve its contents. The underlying failure and current worker state cannot be inferred from this report; no blind reset or reinstall is justified.
+- Implemented structured bounded file/task/process capture, two heartbeat samples and `-InspectOnly`. Normal failure paths also preserve diagnostics. Runtime state remains untouched in inspection mode; no missing/stale status is treated as healthy.
+- Local verification:14 evidence assertions and62 controller assertions across15 workflows (76 total). Includes exact worker-marker preflight failure, inspection-only behavior, malformed/oversized/missing files, secret-field redaction, access denied versus absent process, unchanged files and durable failure cleanup. OS/task APIs mocked; bounded file reads and atomic reports exercised.
+- Next: [read-only evidence capture](paytm-gateway-cancellation.md#current-handoff-inspect-the-saved-worker-failure), one report. Groups100/100/0/0/0/0; delta0. These are accepted historical checkpoints; current gateway health is unconfirmed and G3 testing waits for diagnosis.
+
 ## 2026-11-03 Windows restart accepted; cancellation and recovery prepared
 
 - E216: corrected After-only run `eb86108cc1e247d68d06e135eb580bf6` passed in14.623s, five CRLF source hashes verified against1297b49. New Windows boot and session0 worker, new application boot, TLS route, preserved INR100000 cash/reserved0/revision0 and final application/writer lock accepted. No credentials/orders or task start by the restart collector.

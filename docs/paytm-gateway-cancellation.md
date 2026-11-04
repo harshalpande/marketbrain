@@ -1,5 +1,30 @@
 # Gateway task cancellation and application recovery
 
+## Current handoff: inspect the saved worker failure
+
+**E218, 2026-11-04:** Cancellation run `f7a8cfeeafc04b2a9892d685d7324943` stopped in preflight after3.145s with `STARTUP_WORKER_FAILURE_PRESENT`. All seven source hashes match be19124 CRLF bytes. No cancellation or application request occurred. The existing worker has at least one saved failure marker; the report omitted its contents, so the underlying cause and current worker state are unknown. Do not clear either marker or rerun cancellation yet.
+
+The corrected collector includes bounded structured worker diagnostics on failures. Its new `-InspectOnly` mode reads the fixed `blocked.json`, `startup-failure.json`, `status.json` and control files, records task definition/state/result and native process observations, and samples the heartbeat twice. Arbitrary exception messages, stderr, key material and unknown fields are omitted. Missing, unreadable, oversized and malformed files remain distinguishable. An advancing heartbeat is not treated as proof of healthy TLS or listener ownership.
+
+Use PowerShell7 as Administrator on the spare laptop:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'Continue'
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Use PowerShell 7 as Administrator.' }
+Set-Location 'C:\Users\Harshal S Pande\Documents\workspace\marketbrain'
+$changes = @(git status --porcelain)
+if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect repository.' }
+if ($changes.Count) { throw 'Preserve local changes before updating.' }
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& '.\ops\windows\TestPaytmGatewayCancellation.ps1' -InspectOnly
+```
+
+Expected status: `WORKER_FAILURE_DIAGNOSTICS_CAPTURED`. This means evidence was captured, not that gateway health or cancellation passed. Share the one printed `paytm-gateway-cancellation-*.json`. It does not use Docker or contact the VPS, import keys, clear latches or change/start/stop tasks. It writes only its report and acquires the existing controller lock. The failed test did not establish current account/writer state. Previously accepted G1/G2 checkpoints remain100/100; current gateway health is unconfirmed and G3 remains0 pending recovery and testing.
+
+The execution instructions below describe the original cancellation batch and are on hold until the saved failure is reviewed.
+
 E216 accepts the Windows restart report in 14.623 seconds: a new background worker, application TLS route, preserved INR100000 cash and final locked authority. G2 is now100% (five accepted checkpoints). No further restart, installation, key import or VPS change is needed for the next batch.
 
 ## Why this test is next
