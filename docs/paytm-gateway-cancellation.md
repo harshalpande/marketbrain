@@ -1,6 +1,9 @@
 # Gateway task cancellation and application recovery
 
-## Current handoff: resume the completed recovery
+**Current E222/E223, 2026-11-04:** Cancellation and recovery accepted in 51.253s; all 11 source hashes match bdc162a. Both processes exited and the listener disappeared in 1.529s. A 10.785s quiet interval, fresh healthy worker, 3/3 application checks, unchanged INR 100000 account and final application/writer locks passed. **G3.3 closes: groups 100/100/20/0/0/0, 11/30 checkpoints (36.7%, +3.33 percentage points).** This measures accepted evidence at capture, not continuous health or whole-project completion. Next: [one guarded network-interruption/recovery batch](paytm-gateway-network.md), with a disabled-rule cleanup rehearsal before the real outage. Engineering is prepared; spare acceptance is pending. Do not rerun cancellation/recovery. HTTP 503 remains transport-only evidence; login, quotes and orders remain pending. The original overwritten worker failure remains unknown.
+
+<a id="current-handoff-resume-the-completed-recovery"></a>
+## Historical handoff: resume the completed recovery
 
 **E221, 2026-11-04:** Run `c331433dafe242bca2d651c4625866aa` stopped after20.68s with FileNotFoundException when the controller immediately read the first heartbeat. Eleven source hashes match83ac563 CRLF bytes. Backup, runner replacement, manifest update and evidence archiving all succeeded; one start was requested. The later diagnostic sample captured a new CONNECTING worker with identity, signing, private-copy absence and job containment passing. This is not TLS or cancellation acceptance. The report's task-running observation precedes cleanup: final cleanup verified persistent STOP/task disable, unchanged INR100000 cash/revision0 and locked application/writer.
 
@@ -72,6 +75,7 @@ Expected successful status: `GATEWAY_CANCELLATION_AND_APPLICATION_RECOVERY_PASSE
 
 <a id="current-handoff-inspect-the-saved-worker-failure"></a>
 
+<a id="current-handoff-inspect-the-saved-worker-failure"></a>
 ## Historical handoff: inspect the saved worker failure
 
 The E218/E219 instructions below are retained as history and superseded by E220 above.

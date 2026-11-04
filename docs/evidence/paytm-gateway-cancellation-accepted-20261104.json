@@ -1,0 +1,45 @@
+{
+  "evidenceId": "E222",
+  "date": "2026-11-04",
+  "status": "GATEWAY_CANCELLATION_AND_APPLICATION_RECOVERY_ACCEPTED",
+  "report": {
+    "runId": "1eebaa9b8dec4b9b82d8fa9f66b26859",
+    "sha256": "8A5F02400003D32C46A892F9BEADAB0E5C109034E44B4AEF0C0EFA8645B0875D",
+    "sourceRevision": "bdc162a",
+    "matchingCrlfSourceHashes": 11,
+    "elapsedSeconds": 51.253,
+    "failure": null,
+    "cleanupFailure": null,
+    "cancellationSeconds": 1.529,
+    "ownerExited": true,
+    "childExited": true,
+    "listenerCountAfterCancellation": 0,
+    "quietSeconds": 10.785,
+    "freshWorkerRecovered": true,
+    "applicationRouteChecksPassed": 3,
+    "noAutomaticRearmPassed": true,
+    "accountPreserved": true,
+    "cash": 100000,
+    "reservedCash": 0,
+    "ledgerRevision": 0,
+    "finalApplicationAndWriterLocked": true,
+    "gatewayHealthyAtCapture": true
+  },
+  "acceptedProgress": {
+    "closedCheckpoint": "G3.3",
+    "prerequisiteEvidence": ["E213"],
+    "groupPercentages": [100,100,20,0,0,0],
+    "acceptedCheckpoints": 11,
+    "totalCheckpoints": 30,
+    "percent": 36.6666666667,
+    "deltaPercentagePoints": 3.3333333333
+  },
+  "limits": [
+    "Earlier overwritten worker failure remains unknown; successful recovery does not establish its original cause.",
+    "HTTP 503 establishes verified TLS transport only, not Paytm authentication or quote readiness.",
+    "Actual network interruption, negative cases, logoff/cold-power-loss and clock/health policy remain open G3 work.",
+    "This is checkpoint acceptance at capture, not continuous live-health or whole-project completion."
+  ],
+  "credentialsUsed": false,
+  "ordersEnabled": false
+}

@@ -1,6 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E221, 2026-11-04:** Recovery archived the evidence and updated the runner/manifest successfully, but the controller read the first heartbeat too early (FileNotFoundException,20.68s). Eleven source hashes verified. A later sample shows a fresh CONNECTING worker with identity/signing passed; TLS/cancellation not established. Cleanup verified STOP/task disable, unchanged INR100000 account and locked application. Bounded startup waiting is corrected; [resume the completed recovery](paytm-gateway-cancellation.md#current-handoff-resume-the-completed-recovery) verifies existing archives/installation and starts the exact task once before cancellation. No reinstall or marker reset. Accepted groups100/100/0/0/0/0,10/30 (33.3%); current gateway deliberately stopped. Earlier recovery command is superseded.
+**Current E222/E223, 2026-11-04:** Cancellation and recovery accepted in 51.253s; all 11 source hashes match bdc162a. Both processes exited and the listener disappeared in 1.529s. A 10.785s quiet interval, fresh healthy worker, 3/3 application checks, unchanged INR 100000 account and final application/writer locks passed. **G3.3 closes: groups 100/100/20/0/0/0, 11/30 checkpoints (36.7%, +3.33 percentage points).** This measures accepted evidence at capture, not continuous health or whole-project completion. Next: [one guarded network-interruption/recovery batch](paytm-gateway-network.md), with a disabled-rule cleanup rehearsal before the real outage. Engineering is prepared; spare acceptance is pending. Do not rerun cancellation/recovery. HTTP 503 remains transport-only evidence; login, quotes and orders remain pending. The original overwritten worker failure remains unknown.
+
+**Historical E221, 2026-11-04:** Recovery archived the evidence and updated the runner/manifest successfully, but the controller read the first heartbeat too early (FileNotFoundException,20.68s). Eleven source hashes verified. A later sample shows a fresh CONNECTING worker with identity/signing passed; TLS/cancellation not established. Cleanup verified STOP/task disable, unchanged INR100000 account and locked application. Bounded startup waiting is corrected; [resume the completed recovery](paytm-gateway-cancellation.md#current-handoff-resume-the-completed-recovery) verifies existing archives/installation and starts the exact task once before cancellation. No reinstall or marker reset. Accepted groups100/100/0/0/0/0,10/30 (33.3%); current gateway deliberately stopped. Earlier recovery command is superseded.
 
 **Historical E220, 2026-11-04:** Inspection succeeded in3.802s; all eight source hashes verified against c1718eb. Worker exited; task result1; the failure latch says TRANSPORT_PREVIOUS_FAILURE_REVIEW_REQUIRED. The old runner overwrote the original cause during a later launch, so that cause remains unknown. First-cause preservation is corrected; [one reviewed recovery plus cancellation batch](paytm-gateway-cancellation.md#current-handoff-recover-once-and-test-cancellation) archives exact evidence, patches only the runner/manifest, makes one fresh start and continues only if healthy. Runtime recovery remains pending. Accepted groups **100/100/0/0/0/0**,10/30 checkpoints (33.3%); current gateway health blocked. This supersedes the earlier InspectOnly handoff.
 
@@ -48,18 +50,18 @@ Historical E194: actual recovery and exact-account probe accepted. Eight complet
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 
-## Current accepted snapshot — E216 (G2.4 closed)
+## Current accepted snapshot — E222 (G3.3 closed)
 
 | Group | Accepted checkpoints | Accepted completion | Remaining |
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
 | G2 Unattended gateway |5/5|100%|Windows startup, managed transport and application/account checks accepted; remaining resilience cases belong to G3 |
-| G3 Real recovery/safe failure |0/5|0%|Installed-system interruption, negatives, stop, logoff/boot, health/no-fallback acceptance |
+| G3 Real recovery/safe failure |1/5|20%|Network interruption, negative cases, logoff/cold-power-loss and clock/health checks |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |
 | G6 Telegram review |0/5|0%|Real review-only ACCEPT, REJECT, expiry, replay and unauthorized cases |
 
-Earlier tunnel/container/application-route evidence remains accepted as prerequisite work. Zeros in G3–G6 mean no checkpoint in this **managed-system acceptance baseline** is closed, not that no supporting code or past tests exist. Two complete groups out of six are now accepted; do not equate that count with estimated remaining time.
+Earlier tunnel/container/application-route evidence remains accepted as prerequisite work. Zeros in G4–G6 mean no checkpoint in this **managed-system acceptance baseline** is closed, not that no supporting code or past tests exist. Two complete groups out of six are now accepted; do not equate that count with estimated remaining time.
 
 E185 report passed79 assertions,12 unsafe-configuration cases and31 effective SSH settings in2.335s; all five source hashes matched the reviewed Windows checkout. This closes G2.1. It did not start an agent, import a key, install a task or contact the VPS. Previous foundation engineering was locally verified; its spare acceptance is now confirmed.
 
@@ -71,4 +73,4 @@ E185 report passed79 assertions,12 unsafe-configuration cases and31 effective SS
 4. Why the next script is needed, exactly what it changes, and what successful evidence would establish.
 5. For authorized implementation: verified commit/push and complete spare commands, one shareable JSON where practical. Never request passwords, tokens or private keys in chat.
 
-Next checkpoint **G2.4**, production supervisor and scheduled startup installed and verified, would move G2 **60% → 80%** after runtime review. The temporary scheduled-signing batch is a prerequisite, not all of G2.4. G2.5 then covers managed VPS lifecycle. Earlier report release-time snapshots are historical; E198 supplies current60% acceptance. No other group advances automatically.
+Next checkpoint **G3.1** requires real network interruption and recovery evidence. E223 prepares that batch; acceptance would move G3 **20% → 40%** and the bounded plan **36.7% → 40%**. No other checkpoint advances automatically.

@@ -1,5 +1,7 @@
 # Daily progress and decision log
 
+**Current E222/E223, 2026-11-04:** Cancellation and recovery accepted in 51.253s; all 11 source hashes match bdc162a. Both processes exited and the listener disappeared in 1.529s. A 10.785s quiet interval, fresh healthy worker, 3/3 application checks, unchanged INR 100000 account and final application/writer locks passed. **G3.3 closes: groups 100/100/20/0/0/0, 11/30 checkpoints (36.7%, +3.33 percentage points).** This measures accepted evidence at capture, not continuous health or whole-project completion. Next: [one guarded network-interruption/recovery batch](paytm-gateway-network.md), with a disabled-rule cleanup rehearsal before the real outage. Engineering is prepared; spare acceptance is pending. Do not rerun cancellation/recovery. HTTP 503 remains transport-only evidence; login, quotes and orders remain pending. The original overwritten worker failure remains unknown.
+
 ## 2026-11-04 First-heartbeat race corrected; completed update can resume
 
 - E221: `c331433dafe242bca2d651c4625866aa`,20.68s,11 source hashes verified against83ac563. Archive, runner patch, manifest and marker archiving succeeded. Immediate first status read raised FileNotFoundException; later sample shows new CONNECTING worker with signing/identity/job proof. No cancellation or TLS readiness established.

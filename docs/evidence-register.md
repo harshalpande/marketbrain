@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+- **E222 GATEWAY_CANCELLATION_AND_APPLICATION_RECOVERY_ACCEPTED:** [review](evidence/paytm-gateway-cancellation-accepted-20261104.json). 51.253s total,1.529s cancellation,10.785s quiet,11 source hashes matchbdc162a, fresh healthy worker,3/3 application checks, account preserved and final locks verified. Closes G3.3 with E213; groups100/100/20/0/0/0,11/30 (36.7%). Earlier E221 recovery handoff is complete.
+- **E223 NETWORK_INTERRUPTION_ENGINEERING_PASSED_RUNTIME_PENDING:** [local verification](evidence/paytm-gateway-network-local-20261104.json), [single-batch handoff](paytm-gateway-network.md). Disabled-rule SYSTEM cleanup rehearsal precedes a scoped incoming-reply firewall block, retry/application-lock checks, automatic reconnect and explicit diagnostic rearm. Protected evidence and one shareable JSON. G3.1 runtime acceptance pending; no additional percentage credit.
+
 Baseline inspection: 2026-09-18; source revision **142f3bd** before this documentation-only reset. This register separates source inspection from execution evidence. **No application build, database query, inference run or spare-laptop deployment was performed for this documentation task.**
 
 ## Evidence vocabulary

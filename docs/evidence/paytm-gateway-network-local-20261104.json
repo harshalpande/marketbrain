@@ -1,0 +1,37 @@
+{
+  "evidenceId": "E223",
+  "date": "2026-11-04",
+  "status": "NETWORK_INTERRUPTION_ENGINEERING_PASSED_RUNTIME_PENDING",
+  "prerequisiteEvidence": ["E213","E216","E222"],
+  "localVerification": {
+    "assertions": 188,
+    "nativePs5CleanupWorker": {"assertions":15,"cases":5,"realTimerAndFileLease":true,"firewallAndIdentitySubstituted":true},
+    "networkController": {"assertions":35,"workflows":14,"realRuleValidationAndTaskConstruction":true,"runtimeApisMocked":true},
+    "combinedCollector": {"assertions":106,"workflows":24,"realReportsAndFinalCleanup":true,"runtimeApisMocked":true},
+    "cancellationRulesRegression": {"assertions":31,"runtimeApisMocked":true},
+    "nativePs5TaskContract": {"assertions":1,"realScheduledTasksCimConstruction":true,"taskRegistered":false},
+    "ps7NativeCimOnDevelopmentRuntime": "Unavailable: temporary PS7 runtime EnumWriter module initialization failed. Native task construction verified in PS5.1; actual spare PS7 scheduling remains pending."
+  },
+  "runtimePlan": {
+    "disabledRuleRehearsalBeforeOutage": true,
+    "independentCleanupIdentity": "SYSTEM",
+    "cleanupDeadlineSeconds": 180,
+    "cleanupBootTrigger": true,
+    "direction": "Inbound",
+    "program": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
+    "remoteAddress": "130.250.191.137",
+    "remotePort": 22,
+    "protocol": "TCP",
+    "scopeIncludesOtherNativeSshSessionsToSameVps": true,
+    "gatewayTaskReRegistered": false,
+    "temporaryCleanupTaskCount": 2,
+    "sameWorkerReconnectRequired": true,
+    "applicationFailureLockAndExplicitRearmRequired": true,
+    "accountAndContainerPreservationRequired": true,
+    "shareableFileCount": 1
+  },
+  "spareAcceptance": false,
+  "acceptedProgress": {"groupPercentages":[100,100,20,0,0,0],"acceptedCheckpoints":11,"totalCheckpoints":30,"percent":36.6666666667,"localPackageDeltaPercentagePoints":0},
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false
+}

@@ -3,6 +3,8 @@
  [switch]$InspectOnly,
  [switch]$RecoverReviewedLatch,
  [switch]$ResumeReviewedRecovery,
+ [switch]$NetworkInterruption,
+ [string]$CancellationReportPath='C:\MarketBrainData\Review\paytm-gateway-cancellation-1eebaa9b8dec4b9b82d8fa9f66b26859.json',
  [string]$RecoveryReportPath='C:\MarketBrainData\Review\paytm-gateway-cancellation-c331433dafe242bca2d651c4625866aa.json',
  [string]$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-gateway-cancellation-8c0d2d14cb304f9493a08f87ba281250.json',
  [string]$RestartReportPath='C:\MarketBrainData\Review\paytm-gateway-restart-eb86108cc1e247d68d06e135eb580bf6.json',
@@ -11,14 +13,17 @@
 $ErrorActionPreference='Stop'
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewayCancellation.ps1','PaytmGatewayFailureEvidence.ps1')){. (Join-Path $PSScriptRoot $name)}
 if($RecoverReviewedLatch -or $ResumeReviewedRecovery){foreach($name in @('PaytmSupervisorRecovery.ps1','PaytmGatewayLatchRecovery.ps1')){. (Join-Path $PSScriptRoot $name)}}
+if($NetworkInterruption){. (Join-Path $PSScriptRoot 'PaytmGatewayNetwork.ps1')}
 $clock=[Diagnostics.Stopwatch]::StartNew();$c=Get-PaytmHostContract;$lease=$null;$finished=$false
 $route=@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path};$application=@{Ready=$false;Token=$null}
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;cleanupFailure=$null;elapsedSeconds=0;sourceHashes=@{};
  inspectionOnly=[bool]$InspectOnly;latchRecoveryAttempted=$false;resumeRecoveryAttempted=$false;cancellationAttempted=$false;cancellationPassed=$false;recoveryPassed=$false;noAutomaticRearmPassed=$false;accountPreserved=$false;finalApplicationLockVerified=$false;failureStopVerified=$false;
+ networkInterruptionAttempted=$false;networkCleanupRehearsalPassed=$false;networkLossObserved=$false;networkRecoveryPassed=$false;cleanupTasksRegistered=0;
  applicationCommands=[Collections.Generic.List[object]]::new();applicationObservations=[Collections.Generic.List[object]]::new();applicationRouteChecks=[Collections.Generic.List[object]]::new();
  credentialsUsed=$false;ordersEnabled=$false;vpsChanged=$false;keyImported=$false;taskReRegistered=$false;rebootRequested=$false}
 $null=Assert-PaytmAccountPath $OutputDirectory;$null=New-Item -ItemType Directory -Path $OutputDirectory -Force
-$path=Join-Path $OutputDirectory ('paytm-gateway-cancellation-'+$report.runId+'.json')
+$prefix=if($NetworkInterruption){'paytm-gateway-network-'}else{'paytm-gateway-cancellation-'}
+$path=Join-Path $OutputDirectory ($prefix+$report.runId+'.json')
 function Save-Report {
  $report.elapsedSeconds=[math]::Round($clock.Elapsed.TotalSeconds,3)
  # Recovery archives and failure projections share this one bounded report.
@@ -34,7 +39,8 @@ function Save-Report {
 function Cancellation-Step($Stage,$Percent){$report.stage=$Stage;Save-Report;Write-Host "[$Percent%] $Stage";Write-Progress -Activity 'Gateway cancellation and recovery' -Status $Stage -PercentComplete $Percent}
 try{
  Assert-PaytmCustodyController;Import-Module ScheduledTasks
- if(([int][bool]$InspectOnly+[int][bool]$RecoverReviewedLatch+[int][bool]$ResumeReviewedRecovery) -gt 1){throw 'HOST_LATCH_INCOMPATIBLE_MODES'}
+ if(([int][bool]$InspectOnly+[int][bool]$RecoverReviewedLatch+[int][bool]$ResumeReviewedRecovery+[int][bool]$NetworkInterruption) -gt 1){throw 'HOST_LATCH_INCOMPATIBLE_MODES'}
+ if($NetworkInterruption){foreach($name in @('PaytmGatewayNetwork.ps1','RunPaytmNetworkCleanup.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash};Assert-PaytmCancellationReceipt $CancellationReportPath}
  if($RecoverReviewedLatch -or $ResumeReviewedRecovery){foreach($name in @('PaytmSupervisorRecovery.ps1','PaytmGatewayLatchRecovery.ps1','RunPaytmGatewaySupervisor.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}}
  foreach($name in @('TestPaytmGatewayCancellation.ps1','PaytmGatewayCancellation.ps1','PaytmGatewayFailureEvidence.ps1','PaytmGatewayRestart.ps1','PaytmManagedTransport.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}
  $null=Assert-PaytmAccountPath $c.root;Assert-PaytmAccountAcl (Get-Acl -LiteralPath $c.root) (Get-PaytmKeyContract).accountSid
@@ -64,12 +70,12 @@ try{
  }
  $manifest=Assert-PaytmInstalledTransport $receipt
  if(-not $application.Ready){Initialize-PaytmManagedApplication}
- Invoke-PaytmCancellationBatch $manifest.installationId
+ if($NetworkInterruption){Invoke-PaytmNetworkBatch $manifest.installationId $PSScriptRoot}else{Invoke-PaytmCancellationBatch $manifest.installationId}
  $finished=$true;Cancellation-Step 'VERIFY_FINAL_ACCOUNT_AND_LOCK' 95
  }
 }catch{
- $report.failure=if($_.Exception.Message -cmatch '^(CANCEL|HOST|TRANSPORT|STARTUP|APP_ROUTE|ACCOUNT|KEY)_[A-Z_]+$'){$_.Exception.Message}else{'CANCEL_VERIFICATION_FAILED'}
- $report.failureDetails=@{type=$_.Exception.GetBaseException().GetType().Name;line=$_.InvocationInfo.ScriptLineNumber;script=[IO.Path]::GetFileName($_.InvocationInfo.ScriptName)}
+ $report.failure=if($_.Exception.Message -cmatch '^(NETWORK|CANCEL|HOST|TRANSPORT|STARTUP|APP_ROUTE|ACCOUNT|KEY)_[A-Z_]+$'){$_.Exception.Message}else{'CANCEL_VERIFICATION_FAILED'}
+ $report.failureDetails=@{type=$_.Exception.GetBaseException().GetType().Name;line=$_.InvocationInfo.ScriptLineNumber;script=[IO.Path]::GetFileName($_.InvocationInfo.ScriptName);errorId=$_.FullyQualifiedErrorId;category=[string]$_.CategoryInfo.Category;hResult=$_.Exception.GetBaseException().HResult}
 }finally{
  if(-not $finished -and -not $report.failure){$report.failure='CANCEL_COLLECTION_INTERRUPTED'}
  try{
@@ -83,12 +89,14 @@ try{
  }catch{$report.cleanupFailure='CANCEL_FINAL_LOCK_OR_ACCOUNT_FAILED'}
  $application.Token=$null
  if($report.failure){try{$report.workerDiagnostics=Get-PaytmWorkerFailureEvidence}catch{$report.diagnosticCaptureError=$_.Exception.GetBaseException().GetType().Name}}
- if(($report.failure -or $report.cleanupFailure) -and ($report.cancellationAttempted -or $report.latchRecoveryAttempted -or $report.resumeRecoveryAttempted)){
+ if(($report.failure -or $report.cleanupFailure) -and ($report.cancellationAttempted -or $report.latchRecoveryAttempted -or $report.resumeRecoveryAttempted -or $report.networkInterruptionAttempted)){
   try{Stop-PaytmFailedManagedHost $manifest.installationId;$report.failureStopVerified=$true}catch{$report.cleanupFailure='CANCEL_FAILURE_STOP_REVIEW_REQUIRED'}
  }
  if($lease){$lease.Dispose()}
  if(-not $report.failure -and -not $report.cleanupFailure -and $report.cancellationPassed -and $report.recoveryPassed -and $report.noAutomaticRearmPassed -and $report.accountPreserved -and $report.finalApplicationLockVerified){$report.status='GATEWAY_CANCELLATION_AND_APPLICATION_RECOVERY_PASSED';$report.stage='COMPLETE'}
+ if(-not $report.failure -and -not $report.cleanupFailure -and $report.networkCleanupRehearsalPassed -and $report.networkLossObserved -and $report.networkRecoveryPassed -and $report.noAutomaticRearmPassed -and $report.accountPreserved -and $report.finalApplicationLockVerified){$report.status='GATEWAY_NETWORK_INTERRUPTION_AND_RECOVERY_PASSED';$report.stage='COMPLETE'}
  Save-Report;Write-Progress -Activity 'Gateway cancellation and recovery' -Completed;Write-Progress -Activity 'Managed Windows transport' -Completed
+ if($NetworkInterruption){Write-Progress -Activity 'Gateway network recovery' -Completed}
  Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
  Write-Host "Share this ONE file: $path"
 }
