@@ -1,0 +1,78 @@
+{
+  "evidenceId": "E230",
+  "date": "2026-11-05",
+  "status": "SESSION_BASELINE_BLOCKED_WORKER_CAUSE_NOT_CAPTURED",
+  "report": {
+    "runId": "1d7c34178a544a958a6a7b04244afc4b",
+    "sha256": "CA19FC8B0E588E25F68F4864A5E2A023E3AB9FB479744F5B8954E31DE7E974EC",
+    "sourceRevision": "dc1ea47",
+    "matchingCrlfSourceHashes": 7,
+    "phase": "Before",
+    "stage": "VERIFY_EXISTING_INSTALLATION",
+    "failure": "STARTUP_WORKER_FAILURE_PRESENT",
+    "elapsedSeconds": 0.383,
+    "cleanupFailure": null,
+    "applicationCommands": 0,
+    "applicationObservations": 0,
+    "applicationRouteChecks": 0,
+    "accountPreservedFlag": false,
+    "finalApplicationLockVerifiedFlag": false
+  },
+  "interpretation": {
+    "savedWorkerFailureMarkerPresent": true,
+    "markerNameNotRecorded": true,
+    "underlyingWorkerCauseKnown": false,
+    "currentWorkerHealthKnown": false,
+    "applicationAndAccountNotReached": true,
+    "falseAccountAndLockFlagsMeanUnverified": true,
+    "baselineCheckpointCreatedByThisAttempt": false,
+    "taskOrPowerActionPerformed": false,
+    "networkAcceptanceE228RemainsHistoricalEvidence": true
+  },
+  "correction": {
+    "explicitReadOnlyInspectMode": true,
+    "automaticBoundedWorkerFailureCapture": true,
+    "usesExistingRedactedFailureReader": true,
+    "inspectorBypassesAcceptedInputReceiptsAndHealthGates": true,
+    "inspectorPreservesCheckpointAndReportPaths": true,
+    "reportLimitBytes": 65536,
+    "checkpointLimitBytesUnchanged": 16384,
+    "workerFailureResetOrAutomaticRecoveryAdded": false,
+    "liveRootCauseFixClaimed": false
+  },
+  "localVerification": {
+    "sessionWorkflowAssertions": 187,
+    "sessionWorkflows": 22,
+    "existingFailureReaderAssertions": 30,
+    "totalAssertions": 217,
+    "privilegedRuntimeApisMocked": true,
+    "realBoundedReadersAndAtomicWriters": true,
+    "blockedBaselineCapturesCause": true,
+    "inspectionWorksWithoutReceipts": true,
+    "inspectionDoesNotParseOrReplaceExistingCheckpoint": true,
+    "stateFileBytesPreserved": true,
+    "secretFieldsExcluded": true,
+    "largeCombinedReportAndOversizePreservationCovered": true
+  },
+  "next": {
+    "script": "ops/windows/TestPaytmGatewaySession.ps1 -InspectOnly",
+    "expectedStatus": "SESSION_WORKER_DIAGNOSTICS_CAPTURED",
+    "meaning": "Capture only, not restored health",
+    "handoff": "docs/paytm-gateway-session.md#current-handoff-read-the-saved-worker-failure"
+  },
+  "progress": {
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "acceptedCheckpoints": 12,
+    "totalCheckpoints": 30,
+    "percent": 40,
+    "increasePercentagePoints": 0,
+    "G3_4Accepted": false
+  }
+}

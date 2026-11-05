@@ -1,5 +1,17 @@
 #Requires -Version 7.0
 # Read-only session observations. No sign-out, power, task or credential changes.
+function Write-PaytmSessionReport([string]$Destination,$Value){
+ # Combined prior-phase observations plus failure diagnostics may exceed the
+ # 16 KiB checkpoint writer. Keep the shareable report separately bounded.
+ $bytes=[Text.Encoding]::UTF8.GetBytes(($Value|ConvertTo-Json -Depth 12 -Compress))
+ if($bytes.Length -gt 65536){throw 'SESSION_REPORT_TOO_LARGE'}
+ $temporary=$Destination+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+ try{
+  $f=[IO.File]::Open($temporary,'CreateNew','Write','None')
+  try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
+  if([IO.File]::Exists($Destination)){[IO.File]::Replace($temporary,$Destination,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temporary,$Destination)}
+ }finally{if([IO.File]::Exists($temporary)){[IO.File]::Delete($temporary)}}
+}
 function Get-PaytmInteractiveSession {
  # Native PS5 has the .NET Framework compiler even in minimal PS7 distributions.
  $code=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'ReadPaytmInteractiveSession.ps1'))

@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
+ [switch]$InspectOnly,
  [ValidateSet('Before','AfterLogoff','AfterBoot')][string]$Phase='Before',
  [switch]$ConfirmSignedOut,
  [switch]$ConfirmFullShutdown,
@@ -9,20 +10,20 @@
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 $collectorStartedUtc=[DateTime]::UtcNow.ToString('o')
-foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1')){. (Join-Path $PSScriptRoot $name)}
+foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1')){. (Join-Path $PSScriptRoot $name)}
 $c=Get-PaytmHostContract;$lease=$null;$state=$null;$snapshot=$null;$completedReceipt=$false
 $checkpointPath=Join-Path $c.root 'session-checkpoint.json'
 $route=@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path};$application=@{Ready=$false;Token=$null}
 $script:sessionWatch=[Diagnostics.Stopwatch]::StartNew()
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');phase=$Phase;stage='PREFLIGHT';status='REVIEW_REQUIRED';failure=$null;failureDetails=$null;cleanupFailure=$null;elapsedSeconds=0;
- sourceHashes=@{};applicationCommands=[Collections.Generic.List[object]]::new();applicationObservations=[Collections.Generic.List[object]]::new();applicationRouteChecks=[Collections.Generic.List[object]]::new();
+ inspectionOnly=[bool]$InspectOnly;sourceHashes=@{};applicationCommands=[Collections.Generic.List[object]]::new();applicationObservations=[Collections.Generic.List[object]]::new();applicationRouteChecks=[Collections.Generic.List[object]]::new();
  accountPreserved=$false;finalApplicationLockVerified=$false;ownerConfirmsSignedOut=[bool]$ConfirmSignedOut;ownerConfirmsFullShutdown=[bool]$ConfirmFullShutdown;ownerConfirmsNoManualGatewayStart=[bool]$ConfirmNoManualGatewayStart;
  taskStartedByCollector=$false;configurationChanged=$false;powerActionByCollector=$false;credentialsUsed=$false;ordersEnabled=$false;abruptPowerLossTested=$false}
 $null=Assert-PaytmAccountPath $OutputDirectory;$null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $script:sessionReportPath=Join-Path $OutputDirectory ('paytm-gateway-session-'+$report.runId+'.json')
 function Save-SessionReport {
  $script:report.elapsedSeconds=[math]::Round($script:sessionWatch.Elapsed.TotalSeconds,3)
- Write-PaytmHostJson $script:sessionReportPath $script:report
+ Write-PaytmSessionReport $script:sessionReportPath $script:report
 }
 function Session-Step($Stage,$Percent){$report.stage=$Stage;Save-SessionReport;Write-Host "[$Percent%] $Stage";Write-Progress -Activity 'Gateway logoff and full shutdown verification' -Status $Stage -PercentComplete $Percent}
 try{
@@ -30,6 +31,18 @@ try{
  $null=Assert-PaytmAccountPath $c.root;Assert-PaytmAccountAcl (Get-Acl -LiteralPath $c.root) (Get-PaytmKeyContract).accountSid
  $lease=[IO.File]::Open((Assert-PaytmAccountPath (Join-Path (Get-PaytmAccountContract).root 'supervisor-install.lock')),'OpenOrCreate','ReadWrite','None')
  $null=Assert-PaytmAccountPath $checkpointPath
+ # Inspection bypasses accepted-receipt/installation health gates: a stopped or
+ # blocked worker is precisely what must be captured. It never adopts the saved
+ # report path or advances/replaces a session checkpoint.
+ if($InspectOnly){
+  if($Phase -cne 'Before' -or $ConfirmSignedOut -or $ConfirmFullShutdown -or $ConfirmNoManualGatewayStart){throw 'SESSION_INSPECTION_MODE_CONFLICT'}
+  foreach($name in @('TestPaytmGatewaySession.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}
+  Session-Step 'READ_SAVED_WORKER_FAILURE_WITHOUT_CHANGING_GATEWAY' 35
+  $report.checkpointPresent=Test-Path -LiteralPath $checkpointPath
+  $report.workerDiagnostics=Get-PaytmWorkerFailureEvidence
+  $report.status='SESSION_WORKER_DIAGNOSTICS_CAPTURED';$report.stage='COMPLETE'
+  return
+ }
  if(Test-Path -LiteralPath $checkpointPath){
   $state=Read-PaytmHostJson $checkpointPath;Assert-PaytmSessionCheckpoint $state
   if($state.nextPhase -ceq 'Complete'){
@@ -44,7 +57,7 @@ try{
  if($Phase -cne 'Before' -and -not $ConfirmNoManualGatewayStart){throw 'SESSION_NO_MANUAL_START_CONFIRMATION_REQUIRED'}
  if($Phase -ceq 'AfterLogoff' -and -not $ConfirmSignedOut){throw 'SESSION_SIGNOUT_CONFIRMATION_REQUIRED'}
  if($Phase -ceq 'AfterBoot' -and -not $ConfirmFullShutdown){throw 'SESSION_FULL_SHUTDOWN_CONFIRMATION_REQUIRED'}
- foreach($name in @('TestPaytmGatewaySession.ps1','ReadPaytmInteractiveSession.ps1','PaytmGatewaySession.ps1','PaytmGatewayRestart.ps1','PaytmManagedTransport.ps1','PaytmApplicationRoute.ps1','PaytmSupervisorInstallation.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}
+ foreach($name in @('TestPaytmGatewaySession.ps1','ReadPaytmInteractiveSession.ps1','PaytmGatewaySession.ps1','PaytmGatewayRestart.ps1','PaytmManagedTransport.ps1','PaytmApplicationRoute.ps1','PaytmSupervisorInstallation.ps1','PaytmGatewayFailureEvidence.ps1')){$report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash}
  if($state){foreach($name in $report.sourceHashes.Keys){if($report.sourceHashes[$name] -cne $state.sourceHashes.$name){throw 'SESSION_COLLECTOR_CHANGED_BETWEEN_PHASES'}}}
  foreach($pair in @(@($NetworkReportPath,'860F63E79D86A6460EA87C2C492B84FEA342FD919E85019E6C26D2B8CA5C3773'),@($TransportReportPath,'078A34DB0A46951EB98C5A08063F9FC76DB6EC75C175A3572CEE3D65DA4FAB4B'))){
   $null=Assert-PaytmAccountPath $pair[0];if((Get-FileHash -LiteralPath $pair[0]).Hash -cne $pair[1]){throw 'SESSION_ACCEPTED_RECEIPT_HASH'}
@@ -102,10 +115,14 @@ try{
   }
  }catch{$report.cleanupFailure='SESSION_FINAL_CHECK_OR_CHECKPOINT_FAILED';$report.status='REVIEW_REQUIRED'}
  $application.Token=$null
+ if(-not $InspectOnly -and $report.failure -cin @('STARTUP_WORKER_FAILURE_PRESENT','TRANSPORT_WORKER_BLOCKED','TRANSPORT_TASK_EXIT','TRANSPORT_HEARTBEAT_TIMEOUT')){
+  try{$report.workerDiagnostics=Get-PaytmWorkerFailureEvidence}catch{$report.diagnosticCaptureError=$_.Exception.GetBaseException().GetType().Name}
+ }
  if($lease){$lease.Dispose()}
  if(-not $completedReceipt){Save-SessionReport}
  Write-Progress -Activity 'Gateway logoff and full shutdown verification' -Completed;Write-Progress -Activity 'Managed Windows transport' -Completed
  Write-Host "[100%] $($report.status); phase elapsed=$($report.elapsedSeconds)s"
- Write-Host "Share this ONE file after AfterBoot (or on failure): $script:sessionReportPath"
+ if($InspectOnly){Write-Host "Share this ONE diagnostic file now: $script:sessionReportPath"}
+ else{Write-Host "Share this ONE file after AfterBoot (or on failure): $script:sessionReportPath"}
 }
 if($report.status -ceq 'REVIEW_REQUIRED'){throw 'Session verification needs review. Share the JSON; preserve the checkpoint and retry only its saved next phase. Do not reinstall or manually start the gateway.'}

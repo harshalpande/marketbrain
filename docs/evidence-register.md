@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+- **E230 SESSION_BASELINE_BLOCKED_WORKER_CAUSE_NOT_CAPTURED:** [report and correction](evidence/paytm-gateway-session-inspection-20261105.json), [read-only handoff](paytm-gateway-session.md#current-handoff-read-the-saved-worker-failure). 0.383s, seven hashes match dc1ea47, worker-failure marker present; contents/current health unknown. No baseline or application/account checks. Explicit inspection and automatic bounded failure capture added; no reset/recovery. E228 remains accepted; groups100/100/40/0/0/0,12/30 (40%), no increase.
+
+
 - **E229 GATEWAY_SESSION_COLLECTOR_LOCAL_VERIFIED_RUNTIME_PENDING:** [local evidence](evidence/paytm-gateway-session-local-20261105.json), [three-phase handoff](paytm-gateway-session.md). 143 assertions/19 workflow scenarios and six native Windows session checks. Real checkpoint preservation, phase retries, timestamp roundtrips, source/account/identity drift and no manual task starts covered. Actual logoff/full shutdown acceptance pending; groups remain100/100/40/0/0/0.
 
 - **E228 GATEWAY_NETWORK_INTERRUPTION_AND_RECOVERY_ACCEPTED:** [reviewed spare evidence](evidence/paytm-gateway-network-accepted-20261105.json), [next session/boot batch](paytm-gateway-session.md). 84.761s; 11 hashes match 5ba324a, reviewed recovery applied, actual native TCP denial and advancing BACKOFF, same-worker automatic reconnect, both rules/tasks removed, account and locks preserved. G3.1 closes; groups100/100/40/0/0/0,12/30 (40%). Next collector engineering is local verification only; G3.4 awaits owner runtime results.
