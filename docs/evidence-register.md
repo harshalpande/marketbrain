@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+- **E231 WORKER_NATIVE_ACCESS_DENIED_REVIEWED_DIAGNOSTIC_PENDING:** [review and local verification](evidence/paytm-native-failure-local-20261105.json), [next read-only batch](paytm-native-failure.md). 3.16s inspection, five matching sources; absent E228 worker, enabled/idle task result1, native error5 during observation loop. Exact native operation unknown; no session baseline. 103 assertions and real local PS5 reader smoke; event/metadata/curl-version capture prepared, no restart or ACL change. Groups remain100/100/40/0/0/0,12/30 (40%).
+
+
 - **E230 SESSION_BASELINE_BLOCKED_WORKER_CAUSE_NOT_CAPTURED:** [report and correction](evidence/paytm-gateway-session-inspection-20261105.json), [read-only handoff](paytm-gateway-session.md#current-handoff-read-the-saved-worker-failure). 0.383s, seven hashes match dc1ea47, worker-failure marker present; contents/current health unknown. No baseline or application/account checks. Explicit inspection and automatic bounded failure capture added; no reset/recovery. E228 remains accepted; groups100/100/40/0/0/0,12/30 (40%), no increase.
 
 

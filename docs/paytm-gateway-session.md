@@ -1,12 +1,15 @@
 # Gateway sign-out and full shutdown/startup verification
 
-## Current handoff: read the saved worker failure
+**Current E231, 2026-11-05:** Worker inspection completed in **3.16s**; all five source hashes match `2ce584c`. The E228 worker later stopped at a native Windows **Access denied (5)** exception during the observation loop, after 1387.3s recorded uptime. Source line77 points to the curl health-check wrapper; the exact denied native operation is not captured. Task enabled/Ready/result1, process absent, no advancing heartbeat, no session checkpoint. [Next: bounded native/event evidence](paytm-native-failure.md), one read-only report; no marker reset, ACL change or gateway restart. Session testing stays on hold. Accepted groups remain **100/100/40/0/0/0, 12/30 (40%), no increase**; current health is blocked.
+
+
+## Completed E230 handoff: read the saved worker failure
 
 **E230, 2026-11-05:** Baseline run `1d7c34178a544a958a6a7b04244afc4b` stopped in **0.383 seconds** at `STARTUP_WORKER_FAILURE_PRESENT`. All seven source hashes match `dc1ea47`. The installed-source/control checks preceded the saved-failure guard; worker/session observation and application/account checks were not reached. No baseline checkpoint was created by this attempt. The report does not reveal which failure marker exists or its underlying error. Its false account/lock flags mean unverified in this run, not evidence of lost cash or unlocked authority.
 
 The previous collector did not include the saved failure details. The shareable report now allows up to 64 KiB for combined phase observations and diagnostics; protected checkpoints retain their 16 KiB limit. It now adds bounded, redacted marker/control/task/process/SSH evidence when worker gates fail. `-InspectOnly` reads that evidence independently of accepted input receipts or healthy installation gates. It does not parse, replace or advance a session checkpoint, start/stop the gateway, change controls, contact Paytm or access the application/account. Missing/unreadable files remain explicit; an advancing heartbeat alone is not reported as healthy transport.
 
-**Run only this inspection now. Hold the three session phases below until the worker failure is reviewed.** Use PowerShell 7 as Administrator. No Docker, PuTTY, reboot or credential entry is required for this read-only inspection.
+**This inspection completed in E231. Do not repeat it; use the native/event handoff linked above. The three session phases remain on hold.** Use PowerShell 7 as Administrator. No Docker, PuTTY, reboot or credential entry is required for this read-only inspection.
 
 ```powershell
 $ErrorActionPreference = 'Stop'

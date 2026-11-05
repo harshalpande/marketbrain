@@ -1,0 +1,79 @@
+{
+  "evidenceId": "E231",
+  "date": "2026-11-05",
+  "status": "WORKER_NATIVE_ACCESS_DENIED_REVIEWED_DIAGNOSTIC_PENDING",
+  "report": {
+    "runId": "b38a9a376e164645a69459a90cd3f9f7",
+    "sha256": "1AC0D72016F9BF053F94C8C99B40CCB717351A4A0411ED892BACA014C9524106",
+    "sourceRevision": "2ce584c",
+    "matchingCrlfSources": 5,
+    "elapsedSeconds": 3.16,
+    "status": "SESSION_WORKER_DIAGNOSTICS_CAPTURED",
+    "checkpointPresent": false,
+    "workerInstance": "6e74e3275a014678bb886b4574cfe45f",
+    "workerPid": 18156,
+    "workerPresent": false,
+    "taskEnabled": true,
+    "taskState": "Ready",
+    "taskLastResult": 1,
+    "heartbeatAdvanced": false,
+    "workerElapsedSeconds": 1387.3,
+    "workerSequence": 942,
+    "failureStage": "OBSERVATION_LOOP",
+    "nativeErrorType": "Win32Exception",
+    "outerErrorType": "MethodInvocationException",
+    "nativeErrorCode": 5,
+    "recordedLine": 77,
+    "workerFailure": "HOST_RUNTIME_FAILED",
+    "startupFailure": "HOST_STARTUP_FAILED",
+    "lastSshObservationAttempt": 2,
+    "laterTransportAttempt": 5
+  },
+  "interpretation": {
+    "sameWorkerAsAcceptedNetworkTest": true,
+    "sourceBasedInference": "Line77 is consistent with curl NativeCommand.Run health-check wrapper; saved exception does not retain script name or native operation stack.",
+    "exactDeniedOperationKnown": false,
+    "permissionsOrAntivirusOrRaceEstablished": false,
+    "staleSshAttempt2NotAttributedAsNewFailure": true,
+    "currentHealthBlocked": true,
+    "applicationAndAccountNotRead": true
+  },
+  "next": {
+    "collector": "ops/windows/GetPaytmNativeFailureEvidence.ps1",
+    "handoff": "docs/paytm-native-failure.md",
+    "readOnly": true,
+    "fixedEventWindowMinutes": 10,
+    "maxEventsPerChannel": 32,
+    "channels": 3,
+    "nativeSubprocessDeadlineSeconds": 90,
+    "controllerCurlVersionOnly": true,
+    "gatewayIdentityProbe": false,
+    "permissionChanges": false,
+    "markerReset": false,
+    "gatewayRestart": false
+  },
+  "verification": {
+    "assertions": 103,
+    "collectorWorkflows": 4,
+    "eventQueryScenarios": 6,
+    "realLocalCurlVersionProbePassed": true,
+    "realLocalWindowsPs5ReaderSmokePassed": true,
+    "privilegedCollectorApisMocked": true,
+    "inputAndInstalledFileBytesPreserved": true,
+    "redactionAndTimeoutPartialEvidenceVerified": true
+  },
+  "progress": {
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "accepted": 12,
+    "total": 30,
+    "percent": 40,
+    "increase": 0
+  }
+}

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1060" viewBox="0 0 1200 1060" role="img" aria-labelledby="title desc">
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">MarketBrain intelligence and INR100000 paper workflow. E228 accepts gateway network loss and automatic recovery, advancing BACKOFF and cleanup, unchanged account and final application/writer locks. G1 and G2 complete; G3 40 percent; bounded Paytm plan 12 of 30 checkpoints, 40 percent. E230 session baseline blocked by a worker-failure marker; current cause and health unknown. Read-only inspection next; sign-out/full shutdown testing on hold; security negatives and health/drift remain pending. Paytm authentication, quotes and Telegram review remain pending. Live execution disconnected. Dashed boxes are planned or incomplete.</desc>
+  <desc id="desc">MarketBrain intelligence and INR100000 paper workflow. E228 accepts gateway network loss and automatic recovery, advancing BACKOFF and cleanup, unchanged account and final application/writer locks. G1 and G2 complete; G3 40 percent; bounded Paytm plan 12 of 30 checkpoints, 40 percent. E231 worker stopped with native Access denied in observation loop. Exact native operation unknown; bounded event/executable inspection next; sign-out/full shutdown testing on hold; security negatives and health/drift remain pending. Paytm authentication, quotes and Telegram review remain pending. Live execution disconnected. Dashed boxes are planned or incomplete.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -25,7 +25,7 @@
   <rect x="425" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="443" y="121" class="label">Upstox + Paytm live feeds</text>
   <text x="443" y="148" class="body">Paytm synthetic rehearsal accepted</text>
-  <text x="443" y="173" class="body">G3 40%: worker failure; inspect before session</text>
+  <text x="443" y="173" class="body">G3 40%: native failure; session tests on hold</text>
   <rect x="820" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="838" y="121" class="label">Marketaux / news events</text>
   <text x="838" y="148" class="body">Connector exists; entity/event work pending</text>
