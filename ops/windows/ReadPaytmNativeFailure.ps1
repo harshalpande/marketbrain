@@ -42,16 +42,29 @@ function Get-PaytmNativePolicyEvents([string]$Start,[string]$End){
  }
  $results
 }
+function Initialize-PaytmNativeModules {
+ # A PS7 parent can supply a PSModulePath unsuitable for Windows PowerShell.
+ # Resolve inbox manifests from this child runtime, never from inherited search paths.
+ foreach($name in @('Microsoft.PowerShell.Management','Microsoft.PowerShell.Utility','Microsoft.PowerShell.Security')){
+  Import-Module -Name ([IO.Path]::Combine($PSHOME,'Modules',$name,($name+'.psd1'))) -ErrorAction Stop -Scope Global
+ }
+}
 function Get-PaytmNativeFileMetadata([string]$Path){
- $r=[ordered]@{fileName=[IO.Path]::GetFileName($Path);present=$false;sha256=$null;length=$null;version=$null;signatureStatus=$null;accessSddl=$null;errorType=$null}
+ $r=[ordered]@{fileName=[IO.Path]::GetFileName($Path);present=$false;sha256=$null;length=$null;version=$null;signatureStatus=$null;accessSddl=$null;stage='MODULE_IMPORT';errorType=$null}
  try{
+  Initialize-PaytmNativeModules
+  $r.stage='FILE_LOOKUP'
   $r.present=Test-Path -LiteralPath $Path -PathType Leaf
   if($r.present){
-   $item=Get-Item -LiteralPath $Path;$r.length=$item.Length;$r.sha256=(Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+   $item=Get-Item -LiteralPath $Path;$r.length=$item.Length;$r.stage='HASH';$r.sha256=(Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+   $r.stage='VERSION'
    $version=[string]$item.VersionInfo.FileVersion;if($version -cmatch '^[A-Za-z0-9 ._()-]{1,80}$'){$r.version=$version}
+   $r.stage='SIGNATURE'
    $r.signatureStatus=[string](Get-AuthenticodeSignature -LiteralPath $Path).Status
+   $r.stage='ACCESS_DESCRIPTOR'
    $sddl=(Get-Acl -LiteralPath $Path).GetSecurityDescriptorSddlForm([Security.AccessControl.AccessControlSections]::Access)
    if($sddl.Length -le 8192){$r.accessSddl=$sddl}else{throw 'NATIVE_ACL_TOO_LARGE'}
+   $r.stage='COMPLETE'
   }
  }catch{$r.errorType=$_.Exception.GetBaseException().GetType().Name}
  [pscustomobject]$r

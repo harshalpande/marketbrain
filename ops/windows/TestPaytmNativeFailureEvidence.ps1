@@ -41,6 +41,26 @@ foreach($end in @('2026-11-05T09:40:13Z','2026-11-05T10:50:13Z','broken')){
 $version=Invoke-PaytmNativeVersionProbe
 Check ($version.started -and $version.stage -eq 'COMPLETE' -and $version.exitCode -eq 0 -and $null -eq $version.errorType) 'ACTUAL_NATIVE_CURL_VERSION'
 Check ($version.identityScope -eq 'CONTROLLER_NOT_GATEWAY_ACCOUNT' -and $version.arguments -eq '--version') 'IDENTITY_LIMIT_EXPLICIT'
+# Real PS7 -> inbox PS5 boundary with module discovery deliberately unavailable.
+. (Join-Path $PSScriptRoot 'PaperRuntimeReview.ps1')
+$readerPath=(Join-Path $PSScriptRoot 'ReadPaytmNativeFailure.ps1').Replace("'","''")
+$child=@'
+$ErrorActionPreference='Stop'
+$env:PSModulePath='C:\__MarketBrain_no_module_discovery__'
+$PSModuleAutoLoadingPreference='None'
+. 'READER_PATH' -LibraryOnly
+foreach($path in @('C:\Windows\System32\curl.exe','C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe')){
+ $r=Get-PaytmNativeFileMetadata $path
+ if($r.stage -cne 'COMPLETE' -or $r.errorType -or $r.sha256 -cnotmatch '^[A-F0-9]{64}$' -or -not $r.signatureStatus -or -not $r.accessSddl){exit 31}
+}
+$r=Get-PaytmNativeFileMetadata 'C:\__MarketBrain_missing_executable__.exe'
+if($r.present -or $r.stage -ceq 'COMPLETE'){exit 32}
+exit 0
+'@
+$child=$child.Replace('READER_PATH',$readerPath)
+$encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($child))
+$native=Invoke-PaperRuntimeProcess 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' @('-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',$encoded) $PSScriptRoot 90
+Check ($native.exitCode -eq 0) 'REAL_PS5_METADATA_WITHOUT_MODULE_DISCOVERY'
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('mb-native-evidence-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory -Path $temp
 $fixture=@{}
 function Assert-PaytmAccountPath($Path){$Path}
@@ -59,10 +79,13 @@ function Invoke-PaperRuntimeProcess($Executable,$Arguments,$Directory,$LimitSeco
  $text=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($Arguments[-1]))
  Check ($text.Contains("-StartUtc '2026-11-05T09:40:13.6603845+00:00'") -and $text.Contains("-EndUtc '2026-11-05T09:50:13.6603845+00:00'")) 'RECEIPT_TIME_NORMALIZED'
  if($fixture.case -eq 'timeout'){throw 'RUNTIME_PROCESS_TIMEOUT'}
- @{exitCode=$(if($fixture.case -eq 'native_failed'){1}else{0});stdout='{"version":1,"readOnly":true,"files":[],"policyEvents":[],"versionProbe":{"identityScope":"CONTROLLER_NOT_GATEWAY_ACCOUNT"}}';stderr='PRIVATE_NATIVE_ERROR';elapsedSeconds=1}
+ $metadata=@('curl.exe','powershell.exe'|ForEach-Object {@{fileName=$_;present=$true;stage='COMPLETE';sha256=('A'*64);signatureStatus='Valid';accessSddl='D:fixture';errorType=$null}})
+ if($fixture.case -eq 'partial_metadata'){$metadata[0].stage='HASH';$metadata[0].errorType='CommandNotFoundException';$metadata[0].sha256=$null}
+ $json=@{version=1;readOnly=$true;files=$metadata;policyEvents=@();versionProbe=@{identityScope='CONTROLLER_NOT_GATEWAY_ACCOUNT'}}|ConvertTo-Json -Depth 5 -Compress
+ @{exitCode=$(if($fixture.case -eq 'native_failed'){1}else{0});stdout=$json;stderr='PRIVATE_NATIVE_ERROR';elapsedSeconds=1}
 }
 try{
- foreach($case in @('pass','wrong_receipt','native_failed','timeout')){
+ foreach($case in @('pass','wrong_receipt','native_failed','timeout','partial_metadata')){
   $base=Join-Path $temp $case;$root=Join-Path $base 'root';$out=Join-Path $base 'out';$source=Join-Path $base 'ops/windows';$null=New-Item -ItemType Directory -Path $root,$out,$source -Force
   $fixture=@{case=$case;root=$root;input=(Join-Path $base 'receipt.json')}
   Write-PaytmHostJson $fixture.input @{runId=('b'*32);workerDiagnostics=@{files=@{'startup-failure.json'=@{lastWriteUtc='2026-11-05T09:45:13.6603845Z'}}}}
@@ -82,9 +105,10 @@ try{
   Check (-not ([IO.File]::ReadAllText($files[0].FullName)).Contains('PRIVATE_')) 'COLLECTOR_REDACTION'
   foreach($name in $hashes.Keys){Check ((Get-FileHash -LiteralPath (Join-Path $root $name)).Hash -ceq $hashes[$name]) 'INSTALLED_BYTES_PRESERVED'}
   Check ((Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $fixture.input).Hash -ceq $inputHash) 'INPUT_PRESERVED'
+  if($case -eq 'partial_metadata'){Check ($r.failure -ceq 'NATIVE_FILE_METADATA_INCOMPLETE' -and -not $r.metadataComplete -and $r.nativeEvidence.files.Count -eq 2) 'PARTIAL_CAPTURE_NEVER_COMPLETE'}
   if($case -in @('native_failed','timeout')){Check ($r.workerDiagnostics.readOnly -and $r.installedFiles.Count -eq 3) 'PARTIAL_DIAGNOSTICS_PRESERVED'}
  }
- [pscustomobject]@{status='NATIVE_FAILURE_EVIDENCE_TESTS_PASSED';assertions=$checks.count;collectorWorkflows=4;eventQueryScenarios=6;nativeLocalCurlVersion=$true;privilegedApisMocked=$true}|ConvertTo-Json
+ [pscustomobject]@{status='NATIVE_FAILURE_EVIDENCE_TESTS_PASSED';assertions=$checks.count;collectorWorkflows=5;eventQueryScenarios=6;realPs5MetadataWithDiscoveryDisabled=$true;nativeLocalCurlVersion=$true;privilegedApisMocked=$true}|ConvertTo-Json
 }finally{
  $resolved=[IO.Path]::GetFullPath($temp);$parent=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
  if(-not $resolved.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($resolved) -notmatch '^mb-native-evidence-[a-f0-9]{32}$'){throw 'UNSAFE_NATIVE_FIXTURE_CLEANUP'}

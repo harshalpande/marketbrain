@@ -1,0 +1,62 @@
+{
+  "evidenceId": "E232",
+  "date": "2026-11-05",
+  "status": "NATIVE_DIAGNOSTIC_PARTIAL_METADATA_CORRECTED_SPARE_PENDING",
+  "report": {
+    "runId": "04c5384f7d4f423a99287eb3e796942d",
+    "sha256": "E1BC15473D6888D6C1E06A90D75B5BEE1753E2150DF68843DF533E31392244CD",
+    "elapsedSeconds": 13.116,
+    "reportedStatus": "NATIVE_FAILURE_EVIDENCE_CAPTURED",
+    "matchingCrlfSources": 4,
+    "sourceRevision": "d372adc",
+    "installedFilesMatchManifest": true,
+    "selectedEventChannelsQueried": 3,
+    "selectedMatchingEvents": 0,
+    "controllerCurlVersionExitCode": 0,
+    "metadataErrors": [
+      "curl.exe: CommandNotFoundException",
+      "powershell.exe: CommandNotFoundException"
+    ],
+    "workerPresent": false,
+    "taskState": "Ready",
+    "taskLastResult": 1,
+    "heartbeatAdvanced": false
+  },
+  "interpretation": {
+    "captureIncompleteDespiteOriginalSuccessLabel": true,
+    "gatewayNativeAccessDeniedCauseEstablished": false,
+    "noEventsDoesNotExcludePolicyOrProcessRace": true,
+    "controllerExecutionDoesNotProveGatewayExecution": true,
+    "moduleDiscoveryCauseOnSpareInferredNotRecorded": true
+  },
+  "correction": {
+    "explicitInboxModuleManifests": true,
+    "metadataStageRecorded": true,
+    "missingMetadataCannotPass": true,
+    "gatewayRestart": false,
+    "gatewayAclOrPolicyChange": false
+  },
+  "verification": {
+    "assertions": 117,
+    "collectorWorkflows": 5,
+    "eventQueryScenarios": 6,
+    "actualPs7ToPs5MetadataWithModuleDiscoveryDisabled": true,
+    "privilegedCollectorBoundariesMocked": true,
+    "actualFullReaderThroughPs7ToPs5Passed": true
+  },
+  "progress": {
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "accepted": 12,
+    "total": 30,
+    "percent": 40,
+    "increase": 0
+  },
+  "next": "Repeat GetPaytmNativeFailureEvidence.ps1 only; preserve stopped worker markers."
+}

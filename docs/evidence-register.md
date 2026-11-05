@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E232 NATIVE_DIAGNOSTIC_PARTIAL_METADATA_CORRECTED_SPARE_PENDING:** [review and 117 assertions](evidence/paytm-native-metadata-correction-20261105.json), [corrected one-file collection](paytm-native-failure.md). Three event queries empty, controller curl version passes, installed hashes match; two metadata rows failed CommandNotFoundException. Explicit inbox module imports and complete-metadata gate verified across real PS7/PS5 boundary. Original gateway error5 cause remains unknown; no restart/reset. Groups100/100/40/0/0/0,12/30 (40%).
+
 - **E231 WORKER_NATIVE_ACCESS_DENIED_REVIEWED_DIAGNOSTIC_PENDING:** [review and local verification](evidence/paytm-native-failure-local-20261105.json), [next read-only batch](paytm-native-failure.md). 3.16s inspection, five matching sources; absent E228 worker, enabled/idle task result1, native error5 during observation loop. Exact native operation unknown; no session baseline. 103 assertions and real local PS5 reader smoke; event/metadata/curl-version capture prepared, no restart or ACL change. Groups remain100/100/40/0/0/0,12/30 (40%).
 
 

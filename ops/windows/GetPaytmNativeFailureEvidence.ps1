@@ -43,6 +43,17 @@ try{
  $report.nativeQuery=@{exitCode=$result.exitCode;elapsedSeconds=$result.elapsedSeconds;stderrCharacters=$result.stderr.Length}
  if($result.exitCode -ne 0 -or $result.stdout.Length -gt 40000){throw 'NATIVE_QUERY_FAILED_OR_OVERSIZE'}
  $report.nativeEvidence=$result.stdout|ConvertFrom-Json -ErrorAction Stop
+ # Captured JSON is not a complete diagnostic when required observations failed.
+ $e=$report.nativeEvidence
+ $completeFiles=@($e.files).Count -eq 2
+ foreach($name in @('curl.exe','powershell.exe')){
+  $rows=@($e.files | Where-Object fileName -CEQ $name)
+  if($rows.Count -ne 1){$completeFiles=$false;continue}
+  $f=$rows[0]
+  if(-not $f.present -or $f.errorType -or $f.stage -cne 'COMPLETE' -or $f.sha256 -cnotmatch '^[A-F0-9]{64}$' -or -not $f.signatureStatus -or -not $f.accessSddl){$completeFiles=$false}
+ }
+ $report.metadataComplete=$completeFiles
+ if(-not $completeFiles){throw 'NATIVE_FILE_METADATA_INCOMPLETE'}
  $report.status='NATIVE_FAILURE_EVIDENCE_CAPTURED';$report.stage='COMPLETE'
 }catch{
  $report.failure=if($_.Exception.Message -cmatch '^(NATIVE|HOST|KEY|ACCOUNT)_[A-Z_]+$'){$_.Exception.Message}else{'NATIVE_DIAGNOSTIC_FAILED'}
