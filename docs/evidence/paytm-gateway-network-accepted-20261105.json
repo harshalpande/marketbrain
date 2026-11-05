@@ -1,0 +1,80 @@
+{
+  "evidenceId": "E228",
+  "date": "2026-11-05",
+  "status": "GATEWAY_NETWORK_INTERRUPTION_AND_RECOVERY_ACCEPTED",
+  "report": {
+    "runId": "9d10806aee964df4951c3eb79be931f9",
+    "sha256": "860F63E79D86A6460EA87C2C492B84FEA342FD919E85019E6C26D2B8CA5C3773",
+    "sourceRevision": "5ba324a",
+    "matchingCrlfSourceHashes": 11,
+    "elapsedSeconds": 84.761,
+    "status": "GATEWAY_NETWORK_INTERRUPTION_AND_RECOVERY_PASSED",
+    "failure": null,
+    "cleanupFailure": null
+  },
+  "verified": {
+    "exactFailureRecoveryArchivedAndApplied": true,
+    "backupFiles": 7,
+    "singleRecoveryStart": true,
+    "sameWorkerAutomaticNetworkRecovery": true,
+    "workerInstance": "6e74e3275a014678bb886b4574cfe45f",
+    "oldSshPid": 17436,
+    "newSshPid": 1240,
+    "attempts": 3,
+    "closedOutageSeconds": 23,
+    "replacementAttemptDenied": {
+      "exited": true,
+      "stderrDrained": true,
+      "authenticated": false,
+      "version": 1,
+      "stderrCharacters": 245,
+      "stderrSha256": "43292094F48E6EB533C45228EB0C423B128D31A54D3E56364EB949F4D4B6FA59",
+      "reason": "NETWORK_UNAVAILABLE",
+      "tags": [
+        "TCP_CONNECT_DENIED"
+      ]
+    },
+    "advancingBackoffSequences": [
+      43,
+      44
+    ],
+    "temporaryRulesRemoved": 2,
+    "temporaryTasksRemoved": 2,
+    "applicationRouteChecksPassed": 3,
+    "noAutomaticRearm": true,
+    "finalApplicationAndWriterLocked": true,
+    "accountPreserved": true,
+    "paperCash": 100000,
+    "reservedCash": 0,
+    "ledgerRevision": 0
+  },
+  "limits": {
+    "runtimeStateAtCaptureOnly": true,
+    "rootHead503IsTransportOnly": true,
+    "brokerLoginTested": false,
+    "quotesTested": false,
+    "ordersEnabled": false,
+    "abruptPowerLossTested": false
+  },
+  "progress": {
+    "acceptedCheckpoint": "G3.1",
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "accepted": 12,
+    "total": 30,
+    "percentage": 40,
+    "increasePercentagePoints": 3.3333333333
+  },
+  "next": {
+    "checkpoint": "G3.4",
+    "batch": "Sign-out survival and full shutdown/startup with no authority replay",
+    "handoff": "docs/paytm-gateway-session.md",
+    "runtimeAcceptancePending": true
+  }
+}

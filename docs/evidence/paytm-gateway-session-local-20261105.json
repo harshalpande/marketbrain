@@ -1,0 +1,70 @@
+{
+  "evidenceId": "E229",
+  "date": "2026-11-05",
+  "status": "GATEWAY_SESSION_COLLECTOR_LOCAL_VERIFIED_RUNTIME_PENDING",
+  "purpose": "G3.4 sign-out survival and owner-performed full shutdown/startup without authority replay",
+  "localVerification": {
+    "workflowAssertions": 143,
+    "workflows": 19,
+    "nativeReadOnlyWindowsAssertions": 6,
+    "totalAssertions": 149,
+    "realAtomicCheckpointFiles": true,
+    "privilegedRuntimeApisMockedInWorkflowSuite": true,
+    "nativeSessionQueryExecutedOnDevelopmentHost": true,
+    "actualLogoffOrShutdownPerformedLocally": false,
+    "nativePs5QueryUsedFromPortablePs7": true,
+    "jsonDateTimeRoundtripNormalizedToUtc": true,
+    "failedPhaseRetryPreservesLastAcceptedCheckpoint": true,
+    "completedRerunPreservesCheckpointAndReport": true,
+    "inputHashesPreserved": true,
+    "conservativeRealWorkerReportEstimateBytes": 14504,
+    "reportLimitBytes": 16384
+  },
+  "coverage": [
+    "new child process is not a new logon",
+    "same-logon rejection",
+    "different user or machine rejection",
+    "boot during logoff rejection",
+    "background worker restart rejection",
+    "heartbeat not advancing",
+    "installed or collector source drift",
+    "unlocked application",
+    "account drift",
+    "missing owner confirmations",
+    "same OS boot or application boot rejection",
+    "stopped Docker and failed TLS retry without repeating shutdown",
+    "final lock failure",
+    "completed checkpoint replay"
+  ],
+  "runtimeScope": {
+    "startsGatewayTask": false,
+    "installsOrChangesGateway": false,
+    "changesCredentials": false,
+    "performsSignoutOrShutdown": false,
+    "diagnosticTlsRouteExplicitlyArmedAndFinallyLocked": true,
+    "brokerLogin": false,
+    "quotes": false,
+    "orders": false,
+    "abruptPowerLoss": false
+  },
+  "handoff": "docs/paytm-gateway-session.md",
+  "progress": {
+    "G3_4Accepted": false,
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "acceptedCheckpoints": 12,
+    "totalCheckpoints": 30,
+    "percent": 40
+  },
+  "references": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-token_statistics",
+    "https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-gettokeninformation",
+    "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/shutdown"
+  ]
+}

@@ -1,6 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E227, 2026-11-05:** The 5.083s run matched the reviewed receipt hash, then rejected its contents. Root cause reproduced: the checkpoint writer's unqualified path resolved to the helper's input Path and overwrote that receipt. Script-scoped output/timer/report binding fixes this; regression now combines the real reader, validator and writer. [Next: same exact-state recovery using the original byte-pinned repository snapshot](paytm-gateway-network.md), with no manual file restoration. All 11 sources match ea69e3e; no recovery/firewall mutation occurred, saved failure is unchanged, account preserved and application/writer locked. Gateway remains blocked/stopped/disabled. Groups **100/100/20/0/0/0, 11/30 (36.7%), no increase**.
+**Current E228, 2026-11-05:** Network interruption/recovery accepted in **84.761s**; all 11 source hashes match `5ba324a`. Actual replacement SSH denial produced advancing BACKOFF; the same worker reconnected on attempt 3 (23s recorded outage). Both temporary rules/tasks were removed; 3/3 application route checks, no automatic rearm, final application/writer locks and unchanged INR100000 account passed. **G3.1 closes: groups 100/100/40/0/0/0, 12/30 checkpoints (40%, +3.33 percentage points).** This measures the bounded Paytm plan at capture, not whole-project completion or current uptime. Do not rerun recovery/network. [Next: sign-out and full shutdown/startup](paytm-gateway-session.md), one report across three phases; runtime acceptance remains pending. Login, quotes, remaining security/health checks and Telegram review stay open. Root HTTP503 remains transport-only evidence.
+
+**Historical E227, 2026-11-05:** The 5.083s run matched the reviewed receipt hash, then rejected its contents. Root cause reproduced: the checkpoint writer's unqualified path resolved to the helper's input Path and overwrote that receipt. Script-scoped output/timer/report binding fixes this; regression now combines the real reader, validator and writer. [Next: same exact-state recovery using the original byte-pinned repository snapshot](paytm-gateway-network.md), with no manual file restoration. All 11 sources match ea69e3e; no recovery/firewall mutation occurred, saved failure is unchanged, account preserved and application/writer locked. Gateway remains blocked/stopped/disabled. Groups **100/100/20/0/0/0, 11/30 (36.7%), no increase**.
 
 **Historical E222/E223, 2026-11-04:** Cancellation and recovery accepted in 51.253s; all 11 source hashes match bdc162a. Both processes exited and the listener disappeared in 1.529s. A 10.785s quiet interval, fresh healthy worker, 3/3 application checks, unchanged INR 100000 account and final application/writer locks passed. **G3.3 closes: groups 100/100/20/0/0/0, 11/30 checkpoints (36.7%, +3.33 percentage points).** This measures accepted evidence at capture, not continuous health or whole-project completion. Next: [one guarded network-interruption/recovery batch](paytm-gateway-network.md), with a disabled-rule cleanup rehearsal before the real outage. Engineering is prepared; spare acceptance is pending. Do not rerun cancellation/recovery. HTTP 503 remains transport-only evidence; login, quotes and orders remain pending. The original overwritten worker failure remains unknown.
 
@@ -52,13 +54,13 @@ Historical E194: actual recovery and exact-account probe accepted. Eight complet
 
 The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equally weighted acceptance checkpoints per group**. Each accepted checkpoint contributes20 percentage points within that group. Only reviewed evidence closes a checkpoint. A prepared script, local mock test, intended configuration or successful unrelated group does not close a spare-runtime checkpoint. Do not add/remove checkpoints silently to inflate progress; scope changes require a dated rebaseline and explanation. Percentages describe accepted evidence at review time, not continuous live health or total MarketBrain completion.
 
-## Current accepted snapshot — E222 (G3.3 closed)
+## Current accepted snapshot - E228 (G3.1 and G3.3 closed)
 
 | Group | Accepted checkpoints | Accepted completion | Remaining |
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
 | G2 Unattended gateway |5/5|100%|Windows startup, managed transport and application/account checks accepted; remaining resilience cases belong to G3 |
-| G3 Real recovery/safe failure |1/5|20%|Network interruption, negative cases, logoff/cold-power-loss and clock/health checks |
+| G3 Real recovery/safe failure |2/5|40%|Security negative cases, logoff/full shutdown-startup and clock/health checks |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |
 | G6 Telegram review |0/5|0%|Real review-only ACCEPT, REJECT, expiry, replay and unauthorized cases |
@@ -75,4 +77,4 @@ E185 report passed79 assertions,12 unsafe-configuration cases and31 effective SS
 4. Why the next script is needed, exactly what it changes, and what successful evidence would establish.
 5. For authorized implementation: verified commit/push and complete spare commands, one shareable JSON where practical. Never request passwords, tokens or private keys in chat.
 
-Next checkpoint **G3.1** requires real network interruption and recovery evidence. E223 prepares that batch; acceptance would move G3 **20% → 40%** and the bounded plan **36.7% → 40%**. No other checkpoint advances automatically.
+Next checkpoint **G3.4** requires accepted logoff/full shutdown-startup evidence. The prepared batch can move G3 from **40% to 60%** and the bounded plan from **40% to 43.3% (13/30)**. No other checkpoint advances automatically; security-negative and clock/health cases remain open.
