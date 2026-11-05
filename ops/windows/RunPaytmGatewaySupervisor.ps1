@@ -62,6 +62,11 @@ try {
     $bootstrap.failure=if($_.Exception.Message -cmatch '^(HOST|TRANSPORT|GATEWAY)_[A-Z_]+$'){$_.Exception.Message}else{'HOST_STARTUP_FAILED'}
     $bootstrap.details=@{type=$base.GetType().Name;outerType=$_.Exception.GetType().Name;hresult=$base.HResult;line=$_.InvocationInfo.ScriptLineNumber;
         nativeErrorCode=if($base -is [ComponentModel.Win32Exception]){$base.NativeErrorCode}else{$null}}
+    foreach($pair in @(@('nativeOperation','MarketBrainOperation'),@('cleanupOperation','MarketBrainCleanupOperation'),@('cleanupType','MarketBrainCleanupType'))){
+        $value=$base.Data[$pair[1]]
+        if($value -is [string] -and $value -cmatch '^[A-Za-z][A-Za-z0-9_]{0,63}$'){$bootstrap.details[$pair[0]]=$value}
+    }
+    if($base.Data['MarketBrainCleanupCode'] -is [int]){$bootstrap.details.cleanupNativeErrorCode=$base.Data['MarketBrainCleanupCode']}
     # This does not depend on the helper loading successfully. Exclusive lease prevents competing writers.
     # Preserve the first cause until reviewed recovery archives it. A later launch
     # may fail only because this latch exists; that is not the original cause.

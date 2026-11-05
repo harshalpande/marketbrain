@@ -65,6 +65,68 @@ namespace MarketBrain.Supervisor {
             }
             return tail.ToString();
         }
+        // Small internal seam lets tests force exit/kill races without timing guesses.
+        internal interface ICommandProcess {
+            bool Start(); void CloseInput(); Task<string> Output(); Task<string> Error();
+            bool Wait(int milliseconds); void Kill(); bool HasExited { get; } int ExitCode { get; }
+        }
+        sealed class CommandProcess : ICommandProcess {
+            readonly Process process;
+            internal CommandProcess(Process value) { process=value; }
+            public bool Start() { return process.Start(); }
+            public void CloseInput() { process.StandardInput.Close(); }
+            public Task<string> Output() { return Drain(process.StandardOutput); }
+            public Task<string> Error() { return Drain(process.StandardError); }
+            public bool Wait(int milliseconds) { return process.WaitForExit(milliseconds); }
+            public void Kill() { process.Kill(); }
+            public bool HasExited { get { return process.HasExited; } }
+            public int ExitCode { get { return process.ExitCode; } }
+        }
+        static void Tag(Exception error, string operation) {
+            error.GetBaseException().Data["MarketBrainOperation"]=operation;
+        }
+        internal static void StopOwned(ICommandProcess process) {
+            try { process.Kill(); }
+            catch (Exception error) {
+                // Framework Kill can fail when the owned process has just exited.
+                // A real denied kill of a live process must still fail closed.
+                if (!(error is Win32Exception) && !(error is InvalidOperationException)) throw;
+                bool exited=false;
+                try { exited=process.Wait(3000); } catch { }
+                if (!exited) throw;
+                return;
+            }
+            if (!process.Wait(3000)) throw new IOException("HOST_CHILD_STOP_FAILED");
+        }
+        internal static BoundedResult RunCore(ICommandProcess process, int milliseconds) {
+            bool started=false; Exception primary=null; string operation="START";
+            try {
+                started=process.Start(); if (!started) throw new InvalidOperationException("HOST_CHILD_START_FAILED");
+                operation="CLOSE_INPUT"; process.CloseInput();
+                operation="READ_OUTPUT"; Task<string> output=process.Output(), error=process.Error();
+                operation="WAIT"; bool timeout=!process.Wait(milliseconds);
+                if (timeout) { operation="TIMEOUT_STOP"; StopOwned(process); }
+                operation="DRAIN";
+                if (!Task.WaitAll(new Task[]{output,error},3000)) throw new IOException("HOST_CHILD_OUTPUT_TIMEOUT");
+                operation="EXIT_CODE";
+                return new BoundedResult { ExitCode=process.ExitCode, TimedOut=timeout, Output=output.Result, Error=error.Result };
+            } catch (Exception error) { primary=error; Tag(error,operation); throw; }
+            finally {
+                if (started) {
+                    string cleanup="CLEANUP_CHECK";
+                    try { if (!process.HasExited) { cleanup="CLEANUP_STOP"; StopOwned(process); } }
+                    catch (Exception error) {
+                        if (primary==null) { Tag(error,cleanup); throw; }
+                        // Retain the first failure; expose only structured cleanup metadata.
+                        var first=primary.GetBaseException(); var last=error.GetBaseException();
+                        first.Data["MarketBrainCleanupOperation"]=cleanup;
+                        first.Data["MarketBrainCleanupType"]=last.GetType().Name;
+                        var win32=last as Win32Exception;
+                        if(win32!=null) first.Data["MarketBrainCleanupCode"]=win32.NativeErrorCode;
+                    }
+                }
+            }
+        }
         public static BoundedResult Run(string executable, string[] arguments, int milliseconds) {
             if (milliseconds < 1 || milliseconds > 30000) throw new ArgumentException("HOST_TIMEOUT_INVALID");
             var psi = new ProcessStartInfo(executable);
@@ -73,15 +135,8 @@ namespace MarketBrain.Supervisor {
             var a = new StringBuilder(); foreach (string arg in arguments) { a.Append(Quote(arg)); a.Append(' '); }
             psi.Arguments=a.ToString();
             using (var process = new Process()) {
-                process.StartInfo=psi; if (!process.Start()) throw new InvalidOperationException("HOST_CHILD_START_FAILED");
-                try {
-                    process.StandardInput.Close();
-                    Task<string> output=Drain(process.StandardOutput), error=Drain(process.StandardError);
-                    bool timeout=!process.WaitForExit(milliseconds);
-                    if (timeout) { process.Kill(); if (!process.WaitForExit(3000)) throw new IOException("HOST_CHILD_STOP_FAILED"); }
-                    if (!Task.WaitAll(new Task[]{output,error},3000)) throw new IOException("HOST_CHILD_OUTPUT_TIMEOUT");
-                    return new BoundedResult { ExitCode=process.ExitCode, TimedOut=timeout, Output=output.Result, Error=error.Result };
-                } finally { if (!process.HasExited) { process.Kill(); process.WaitForExit(3000); } }
+                process.StartInfo=psi;
+                return RunCore(new CommandProcess(process),milliseconds);
             }
         }
     }

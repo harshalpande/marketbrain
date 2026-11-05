@@ -26,6 +26,9 @@ try{
  $v=ConvertTo-PaytmWorkerEvidence $raw;$json=$v|ConvertTo-Json -Depth 8
  Check (-not $json.Contains('DO_NOT_COPY_SECRET')) 'UNKNOWN_FIELDS_OMITTED'
  Check ($v.failure -eq 'TRANSPORT_UNKNOWN' -and $v.details.line -eq 71 -and $v.transportState.attempts -eq 15) 'STRUCTURED_CAUSE_RETAINED'
+ $raw.details.nativeOperation='TIMEOUT_STOP';$raw.details.cleanupOperation='CLEANUP_STOP';$raw.details.cleanupNativeErrorCode=5
+ $v=ConvertTo-PaytmWorkerEvidence $raw
+ Check ($v.details.nativeOperation -ceq 'TIMEOUT_STOP' -and $v.details.cleanupOperation -ceq 'CLEANUP_STOP' -and $v.details.cleanupNativeErrorCode -eq 5) 'NATIVE_OPERATION_RETAINED'
  $raw.failure='some URL or password';Check ((ConvertTo-PaytmWorkerEvidence $raw).failure -eq 'UNRECOGNIZED_VALUE_REDACTED') 'UNSAFE_FAILURE_REDACTED';$raw.failure='TRANSPORT_UNKNOWN'
  $file=Join-Path $temp 'status.json'
  $missing=Get-PaytmWorkerEvidenceFile $file;Check ($missing.present -eq $false -and -not $missing.readSucceeded) 'MISSING_DISTINCT'

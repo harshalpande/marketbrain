@@ -13,9 +13,15 @@ function Assert-PaytmTransportAcceptance($Value){
  foreach($name in @('stopped','stoppedRestart')){Assert-PaytmManagedStatus $Value.$name $Value.before.installationId STOPPED}
  if($Value.stopped.instanceId -ceq $Value.stoppedRestart.instanceId -or $Value.stoppedRestart.networkContacted -or $Value.stoppedRestart.signingVerified -or $Value.final.instanceId -ceq $Value.stoppedRestart.instanceId){throw 'STARTUP_RECEIPT_STOP'}
 }
+function Test-PaytmNativeRunnerHash([string]$Hash){
+ $Hash -cin @('24D1769A380B530B6EEB9C7C82B069B9C0B87594EAB48661902F7299B03CBCDD','E0F159A2E45C72C8BBC3668C39BEF95DF9DE75289EBB7239057005545B3C238B')
+}
+function Test-PaytmNativeRepairSourceHash([string]$Hash){
+ $Hash -cin @('690E49F45C945A914DA9D757D09475EF593C6A154AAF0D955E61ADA907087B73','838C6D39E3AAA4BDE5C46DF470141B348D09C2D62BF077AA244293B58FB137AB')
+}
 function Test-PaytmFirstFailureRunnerHash([string]$Hash){
  # E220 reviewed first-cause preservation patch, exact LF and CRLF bytes only.
- $Hash -cin @('991BCFF40E468E5C88DC905BED9E3CBA025A4C1D1BBF79F797F84F4A66557633','B05057A4A0409F76CC2F55B941FBA5EF46483F0B6697F7842E3AA4B3C5089C3F')
+ $Hash -cin @('991BCFF40E468E5C88DC905BED9E3CBA025A4C1D1BBF79F797F84F4A66557633','B05057A4A0409F76CC2F55B941FBA5EF46483F0B6697F7842E3AA4B3C5089C3F') -or (Test-PaytmNativeRunnerHash $Hash)
 }
 function Test-PaytmObservedTransportHash([string]$Hash){
  # E224: bounded stderr drain and structured SSH observations, exact LF/CRLF sources.

@@ -10,7 +10,7 @@ $runnerSource=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'RunPaytmGatewaySu
 try {
     $dll=Join-Path $temp 'native.dll';Add-Type -Path (Join-Path $PSScriptRoot 'PaytmSupervisorNative.cs') -OutputAssembly $dll
     $transportDll=Join-Path $temp 'transport.dll';Add-Type -Path (Join-Path $PSScriptRoot 'PaytmTransportNative.cs') -OutputAssembly $transportDll
-    foreach($kind in @('RestrictedSuccess','FileLoaderRegression','SourceDrift','HelperFailure','NativeFailure','DuplicateLease','ManagedPolicy','SigningFailure','TransportStop','TransportSourceDrift','TransportHelperFailure')){
+    foreach($kind in @('RestrictedSuccess','FileLoaderRegression','SourceDrift','HelperFailure','NativeFailure','DuplicateLease','ManagedPolicy','SigningFailure','NativeOperationFailure','TransportStop','TransportSourceDrift','TransportHelperFailure')){
         $cases++;$root=Join-Path $temp $kind;$null=New-Item -ItemType Directory -Path $root
         $work=Join-Path $root 'work';$null=New-Item -ItemType Directory -Path $work
         $source=$runnerSource.Replace('C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1',$root).Replace('C:\ProgramData\MarketBrainPaytmGateway\supervisor-work-v1',$work).Replace('C:\ProgramData\MarketBrainPaytmGateway\key-custody',$root)
@@ -23,6 +23,7 @@ try {
         $helper=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1'))
         if($kind -ceq 'HelperFailure'){$helper="throw 'SECRET_SHOULD_NOT_LEAK'"}
         if($kind -ceq 'SigningFailure'){$helper+="`nfunction Test-PaytmHostSigning {throw 'HOST_SIGNING_FAILED'}`n"}
+        if($kind -ceq 'NativeOperationFailure'){$helper+="`nfunction Test-PaytmHostSigning { [MarketBrain.Supervisor.NativeCommand]::Run('C:\__MarketBrain_missing_binary__.exe',[string[]]@(),10) }`n"}
         [IO.File]::WriteAllText((Join-Path $root 'host.ps1'),$helper)
         [IO.File]::WriteAllText((Join-Path $root 'runner.ps1'),$source)
         Copy-Item -LiteralPath $dll -Destination (Join-Path $root 'native.dll')
@@ -41,7 +42,7 @@ try {
             if($kind -ceq 'TransportSourceDrift'){$hashes['transport.ps1']='0'*64}
         }
         $manifest|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'manifest.json')
-        @{version=1;installationId=$id;mode=if($kind -ceq 'SigningFailure'){'LOCKED'}else{'STOP'}}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'control.json')
+        @{version=1;installationId=$id;mode=if($kind -cin @('SigningFailure','NativeOperationFailure')){'LOCKED'}else{'STOP'}}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'control.json')
         $code="&([scriptblock]::Create([IO.File]::ReadAllText('"+(Join-Path $root 'runner.ps1')+"')))"
         if($kind -ceq 'ManagedPolicy'){$code="function Get-ExecutionPolicy { [pscustomobject]@{Scope='MachinePolicy';ExecutionPolicy='Restricted'} };"+$code}
         $lease=$null
@@ -61,7 +62,8 @@ try {
             }else{
                 Check ($result.ExitCode -eq 1 -and (Test-Path -LiteralPath $failure)) ($kind+'_FAILURE_RECORDED')
                 $text=[IO.File]::ReadAllText($failure);$f=$text|ConvertFrom-Json
-                $expected=switch($kind){FileLoaderRegression{'LOAD_HELPER'} SourceDrift{'VERIFY_SOURCES'} HelperFailure{'LOAD_HELPER'} NativeFailure{'LOAD_NATIVE'} ManagedPolicy{'EXECUTION_POLICY'} SigningFailure{'OBSERVATION_LOOP'} TransportSourceDrift{'VERIFY_SOURCES'} TransportHelperFailure{'LOAD_TRANSPORT'}}
+                $expected=switch($kind){FileLoaderRegression{'LOAD_HELPER'} SourceDrift{'VERIFY_SOURCES'} HelperFailure{'LOAD_HELPER'} NativeFailure{'LOAD_NATIVE'} ManagedPolicy{'EXECUTION_POLICY'} SigningFailure{'OBSERVATION_LOOP'} NativeOperationFailure{'OBSERVATION_LOOP'} TransportSourceDrift{'VERIFY_SOURCES'} TransportHelperFailure{'LOAD_TRANSPORT'}}
+                if($kind -ceq 'NativeOperationFailure'){Check ($f.details.nativeOperation -ceq 'START' -and $f.details.nativeErrorCode -eq 2) 'NATIVE_OPERATION_SAVED_FROM_REAL_EXCEPTION'}
                 Check ($f.stage -ceq $expected -and $f.details.type -and $text.Length -lt 4096 -and $text -notmatch 'SECRET_SHOULD_NOT_LEAK' -and -not $f.networkContacted) ($kind+'_SAFE_DIAGNOSTICS')
                 if($kind -ceq 'FileLoaderRegression'){Check ($f.details.outerType -ceq 'PSSecurityException') 'ORIGINAL_LOADER_DEFECT_REPRODUCED'}
                 if($kind -ceq 'SigningFailure'){

@@ -25,8 +25,8 @@ function ConvertTo-PaytmWorkerEvidence($Value){
  elseif($observed -is [string] -and $observed -cmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?Z$'){$out.observedUtc=$observed}
  $details=Get-PaytmEvidenceProperty $Value details;$transport=Get-PaytmEvidenceProperty $Value transportState
  $d=[ordered]@{}
- foreach($n in @('type','outerType')){$v=Get-PaytmEvidenceProperty $details $n;if([string]$v -cmatch '^[A-Za-z][A-Za-z0-9.]{0,95}$'){$d[$n]=[string]$v}}
- foreach($n in @('hresult','line','nativeErrorCode')){$v=Get-PaytmEvidenceProperty $details $n;if($v -is [int] -or $v -is [long]){$d[$n]=$v}}
+ foreach($n in @('type','outerType','nativeOperation','cleanupOperation','cleanupType')){$v=Get-PaytmEvidenceProperty $details $n;if([string]$v -cmatch '^[A-Za-z][A-Za-z0-9._]{0,95}$'){$d[$n]=[string]$v}}
+ foreach($n in @('hresult','line','nativeErrorCode','cleanupNativeErrorCode')){$v=Get-PaytmEvidenceProperty $details $n;if($v -is [int] -or $v -is [long]){$d[$n]=$v}}
  if($d.Count){$out.details=$d}
  $s=[ordered]@{}
  foreach($n in @('attempts','failures','closedOutageSeconds','firstReadySeconds','lastHealthSeconds','lastSeconds','retryAtSeconds')){$v=Get-PaytmEvidenceProperty $transport $n;if($v -is [int] -or $v -is [long]){$s[$n]=$v}}

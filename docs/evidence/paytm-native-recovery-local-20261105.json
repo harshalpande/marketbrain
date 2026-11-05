@@ -1,0 +1,71 @@
+{
+  "evidenceId": "E233",
+  "date": "2026-11-05",
+  "status": "NATIVE_METADATA_ACCEPTED_RECOVERY_AND_SOAK_PENDING",
+  "report": {
+    "runId": "1290fc4e5fc448ac98c749ff437f4a8d",
+    "sha256": "857B0C3E835E252EC13DBA0FCFE927A1DF72CAB1DC043AE39F236013EC050024",
+    "sourceRevision": "07242e7",
+    "matchingCrlfSources": 4,
+    "elapsedSeconds": 6.801,
+    "metadataComplete": true,
+    "installedHashesMatchManifest": 3,
+    "validExecutableSignatures": 2,
+    "selectedEventChannelsQueried": 3,
+    "matchingSelectedEvents": 0,
+    "controllerCurlVersionExitCode": 0,
+    "taskState": "Ready",
+    "taskLastResult": 1,
+    "processPresent": false
+  },
+  "interpretation": {
+    "metadataGapClosed": true,
+    "originalDeniedOperationProven": false,
+    "fileDaclIncludesBuiltinUsersReadExecute": true,
+    "effectiveGatewayTokenAccessProven": false,
+    "adminExecutionNotGatewayExecution": true,
+    "oldFailureIsStillPreserved": true
+  },
+  "implementation": {
+    "nativeOperationsRecorded": true,
+    "cleanupPreservesFirstException": true,
+    "killRaceOnlyAcceptedWithConfirmedExit": true,
+    "liveAccessDenialStillFailsClosed": true,
+    "exactReceiptAndFileStateRecovery": true,
+    "archiveFiles": 8,
+    "maximumStartAttempts": 1,
+    "soakSeconds": 1800,
+    "publicApiChanges": false,
+    "brokerCredentialsUsed": false,
+    "ordersEnabled": false,
+    "maximumObservationGapSeconds": 45
+  },
+  "verification": {
+    "totalAssertions": 398,
+    "nativeProcess": 12,
+    "recoveryWorkflow": 69,
+    "controller": 47,
+    "bootstrap": 41,
+    "failureProjection": 31,
+    "nativeTransport": 11,
+    "sessionWorkflow": 187,
+    "controllerSuccessUsesAcceleratedFixture": true,
+    "actualPs5BuildAndControllerCurlPassed": true,
+    "actualGatewayAccountAnd30MinuteRuntimePending": true
+  },
+  "progress": {
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "accepted": 12,
+    "total": 30,
+    "percent": 40,
+    "increase": 0
+  },
+  "next": "ops/windows/RepairPaytmNativeProcess.ps1"
+}
