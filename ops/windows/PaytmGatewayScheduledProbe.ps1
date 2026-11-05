@@ -40,9 +40,27 @@ $root='__ROOT__'
 . ([scriptblock]::Create([IO.File]::ReadAllText($root+'\native.ps1')))
 $report=[ordered]@{version=1;runId='__RUN__';stage='IDENTITY';processId=$PID;sessionId=$null;
  identityVerified=$false;nonAdmin=$false;nonInteractiveSession=$false;privateCopyAbsent=$false;
- agentIdentityVerified=$false;signingChecks=0;failure=$null;elapsedSeconds=0;
+ agentIdentityVerified=$false;signingChecks=0;failure=$null;elapsedSeconds=0;nativeObservations=@();
  keyImported=$false;networkContacted=$false;ordersEnabled=$false}
 $timer=[Diagnostics.Stopwatch]::StartNew()
+function Invoke-ObservedAgent([string]$Operation,[string[]]$Arguments){
+ $clock=[Diagnostics.Stopwatch]::StartNew()
+ $o=[ordered]@{operation=$Operation;limitSeconds=10;elapsedSeconds=0;exitCode=$null;timedOut=$null;stdoutCharacters=0;stderrCharacters=0;classification='NATIVE_EXCEPTION';errorType=$null;nativeErrorCode=$null}
+ try{
+  $result=Invoke-PaytmCustodyNative 'ssh-add.exe' $Arguments 10
+  $o.exitCode=$result.ExitCode;$o.timedOut=[bool]$result.StoppedByRunner
+  $o.stdoutCharacters=([string]$result.Stdout).Length;$o.stderrCharacters=([string]$result.Stderr).Length
+  $text=([string]$result.Stdout+[string]$result.Stderr).Trim()
+  $o.classification=if($o.timedOut){'TIMEOUT'}elseif($result.ExitCode -eq 1 -and $text -ceq 'The agent has no identities.'){'NO_IDENTITIES'}elseif($text -match 'Error connecting to agent|Could not open a connection to your authentication agent'){'AGENT_CONNECTION_ERROR'}elseif($result.ExitCode -ne 0){'NONZERO_EXIT'}else{'EXIT_ZERO'}
+  $result
+ }catch{
+  $base=$_.Exception.GetBaseException();$o.errorType=$base.GetType().Name
+  if($base -is [ComponentModel.Win32Exception]){$o.nativeErrorCode=$base.NativeErrorCode}
+  throw
+ }finally{
+  $o.elapsedSeconds=[math]::Round($clock.Elapsed.TotalSeconds,3);$report.nativeObservations+=@([pscustomobject]$o)
+ }
+}
 try {
  $id=Get-PaytmCustodyIdentity
  if($id.sid -cne (Get-PaytmKeyContract).accountSid -or -not $id.nonAdmin){throw 'SCHEDULE_WORKER_IDENTITY'}
@@ -51,10 +69,10 @@ try {
  if($report.sessionId -ne 0){throw 'SCHEDULE_INTERACTIVE_SESSION'};$report.nonInteractiveSession=$true
  if([IO.File]::Exists($root+'\gateway.openssh')){throw 'SCHEDULE_PRIVATE_STAGING_PRESENT'};$report.privateCopyAbsent=$true
  $report.stage='AGENT'
- Assert-PaytmAgentResult (Invoke-PaytmCustodyNative 'ssh-add.exe' @('-l')) Expected;$report.agentIdentityVerified=$true
+ Assert-PaytmAgentResult (Invoke-ObservedAgent 'LIST_IDENTITIES' @('-l')) Expected;$report.agentIdentityVerified=$true
  $report.stage='SIGNING'
  foreach($attempt in 1..2){
-  Assert-PaytmSigningResult (Invoke-PaytmCustodyNative 'ssh-add.exe' @('-T',($root+'\gateway.pub'))) $true
+  Assert-PaytmSigningResult (Invoke-ObservedAgent ('SIGN_'+$attempt) @('-T',($root+'\gateway.pub'))) $true
   $report.signingChecks++
  }
  $report.stage='COMPLETE'

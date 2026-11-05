@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1060" viewBox="0 0 1200 1060" role="img" aria-labelledby="title desc">
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">MarketBrain intelligence and INR100000 paper workflow. E228 accepts gateway network loss and automatic recovery, advancing BACKOFF and cleanup, unchanged account and final application/writer locks. G1 and G2 complete; G3 40 percent; bounded Paytm plan 12 of 30 checkpoints, 40 percent. E234 accepts archived native recovery and 30-minute observation with 129 checks, same worker and zero reconnects; original native operation unknown. E235 sign-out phase blocked by HOST_AGENT_UNAVAILABLE; read-only agent/service evidence next. Full shutdown paused; security negatives and health/drift remain pending. Paytm authentication, quotes and Telegram review remain pending. Live execution disconnected. Dashed boxes are planned or incomplete.</desc>
+  <desc id="desc">MarketBrain intelligence and INR100000 paper workflow. E228 accepts gateway network loss and automatic recovery, advancing BACKOFF and cleanup, unchanged account and final application/writer locks. G1 and G2 complete; G3 40 percent; bounded Paytm plan 12 of 30 checkpoints, 40 percent. E234 accepts archived native recovery and 30-minute observation with 129 checks, same worker and zero reconnects; original native operation unknown. E236 agent service running but production worker stopped; dedicated-account signing check next. Full shutdown paused; security negatives and health/drift remain pending. Paytm authentication, quotes and Telegram review remain pending. Live execution disconnected. Dashed boxes are planned or incomplete.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -25,7 +25,7 @@
   <rect x="425" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="443" y="121" class="label">Upstox + Paytm live feeds</text>
   <text x="443" y="148" class="body">Paytm synthetic rehearsal accepted</text>
-  <text x="443" y="173" class="body">G3 40%: agent failure; sign-out / boot paused</text>
+  <text x="443" y="173" class="body">G3 40%: account signing next; boot paused</text>
   <rect x="820" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="838" y="121" class="label">Marketaux / news events</text>
   <text x="838" y="148" class="body">Connector exists; entity/event work pending</text>

@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
     [switch]$InspectExisting,
+    [string]$AgentFailureReportPath,
     [string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-key-custody-20261102-112446-29cb6394513a47f687351825698006d5.json',
     [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
@@ -8,6 +9,9 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmGatewayAccountRepair.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewayKeyCustody.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewayScheduledProbe.ps1')
+if($AgentFailureReportPath){
+ foreach($n in @('PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmAgentSigning.ps1')){. (Join-Path $PSScriptRoot $n)}
+}
 $run=[guid]::NewGuid().ToString('N');$c=Get-PaytmScheduledProbeContract $run
 $timer=[Diagnostics.Stopwatch]::StartNew();$password=$null;$stream=$null;$registered=$false;$mayBeRegistered=$false;$enabled=$false
 $report=[ordered]@{version=1;runId=$run;status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;
@@ -37,6 +41,14 @@ try {
  Assert-PaytmCustodyController
  Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction Stop
  Import-Module ScheduledTasks -ErrorAction Stop
+ if($AgentFailureReportPath){
+  if($InspectExisting){throw 'SCHEDULE_AGENT_INSPECTION_CONFLICT'}
+  $report.agentFailureReview=Assert-PaytmAgentSigningReceipt $AgentFailureReportPath
+  $report.productionBefore=Get-PaytmAgentSigningSnapshot
+  if($report.productionBefore.hashes.'session-checkpoint.json' -cne $report.agentFailureReview.checkpointHash){throw 'SCHEDULE_AGENT_CHECKPOINT_CHANGED'}
+  foreach($n in @('PaytmAgentSigning.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash}
+  Save-ScheduledCheckpoint
+ }
  Scheduled-Step 'REVALIDATE_ACCEPTED_CUSTODY' 10
  $report.prerequisites=Assert-PaytmScheduledPrerequisites $CustodyReportPath
  if((Get-Service -Name Schedule -ErrorAction Stop).Status -ne 'Running'){throw 'SCHEDULE_SERVICE_NOT_RUNNING'}
@@ -77,9 +89,9 @@ try {
  Wait-PaytmProbeTask $run $report {Save-ScheduledCheckpoint}
  Assert-PaytmScheduledWorker $report.worker $run
  if($report.lastTaskResult -ne 0){throw 'SCHEDULE_NONZERO_TASK_RESULT'}
- $report.status='SCHEDULED_SIGNING_PASSED_SUPERVISOR_INSTALLATION_PENDING';$report.stage='COMPLETE'
+ $report.status=if($AgentFailureReportPath){'AGENT_SIGNING_PASSED_PRODUCTION_RECOVERY_PENDING'}else{'SCHEDULED_SIGNING_PASSED_SUPERVISOR_INSTALLATION_PENDING'};$report.stage='COMPLETE'
 }catch{
- $report.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_PROBE_FAILED'}
+ $report.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY|HOST)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_PROBE_FAILED'}
  $base=$_.Exception.GetBaseException()
  $report.failureDetails=[pscustomobject]@{type=$base.GetType().Name;hresult=$base.HResult;line=$_.InvocationInfo.ScriptLineNumber}
 }finally{
@@ -111,6 +123,13 @@ try {
   try{$partial=Read-PaytmRepairJson $c.result 8192;if($partial.runId -ceq $run){$report.worker=$partial}}catch{}
  }
  if($null -ne $password){$password.Dispose()}
+ if($AgentFailureReportPath -and $report.Contains('productionBefore')){
+  try{
+   $report.productionAfter=Get-PaytmAgentSigningSnapshot
+   $report.productionStateUnchanged=($report.productionBefore|ConvertTo-Json -Depth 5 -Compress) -ceq ($report.productionAfter|ConvertTo-Json -Depth 5 -Compress)
+   if(-not $report.productionStateUnchanged){throw 'SCHEDULE_AGENT_PRODUCTION_CHANGED'}
+  }catch{$report.cleanupFailure='SCHEDULE_AGENT_PRODUCTION_STATE_REVIEW_REQUIRED';$report.status='REVIEW_REQUIRED'}
+ }
  if($report.failure -or $report.cleanupFailure){$report.status='REVIEW_REQUIRED'}
  $timer.Stop();if($null -ne $stream){try{Save-ScheduledCheckpoint}finally{$stream.Dispose()}}
  Write-Progress -Activity 'Scheduled gateway signing' -Completed

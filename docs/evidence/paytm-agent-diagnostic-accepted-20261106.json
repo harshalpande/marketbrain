@@ -1,0 +1,72 @@
+{
+  "evidenceId": "E236",
+  "date": "2026-11-06",
+  "status": "AGENT_DIAGNOSTIC_ACCEPTED_ACCOUNT_SIGNING_NEXT",
+  "sourceFile": "paytm-agent-failure-d1938ba2c01d4a1b9759e2b81d972fed.json",
+  "sourceSha256": "097FE3F105F7579DF20BDC9DE1F5603B43AABF16CC523C5A97026A5E600032D4",
+  "sourceRevision": "f8a3061",
+  "matchingCrlfSourceHashes": 4,
+  "elapsedSeconds": 4.957,
+  "observed": {
+    "serviceState": "Running",
+    "serviceStartMode": "Auto",
+    "servicePid": 3684,
+    "serviceExitCode": 0,
+    "serviceSpecificExitCode": 0,
+    "serviceIdentityAndExecutableExpected": true,
+    "serviceQueriesComplete": true,
+    "eventQueriesComplete": true,
+    "eventQueryCount": 6,
+    "matchingEvents": 0,
+    "truncatedQueries": 0,
+    "checkpointUnchanged": true,
+    "checkpointHash": "CCAC77DEE9FBA3144F665E26C9D66BA0881D2D3597A4D054EFF292923464CACD",
+    "productionWorkerPresent": false,
+    "taskState": "Ready",
+    "taskLastResult": 1,
+    "workerFailure": "HOST_AGENT_UNAVAILABLE",
+    "applicationControl": "LOCKED",
+    "historicalCauseEstablished": false,
+    "gatewayAccountSigningTested": false,
+    "taskStarted": false,
+    "credentialsUsed": false,
+    "ordersEnabled": false
+  },
+  "next": {
+    "script": "ops/windows/TestPaytmGatewayScheduledSigning.ps1",
+    "argument": "AgentFailureReportPath",
+    "temporaryNonAdminBatchTask": true,
+    "signingChecks": 2,
+    "keyImport": false,
+    "productionRestart": false,
+    "checkpointReset": false,
+    "networkContact": false,
+    "windowsAccountPasswordEnteredLocally": true
+  },
+  "verification": {
+    "scheduledProbeAssertions": 189,
+    "scheduledProbeWorkflows": 25,
+    "preservationAssertions": 21,
+    "totalAssertions": 210,
+    "nativeTaskDefinitionConstructedWithoutRegistration": true,
+    "realTaskAndAccountBoundariesMocked": true
+  },
+  "limitations": [
+    "Running service and empty event logs do not establish the original agent failure cause.",
+    "New batch-logon signing cannot prove the previous worker logon retained access.",
+    "No functional checkpoint is completed by diagnostic capture."
+  ],
+  "progress": {
+    "groups": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "accepted": 12,
+    "total": 30,
+    "percent": 40
+  }
+}

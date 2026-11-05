@@ -1,14 +1,16 @@
 # SSH agent failure after Windows sign-out
 
-**Current E235, 2026-11-06:** The baseline was healthy, but AfterLogoff stopped after 49.36 seconds with `TRANSPORT_WORKER_BLOCKED`. The worker recorded `HOST_AGENT_UNAVAILABLE` while checking `ssh-add -l`. All eight source hashes match the CRLF checkout of `7c9e321`. The error combines a timeout and a nonzero process exit; the report does not distinguish them or prove that signing out stopped the agent service.
+**Current E236, 2026-11-06:** Agent diagnostic accepted in **4.957s**; four source hashes match `f8a3061` CRLF. ssh-agent was Running/automatic with zero exit codes; all six event queries were empty, and the checkpoint was unchanged. The production worker is stopped; historical cause remains unknown. [Next: dedicated-account local signing](paytm-agent-signing.md), one temporary task and one JSON, preserving production state. Full shutdown remains paused. Groups **100/100/40/0/0/0, 12/30 (40%)**, unchanged.
+
+**Historical E235, 2026-11-06:** The baseline was healthy, but AfterLogoff stopped after 49.36 seconds with `TRANSPORT_WORKER_BLOCKED`. The worker recorded `HOST_AGENT_UNAVAILABLE` while checking `ssh-add -l`. All eight source hashes match the CRLF checkout of `7c9e321`. The error combines a timeout and a nonzero process exit; the report does not distinguish them or prove that signing out stopped the agent service.
 
 The baseline and failure refer to the same worker. The final worker status is BLOCKED; advancing sequence numbers during failure cleanup do not prove health. Earlier signing flags are retained historical observations, not a fresh signing result. The last status observation is about 319 seconds older than the failure marker. Sleep, scheduling, clock adjustment and service availability need evidence rather than assumptions.
 
 The post-sign-out application checks were not reached. Their false flags mean unverified in this phase, not a changed paper balance. No new G3.4 acceptance is earned. G1/G2/G3/G4/G5/G6 remain **100/100/40/0/0/0%**, or **12/30 (40%)** of the bounded Paytm readiness plan. This is not a percentage of whole-project completion or current uptime.
 
-## Next action and purpose
+## Completed diagnostic: retained instructions and purpose
 
-Run `GetPaytmAgentFailureEvidence.ps1` once. It preserves the existing session checkpoint and gathers:
+E236 accepts this diagnostic; do not repeat it. Continue with the [signing check](paytm-agent-signing.md). The diagnostic was `GetPaytmAgentFailureEvidence.ps1`. It preserves the existing session checkpoint and gathers:
 
 - The current `ssh-agent` service state, start mode, PID and numeric exit codes, before and after collection.
 - Service Control Manager events between 18:33:55 and 18:48:04 UTC on 5 November, filtering to this service. The exact report-derived window includes two-minute margins.

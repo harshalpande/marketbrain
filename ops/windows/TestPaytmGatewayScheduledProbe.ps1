@@ -112,6 +112,11 @@ function Get-Process {param($Id) [pscustomobject]@{SessionId=if($global:fixture.
 function Invoke-PaytmCustodyNative($Tool,[string[]]$Arguments,$Seconds){
  $global:fixture.nativeCalls+=@($Tool+' '+($Arguments -join ' '))
  if($Tool -cne 'ssh-add.exe' -or $Arguments[0] -cnotin @('-l','-T')){throw 'UNEXPECTED_NATIVE_CALL'}
+ if($Seconds -ne 10){throw 'UNBOUNDED_AGENT_PROBE'}
+ if($global:fixture.case -ceq 'nativeException'){throw [ComponentModel.Win32Exception]::new(5)}
+ if($global:fixture.case -ceq 'agentTimeout'){return @{ExitCode=-1;StoppedByRunner=$true;Stdout='PRIVATE_SENTINEL';Stderr='PRIVATE_SENTINEL'}}
+ if($global:fixture.case -ceq 'agentEmpty'){return @{ExitCode=1;StoppedByRunner=$false;Stdout='The agent has no identities.';Stderr=''}}
+ if($global:fixture.case -ceq 'agentConnection'){return @{ExitCode=2;StoppedByRunner=$false;Stdout='';Stderr='Error connecting to agent: PRIVATE_SENTINEL'}}
  if($Arguments[0] -ceq '-l'){
   return [pscustomobject]@{ExitCode=if($global:fixture.case -ceq 'agentMissing'){1}else{0};StoppedByRunner=$false;Stdout=('256 '+$global:scheduledKeyContract.fingerprint+' fixture (ED25519)');Stderr=''}
  }
@@ -122,7 +127,18 @@ foreach($name in @('PaytmGatewayScheduledProbe.ps1','TestPaytmGatewayScheduledSi
  $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot $name));if($name -ceq 'PaytmGatewayScheduledProbe.ps1'){$source+="`n"+$mock}
  [IO.File]::WriteAllText((Join-Path $scripts $name),$source)
 }
-$cases=@('pass','cancel','prerequisiteFailure','existingTask','registrationFailure','registrationAfterCreate','workerIdentity','interactiveSession','agentMissing','signFailure','taskTimeout','definitionDrift','removalFailure','malformedReport','inspectEmpty','inspectExisting','inspectDrift')
+$agentMock=@'
+function Assert-PaytmAgentSigningReceipt($Path){
+ if($global:fixture.case -ceq 'agentReceiptFailure'){throw 'SCHEDULE_AGENT_RECEIPT_NOT_REVIEWED'}
+ @{runId=('d'*32);checkpointHash=if($global:fixture.case -ceq 'agentCheckpointMismatch'){'wrong'}else{'same'}}
+}
+function Get-PaytmAgentSigningSnapshot {
+ @{hashes=@{'session-checkpoint.json'='same'};taskState=if($global:fixture.case -ceq 'agentStateDrift' -and $global:fixture.starts -gt 0){'Changed'}else{'Ready'}}
+}
+'@
+[IO.File]::WriteAllText((Join-Path $scripts 'PaytmAgentSigning.ps1'),$agentMock)
+foreach($name in @('PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1')){[IO.File]::WriteAllText((Join-Path $scripts $name),'# fixture')}
+$cases=@('pass','cancel','prerequisiteFailure','existingTask','registrationFailure','registrationAfterCreate','workerIdentity','interactiveSession','agentMissing','signFailure','taskTimeout','definitionDrift','removalFailure','malformedReport','inspectEmpty','inspectExisting','inspectDrift','agentTimeout','agentEmpty','agentConnection','nativeException','agentEvidencePass','agentStateDrift','agentReceiptFailure','agentCheckpointMismatch')
 foreach($case in $cases){
  $root=Join-Path $temp $case;$null=New-Item -ItemType Directory -Path (Join-Path $root 'work') -Force
  $keyRoot=Join-Path $root 'key-custody';$null=New-Item -ItemType Directory -Path $keyRoot
@@ -130,10 +146,12 @@ foreach($case in $cases){
  [IO.File]::WriteAllText((Join-Path $keyRoot 'native.ps1'),'# Test fixture, no native tool invoked.')
  $global:fixture=@{root=$root;case=$case;task=$null;registers=0;starts=0;disables=0;stops=0;removes=0;password=$null;passwordSupplied=$false;nativeCalls=@();lastResult=267011}
  $failed=$false;$output=Join-Path $root 'output';$global:fixture.output=$output;$console=@();$inspect=$case.StartsWith('inspect')
- try{$console=@(& (Join-Path $scripts 'TestPaytmGatewayScheduledSigning.ps1') -CustodyReportPath 'fixture' -OutputDirectory $output -InspectExisting:$inspect 6>&1)}catch{$failed=$true}
+ $params=@{CustodyReportPath='fixture';OutputDirectory=$output;InspectExisting=$inspect}
+ if($case -in @('agentEvidencePass','agentStateDrift','agentReceiptFailure','agentCheckpointMismatch')){$params.AgentFailureReportPath='fixture'}
+ try{$console=@(& (Join-Path $scripts 'TestPaytmGatewayScheduledSigning.ps1') @params 6>&1)}catch{$failed=$true}
  $files=@(Get-ChildItem -LiteralPath $output -Filter '*.json'|Where-Object {$_.Name -cne ('paytm-scheduled-signing-20000101-'+('c'*32)+'.json')});Check ($files.Count -eq 1) ('one report '+$case)
  $raw=[IO.File]::ReadAllText($files[0].FullName);$r=$raw|ConvertFrom-Json
- Check ($failed -eq ($case -cne 'pass' -and -not $inspect)) ('result '+$case+' '+$r.failure+' '+($r.failureDetails|ConvertTo-Json -Compress))
+ Check ($failed -eq ($case -cnotin @('pass','agentEvidencePass') -and -not $inspect)) ('result '+$case+' '+$r.failure+' '+($r.failureDetails|ConvertTo-Json -Compress))
  Check ($raw -notmatch 'FixturePassword|PRIVATE KEY|PRIVATE_SENTINEL' -and ($console -join '') -notmatch 'FixturePassword') 'no secrets in report/console'
  Check (-not $r.networkContacted -and -not $r.agentChanged -and -not $r.keyImported -and -not $r.ordersEnabled -and -not $r.productionSupervisorInstalled) 'scope unchanged'
  if($null -ne $global:fixture.password){$disposed=$false;try{$p=$global:fixture.password.Copy();$p.Dispose()}catch{$disposed=$true};Check $disposed 'secure password disposed'}
@@ -141,8 +159,17 @@ foreach($case in $cases){
  if($case -ceq 'pass'){
   Check ($r.worker.signingChecks -eq 2 -and $r.worker.sessionId -eq 0 -and $r.taskRemoved -and $null -eq $global:fixture.task) 'actual generated worker and cleanup pass'
   Check ($global:fixture.passwordSupplied -and $global:fixture.nativeCalls.Count -eq 3 -and $global:fixture.starts -eq 1) 'password API and bounded signing only'
+  Check ($r.worker.nativeObservations.Count -eq 3 -and @($r.worker.nativeObservations|Where-Object {$_.exitCode -ne 0 -or $_.timedOut -or $_.classification -cne 'EXIT_ZERO'}).Count -eq 0) 'three native results recorded'
  }
- if($case -cin @('registrationAfterCreate','workerIdentity','interactiveSession','agentMissing','signFailure','taskTimeout','malformedReport','removalFailure')){
+ if($case -ceq 'agentEvidencePass'){Check ($r.status -ceq 'AGENT_SIGNING_PASSED_PRODUCTION_RECOVERY_PENDING' -and $r.productionStateUnchanged -and $r.taskRemoved) 'recovery-mode pass preserves production'}
+ if($case -ceq 'agentStateDrift'){Check ($r.cleanupFailure -ceq 'SCHEDULE_AGENT_PRODUCTION_STATE_REVIEW_REQUIRED' -and -not $r.productionStateUnchanged) 'production drift fails closed'}
+ if($case -in @('agentReceiptFailure','agentCheckpointMismatch')){Check ($global:fixture.starts -eq 0 -and $global:fixture.registers -eq 0 -and $null -eq $global:fixture.password) 'agent preflight precedes credentials and tasks'}
+ if($case -in @('agentTimeout','agentEmpty','agentConnection','nativeException')){
+  $wanted=@{agentTimeout='TIMEOUT';agentEmpty='NO_IDENTITIES';agentConnection='AGENT_CONNECTION_ERROR';nativeException='NATIVE_EXCEPTION'}[$case]
+  Check ($r.worker.nativeObservations.Count -eq 1 -and $r.worker.nativeObservations[0].classification -ceq $wanted -and $r.worker.signingChecks -eq 0) 'specific agent failure retained'
+  if($case -ceq 'nativeException'){Check ($r.worker.nativeObservations[0].nativeErrorCode -eq 5) 'native error number preserved'}
+ }
+ if($case -cin @('registrationAfterCreate','workerIdentity','interactiveSession','agentMissing','signFailure','taskTimeout','malformedReport','removalFailure','agentTimeout','agentEmpty','agentConnection','nativeException')){
   Check ($null -ne $global:fixture.task -and -not $global:fixture.task.Settings.Enabled -and $r.taskDisabled) 'failed task retained disabled'
  }
  if($case -ceq 'definitionDrift'){Check ($r.cleanupFailure -ceq 'SCHEDULE_CLEANUP_REVIEW_REQUIRED' -and $global:fixture.disables -eq 0 -and $global:fixture.starts -eq 0 -and -not $r.taskDefinition.argumentsMatch) 'do not operate changed task; capture mismatch'}
