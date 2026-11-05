@@ -1,8 +1,10 @@
 # Gateway sign-out and full shutdown/startup verification
 
-**Current E234, 2026-11-05:** Native recovery and 30-minute observation accepted: **1847.099s total, 1809.708s observation, 129 observations**, all six source hashes match `60cc983`. Eight-file archive verified, one start, same worker/SSH child, zero transport failures/reconnects; both application route checks, final application/writer locks and unchanged INR100000 account pass. Original historical native operation remains unknown. [Next: baseline, actual Windows sign-out and full shutdown/startup](paytm-gateway-session.md), one report across three phases. A missing application-checkpoint callback was caught locally and corrected before handoff. No recovery/network repeat. Groups remain **100/100/40/0/0/0, 12/30 (40%)**; G3.4 closes only after its final runtime report passes.
+**Current E235, 2026-11-06:** Session baseline passed; AfterLogoff stopped after **49.36s** with `HOST_AGENT_UNAVAILABLE` in the background worker. All eight source hashes match `7c9e321` with CRLF. The report does not distinguish an SSH-agent query timeout from a nonzero exit. [Next: read-only service/event evidence](paytm-agent-failure.md), one JSON; preserve the checkpoint and pause sign-out/shutdown testing. Current gateway health is blocked. Groups remain **100/100/40/0/0/0, 12/30 (40%)**, with no new checkpoint accepted.
 
-**The native recovery is accepted. Do not rerun it or the network test.** The instructions below are the current next step.
+**Historical E234, 2026-11-05:** Native recovery and 30-minute observation accepted: **1847.099s total, 1809.708s observation, 129 observations**, all six source hashes match `60cc983`. Eight-file archive verified, one start, same worker/SSH child, zero transport failures/reconnects; both application route checks, final application/writer locks and unchanged INR100000 account pass. Original historical native operation remains unknown. [Next: baseline, actual Windows sign-out and full shutdown/startup](paytm-gateway-session.md), one report across three phases. A missing application-checkpoint callback was caught locally and corrected before handoff. No recovery/network repeat. Groups remain **100/100/40/0/0/0, 12/30 (40%)**; G3.4 closes only after its final runtime report passes.
+
+**Paused at E235.** Run the [agent diagnostic](paytm-agent-failure.md) only. The three-phase procedure below is retained for reference; do not execute it until recovery and checkpoint handling are reviewed.
 
 ## Purpose and limits
 

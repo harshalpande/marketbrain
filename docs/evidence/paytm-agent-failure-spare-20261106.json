@@ -1,0 +1,74 @@
+{
+  "evidenceId": "E235",
+  "date": "2026-11-06",
+  "status": "SESSION_LOGOFF_BLOCKED_AGENT_EVIDENCE_NEXT",
+  "report": {
+    "runId": "8b38588d74bb4729812fd773a7fd7f0b",
+    "sha256": "72B5F4016330C6B4D45AC917DDA533CE6E329B2BB3A7B86BE91E562B84ADEBCA",
+    "sourceRevision": "7c9e321",
+    "matchingCrlfSources": 8,
+    "phase": "AfterLogoff",
+    "status": "REVIEW_REQUIRED",
+    "elapsedSeconds": 49.36,
+    "failure": "TRANSPORT_WORKER_BLOCKED",
+    "workerFailure": "HOST_AGENT_UNAVAILABLE",
+    "workerFailureLine": 51,
+    "baselineHealthy": true,
+    "baselineCollectorUtc": "2026-11-05T18:35:55.4436967Z",
+    "baselineTransportAttempts": 6,
+    "baselineTransportFailures": 0,
+    "failureMarkerWriteUtc": "2026-11-05T18:46:04.0585654Z",
+    "workerInstance": "c066052a24f1456895792ee98dda78ac",
+    "workerPid": 13636,
+    "lastWorkerObservationUtc": "2026-11-05T18:40:45.1523045Z",
+    "savedNextPhase": "AfterLogoff",
+    "ownerConfirmedSignOut": true,
+    "ownerConfirmedNoManualGatewayStart": true,
+    "postSignoutApplicationChecksReached": false,
+    "credentialsUsed": false,
+    "ordersEnabled": false
+  },
+  "limits": [
+    "HOST_AGENT_UNAVAILABLE combines ssh-add timeout and nonzero exit; the original cause is not recorded.",
+    "Sign-out causing agent/service failure is unproven.",
+    "Retained signing flags and advancing BLOCKED sequences are not fresh health evidence.",
+    "False account/lock flags in the failed phase mean checks were not reached, not proved balance changes.",
+    "Earlier native recovery acceptance is limited to its observed interval."
+  ],
+  "next": {
+    "script": "ops/windows/GetPaytmAgentFailureEvidence.ps1",
+    "readOnly": true,
+    "oneReport": true,
+    "eventWindowMinutesMaximum": 30,
+    "nativeQueryDeadlineSeconds": 90,
+    "checkpointPreserved": true,
+    "fullShutdownPaused": true
+  },
+  "progress": {
+    "acceptedCheckpoints": 12,
+    "totalCheckpoints": 30,
+    "percent": 40,
+    "groupPercentages": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ]
+  },
+  "verification": {
+    "fixtureAssertions": 120,
+    "controllerWorkflows": 8,
+    "spareRuntimePending": true,
+    "localNativeReader": {
+      "status": "LOCAL_PS7_TO_PS5_AGENT_READER_PASSED",
+      "elapsedSeconds": 8.7553578,
+      "eventQueries": 6,
+      "queryGaps": 0,
+      "outputCharacters": 1804,
+      "stderrCharacters": 0,
+      "gatewayAccountTested": false
+    }
+  }
+}
