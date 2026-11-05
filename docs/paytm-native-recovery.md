@@ -1,5 +1,7 @@
 # Native process recovery and 30-minute observation
 
+**Completed and accepted in E234:** Run `2a00177e7fa8499bacc912f6a3b10f02` passed in 1847.099s with 1809.708s observation, 129 observations, one worker/SSH child and zero reconnects. Eight archives, two route checks, account preservation and final locks passed. **Do not rerun this recovery.** Continue with [the session test](paytm-gateway-session.md). Commands below are historical implementation instructions.
+
 **E233, 2026-11-05:** Report `1290fc4e5fc448ac98c749ff437f4a8d` completed in 6.801 seconds. All four source hashes match `07242e7`. Metadata collection is now complete: both Windows executable signatures are valid, their DACLs include Builtin Users read/execute, and all three installed helper hashes match the manifest. Three selected policy-event queries have no matches. Administrator `curl --version` succeeds. These are current metadata observations, not proof of the gateway account's effective access at the earlier failure. The worker remains absent, task Ready/result1, and its first-cause native error5 is preserved.
 
 ## What changes and why

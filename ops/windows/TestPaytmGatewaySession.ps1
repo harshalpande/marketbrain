@@ -25,6 +25,8 @@ function Save-SessionReport {
  $script:report.elapsedSeconds=[math]::Round($script:sessionWatch.Elapsed.TotalSeconds,3)
  Write-PaytmSessionReport $script:sessionReportPath $script:report
 }
+# Shared application-route helpers checkpoint through this callback name.
+function Save-Report {Save-SessionReport}
 function Session-Step($Stage,$Percent){$report.stage=$Stage;Save-SessionReport;Write-Host "[$Percent%] $Stage";Write-Progress -Activity 'Gateway logoff and full shutdown verification' -Status $Stage -PercentComplete $Percent}
 try{
  Assert-PaytmCustodyController;Import-Module ScheduledTasks

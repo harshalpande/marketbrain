@@ -5,6 +5,12 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmGatewayRestart.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewaySession.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewayFailureEvidence.ps1')
+# Load the actual route subprocess/checkpoint boundary without its unrelated imports.
+$tokens=$null;$parseErrors=$null
+$ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'PaytmApplicationRoute.ps1'),[ref]$tokens,[ref]$parseErrors)
+$boundary=$ast.Find({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Invoke-PaytmPrivateDocker'},$true)
+. ([scriptblock]::Create($boundary.Extent.Text))
+function Invoke-PaperRuntimeProcess { @{exitCode=0;stdout='PRIVATE_NATIVE_STDOUT';stderr='';elapsedSeconds=0} }
 # Exercise the real collector, checkpoint writer/reader and boundary assertions.
 # Native privileged runtime APIs are fixtures; native session query is separately tested.
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('mb-session-test-'+[guid]::NewGuid().ToString('N'))
@@ -52,6 +58,8 @@ function Get-PaytmInteractiveSession {
  @{userSidHash=$(if($fixture.scenario -eq 'different_user' -and $Phase -ne 'Before'){'B'*64}else{'A'*64});sessionId=1;authenticationId=$auth}
 }
 function Initialize-PaytmManagedApplication {
+ $application.Docker='fixture-docker'
+ $null=Invoke-PaytmPrivateDocker @('context','show') 'SESSION_ROUTE_CHECKPOINT'
  if($fixture.scenario -in @('blocked_baseline','inspect_absent','inspect_existing')){throw 'INSPECTION_MUST_NOT_ACCESS_APPLICATION'}
  if($fixture.scenario -eq 'unlocked' -and $Phase -ne 'Before'){throw 'APP_ROUTE_EXPECTED_LOCKED'}
  if($fixture.scenario -eq 'docker_stopped' -and $Phase -eq 'AfterBoot'){throw 'APP_ROUTE_CONTAINER_NOT_RUNNING'}
@@ -81,7 +89,7 @@ function Run-Phase($Name){
  if($Name -eq 'AfterBoot'){$options.ConfirmFullShutdown=$fixture.scenario -ne 'no_shutdown_confirmation'}
  & $fixture.script @options 6>$null
 }
-$scenarios=@('pass','same_logon','different_user','worker_restarted','machine_drift','boot_at_logoff','no_advance','install_drift','unlocked','account_drift','no_confirmation','no_signout_confirmation','no_boot','same_app_boot','docker_stopped','tls_failure','final_lock_failure','no_shutdown_confirmation','source_drift','blocked_baseline','inspect_absent','inspect_existing')
+$scenarios=@('pass','missing_callback','same_logon','different_user','worker_restarted','machine_drift','boot_at_logoff','no_advance','install_drift','unlocked','account_drift','no_confirmation','no_signout_confirmation','no_boot','same_app_boot','docker_stopped','tls_failure','final_lock_failure','no_shutdown_confirmation','source_drift','blocked_baseline','inspect_absent','inspect_existing')
 try{
  $largeReport=Join-Path $temp 'report-size.json'
  Write-PaytmSessionReport $largeReport @{payload=('x'*20000)}
@@ -125,8 +133,19 @@ try{
    Check (@(Get-ChildItem -LiteralPath $out -Filter '*.json').Count -eq 1) 'ONE_DIAGNOSTIC_REPORT'
    continue
   }
+  if($scenario -eq 'missing_callback'){
+   $old=[IO.File]::ReadAllText($fixture.script).Replace('function Save-Report {Save-SessionReport}','')
+   [IO.File]::WriteAllText($fixture.script,$old)
+   $failed=$false;try{Run-Phase Before}catch{$failed=$true}
+   $v=Read-Result
+   Check ($failed -and $v.failureDetails.type -ceq 'CommandNotFoundException') 'MISSING_ROUTE_CALLBACK_REPRODUCED'
+   Check ($v.status -ceq 'REVIEW_REQUIRED' -and -not (Test-Path -LiteralPath (Join-Path $root 'session-checkpoint.json'))) 'NO_BASELINE_ON_CALLBACK_FAILURE'
+   Check ($v.applicationCommands.Count -eq 1 -and $v.applicationCommands[0].phase -ceq 'SESSION_ROUTE_CHECKPOINT') 'REAL_ROUTE_BOUNDARY_REACHED'
+   continue
+  }
   Run-Phase Before
   $baseline=Read-Result;Check ($baseline.status -ceq 'BASELINE_SAVED_AWAITING_SIGNOUT') 'BASELINE'
+  Check ($baseline.applicationCommands.Count -eq 1 -and $baseline.applicationCommands[0].phase -ceq 'SESSION_ROUTE_CHECKPOINT') 'BASELINE_REAL_ROUTE_CHECKPOINT'
   $checkpoint=Join-Path $root 'session-checkpoint.json'
   $beforeHash=(Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $checkpoint).Hash
   if($scenario -eq 'source_drift'){Add-Content -LiteralPath (Join-Path $source 'PaytmGatewaySession.ps1') -Value '# drift'}
@@ -146,6 +165,7 @@ try{
     $fixture.scenario='pass';Run-Phase AfterBoot
    }
    $v=Read-Result;Check ($v.status -ceq 'GATEWAY_LOGOFF_AND_FULL_BOOT_PASSED' -and $v.runId -ceq $baseline.runId -and $v.nextPhase -ceq 'Complete') 'FINAL_PASS_SAME_RUN'
+   Check ($v.applicationCommands.Count -eq 1 -and $v.applicationCommands[0].phase -ceq 'SESSION_ROUTE_CHECKPOINT') 'FINAL_REAL_ROUTE_CHECKPOINT'
    Check ($v.phaseProofs.Before.finalApplicationLockVerified -and $v.phaseProofs.AfterLogoff.finalApplicationLockVerified -and $v.phaseProofs.AfterBoot.finalApplicationLockVerified) 'THREE_PHASE_LOCKS_RETAINED'
    if($scenario -eq 'pass'){
     $doneHash=(Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $checkpoint).Hash
@@ -158,7 +178,7 @@ try{
   Check (@(Get-ChildItem -LiteralPath $out -Filter '*.json').Count -eq 1) 'ONE_REPORT'
   Check ((Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $fixture.network).Hash -ceq $inputHash) 'INPUT_BYTES_UNCHANGED'
   $v=Read-Result;$raw=$v|ConvertTo-Json -Depth 12
-  Check (-not $raw.Contains('SECRET_NEVER_REPORT') -and -not $v.taskStartedByCollector -and -not $v.configurationChanged -and -not $v.ordersEnabled) 'SCOPE'
+  Check (-not $raw.Contains('SECRET_NEVER_REPORT') -and -not $raw.Contains('PRIVATE_NATIVE_STDOUT') -and -not $v.taskStartedByCollector -and -not $v.configurationChanged -and -not $v.ordersEnabled) 'SCOPE'
  }
  [pscustomobject]@{status='GATEWAY_SESSION_WORKFLOWS_PASSED';assertions=$count.checks;workflows=$scenarios.Count;realCheckpointFiles=$true;runtimeApisMocked=$true}|ConvertTo-Json
 }finally{

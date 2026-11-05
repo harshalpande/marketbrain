@@ -1,0 +1,94 @@
+{
+  "evidenceId": "E234",
+  "date": "2026-11-05",
+  "status": "NATIVE_RECOVERY_AND_OBSERVATION_ACCEPTED_SESSION_TEST_NEXT",
+  "report": {
+    "runId": "2a00177e7fa8499bacc912f6a3b10f02",
+    "sha256": "DC2A8F729CF3FB082B7E1ECD38C80A74E82FDCEA95D53FC02ABAA8255EB9C82E",
+    "sourceRevision": "60cc983",
+    "matchingCrlfSources": 6,
+    "elapsedSeconds": 1847.099,
+    "status": "NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED",
+    "backupFilesVerified": 8,
+    "buildExitCode": 0,
+    "buildSeconds": 5.2086813,
+    "startAttempts": 1,
+    "workerInstance": "c066052a24f1456895792ee98dda78ac",
+    "workerPid": 13636,
+    "childPid": 18564,
+    "firstSequence": 9,
+    "lastSequence": 940,
+    "soakSeconds": 1809.708,
+    "workerObservedSeconds": 1810.171,
+    "observations": 129,
+    "storedHealthSamples": 44,
+    "transportAttempts": 1,
+    "transportFailures": 0,
+    "applicationRouteChecksPassed": 2,
+    "accountCash": "100000.00",
+    "reservedCash": "0.00",
+    "ledgerRevision": "0",
+    "accountPreserved": true,
+    "finalApplicationLockVerified": true,
+    "originalRootCauseProven": false,
+    "ordersEnabled": false,
+    "brokerCredentialsUsed": false,
+    "newNativeHash": "ED1885298F46E5E628506A49D09456AE8447AD77647EA34C802736161F3317F1",
+    "newRunnerHash": "E0F159A2E45C72C8BBC3668C39BEF95DF9DE75289EBB7239057005545B3C238B"
+  },
+  "limits": [
+    "Accepted observed interval, not proof of continuous future availability.",
+    "HTTP503 remains transport-only, not broker API readiness.",
+    "Forty-four stored summaries are not the complete 129-observation series; gaps between summaries are not monitoring gaps.",
+    "Original historical native error operation remains unknown."
+  ],
+  "next": {
+    "script": "ops/windows/TestPaytmGatewaySession.ps1",
+    "phases": [
+      "Before",
+      "AfterLogoff",
+      "AfterBoot"
+    ],
+    "collectorStartsGateway": false,
+    "collectorPowersOffWindows": false,
+    "singleReport": true,
+    "callbackCorrection": "Add Save-Report adapter to existing Save-SessionReport; real application helper previously called undefined callback."
+  },
+  "verification": {
+    "workflowAssertions": 216,
+    "nativeQueryAssertions": 7,
+    "missingCallbackReproduced": true,
+    "actualGatewaySessionAcceptancePending": true,
+    "workflowScenarios": 23,
+    "totalAssertions": 223,
+    "realRouteCallbackAndWriter": true,
+    "actualLocalBootAndTokenQueries": true
+  },
+  "progress": {
+    "groups": [
+      100,
+      100,
+      40,
+      0,
+      0,
+      0
+    ],
+    "accepted": 12,
+    "total": 30,
+    "percent": 40,
+    "increase": 0,
+    "ifG34Accepted": {
+      "groups": [
+        100,
+        100,
+        60,
+        0,
+        0,
+        0
+      ],
+      "accepted": 13,
+      "total": 30,
+      "percent": 43.3
+    }
+  }
+}

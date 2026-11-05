@@ -2,10 +2,13 @@
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaperRuntimeDeployment.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewaySession.ps1')
+. (Join-Path $PSScriptRoot 'PaytmGatewayRestart.ps1')
 $route=@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path}
 $checks=0
 function Check($Ok,$Label){if(-not $Ok){throw "SESSION_NATIVE_TEST_$Label"};$script:checks++}
 $first=Get-PaytmInteractiveSession
+$boot=Get-PaytmWindowsBootUtc
+Check ($boot -cmatch '^\d{4}-\d{2}-\d{2}T.*Z$' -and [DateTimeOffset]::Parse($boot) -le [DateTimeOffset]::UtcNow) 'ACTUAL_BOOT_QUERY'
 $second=Get-PaytmInteractiveSession
 Check ($first.authenticationId -cmatch '^[A-F0-9]{16}$') 'LOGON_ID_FORMAT'
 Check ($first.authenticationId -ceq $second.authenticationId) 'NEW_CHILD_PROCESS_NOT_NEW_LOGON'
