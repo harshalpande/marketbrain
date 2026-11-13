@@ -1,6 +1,16 @@
 # Recovery after successful account signing
 
-## Current E239: VPS upstream comparison next
+## Current E240: diagnostic recovery on Windows
+
+VPS report `paytm-upstream-caT91oDZ.json` completed 30 paired samples in 298 seconds: all 60 requests returned verified TLS responses, curl exit 0 and HTTP 503. Proxy CONNECT was 200 for every proxy sample. Proxy mean/max 122.46/234.57 ms; direct mean/max 76.85/187.06 ms. Service active before/after. This validates the sampled VPS paths only, not historical stability or broker API readiness.
+
+Next use `RepairPaytmNativeProcess.ps1 -TlsDiagnosticRecovery` in elevated PowerShell 7 with Docker and the existing application running. It pins E239's connectivity receipt, verifies the exact disabled/stopped installation, old process absence, saved status, no new markers/checkpoint and free listener. An exclusive worker lease plus the controller installation lease protects the replacement. It archives and verifies transport source, manifest, controls and old status; atomically replaces only transport.ps1 with the pinned diagnostic source; updates the manifest, archives the old active status, enables the existing task and starts it once. No key import, task re-registration, broker credentials or trading actions. The existing 30-minute health observation, initial/final application route, account preservation and final locks still apply. Failure after mutation requests STOP and disables the task. Partial failures must be reviewed; do not rerun the earlier modes.
+
+The patched worker retains numeric curl exit/timeout, proxy CONNECT, certificate result, HTTP status, elapsed milliseconds, timestamp and native exception type for its latest probe and first/last failed probes. No raw stderr, headers or response bodies are stored. Health classification, retry policy and timeouts are unchanged. Evidence survives reconnects and is included in failure projection. This is an instrumentation correction, not a claimed connectivity fix.
+
+Allow approximately 35 minutes. No PuTTY interaction, Pageant, service rebuild or sign-out is needed. Share the single `paytm-native-recovery-*.json` printed at completion; the legacy success status remains `NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED`. `recoveryMode=TLS_DIAGNOSTICS_AFTER_PROXY_UNAVAILABLE` identifies this run. A successful runtime result is required before resuming fresh sign-out testing. Local tests cover the real atomic replacement and archive using mocked task APIs, the actual idle gate including timestamp normalization, first/last TLS evidence and redaction, unchanged transport behavior, and controller cleanup workflows. Current checkpoint credit remains 12/30 (40%).
+
+## Historical E239: VPS upstream comparison
 
 2026-11-13: connectivity receipt `ee5b3e88b928468c9443c8c6e51765ec` captured in 18.732 seconds; all three source hashes match. The four selected Windows event queries were enabled, successful, empty and not truncated. TCP samples reached VPS port 22 in 204/109/97 ms under the controller identity. Four installed file hashes match the manifest. The stopped worker's final saved state is BACKOFF/PROXY_UNAVAILABLE, three failures; control STOP, task disabled and process absent. These are diagnostic observations, not a new accepted recovery checkpoint. No historical cause is established.
 
@@ -8,7 +18,7 @@ Next: `ops/linux/TestPaytmUpstreamPath.sh`, invoked with `mb_upstream_main` in t
 
 No START-TEST prompt, sudo, key loading or credentials are needed. Run the copied Bash command once and share the generated JSON. `UPSTREAM_EVIDENCE_CAPTURED_REVIEW_REQUIRED` means capture complete, not connection acceptance. A failure on both paths suggests the VPS-to-upstream segment; proxy-only failure suggests the proxy path; neither is a definitive historical cause. If both paths succeed, Windows tunnel behavior and transient health failures remain unresolved. Progress stays 12/30 (40%).
 
-## Current incident E238: recovery stopped during observation
+## Historical E238: recovery stopped during observation
 
 2026-11-13: report `47dc9332f38f4ee293ba6b414b12cc5d` reached a fresh authenticated worker and application TLS response, but timed out waiting for healthy transport during the soak. The last successful sample was at 234.165 seconds; later diagnostics show CONNECTING, three attempts and two failures. Verified archive and checkpoint removal succeeded. Failure cleanup stopped the worker; account and application locks were preserved. Do not rerun the older recovery command below against the changed state.
 

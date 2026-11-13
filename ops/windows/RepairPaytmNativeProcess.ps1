@@ -1,11 +1,17 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
  [switch]$AgentSigningRecovery,
+ [switch]$TlsDiagnosticRecovery,
  [string]$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-native-failure-1290fc4e5fc448ac98c749ff437f4a8d.json',
  [string]$TransportReportPath='C:\MarketBrainData\Review\paytm-managed-transport-20261103-171133-8ac7cdda3ca7475eb001df485797cb70.json',
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
+if($AgentSigningRecovery -and $TlsDiagnosticRecovery){throw 'Select one recovery mode only.'}
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaytmNativeRecovery.ps1')){. (Join-Path $PSScriptRoot $n)}
+if($TlsDiagnosticRecovery){
+ . (Join-Path $PSScriptRoot 'PaytmTlsRecovery.ps1')
+ if(-not $PSBoundParameters.ContainsKey('DiagnosticReportPath')){$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-recovery-connectivity-ee5b3e88b928468c9443c8c6e51765ec.json'}
+}
 if($AgentSigningRecovery){
  . (Join-Path $PSScriptRoot 'PaytmAgentSigning.ps1')
  . (Join-Path $PSScriptRoot 'PaytmAgentRecovery.ps1')
@@ -32,6 +38,7 @@ try{
  $lease=[IO.File]::Open((Assert-PaytmAccountPath (Join-Path (Get-PaytmAccountContract).root 'supervisor-install.lock')),'OpenOrCreate','ReadWrite','None')
  foreach($n in @('RepairPaytmNativeProcess.ps1','PaytmNativeRecovery.ps1','PaytmSupervisorNative.cs','RunPaytmGatewaySupervisor.ps1','PaytmGatewayRestart.ps1','PaytmGatewayFailureEvidence.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash}
  if($AgentSigningRecovery){foreach($n in @('PaytmAgentRecovery.ps1','PaytmAgentSigning.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash};$report.recoveryMode='AFTER_AGENT_SIGNING_NO_CODE_REPLACEMENT'}
+ if($TlsDiagnosticRecovery){foreach($n in @('PaytmTlsRecovery.ps1','PaytmSupervisorTransport.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash};$report.recoveryMode='TLS_DIAGNOSTICS_AFTER_PROXY_UNAVAILABLE'}
  $null=Assert-PaytmNativeReceipt $DiagnosticReportPath
  $null=Assert-PaytmAccountPath $TransportReportPath
  if((Get-FileHash -LiteralPath $TransportReportPath).Hash -cne '078A34DB0A46951EB98C5A08063F9FC76DB6EC75C175A3572CEE3D65DA4FAB4B'){throw 'HOST_NATIVE_TRANSPORT_RECEIPT_MISMATCH'}
@@ -39,7 +46,7 @@ try{
  Native-Step 'VERIFY_INSTALLATION_AND_LOCKED_APPLICATION' 10
  $manifest=Assert-PaytmTransportInstallationSources $receipt
  Initialize-PaytmManagedApplication
- Native-Step $(if($AgentSigningRecovery){'ARCHIVE_FAILURE_AND_OLD_CHECKPOINT_START_ONCE'}else{'ARCHIVE_FAILURE_BUILD_PATCH_AND_START_ONCE'}) 20
+ Native-Step $(if($TlsDiagnosticRecovery){'ARCHIVE_STATE_UPDATE_TLS_DIAGNOSTICS_START_ONCE'}elseif($AgentSigningRecovery){'ARCHIVE_FAILURE_AND_OLD_CHECKPOINT_START_ONCE'}else{'ARCHIVE_FAILURE_BUILD_PATCH_AND_START_ONCE'}) 20
  Invoke-PaytmNativeRecovery $receipt $DiagnosticReportPath $PSScriptRoot
  Invoke-PaytmApplicationHead 'Native recovery initial diagnostic route' $true
  Native-Step 'OBSERVE_SAME_WORKER_FOR_30_MINUTES' 30

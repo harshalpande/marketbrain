@@ -25,7 +25,11 @@ function Test-PaytmFirstFailureRunnerHash([string]$Hash){
 }
 function Test-PaytmObservedTransportHash([string]$Hash){
  # E224: bounded stderr drain and structured SSH observations, exact LF/CRLF sources.
- $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash)
+ $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash) -or (Test-PaytmTlsObservedTransportHash $Hash)
+}
+function Test-PaytmTlsObservedTransportHash([string]$Hash){
+ # Bounded numeric TLS diagnostics; original health and retry policy unchanged.
+ $Hash -cin @('4EADCC6E330DE46B6A73F79D21E23DE6DBE537068E4462B21271639FD39FF4E9','69FB14CB8369C4F8C877FC0D098D7E2CAF0018CE250229DA4FFF5547986D7546')
 }
 function Test-PaytmOutboundTransportHash([string]$Hash){
  # E225: exact TCP connect denial is network loss; SSH authentication denial stays blocked.

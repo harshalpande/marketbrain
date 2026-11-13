@@ -76,11 +76,35 @@ function Invoke-PaytmTransportCurl([string]$Url='https://developer.paytmmoney.co
     if($Url -cnotin @('https://developer.paytmmoney.com/','https://example.com/','https://developer.paytmmoney.com:444/','http://developer.paytmmoney.com/')){throw 'TRANSPORT_URL_INVALID'}
     [MarketBrain.Supervisor.NativeCommand]::Run('C:\Windows\System32\curl.exe',[string[]]@('-q','--silent','--show-error','--connect-timeout','4','--max-time','6','--max-redirs','0','--proxy','http://127.0.0.1:18889','--noproxy','','--head','--output','NUL','--write-out','%{http_connect}|%{ssl_verify_result}|%{http_code}',$Url),8000)
 }
-function Test-PaytmTransportTls {
-    $r=Invoke-PaytmTransportCurl
+function Test-PaytmTransportTls($Report=$null) {
+    $clock=[Diagnostics.Stopwatch]::StartNew()
+    $observation=[ordered]@{version=1;observedUtc=[DateTime]::UtcNow.ToString('o');elapsedMilliseconds=0;exitCode=$null;timedOut=$false;metricsParsed=$false;connectStatus=$null;tlsVerifyCode=$null;httpStatus=$null;exceptionType=$null}
+    try{$r=Invoke-PaytmTransportCurl}catch{
+        $observation.exceptionType=$_.Exception.GetBaseException().GetType().Name
+        $observation.elapsedMilliseconds=$clock.ElapsedMilliseconds
+        if($null -ne $Report){Save-PaytmTlsObservation $Report $observation $true}
+        throw
+    }
+    $observation.elapsedMilliseconds=$clock.ElapsedMilliseconds
+    $observation.exitCode=$r.ExitCode;$observation.timedOut=[bool]$r.TimedOut
+    if($r.Output -cmatch '^([0-9]{3})\|([0-9]{1,9})\|([0-9]{3})$'){
+        $observation.metricsParsed=$true;$observation.connectStatus=[int]$Matches[1];$observation.tlsVerifyCode=[int]$Matches[2];$observation.httpStatus=[int]$Matches[3]
+    }
+    $failed=$r.TimedOut -or $r.ExitCode -ne 0 -or $r.Output -cnotmatch '^200\|0\|([2-5][0-9]{2})$'
+    if($null -ne $Report){Save-PaytmTlsObservation $Report $observation $failed}
     if($r.TimedOut -or $r.ExitCode -cin @(5,7,28,52,55,56)){return [pscustomobject]@{ok=$false;httpStatus=0}}
     if($r.ExitCode -ne 0 -or $r.Output -cnotmatch '^200\|0\|([2-5][0-9]{2})$'){throw 'TRANSPORT_TLS_FAILED'}
     [pscustomobject]@{ok=$true;httpStatus=[int]$Matches[1]}
+}
+function Save-PaytmTlsObservation($Report,$Observation,[bool]$Failed){
+    # Fixed-size first/last evidence survives reconnects; raw native output is never stored.
+    $Report.lastTlsObservation=[pscustomobject]$Observation
+    if($Failed){
+        if(-not $Report.Contains('firstTlsFailure')){$Report.firstTlsFailure=[pscustomobject]$Observation}
+        $Report.lastTlsFailure=[pscustomobject]$Observation
+        $count=if($Report.Contains('tlsFailureCount')){[long]$Report.tlsFailureCount}else{0L}
+        $Report.tlsFailureCount=$count+1
+    }
 }
 function Assert-PaytmTransportDenials {
     foreach($url in @('https://example.com/','https://developer.paytmmoney.com:444/')){
@@ -141,7 +165,7 @@ function Invoke-PaytmTransportLoop([string]$Root,[string]$Work,[string]$Custody,
                         $rows=@(Get-PaytmTransportListeners)
                         if(@($rows).Count){Assert-PaytmTransportListener $rows $child.Id}
                         if(@($rows).Count -eq 1 -and $authenticated -and ($seconds-$lastHealth) -ge 10){
-                            $probe=Test-PaytmTransportTls
+                            $probe=Test-PaytmTransportTls $Report
                             if($probe.ok -and -not $denials){Assert-PaytmTransportDenials;$denials=$true;$Report.denialsVerified=$true}
                             $seconds=[long][math]::Floor($Clock.Elapsed.TotalSeconds);$lastHealth=$seconds
                             if($probe.ok){$Report.httpStatus=$probe.httpStatus;$state=Step-PaytmGatewayState $state HEALTH_OK $seconds -OwnedLoopbackListener $true -PinnedSshAuthenticated $true -ProxyTlsVerified $true}

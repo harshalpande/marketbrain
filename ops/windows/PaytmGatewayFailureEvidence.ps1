@@ -44,6 +44,24 @@ function ConvertTo-PaytmWorkerEvidence($Value){
   $out.lastSshObservation=$o
   foreach($n in @('lastSshAttempt','lastSshElapsedSeconds')){$v=Get-PaytmEvidenceProperty $Value $n;if(($v -is [int] -or $v -is [long]) -and $v -ge 0){$out[$n]=$v}}
  }
+ foreach($name in @('lastTlsObservation','firstTlsFailure','lastTlsFailure')){
+  $probe=Get-PaytmEvidenceProperty $Value $name
+  if($null -eq $probe){continue}
+  $o=[ordered]@{}
+  foreach($n in @('version','elapsedMilliseconds','exitCode','connectStatus','tlsVerifyCode','httpStatus')){
+   $v=Get-PaytmEvidenceProperty $probe $n
+   if(($v -is [int] -or $v -is [long]) -and ($v -ge 0 -or $n -ceq 'exitCode')){$o[$n]=$v}
+  }
+  foreach($n in @('timedOut','metricsParsed')){$v=Get-PaytmEvidenceProperty $probe $n;if($v -is [bool]){$o[$n]=$v}}
+  $v=Get-PaytmEvidenceProperty $probe exceptionType
+  if($v -is [string] -and $v -cmatch '^[A-Za-z][A-Za-z0-9.]{0,95}$'){$o.exceptionType=$v}
+  $v=Get-PaytmEvidenceProperty $probe observedUtc
+  if($v -is [DateTime]){$o.observedUtc=$v.ToUniversalTime().ToString('o')}
+  elseif($v -is [string] -and $v -cmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?Z$'){$o.observedUtc=$v}
+  $out[$name]=$o
+ }
+ $count=Get-PaytmEvidenceProperty $Value tlsFailureCount
+ if(($count -is [int] -or $count -is [long]) -and $count -ge 0){$out.tlsFailureCount=$count}
  [pscustomobject]$out
 }
 function Get-PaytmWorkerEvidenceFile([string]$Path){
