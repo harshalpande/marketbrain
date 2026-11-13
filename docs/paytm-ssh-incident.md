@@ -1,5 +1,7 @@
 # SSH incident correlation: E243
 
+**Accepted in E244:** Collection completed with196 rows and no reported truncation. Do not repeat this collector. Continue with [the controlled recovery](paytm-incident-recovery.md); historical cause remains unproven.
+
 The reviewed recovery receipt `ba7938fb742c4ac8bc289a2dcd2ff175` has SHA256 `BA07CFC8C9A870B74906BE5286F099370A3FCDD52EA237B8CB43446DECBA88A0`. Initial transport and application TLS succeeded; a curl timeout followed, then SSH reported TCP_CONNECT_TIMEOUT. Failure cleanup verified STOP, final application locks and unchanged account. No recovery or sign-out rerun is authorized by this collector.
 
 The owner supplied a successful VPS gateway-key login at 13:32:22 UTC and a later successful administrator TCP-port check. Neither proves that the failed reconnect succeeded. Global SSH settings do not resolve account-specific Match rules. No evidence yet establishes MaxStartups throttling or scanner traffic as the cause. Do not change SSH limits or authentication as a presumed fix.

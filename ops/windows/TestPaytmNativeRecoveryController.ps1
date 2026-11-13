@@ -1,4 +1,5 @@
 #Requires -Version 7.0
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewaySession.ps1')
@@ -54,16 +55,22 @@ try{
   Write-PaytmHostJson $global:mbNativeControllerFixture.receipt @{fixture=$true}
   foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaytmNativeRecovery.ps1','PaytmSupervisorNative.cs','RunPaytmGatewaySupervisor.ps1')){[IO.File]::WriteAllText((Join-Path $ops $n),'# fixture')}
   $file=Join-Path $ops 'RepairPaytmNativeProcess.ps1';Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RepairPaytmNativeProcess.ps1') -Destination $file
+  $extra=@{}
+  if($IncidentRecoveryFixture){
+   [IO.File]::WriteAllText((Join-Path $ops 'PaytmIncidentRecovery.ps1'),'# adapter mocked separately')
+   $extra.IncidentRecovery=$true
+  }
   if($case -eq 'pass'){
    # Test controller completion only with a shortened local copy; production has
    # no duration switch. The 30-minute spare observation is explicitly pending.
    $text=[IO.File]::ReadAllText($file).Replace('1800','0')
    [IO.File]::WriteAllText($file,$text)
   }
-  $failed=$false;try{& $file -DiagnosticReportPath $global:mbNativeControllerFixture.receipt -TransportReportPath $global:mbNativeControllerFixture.receipt -OutputDirectory $out 6>$null}catch{$failed=$true;$caught=$_}
+  $failed=$false;try{& $file @extra -DiagnosticReportPath $global:mbNativeControllerFixture.receipt -TransportReportPath $global:mbNativeControllerFixture.receipt -OutputDirectory $out 6>$null}catch{$failed=$true;$caught=$_}
   Check ($failed -eq ($case -ne 'pass')) ($case+'_OUTCOME')
   $files=@(Get-ChildItem -LiteralPath $out -Filter '*.json');if($files.Count -ne 1){throw $caught};Check ($files.Count -eq 1) 'ONE_REPORT'
   $v=Read-PaytmHostJson $files[0].FullName 65536
+  if($IncidentRecoveryFixture){Check ($v.recoveryMode -ceq 'AFTER_SSH_INCIDENT_NO_CODE_REPLACEMENT') 'INCIDENT_MODE_WIRED'}
   if($case -eq 'pass'){
    Check ($v.status -ceq 'NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED' -and $v.soakPassed -and $v.accountPreserved -and $v.finalApplicationLockVerified -and $v.soak.observations -eq 2 -and $global:mbNativeControllerFixture.stops -eq 0) 'COMPLETION_AND_FINAL_SAMPLE'
    continue

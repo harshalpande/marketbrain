@@ -3,12 +3,17 @@
  [switch]$AgentSigningRecovery,
  [switch]$TlsDiagnosticRecovery,
  [switch]$AgentProbeRecovery,
+ [switch]$IncidentRecovery,
  [string]$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-native-failure-1290fc4e5fc448ac98c749ff437f4a8d.json',
  [string]$TransportReportPath='C:\MarketBrainData\Review\paytm-managed-transport-20261103-171133-8ac7cdda3ca7475eb001df485797cb70.json',
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
-if(([int][bool]$AgentSigningRecovery+[int][bool]$TlsDiagnosticRecovery+[int][bool]$AgentProbeRecovery) -gt 1){throw 'Select one recovery mode only.'}
+if(([int][bool]$AgentSigningRecovery+[int][bool]$TlsDiagnosticRecovery+[int][bool]$AgentProbeRecovery+[int][bool]$IncidentRecovery) -gt 1){throw 'Select one recovery mode only.'}
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaytmNativeRecovery.ps1')){. (Join-Path $PSScriptRoot $n)}
+if($IncidentRecovery){
+ . (Join-Path $PSScriptRoot 'PaytmIncidentRecovery.ps1')
+ if(-not $PSBoundParameters.ContainsKey('DiagnosticReportPath')){$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-ssh-incident-93a4edc9f423415184a3243b2f76c414.json'}
+}
 if($AgentProbeRecovery){
  . (Join-Path $PSScriptRoot 'PaytmAgentProbeRecovery.ps1')
  if(-not $PSBoundParameters.ContainsKey('DiagnosticReportPath')){$DiagnosticReportPath='C:\MarketBrainData\Review\paytm-gateway-session-3bec334f1adf423c986286eedd6697f2.json'}
@@ -45,6 +50,7 @@ try{
  if($AgentSigningRecovery){foreach($n in @('PaytmAgentRecovery.ps1','PaytmAgentSigning.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash};$report.recoveryMode='AFTER_AGENT_SIGNING_NO_CODE_REPLACEMENT'}
  if($TlsDiagnosticRecovery){foreach($n in @('PaytmTlsRecovery.ps1','PaytmSupervisorTransport.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash};$report.recoveryMode='TLS_DIAGNOSTICS_AFTER_PROXY_UNAVAILABLE'}
  if($AgentProbeRecovery){foreach($n in @('PaytmAgentProbeRecovery.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorTransport.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash};$report.recoveryMode='AGENT_PROBE_AND_NATIVE_PHASE_TIMING'}
+ if($IncidentRecovery){$report.sourceHashes['PaytmIncidentRecovery.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmIncidentRecovery.ps1')).Hash;$report.recoveryMode='AFTER_SSH_INCIDENT_NO_CODE_REPLACEMENT'}
  $null=Assert-PaytmNativeReceipt $DiagnosticReportPath
  $null=Assert-PaytmAccountPath $TransportReportPath
  if((Get-FileHash -LiteralPath $TransportReportPath).Hash -cne '078A34DB0A46951EB98C5A08063F9FC76DB6EC75C175A3572CEE3D65DA4FAB4B'){throw 'HOST_NATIVE_TRANSPORT_RECEIPT_MISMATCH'}
@@ -52,7 +58,7 @@ try{
  Native-Step 'VERIFY_INSTALLATION_AND_LOCKED_APPLICATION' 10
  $manifest=Assert-PaytmTransportInstallationSources $receipt
  Initialize-PaytmManagedApplication
- Native-Step $(if($AgentProbeRecovery){'ARCHIVE_FAILURE_AND_CHECKPOINT_INSTALL_AGENT_DIAGNOSTICS_START_ONCE'}elseif($TlsDiagnosticRecovery){'ARCHIVE_STATE_UPDATE_TLS_DIAGNOSTICS_START_ONCE'}elseif($AgentSigningRecovery){'ARCHIVE_FAILURE_AND_OLD_CHECKPOINT_START_ONCE'}else{'ARCHIVE_FAILURE_BUILD_PATCH_AND_START_ONCE'}) 20
+ Native-Step $(if($IncidentRecovery){'ARCHIVE_REVIEWED_INCIDENT_ENABLE_AND_START_ONCE'}elseif($AgentProbeRecovery){'ARCHIVE_FAILURE_AND_CHECKPOINT_INSTALL_AGENT_DIAGNOSTICS_START_ONCE'}elseif($TlsDiagnosticRecovery){'ARCHIVE_STATE_UPDATE_TLS_DIAGNOSTICS_START_ONCE'}elseif($AgentSigningRecovery){'ARCHIVE_FAILURE_AND_OLD_CHECKPOINT_START_ONCE'}else{'ARCHIVE_FAILURE_BUILD_PATCH_AND_START_ONCE'}) 20
  Invoke-PaytmNativeRecovery $receipt $DiagnosticReportPath $PSScriptRoot
  Invoke-PaytmApplicationHead 'Native recovery initial diagnostic route' $true
  Native-Step 'OBSERVE_SAME_WORKER_FOR_30_MINUTES' 30

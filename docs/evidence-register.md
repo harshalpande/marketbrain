@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E244 SSH_INCIDENT_ACCEPTED_CONTROLLED_RECOVERY_PENDING:** [Acceptance](evidence/paytm-ssh-incident-accepted-20261113.json), [handoff](paytm-incident-recovery.md). Both source hashes verified;196 journal rows, one key acceptance, zero classified throttle/penalty entries. Cause and current health unproven.199 local recovery assertions pass; runtime pending. No checkpoint increase.
+
 - **E243 RECOVERY_RECONNECT_TIMEOUT_SSH_CORRELATION_PENDING:** [Review and handoff](paytm-ssh-incident.md). Receipt ba7938fb742c4ac8bc289a2dcd2ff175:80.827s, initial TLS passed, subsequent curl timeout and TCP_CONNECT_TIMEOUT; STOP/account/final locks verified. Nine Python tests and six PowerShell collection workflows passed. Read-only historical VPS correlation pending; no cause or checkpoint accepted.
 
 - **E236 AGENT_DIAGNOSTIC_ACCEPTED_ACCOUNT_SIGNING_NEXT:** [acceptance](evidence/paytm-agent-diagnostic-accepted-20261106.json), [handoff](paytm-agent-signing.md). Four hashes matchf8a3061 CRLF;4.957s. Running/automatic agent, six completed empty event queries, unchanged checkpoint; worker absent/task Ready/result1. Historical cause unproven. Next temporary exact-account local signing with detailed exits/timeouts; production state preserved.210 local assertions; real signing pending. Groups100/100/40/0/0/0,12/30 (40%), no increase.

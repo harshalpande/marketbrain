@@ -1,6 +1,8 @@
 # Roadmap and completion dashboard
 
-**Current E243, 2026-11-13:** Diagnostic recovery reached initial TLS, then failed at reconnect TCP timeout. Cleanup stopped the worker; account and final locks preserved. [Next: read-only SSH incident correlation](paytm-ssh-incident.md), no restart or sign-out. VPS accepted a gateway key, but exact connection matching and cause remain unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+**Current E244, 2026-11-13:** SSH incident evidence accepted:196 journal rows, one gateway key login, no classified throttling entries. Exact connection match and cause unproven. [Next: one controlled recovery without code replacement](paytm-incident-recovery.md), then existing30-minute stability/application/account checks. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E243, 2026-11-13:** Diagnostic recovery reached initial TLS, then failed at reconnect TCP timeout. Cleanup stopped the worker; account and final locks preserved. [Next: read-only SSH incident correlation](paytm-ssh-incident.md), no restart or sign-out. VPS accepted a gateway key, but exact connection matching and cause remain unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 
 **Historical E242, 2026-11-13:** AfterLogoff failed with HOST_AGENT_UNAVAILABLE; TLS instability also existed before sign-out. [Next: agent-query/native-phase diagnostic recovery](paytm-agent-recovery.md). Do not proceed to shutdown or reuse the old session phase. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
 

@@ -1,0 +1,18 @@
+{
+  "evidenceId": "E244",
+  "sourceRunId": "93a4edc9f423415184a3243b2f76c414",
+  "sourceSha256": "841B4F91E312C866E98E50DBA61DA15C055ED00BA375A9B36FCC5432ECA41827",
+  "sourceHashesVerified": 2,
+  "journalRows": 196,
+  "possiblyTruncated": false,
+  "gatewayKeyAcceptanceCount": 1,
+  "classifiedThrottleOrPenaltyCount": 0,
+  "exactConnectionMatchEstablished": false,
+  "historicalCauseEstablished": false,
+  "currentHealthEstablished": false,
+  "nextStep": "One archived recovery without code replacement, followed by existing 30-minute observation",
+  "localRecoveryAssertions": 199,
+  "runtimeRecoveryPending": true,
+  "acceptedCheckpoints": 12,
+  "totalCheckpoints": 30
+}
