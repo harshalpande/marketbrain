@@ -1,6 +1,8 @@
 # Roadmap and completion dashboard
 
-**Current E242, 2026-11-13:** AfterLogoff failed with HOST_AGENT_UNAVAILABLE; TLS instability also existed before sign-out. [Next: agent-query/native-phase diagnostic recovery](paytm-agent-recovery.md). Do not proceed to shutdown or reuse the old session phase. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
+**Current E243, 2026-11-13:** Diagnostic recovery reached initial TLS, then failed at reconnect TCP timeout. Cleanup stopped the worker; account and final locks preserved. [Next: read-only SSH incident correlation](paytm-ssh-incident.md), no restart or sign-out. VPS accepted a gateway key, but exact connection matching and cause remain unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E242, 2026-11-13:** AfterLogoff failed with HOST_AGENT_UNAVAILABLE; TLS instability also existed before sign-out. [Next: agent-query/native-phase diagnostic recovery](paytm-agent-recovery.md). Do not proceed to shutdown or reuse the old session phase. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
 
 **Historical E241, 2026-11-13:** Windows diagnostic recovery accepted: 1805.703s soak, 129 observations, zero reconnects/failures, both application routes and final locks/account passed. [Next: fresh sign-out/full-shutdown workflow](paytm-gateway-session.md). No rebuild or recovery rerun. Groups 100/100/40/0/0/0; 12/30 (40%), G3.4 pending.
 

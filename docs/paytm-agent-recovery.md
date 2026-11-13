@@ -1,6 +1,8 @@
 # Recovery after successful account signing
 
-## Current E242: agent-query and native-phase diagnostics
+**Current E243, 2026-11-13:** Diagnostic recovery reached initial TLS, then failed at reconnect TCP timeout. Cleanup stopped the worker; account and final locks preserved. [Next: read-only SSH incident correlation](paytm-ssh-incident.md), no restart or sign-out. VPS accepted a gateway key, but exact connection matching and cause remain unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+## Historical E242: agent-query and native-phase diagnostics
 
 The AfterLogoff report `3bec334f1adf423c986286eedd6697f2` failed with TRANSPORT_WORKER_BLOCKED / HOST_AGENT_UNAVAILABLE. Its Before baseline already recorded six TLS failures and seven connection attempts, so sign-out is not established as the sole cause. The latest curl probe timed out after 48782 ms; earlier failure was curl exit28 after proxy CONNECT200. The agent identity query's timeout/nonzero result was not retained. Application/account checks were not reached in AfterLogoff; false verification flags are not evidence of account changes. G3.4 remains blocked, progress 12/30 (40%).
 

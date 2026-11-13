@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E243 RECOVERY_RECONNECT_TIMEOUT_SSH_CORRELATION_PENDING:** [Review and handoff](paytm-ssh-incident.md). Receipt ba7938fb742c4ac8bc289a2dcd2ff175:80.827s, initial TLS passed, subsequent curl timeout and TCP_CONNECT_TIMEOUT; STOP/account/final locks verified. Nine Python tests and six PowerShell collection workflows passed. Read-only historical VPS correlation pending; no cause or checkpoint accepted.
+
 - **E236 AGENT_DIAGNOSTIC_ACCEPTED_ACCOUNT_SIGNING_NEXT:** [acceptance](evidence/paytm-agent-diagnostic-accepted-20261106.json), [handoff](paytm-agent-signing.md). Four hashes matchf8a3061 CRLF;4.957s. Running/automatic agent, six completed empty event queries, unchanged checkpoint; worker absent/task Ready/result1. Historical cause unproven. Next temporary exact-account local signing with detailed exits/timeouts; production state preserved.210 local assertions; real signing pending. Groups100/100/40/0/0/0,12/30 (40%), no increase.
 
 - **E235 SESSION_LOGOFF_BLOCKED_AGENT_EVIDENCE_NEXT:** [review](evidence/paytm-agent-failure-spare-20261106.json), [read-only handoff](paytm-agent-failure.md). Eight sources match7c9e321 CRLF. Baseline healthy; AfterLogoff failed after49.36s, worker HOST_AGENT_UNAVAILABLE. Original ssh-add exit/timeout not recorded; current phase account checks not reached. Preserve checkpoint; no shutdown/restart/key import. Accepted groups100/100/40/0/0/0,12/30 (40%), unchanged.
