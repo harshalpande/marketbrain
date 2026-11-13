@@ -1,5 +1,17 @@
 # Recovery after successful account signing
 
+## Current incident E238: recovery stopped during observation
+
+2026-11-13: report `47dc9332f38f4ee293ba6b414b12cc5d` reached a fresh authenticated worker and application TLS response, but timed out waiting for healthy transport during the soak. The last successful sample was at 234.165 seconds; later diagnostics show CONNECTING, three attempts and two failures. Verified archive and checkpoint removal succeeded. Failure cleanup stopped the worker; account and application locks were preserved. Do not rerun the older recovery command below against the changed state.
+
+The user supplied VPS observations: proxy active, zero automatic restarts, loopback port 18888 present, no service journal entries in 06:20-06:29 UTC. These observations do not establish continuous connectivity. The original cause remains unknown. A failed TLS health probe currently loses its curl exit/timing detail before reconnecting; a missing SSH error is not proof that the network was healthy.
+
+Next run `ops/windows/GetPaytmRecoveryConnectivity.ps1` in elevated PowerShell 7. It verifies the incident receipt, reads current worker/task/control evidence and installed hashes, queries four bounded Windows event categories during that UTC window in a 45-second subprocess, and makes three five-second TCP connection attempts to the VPS port 22. No SSH authentication, task start, application call, key access or configuration changes occur. Only the shareable report is written. Network samples run as the controller, not the gateway account, and cannot prove historical or end-to-end health. Disabled/missing logs and truncated results remain explicit. Empty events do not rule out an outage. Allow about one minute; share the single `paytm-recovery-connectivity-*.json` even if incomplete. Capture status is not recovery acceptance. Local event tests cover redaction, empty queries, denial, disabled/missing logs and truncation.
+
+Progress unchanged: G1/G2/G3/G4/G5/G6 = 100/100/40/0/0/0; 12/30 (40%). No new runtime checkpoint accepted.
+
+## Previous recovery handoff (historical; do not rerun)
+
 Current E237, 2026-11-13: signing report 1d103203c982427caea56d4b0671b0e7 passed. All eight source hashes match 5e5dc61 CRLF. The session-0 account listed its expected key and signed twice without errors/timeouts. Worker elapsed2.662s; whole controller118.905s including interactive input. Temporary task removed; all seven production state hashes preserved. Original agent failure cause remains unknown.
 
 The next script uses the established recovery controller with `-AgentSigningRecovery`. This mode replaces no installed code or keys. It verifies the exact accepted signing report, stopped production task, old process absence, seven state hashes, free transport listener, installation and locked application. It copies and verifies all seven files into a protected `agent-recovery-<runId>` directory. Only after verified copies exist does it remove the three old worker status/failure files and the old session checkpoint. Original report files remain intact. A partial failure stops for review; no automatic retry or rollback is attempted.
