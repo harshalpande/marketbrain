@@ -1,6 +1,8 @@
 # Daily progress and decision log
 
-**Current E240, 2026-11-13:** VPS direct/proxy comparison passed all 60 TLS requests in 298s; all HTTP 503, not broker readiness. [Next: Windows recovery with bounded TLS diagnostics](paytm-agent-recovery.md), one start and unchanged 30-minute observation/locks. Original interruption unexplained. Groups 100/100/40/0/0/0; 12/30 (40%).
+**Current E241, 2026-11-13:** Windows diagnostic recovery accepted: 1805.703s soak, 129 observations, zero reconnects/failures, both application routes and final locks/account passed. [Next: fresh sign-out/full-shutdown workflow](paytm-gateway-session.md). No rebuild or recovery rerun. Groups 100/100/40/0/0/0; 12/30 (40%), G3.4 pending.
+
+**Historical E240, 2026-11-13:** VPS direct/proxy comparison passed all 60 TLS requests in 298s; all HTTP 503, not broker readiness. [Next: Windows recovery with bounded TLS diagnostics](paytm-agent-recovery.md), one start and unchanged 30-minute observation/locks. Original interruption unexplained. Groups 100/100/40/0/0/0; 12/30 (40%).
 
 **Historical E239, 2026-11-13:** Connectivity evidence captured. Three current TCP connects passed; selected Windows event queries empty. Final saved worker state identifies PROXY_UNAVAILABLE; gateway stopped. [Next: bounded VPS direct/proxy HTTPS comparison](paytm-agent-recovery.md), no restart. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
 

@@ -1,6 +1,12 @@
 # Recovery after successful account signing
 
-## Current E240: diagnostic recovery on Windows
+## Current E241: runtime recovery accepted
+
+2026-11-13: receipt `2523f35ea19e4ff19defa635f3ff6967` completed successfully in 1839.806 seconds. All eight source hashes match the reviewed checkout with CRLF. Soak 1805.703 seconds, 129 observations, 44 health samples; same worker, one connection attempt, zero transport failures. Initial/final application routes passed, account preserved and final application/writer locks verified. No broker credentials or orders. Failure-stop verification is false because the success path did not require failure cleanup. The prior interruption's cause remains unknown; diagnostic instrumentation is not proof of a connectivity fix.
+
+Next is the existing [sign-out/full-shutdown workflow](paytm-gateway-session.md), starting with a fresh Before baseline. Do not rerun recovery. No application rebuild is required. G3.4 is still pending until the real session and boot boundaries pass, so progress remains 12/30 (40%).
+
+## Historical E240: diagnostic recovery on Windows
 
 VPS report `paytm-upstream-caT91oDZ.json` completed 30 paired samples in 298 seconds: all 60 requests returned verified TLS responses, curl exit 0 and HTTP 503. Proxy CONNECT was 200 for every proxy sample. Proxy mean/max 122.46/234.57 ms; direct mean/max 76.85/187.06 ms. Service active before/after. This validates the sampled VPS paths only, not historical stability or broker API readiness.
 
