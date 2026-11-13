@@ -1,6 +1,8 @@
 # MarketBrain: canonical project baseline
 
-**Current E238, 2026-11-13:** Recovery started and initial application TLS passed, but sustained transport failed during observation. Worker stopped and application/account preserved. [Next: bounded connectivity evidence](paytm-agent-recovery.md), no restart. All eight receipt source hashes match. Groups 100/100/40/0/0/0; 12/30 (40%), unchanged.
+**Current E239, 2026-11-13:** Connectivity evidence captured. Three current TCP connects passed; selected Windows event queries empty. Final saved worker state identifies PROXY_UNAVAILABLE; gateway stopped. [Next: bounded VPS direct/proxy HTTPS comparison](paytm-agent-recovery.md), no restart. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
+
+**Historical E238, 2026-11-13:** Recovery started and initial application TLS passed, but sustained transport failed during observation. Worker stopped and application/account preserved. [Next: bounded connectivity evidence](paytm-agent-recovery.md), no restart. All eight receipt source hashes match. Groups 100/100/40/0/0/0; 12/30 (40%), unchanged.
 
 **Historical E237, 2026-11-13:** Account signing accepted: expected key and two signatures passed, temporary task removed, production state preserved. [Next: archived gateway recovery and 30-minute observation](paytm-agent-recovery.md). Original failure cause remains unknown. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 

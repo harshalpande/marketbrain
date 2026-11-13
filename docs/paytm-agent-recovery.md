@@ -1,5 +1,13 @@
 # Recovery after successful account signing
 
+## Current E239: VPS upstream comparison next
+
+2026-11-13: connectivity receipt `ee5b3e88b928468c9443c8c6e51765ec` captured in 18.732 seconds; all three source hashes match. The four selected Windows event queries were enabled, successful, empty and not truncated. TCP samples reached VPS port 22 in 204/109/97 ms under the controller identity. Four installed file hashes match the manifest. The stopped worker's final saved state is BACKOFF/PROXY_UNAVAILABLE, three failures; control STOP, task disabled and process absent. These are diagnostic observations, not a new accepted recovery checkpoint. No historical cause is established.
+
+Next: `ops/linux/TestPaytmUpstreamPath.sh`, invoked with `mb_upstream_main` in the already verified VPS admin PuTTY session. It compares 30 sequential pairs of credential-free HEAD requests to the fixed Paytm developer HTTPS root: through the existing loopback proxy and directly from the VPS. Each curl has a six-second deadline, an outer eight-second deadline, no redirects, and normal certificate verification; pairs are separated by ten seconds. Allow 5-9 minutes. It records curl exit, proxy CONNECT code, TLS verification code, HTTP status and elapsed request time. HTTP 503 can be a valid TLS response but never establishes broker API readiness. Raw bodies, headers and stderr are not collected. Service state is read before/after; an inactive proxy stops the collection without starting it. One private `/tmp/paytm-upstream-XXXXXXXX.json` file is retained. Windows gateway stays stopped.
+
+No START-TEST prompt, sudo, key loading or credentials are needed. Run the copied Bash command once and share the generated JSON. `UPSTREAM_EVIDENCE_CAPTURED_REVIEW_REQUIRED` means capture complete, not connection acceptance. A failure on both paths suggests the VPS-to-upstream segment; proxy-only failure suggests the proxy path; neither is a definitive historical cause. If both paths succeed, Windows tunnel behavior and transient health failures remain unresolved. Progress stays 12/30 (40%).
+
 ## Current incident E238: recovery stopped during observation
 
 2026-11-13: report `47dc9332f38f4ee293ba6b414b12cc5d` reached a fresh authenticated worker and application TLS response, but timed out waiting for healthy transport during the soak. The last successful sample was at 234.165 seconds; later diagnostics show CONNECTING, three attempts and two failures. Verified archive and checkpoint removal succeeded. Failure cleanup stopped the worker; account and application locks were preserved. Do not rerun the older recovery command below against the changed state.
