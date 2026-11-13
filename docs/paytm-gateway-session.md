@@ -1,6 +1,8 @@
 # Gateway sign-out and full shutdown/startup verification
 
-**Current E236, 2026-11-06:** Agent diagnostic accepted in **4.957s**; four source hashes match `f8a3061` CRLF. ssh-agent was Running/automatic with zero exit codes; all six event queries were empty, and the checkpoint was unchanged. The production worker is stopped; historical cause remains unknown. [Next: dedicated-account local signing](paytm-agent-signing.md), one temporary task and one JSON, preserving production state. Full shutdown remains paused. Groups **100/100/40/0/0/0, 12/30 (40%)**, unchanged.
+**Current E237, 2026-11-13:** Account signing accepted: expected key and two signatures passed, temporary task removed, production state preserved. [Next: archived gateway recovery and 30-minute observation](paytm-agent-recovery.md). Original failure cause remains unknown. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E236, 2026-11-06:** Agent diagnostic accepted in **4.957s**; four source hashes match `f8a3061` CRLF. ssh-agent was Running/automatic with zero exit codes; all six event queries were empty, and the checkpoint was unchanged. The production worker is stopped; historical cause remains unknown. [Next: dedicated-account local signing](paytm-agent-signing.md), one temporary task and one JSON, preserving production state. Full shutdown remains paused. Groups **100/100/40/0/0/0, 12/30 (40%)**, unchanged.
 
 **Historical E235, 2026-11-06:** Session baseline passed; AfterLogoff stopped after **49.36s** with `HOST_AGENT_UNAVAILABLE` in the background worker. All eight source hashes match `7c9e321` with CRLF. The report does not distinguish an SSH-agent query timeout from a nonzero exit. [Next: read-only service/event evidence](paytm-agent-failure.md), one JSON; preserve the checkpoint and pause sign-out/shutdown testing. Current gateway health is blocked. Groups remain **100/100/40/0/0/0, 12/30 (40%)**, with no new checkpoint accepted.
 

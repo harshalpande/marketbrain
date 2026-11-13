@@ -1,6 +1,8 @@
 # SSH agent failure after Windows sign-out
 
-**Current E236, 2026-11-06:** Agent diagnostic accepted in **4.957s**; four source hashes match `f8a3061` CRLF. ssh-agent was Running/automatic with zero exit codes; all six event queries were empty, and the checkpoint was unchanged. The production worker is stopped; historical cause remains unknown. [Next: dedicated-account local signing](paytm-agent-signing.md), one temporary task and one JSON, preserving production state. Full shutdown remains paused. Groups **100/100/40/0/0/0, 12/30 (40%)**, unchanged.
+**Current E237, 2026-11-13:** Account signing accepted: expected key and two signatures passed, temporary task removed, production state preserved. [Next: archived gateway recovery and 30-minute observation](paytm-agent-recovery.md). Original failure cause remains unknown. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E236, 2026-11-06:** Agent diagnostic accepted in **4.957s**; four source hashes match `f8a3061` CRLF. ssh-agent was Running/automatic with zero exit codes; all six event queries were empty, and the checkpoint was unchanged. The production worker is stopped; historical cause remains unknown. [Next: dedicated-account local signing](paytm-agent-signing.md), one temporary task and one JSON, preserving production state. Full shutdown remains paused. Groups **100/100/40/0/0/0, 12/30 (40%)**, unchanged.
 
 **Historical E235, 2026-11-06:** The baseline was healthy, but AfterLogoff stopped after 49.36 seconds with `TRANSPORT_WORKER_BLOCKED`. The worker recorded `HOST_AGENT_UNAVAILABLE` while checking `ssh-add -l`. All eight source hashes match the CRLF checkout of `7c9e321`. The error combines a timeout and a nonzero process exit; the report does not distinguish them or prove that signing out stopped the agent service.
 
