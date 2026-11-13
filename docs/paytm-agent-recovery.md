@@ -1,6 +1,16 @@
 # Recovery after successful account signing
 
-## Current E241: runtime recovery accepted
+## Current E242: agent-query and native-phase diagnostics
+
+The AfterLogoff report `3bec334f1adf423c986286eedd6697f2` failed with TRANSPORT_WORKER_BLOCKED / HOST_AGENT_UNAVAILABLE. Its Before baseline already recorded six TLS failures and seven connection attempts, so sign-out is not established as the sole cause. The latest curl probe timed out after 48782 ms; earlier failure was curl exit28 after proxy CONNECT200. The agent identity query's timeout/nonzero result was not retained. Application/account checks were not reached in AfterLogoff; false verification flags are not evidence of account changes. G3.4 remains blocked, progress 12/30 (40%).
+
+Next: `RepairPaytmNativeProcess.ps1 -AgentProbeRecovery` in elevated PowerShell 7, Docker and the existing application running. It pins the reviewed failure receipt, requires the old worker to have exited and the task Ready/result1, verifies the original failure identity and pending AfterLogoff checkpoint, and checks source hashes/listener/locks. It refuses a still-running or changed worker. All old code, manifest, controls, failure files and checkpoint are archived with verified hashes. Only then are the native helper and host/runner/transport diagnostic helpers replaced. The native DLL is compiled and tested with local curl --version before replacement. No key import, account recreation or task re-registration. Failure after mutation uses the established STOP/disable handler; no automatic retry or rollback.
+
+The native result now distinguishes process launch, wait, timeout cleanup and output collection timings. The wait budget is not an end-to-end operating-system scheduling guarantee. Agent query failures retain requested timeout, actual duration, exit code, timeout flag, known error category and Win32 code where available. Raw output, private keys, identities and passwords are not copied. The existing authentication checks and health/retry policies remain unchanged. This improves diagnosis; it does not claim to resolve the original availability failure.
+
+Run once, allow about 35 minutes, keep awake/connected. No PuTTY or Pageant interaction, sign-out or shutdown. Share the one printed `paytm-native-recovery-*.json` on success or failure. The existing success status is `NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED`, with recoveryMode AGENT_PROBE_AND_NATIVE_PHASE_TIMING. A successful recovery requires a new session baseline; the old pending checkpoint is archived and cannot be reused with a new worker. Do not run the historical recovery commands below.
+
+## Historical E241: runtime recovery accepted
 
 2026-11-13: receipt `2523f35ea19e4ff19defa635f3ff6967` completed successfully in 1839.806 seconds. All eight source hashes match the reviewed checkout with CRLF. Soak 1805.703 seconds, 129 observations, 44 health samples; same worker, one connection attempt, zero transport failures. Initial/final application routes passed, account preserved and final application/writer locks verified. No broker credentials or orders. Failure-stop verification is false because the success path did not require failure cleanup. The prior interruption's cause remains unknown; diagnostic instrumentation is not proof of a connectivity fix.
 

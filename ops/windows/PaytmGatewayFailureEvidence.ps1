@@ -26,7 +26,7 @@ function ConvertTo-PaytmWorkerEvidence($Value){
  $details=Get-PaytmEvidenceProperty $Value details;$transport=Get-PaytmEvidenceProperty $Value transportState
  $d=[ordered]@{}
  foreach($n in @('type','outerType','nativeOperation','cleanupOperation','cleanupType')){$v=Get-PaytmEvidenceProperty $details $n;if([string]$v -cmatch '^[A-Za-z][A-Za-z0-9._]{0,95}$'){$d[$n]=[string]$v}}
- foreach($n in @('hresult','line','nativeErrorCode','cleanupNativeErrorCode')){$v=Get-PaytmEvidenceProperty $details $n;if($v -is [int] -or $v -is [long]){$d[$n]=$v}}
+ foreach($n in @('hresult','line','nativeErrorCode','cleanupNativeErrorCode','nativePhaseMilliseconds','nativeTotalMilliseconds')){$v=Get-PaytmEvidenceProperty $details $n;if($v -is [int] -or $v -is [long]){$d[$n]=$v}}
  if($d.Count){$out.details=$d}
  $s=[ordered]@{}
  foreach($n in @('attempts','failures','closedOutageSeconds','firstReadySeconds','lastHealthSeconds','lastSeconds','retryAtSeconds')){$v=Get-PaytmEvidenceProperty $transport $n;if($v -is [int] -or $v -is [long]){$s[$n]=$v}}
@@ -44,15 +44,19 @@ function ConvertTo-PaytmWorkerEvidence($Value){
   $out.lastSshObservation=$o
   foreach($n in @('lastSshAttempt','lastSshElapsedSeconds')){$v=Get-PaytmEvidenceProperty $Value $n;if(($v -is [int] -or $v -is [long]) -and $v -ge 0){$out[$n]=$v}}
  }
- foreach($name in @('lastTlsObservation','firstTlsFailure','lastTlsFailure')){
+ foreach($name in @('lastTlsObservation','firstTlsFailure','lastTlsFailure','agentProbe')){
   $probe=Get-PaytmEvidenceProperty $Value $name
   if($null -eq $probe){continue}
   $o=[ordered]@{}
-  foreach($n in @('version','elapsedMilliseconds','exitCode','connectStatus','tlsVerifyCode','httpStatus')){
+  foreach($n in @('version','elapsedMilliseconds','exitCode','connectStatus','tlsVerifyCode','httpStatus','requestedTimeoutMilliseconds','nativeErrorCode','StartMilliseconds','WaitMilliseconds','StopMilliseconds','DrainMilliseconds','TotalMilliseconds')){
    $v=Get-PaytmEvidenceProperty $probe $n
    if(($v -is [int] -or $v -is [long]) -and ($v -ge 0 -or $n -ceq 'exitCode')){$o[$n]=$v}
   }
   foreach($n in @('timedOut','metricsParsed')){$v=Get-PaytmEvidenceProperty $probe $n;if($v -is [bool]){$o[$n]=$v}}
+  foreach($n in @('operation','classification')){
+   $v=Get-PaytmEvidenceProperty $probe $n
+   if($v -cin @('LIST_IDENTITIES','TEST_SIGNATURE','UNCLASSIFIED','TIMEOUT','COMMAND_SUCCEEDED','NO_IDENTITIES','AGENT_CONNECTION_ERROR')){$o[$n]=$v}
+  }
   $v=Get-PaytmEvidenceProperty $probe exceptionType
   if($v -is [string] -and $v -cmatch '^[A-Za-z][A-Za-z0-9.]{0,95}$'){$o.exceptionType=$v}
   $v=Get-PaytmEvidenceProperty $probe observedUtc

@@ -14,10 +14,10 @@ function Assert-PaytmTransportAcceptance($Value){
  if($Value.stopped.instanceId -ceq $Value.stoppedRestart.instanceId -or $Value.stoppedRestart.networkContacted -or $Value.stoppedRestart.signingVerified -or $Value.final.instanceId -ceq $Value.stoppedRestart.instanceId){throw 'STARTUP_RECEIPT_STOP'}
 }
 function Test-PaytmNativeRunnerHash([string]$Hash){
- $Hash -cin @('24D1769A380B530B6EEB9C7C82B069B9C0B87594EAB48661902F7299B03CBCDD','E0F159A2E45C72C8BBC3668C39BEF95DF9DE75289EBB7239057005545B3C238B')
+ $Hash -cin @('24D1769A380B530B6EEB9C7C82B069B9C0B87594EAB48661902F7299B03CBCDD','E0F159A2E45C72C8BBC3668C39BEF95DF9DE75289EBB7239057005545B3C238B') -or (Test-PaytmAgentProbeSourceHash 'RunPaytmGatewaySupervisor.ps1' $Hash)
 }
 function Test-PaytmNativeRepairSourceHash([string]$Hash){
- $Hash -cin @('690E49F45C945A914DA9D757D09475EF593C6A154AAF0D955E61ADA907087B73','838C6D39E3AAA4BDE5C46DF470141B348D09C2D62BF077AA244293B58FB137AB')
+ $Hash -cin @('690E49F45C945A914DA9D757D09475EF593C6A154AAF0D955E61ADA907087B73','838C6D39E3AAA4BDE5C46DF470141B348D09C2D62BF077AA244293B58FB137AB') -or (Test-PaytmAgentProbeSourceHash 'PaytmSupervisorNative.cs' $Hash)
 }
 function Test-PaytmFirstFailureRunnerHash([string]$Hash){
  # E220 reviewed first-cause preservation patch, exact LF and CRLF bytes only.
@@ -25,7 +25,7 @@ function Test-PaytmFirstFailureRunnerHash([string]$Hash){
 }
 function Test-PaytmObservedTransportHash([string]$Hash){
  # E224: bounded stderr drain and structured SSH observations, exact LF/CRLF sources.
- $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash) -or (Test-PaytmTlsObservedTransportHash $Hash)
+ $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash) -or (Test-PaytmTlsObservedTransportHash $Hash) -or (Test-PaytmAgentProbeSourceHash 'PaytmSupervisorTransport.ps1' $Hash)
 }
 function Test-PaytmTlsObservedTransportHash([string]$Hash){
  # Bounded numeric TLS diagnostics; original health and retry policy unchanged.
@@ -103,4 +103,14 @@ function Assert-PaytmRestartBoundary($Before,$After){
 function Assert-PaytmRestartCheckpoint($State){
  if($State.version -ne 1 -or $State.runId -cnotmatch '^[a-f0-9]{32}$' -or $State.completed -isnot [bool] -or $State.completed -or $State.receiptHash -cne '078A34DB0A46951EB98C5A08063F9FC76DB6EC75C175A3572CEE3D65DA4FAB4B'){throw 'STARTUP_CHECKPOINT_INVALID_OR_COMPLETE'}
  if($State.reportName -cne ('paytm-gateway-restart-'+$State.runId+'.json')){throw 'STARTUP_CHECKPOINT_REPORT_PATH'}
+}
+
+function Test-PaytmAgentProbeSourceHash([string]$Name,[string]$Hash){
+ $pins=@{
+ 'PaytmSupervisorNative.cs'=@('F4EFE9E24C03998C7BFA017B4BB4E38545168816F188735B26C9A9D59510E4A9','6E24ADB25A7486256D1090F38E11E24DAEE627A94CEA27104ABF8AFCC40F610B')
+ 'PaytmSupervisorHost.ps1'=@('1B9AE6FEECE698A2CBCF60A80E11888B0FD18AABF71F9BA15145D93AE219B069','8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1')
+ 'RunPaytmGatewaySupervisor.ps1'=@('1AE5D9E43FCC362DA3A5FF9176B375C52477B155F9A37A1BF4C8B0B863C44A16','D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC')
+ 'PaytmSupervisorTransport.ps1'=@('8D2734E0C4A2236186745AB541EC255ED17EDC0166DFB9D9B764F58075EF716E','5F2F841D2EE0935225CCF91663A93F3546C2D2037496100B4298FCE622990384')
+ }
+ $pins.ContainsKey($Name) -and $Hash -cin $pins[$Name]
 }

@@ -59,6 +59,8 @@ try {
 }catch{
     # Structured diagnostics only; never native stderr, keys, arbitrary exception messages or passwords.
     $base=$_.Exception.GetBaseException()
+    $agentProbe=Get-Variable -Name paytmLastAgentProbe -Scope Script -ValueOnly -ErrorAction SilentlyContinue
+    if($agentProbe){$bootstrap.agentProbe=$agentProbe;if($report){$report.agentProbe=$agentProbe}}
     $bootstrap.failure=if($_.Exception.Message -cmatch '^(HOST|TRANSPORT|GATEWAY)_[A-Z_]+$'){$_.Exception.Message}else{'HOST_STARTUP_FAILED'}
     $bootstrap.details=@{type=$base.GetType().Name;outerType=$_.Exception.GetType().Name;hresult=$base.HResult;line=$_.InvocationInfo.ScriptLineNumber;
         nativeErrorCode=if($base -is [ComponentModel.Win32Exception]){$base.NativeErrorCode}else{$null}}
@@ -67,6 +69,9 @@ try {
         if($value -is [string] -and $value -cmatch '^[A-Za-z][A-Za-z0-9_]{0,63}$'){$bootstrap.details[$pair[0]]=$value}
     }
     if($base.Data['MarketBrainCleanupCode'] -is [int]){$bootstrap.details.cleanupNativeErrorCode=$base.Data['MarketBrainCleanupCode']}
+    foreach($pair in @(@('nativePhaseMilliseconds','MarketBrainPhaseMilliseconds'),@('nativeTotalMilliseconds','MarketBrainTotalMilliseconds'))){
+        if($base.Data[$pair[1]] -is [long]){$bootstrap.details[$pair[0]]=$base.Data[$pair[1]]}
+    }
     # This does not depend on the helper loading successfully. Exclusive lease prevents competing writers.
     # Preserve the first cause until reviewed recovery archives it. A later launch
     # may fail only because this latch exists; that is not the original cause.

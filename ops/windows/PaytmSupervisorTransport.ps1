@@ -87,6 +87,9 @@ function Test-PaytmTransportTls($Report=$null) {
     }
     $observation.elapsedMilliseconds=$clock.ElapsedMilliseconds
     $observation.exitCode=$r.ExitCode;$observation.timedOut=[bool]$r.TimedOut
+    foreach($name in @('StartMilliseconds','WaitMilliseconds','StopMilliseconds','DrainMilliseconds','TotalMilliseconds')){
+        if($r.PSObject.Properties[$name]){$observation[$name]=[long]$r.$name}
+    }
     if($r.Output -cmatch '^([0-9]{3})\|([0-9]{1,9})\|([0-9]{3})$'){
         $observation.metricsParsed=$true;$observation.connectStatus=[int]$Matches[1];$observation.tlsVerifyCode=[int]$Matches[2];$observation.httpStatus=[int]$Matches[3]
     }

@@ -44,6 +44,7 @@ namespace MarketBrain.Supervisor {
     }
     public sealed class BoundedResult {
         public int ExitCode; public bool TimedOut; public string Output, Error;
+        public long StartMilliseconds, WaitMilliseconds, StopMilliseconds, DrainMilliseconds, TotalMilliseconds;
     }
     public static class NativeCommand {
         static string Quote(string text) {
@@ -100,17 +101,27 @@ namespace MarketBrain.Supervisor {
         }
         internal static BoundedResult RunCore(ICommandProcess process, int milliseconds) {
             bool started=false; Exception primary=null; string operation="START";
+            var elapsed=Stopwatch.StartNew(); var phase=Stopwatch.StartNew();
+            var result=new BoundedResult();
             try {
                 started=process.Start(); if (!started) throw new InvalidOperationException("HOST_CHILD_START_FAILED");
+                result.StartMilliseconds=phase.ElapsedMilliseconds;
                 operation="CLOSE_INPUT"; process.CloseInput();
                 operation="READ_OUTPUT"; Task<string> output=process.Output(), error=process.Error();
-                operation="WAIT"; bool timeout=!process.Wait(milliseconds);
-                if (timeout) { operation="TIMEOUT_STOP"; StopOwned(process); }
-                operation="DRAIN";
+                operation="WAIT"; phase.Restart(); bool timeout=!process.Wait(milliseconds);
+                result.WaitMilliseconds=phase.ElapsedMilliseconds;
+                if (timeout) { operation="TIMEOUT_STOP"; phase.Restart(); StopOwned(process); result.StopMilliseconds=phase.ElapsedMilliseconds; }
+                operation="DRAIN"; phase.Restart();
                 if (!Task.WaitAll(new Task[]{output,error},3000)) throw new IOException("HOST_CHILD_OUTPUT_TIMEOUT");
+                result.DrainMilliseconds=phase.ElapsedMilliseconds;
                 operation="EXIT_CODE";
-                return new BoundedResult { ExitCode=process.ExitCode, TimedOut=timeout, Output=output.Result, Error=error.Result };
-            } catch (Exception error) { primary=error; Tag(error,operation); throw; }
+                result.ExitCode=process.ExitCode; result.TimedOut=timeout; result.Output=output.Result; result.Error=error.Result;
+                return result;
+            } catch (Exception error) {
+                primary=error; Tag(error,operation);
+                error.GetBaseException().Data["MarketBrainPhaseMilliseconds"]=phase.ElapsedMilliseconds;
+                throw;
+            }
             finally {
                 if (started) {
                     string cleanup="CLEANUP_CHECK";
@@ -125,6 +136,8 @@ namespace MarketBrain.Supervisor {
                         if(win32!=null) first.Data["MarketBrainCleanupCode"]=win32.NativeErrorCode;
                     }
                 }
+                result.TotalMilliseconds=elapsed.ElapsedMilliseconds;
+                if(primary!=null)primary.GetBaseException().Data["MarketBrainTotalMilliseconds"]=result.TotalMilliseconds;
             }
         }
         public static BoundedResult Run(string executable, string[] arguments, int milliseconds) {

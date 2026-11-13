@@ -44,14 +44,33 @@ function Assert-PaytmHostStatus($Value,[string]$InstallationId,[ValidateSet('LOC
 function Assert-PaytmHostAdvance($First,$Second) {
     if($First.instanceId -cne $Second.instanceId -or $First.processId -ne $Second.processId -or $Second.sequence -le $First.sequence -or $Second.elapsedSeconds -lt $First.elapsedSeconds){throw 'HOST_HEARTBEAT_NOT_ADVANCING'}
 }
+function Invoke-PaytmHostAgentProbe([string[]]$Arguments,[string]$Operation){
+    $clock=[Diagnostics.Stopwatch]::StartNew()
+    $script:paytmLastAgentProbe=[ordered]@{operation=$Operation;observedUtc=[DateTime]::UtcNow.ToString('o');requestedTimeoutMilliseconds=10000;elapsedMilliseconds=0;exitCode=$null;timedOut=$null;exceptionType=$null;nativeErrorCode=$null;classification='UNCLASSIFIED'}
+    try{
+        $r=[MarketBrain.Supervisor.NativeCommand]::Run('C:\Windows\System32\OpenSSH\ssh-add.exe',$Arguments,10000)
+        $script:paytmLastAgentProbe.exitCode=$r.ExitCode;$script:paytmLastAgentProbe.timedOut=[bool]$r.TimedOut
+        foreach($name in @('StartMilliseconds','WaitMilliseconds','StopMilliseconds','DrainMilliseconds','TotalMilliseconds')){
+            if($r.PSObject.Properties[$name]){$script:paytmLastAgentProbe[$name]=[long]$r.$name}
+        }
+        if($r.TimedOut){$script:paytmLastAgentProbe.classification='TIMEOUT'}
+        elseif($r.ExitCode -eq 0){$script:paytmLastAgentProbe.classification='COMMAND_SUCCEEDED'}
+        elseif(($r.Output+' '+$r.Error) -match 'The agent has no identities'){$script:paytmLastAgentProbe.classification='NO_IDENTITIES'}
+        elseif(($r.Output+' '+$r.Error) -match 'Could not open a connection to your authentication agent|Error connecting to agent'){$script:paytmLastAgentProbe.classification='AGENT_CONNECTION_ERROR'}
+        $r
+    }catch{
+        $base=$_.Exception.GetBaseException();$script:paytmLastAgentProbe.exceptionType=$base.GetType().Name
+        if($base -is [ComponentModel.Win32Exception]){$script:paytmLastAgentProbe.nativeErrorCode=$base.NativeErrorCode}
+        throw
+    }finally{$script:paytmLastAgentProbe.elapsedMilliseconds=$clock.ElapsedMilliseconds}
+}
 function Test-PaytmHostSigning([string]$CustodyRoot) {
     if([IO.File]::Exists((Join-Path $CustodyRoot 'gateway.openssh'))){throw 'HOST_PRIVATE_STAGING_PRESENT'}
-    $tool='C:\Windows\System32\OpenSSH\ssh-add.exe'
-    $identity=[MarketBrain.Supervisor.NativeCommand]::Run($tool,[string[]]@('-l'),10000)
+    $identity=Invoke-PaytmHostAgentProbe ([string[]]@('-l')) 'LIST_IDENTITIES'
     if($identity.TimedOut -or $identity.ExitCode -ne 0){throw 'HOST_AGENT_UNAVAILABLE'}
     $lines=@($identity.Output.Trim() -split '\r?\n'|Where-Object {$_.Trim()})
     if($lines.Count -ne 1 -or $lines[0] -cnotmatch '^256 SHA256:fRekz3jjaYJxnK5dDXMzq9mDEB4Z3BEHhjfNJCx07UI .+ \(ED25519\)$'){throw 'HOST_AGENT_IDENTITY_DRIFT'}
-    $signed=[MarketBrain.Supervisor.NativeCommand]::Run($tool,[string[]]@('-T',(Join-Path $CustodyRoot 'gateway.pub')),10000)
+    $signed=Invoke-PaytmHostAgentProbe ([string[]]@('-T',(Join-Path $CustodyRoot 'gateway.pub'))) 'TEST_SIGNATURE'
     if($signed.TimedOut -or $signed.ExitCode -ne 0){throw 'HOST_SIGNING_FAILED'}
 }
 function Invoke-PaytmHostObservationLoop([string]$Root,[string]$Work,[string]$Custody,$Report,$Clock) {

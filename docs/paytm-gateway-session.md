@@ -1,4 +1,8 @@
-# Current E241 handoff: fresh sign-out and full shutdown test
+# Current E242: session testing paused after agent-query failure
+
+AfterLogoff failed with HOST_AGENT_UNAVAILABLE. Do not proceed to full shutdown or repeat the previous phases. [Agent-query/native-timing diagnostic recovery](paytm-agent-recovery.md) is the next handoff. The old checkpoint is preserved until verified archival in recovery; a new worker will require a fresh baseline. Progress remains 40%, with G3.4 pending.
+
+## Historical E241 handoff: fresh sign-out and full shutdown test
 
 The 2026-11-13 diagnostic recovery passed its full 30-minute observation. Use the existing session controller in elevated PowerShell 7 on the spare laptop. Docker and the existing application container must be running. Pull the documentation update once before the Before phase; do not pull or modify installed code between phases because the checkpoint pins collector and installation hashes.
 
