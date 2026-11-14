@@ -1,0 +1,26 @@
+{
+  "evidenceId": "E257",
+  "sourceRunId": "7c7ca6cd6cf041d0a795d1ed662fd109",
+  "sourceSha256": "34EFB732104DE31153699A925B30D0B7CB162E2AC8B0C97D941854FB6CD317CB",
+  "sourceCommit": "ca02d27",
+  "sourceHashesVerified": 6,
+  "status": "CLOCK_SNAPSHOT_CAPTURED_WITH_FINDINGS",
+  "elapsedSeconds": 52.798,
+  "samples": 10,
+  "vpsNtpYesSamples": 5,
+  "vpsMinusWindowsBoundsSeconds": [
+    16.1884604,
+    17.3248532
+  ],
+  "applicationMinusWindowsBoundsSeconds": [
+    -0.0298182,
+    0.0328845
+  ],
+  "screenPassed": false,
+  "absoluteUtcAccuracyProven": false,
+  "containerUnchanged": true,
+  "keyCleanupOwnerConfirmed": true,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30,
+  "nextStep": "Read-only Windows Time status policy and access diagnosis"
+}

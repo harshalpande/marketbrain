@@ -1,3 +1,9 @@
+# E257: current clock mismatch follow-up
+
+**Current E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
+
+Earlier instructions below are historical; use the follow-up linked above.
+
 # Windows Time access diagnosis: no VPS retry
 
 **Latest:** diagnostic accepted as captured in8.208s; enabled-admin child lacks SERVICE_START and observed Administrators ACE lacks that right. Owner subsequently set Windows manually and reports<5s difference. Next is the [read-only three-clock snapshot](paytm-clock-snapshot.md), not another access diagnostic or permission rewrite. Automatic synchronization remains unresolved.

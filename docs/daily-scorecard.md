@@ -1,6 +1,8 @@
 # Daily delivery scorecard
 
-**Current E256, 2026-11-15:** Actual runtime listener latch/recovery accepted in33.485s. Nine source hashes match1c1b99c CRLF; exact worker conflict persisted10.868s, verified marker archive, one start, fresh recovered worker. Java absent-tunnel failure and subsequent lock passed; account/container/final locks preserved. G3.2 complete: groups100/100/80/0/0/0;14/30 (46.7%). [Next: fresh read-only three-clock snapshot](paytm-clock-refresh.md); G3.5 remains open.
+**Current E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
+
+**Historical E256, 2026-11-15:** Actual runtime listener latch/recovery accepted in33.485s. Nine source hashes match1c1b99c CRLF; exact worker conflict persisted10.868s, verified marker archive, one start, fresh recovered worker. Java absent-tunnel failure and subsequent lock passed; account/container/final locks preserved. G3.2 complete: groups100/100/80/0/0/0;14/30 (46.7%). [Next: fresh read-only three-clock snapshot](paytm-clock-refresh.md); G3.5 remains open.
 
 **Historical E255, 2026-11-15:** Listener/policy report accepted:15 checks in6.439s,10 source hashes match9eb99f5 CRLF, same advancing worker. Real duplicate bind refused with AddressAlreadyInUse; isolated policy results remain separate. [Next: actual runtime listener latch, absent-tunnel Java failure and owned recovery](paytm-runtime-latch.md).23 helper assertions and six controller workflows passed locally. G3.2/G3.5 pending;13/30 (43.3%).
 

@@ -4,8 +4,12 @@ function Assert-PaytmTimeAccessEvidence([string]$Path) {
     $file=Get-Item -LiteralPath $Path
     if($file.PSIsContainer -or $file.Length -gt 100000){throw 'OPS_TIME_ACCESS_PRIOR_INVALID'}
     $hash=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
-    if($hash -cne 'F176A5F08BD3C57C6289CBDB09C867E2CBEB023805D4CDC919DCFFD0BF636701'){throw 'OPS_TIME_ACCESS_PRIOR_HASH_MISMATCH'}
-    [pscustomobject]@{runId='11fea1e34d3a41e6b3dc10893178311c';sha256=$hash}
+    $accepted=@{
+        'F176A5F08BD3C57C6289CBDB09C867E2CBEB023805D4CDC919DCFFD0BF636701'='11fea1e34d3a41e6b3dc10893178311c'
+        '34EFB732104DE31153699A925B30D0B7CB162E2AC8B0C97D941854FB6CD317CB'='7c7ca6cd6cf041d0a795d1ed662fd109'
+    }
+    if(-not $accepted.ContainsKey($hash)){throw 'OPS_TIME_ACCESS_PRIOR_HASH_MISMATCH'}
+    [pscustomobject]@{runId=$accepted[$hash];sha256=$hash}
 }
 function Get-PaytmTimeAccessCommandSpecs {
     $sc=Join-Path $env:WINDIR 'System32\sc.exe'

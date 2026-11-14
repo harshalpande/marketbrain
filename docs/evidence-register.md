@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E257 CLOCK_FINDINGS_CAPTURED:** [Evidence](evidence/paytm-clock-findings-20261115.json). Complete10 samples, six hashes verified; VPS16.188-17.325s ahead of Windows, Java closely matches Windows. NTP yes5/5. Screen failed; G3.5 not accepted. [Current Windows diagnosis next](paytm-clock-drift-followup.md).
+
 - **E256 RUNTIME_LATCH_RECOVERY_ACCEPTED:** [Evidence](evidence/paytm-runtime-latch-accepted-20261115.json).33.485s,9 hashes verified, exact runtime latch persisted10.868s, marker archive/one start/recovered route/account/locks passed. G3.2 accepted;14/30 (46.7%). [Fresh clocks next](paytm-clock-refresh.md); G3.5 remains open.
 
 - **E255 LISTENER_POLICY_ACCEPTED_RUNTIME_PREPARED:** [Evidence](evidence/paytm-listener-policy-accepted-20261115.json).15 checks/6.439s,10 hashes verified, same worker. Actual duplicate bind refused; isolated rules not conflated with runtime. [Next runtime batch](paytm-runtime-latch.md),23 local helper assertions/six controller workflows. No checkpoint credit yet.

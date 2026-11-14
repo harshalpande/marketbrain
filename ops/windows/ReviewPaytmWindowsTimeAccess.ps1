@@ -10,6 +10,10 @@ $report=[ordered]@{schemaVersion=1;runId=$run;startedUtc=[DateTimeOffset]::UtcNo
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory ("paytm-windows-time-access-{0}-{1}.json" -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$run)
 try{
+    $report.sourceHashes=@{}
+    foreach($name in @('ReviewPaytmWindowsTimeAccess.ps1','PaytmWindowsTimeAccess.ps1','ReadPaytmTimeAccessProbe.ps1','PaytmTimeAccessProbe.cs','PaytmOperationsFollowUp.ps1','PaperRuntimeReview.ps1')){
+        $report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash
+    }
     Write-Host '[5%] Windows-only diagnosis. No start/resync, permission changes, VPS commands or application restart.'
     $report.priorEvidence=Assert-PaytmTimeAccessEvidence $OperationsEvidencePath
     $report.inspection=Invoke-PaytmTimeAccessInspection

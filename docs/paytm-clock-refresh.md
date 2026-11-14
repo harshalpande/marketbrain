@@ -1,3 +1,9 @@
+# E257: current clock mismatch follow-up
+
+**Current E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
+
+Earlier instructions below are historical; use the follow-up linked above.
+
 # Fresh three-clock snapshot after runtime recovery
 
 E256, November15,2026. G3.2 is complete. The prior clock snapshot E166 is several weeks old and does not establish current alignment. Reuse the existing read-only collector, now recording six source hashes. No restart, deployment, clock setting, key import into the gateway, broker login or trade.
