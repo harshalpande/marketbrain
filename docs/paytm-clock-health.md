@@ -1,6 +1,9 @@
 # Bounded Windows clock-health observation after E262
 
-**Current E263, 2026-11-15:** Health capture completed in75.187s; all nine peer offsets -10.468..+35.689ms, service Running/Automatic and configuration preserved. All three service observations remain unsynchronized; no health acceptance. Three source hashes match6b896f1. Owner authorized [controlled polling correction with rollback](paytm-polling-correction.md): same server,0x9 to0x8, one SYSTEM task, resync and three status samples. Local tests only; runtime pending. Groups100/100/80/0/0/0;14/30 (46.7%), unchanged.
+**Current E264, 2026-11-15:** Adaptive polling correction accepted in42.829s. Explicit config/resync success; three samples leap0/stratum5/error0, phase estimate26.328ms. Same time.windows.com server, flag0x9->0x8; Running/Automatic and ACL preserved, task removed, no rollback. Three source hashes matchf1618ec. [Next: isolated Java timing-guard verification](paytm-java-timing-guard.md);39 deterministic checks and full collector pass locally, production wiring pending. G3.5 open;14/30 (46.7%), groups100/100/80/0/0/0.
+
+
+**Historical E263, 2026-11-15:** Health capture completed in75.187s; all nine peer offsets -10.468..+35.689ms, service Running/Automatic and configuration preserved. All three service observations remain unsynchronized; no health acceptance. Three source hashes match6b896f1. Owner authorized [controlled polling correction with rollback](paytm-polling-correction.md): same server,0x9 to0x8, one SYSTEM task, resync and three status samples. Local tests only; runtime pending. Groups100/100/80/0/0/0;14/30 (46.7%), unchanged.
 
 
 E262 passed the independent three-clock screen: all10 observations usable, VPS NTP yes5/5, no findings. Conservative VPS-minus-Windows bounds are -0.043..+0.964s; Java-minus-Windows -0.086..+0.073s; Java-minus-VPS -1.050..+0.116s. These intervals include measurement uncertainty; they are not exact clock offsets. The previous16-17s difference is absent in this observation. Container unchanged, key cleanup confirmed, six source hashes verified.

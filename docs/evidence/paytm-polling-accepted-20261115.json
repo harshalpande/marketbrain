@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E264",
+  "receipt": "paytm-time-repair-b0bbe132fade4898bc90ea64d6659f38.json",
+  "sha256": "90DDA40CB92E3E808275B11E546367F341D612155C1C324859B9D2480470158C",
+  "sourceCommit": "f1618ec",
+  "sourceHashesVerified": 3,
+  "elapsedSeconds": 42.8291463,
+  "status": "TIME_POLLING_CHANGED_SYNC_OBSERVED_RELEASE_PENDING",
+  "healthySamples": 3,
+  "leapIndicator": 0,
+  "stratum": 5,
+  "lastSyncError": 0,
+  "reportedPhaseOffsetSeconds": 0.0263276,
+  "peerBefore": "time.windows.com,0x9",
+  "peerAfter": "time.windows.com,0x8",
+  "taskRemoved": true,
+  "rollbackAttempted": false,
+  "serviceAclPreserved": true,
+  "durableSynchronizationProven": false,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}

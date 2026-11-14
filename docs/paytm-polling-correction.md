@@ -1,5 +1,8 @@
 # Controlled Windows Time polling correction after E263
 
+**Current E264, 2026-11-15:** Adaptive polling correction accepted in42.829s. Explicit config/resync success; three samples leap0/stratum5/error0, phase estimate26.328ms. Same time.windows.com server, flag0x9->0x8; Running/Automatic and ACL preserved, task removed, no rollback. Three source hashes matchf1618ec. [Next: isolated Java timing-guard verification](paytm-java-timing-guard.md);39 deterministic checks and full collector pass locally, production wiring pending. G3.5 open;14/30 (46.7%), groups100/100/80/0/0/0.
+
+
 E263 confirms three unsynchronized service-status observations, despite nine small peer offsets and preserved Running/Automatic service. User authorized the proposed correction. The current clock is close to the peer; this targets service synchronization health, not a manual clock setting.
 
 Microsoft documents switching the peer flag from0x9 to0x8 to use automatic polling within existing MinPollInterval/MaxPollInterval rather than SpecialPollInterval: [official workaround](https://learn.microsoft.com/en-us/troubleshoot/windows-server/identity/w32time-sync-specialpollinterval-ignored). This is an evidence-supported remediation candidate, not a proven diagnosis or promised cure. Existing Min/Max intervals remain unchanged; polling is not guaranteed to occur every few seconds.
