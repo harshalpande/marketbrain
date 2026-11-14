@@ -11,8 +11,14 @@ import javax.net.ssl.SSLParameters;
 public final class PaytmGatewayTransport implements AutoCloseable {
     public static final URI ROOT = URI.create("https://developer.paytmmoney.com/");
     private final HttpClient client;
+    private final Duration timeout;
 
     public PaytmGatewayTransport(String proxyHost, int proxyPort) {
+        this(proxyHost,proxyPort,Duration.ofSeconds(15));
+    }
+    PaytmGatewayTransport(String proxyHost, int proxyPort, Duration timeout) {
+        if(timeout==null || timeout.isNegative() || timeout.isZero() || timeout.compareTo(Duration.ofSeconds(15))>0) throw new IllegalArgumentException("Invalid timeout");
+        this.timeout=timeout;
         if (!List.of("127.0.0.1", "host.docker.internal").contains(proxyHost)
                 || proxyPort < 1024 || proxyPort > 65535) {
             throw new IllegalArgumentException("Unsupported gateway endpoint");
@@ -21,7 +27,7 @@ public final class PaytmGatewayTransport implements AutoCloseable {
         tls.setEndpointIdentificationAlgorithm("HTTPS");
         client = HttpClient.newBuilder()
                 .proxy(new RequiredProxy(proxyHost, proxyPort))
-                .connectTimeout(Duration.ofSeconds(5))
+                .connectTimeout(timeout.compareTo(Duration.ofSeconds(5))<0?timeout:Duration.ofSeconds(5))
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .version(HttpClient.Version.HTTP_1_1)
                 .sslParameters(tls)
@@ -32,7 +38,7 @@ public final class PaytmGatewayTransport implements AutoCloseable {
 
     public Observation head() {
         try {
-            var request = HttpRequest.newBuilder(ROOT).timeout(Duration.ofSeconds(15))
+            var request = HttpRequest.newBuilder(ROOT).timeout(timeout)
                     .method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
             var response = client.send(request, HttpResponse.BodyHandlers.discarding());
             if (response.sslSession().isEmpty()) {

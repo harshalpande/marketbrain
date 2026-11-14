@@ -15,7 +15,7 @@ public final class PaytmTimedRouteReport {
             if(!suite.getAttribute("failures").equals("0") || !suite.getAttribute("errors").equals("0") || !suite.getAttribute("skipped").equals("0")) throw new AssertionError("Incomplete suite "+name);
             tests+=Integer.parseInt(suite.getAttribute("tests"));
         }
-        if(tests!=30) throw new AssertionError("Expected 30 JUnit tests");
-        System.out.println("{\"status\":\"HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING\",\"junitTests\":30,\"guardAssertions\":39,\"liveHealthProviderConnected\":false,\"runningApplicationChanged\":false,\"ordersEnabled\":false}");
+        if(tests!=34) throw new AssertionError("Expected 34 JUnit tests");
+        System.out.println("{\"status\":\"JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING\",\"junitTests\":34,\"guardAssertions\":39,\"liveHealthProviderConnected\":false,\"runningApplicationChanged\":false,\"ordersEnabled\":false}");
     }
 }

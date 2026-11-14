@@ -1,0 +1,13 @@
+{
+  "evidence": "E269",
+  "file": "paytm-publisher-4c9498d50d1247e0b8f56c9f75c9308c.json",
+  "sha256": "FAED8C8AB1FE465A274D8CE08A17D893F8F9DF38A547D08726CA070676DC2C4D",
+  "sourceRevision": "d22592c",
+  "sourceCount": 3,
+  "status": "PUBLISHER_CONTRACT_PASSED_RUNTIME_PENDING",
+  "checks": 15,
+  "elapsedSeconds": 0.2008618,
+  "networkCalls": 0,
+  "applicationChanged": false,
+  "ordersEnabled": false
+}

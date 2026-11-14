@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
- [string]$EvidencePath='C:\MarketBrainData\Review\paytm-timed-route-23619cf7a5124c8aa3f92e8eec541eed.json',
+ [string]$EvidencePath='C:\MarketBrainData\Review\paytm-publisher-4c9498d50d1247e0b8f56c9f75c9308c.json',
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'NumericalEvaluationEngineering.ps1')
@@ -13,7 +13,7 @@ $r=[ordered]@{version=1;runId=$run;status='REVIEW_REQUIRED';failure=$null;cleanu
 function Save-TimedRoute {$r.elapsedSeconds=$timer.Elapsed.TotalSeconds;[IO.File]::WriteAllText($path,($r|ConvertTo-Json -Depth 14),[Text.UTF8Encoding]::new($false))}
 try{
  Save-TimedRoute
- if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne '4DD1DF3B6F31527BE5E71A2EE03D1CEFD4BBCEEBB65140DACCB23BD24B69EAB7'){throw 'TIMED_ROUTE_EVIDENCE_MISMATCH'}
+ if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne 'FAED8C8AB1FE465A274D8CE08A17D893F8F9DF38A547D08726CA070676DC2C4D'){throw 'TIMED_ROUTE_EVIDENCE_MISMATCH'}
  if($env:DOCKER_HOST -or $env:DOCKER_CONTEXT){throw 'TIMED_ROUTE_DOCKER_OVERRIDE'}
  $docker=(Get-Command docker -CommandType Application -ErrorAction Stop|Select-Object -First 1).Source
  $context=Invoke-EvaluationProcess $docker @('context','show') 10
@@ -35,8 +35,8 @@ try{
  if($r.process.timedOut -or $r.process.exitCode -ne 0){throw 'TIMED_ROUTE_TEST_FAILED'}
  $line=@($r.process.stdout -split '\r?\n'|Where-Object {$_ -match '^\{"status"'})[-1]
  $r.result=$line|ConvertFrom-Json
- if($r.result.status -cne 'HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING' -or $r.result.junitTests -ne 30 -or $r.result.guardAssertions -ne 39 -or $r.result.liveHealthProviderConnected -ne $false -or $r.result.runningApplicationChanged -ne $false -or $r.result.ordersEnabled -ne $false){throw 'TIMED_ROUTE_RESULT_INVALID'}
- $r.status='HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING'
+ if($r.result.status -cne 'JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING' -or $r.result.junitTests -ne 34 -or $r.result.guardAssertions -ne 39 -or $r.result.liveHealthProviderConnected -ne $false -or $r.result.runningApplicationChanged -ne $false -or $r.result.ordersEnabled -ne $false){throw 'TIMED_ROUTE_RESULT_INVALID'}
+ $r.status='JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING'
 }catch{$r.failure=$_.Exception.Message}
 finally{
  if($started){try{

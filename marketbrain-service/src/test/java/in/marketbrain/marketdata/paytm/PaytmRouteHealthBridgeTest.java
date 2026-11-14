@@ -14,7 +14,7 @@ class PaytmRouteHealthBridgeTest {
     final AtomicInteger calls=new AtomicInteger();
     final PaytmApplicationRoute route=new PaytmApplicationRoute(true,n::get,w::get,()->{
         calls.incrementAndGet();return new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE");});
-    final PaytmRouteHealthBridge bridge=new PaytmRouteHealthBridge(route,TOKEN,"PAPER",READ,n::get);
+    final PaytmRouteHealthBridge bridge=new PaytmRouteHealthBridge(route,TOKEN,"PAPER",READ,n::get,()->new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE"));
     final PaytmRouteHealthController controller=new PaytmRouteHealthController(bridge);
     PaytmRouteHealthBridge.Evidence evidence(PaytmRouteHealthBridge.Receipt c) {
         return new PaytmRouteHealthBridge.Evidence(c.challenge(),c.bootId(),true,true,0,0);
@@ -36,11 +36,11 @@ class PaytmRouteHealthBridgeTest {
             .withPropertyValues("marketbrain.paytm-money.health-token="+TOKEN,"marketbrain.paper.read-token="+READ)
             .withUserConfiguration(PaytmApplicationRoute.class,PaytmRouteHealthBridge.class,PaytmRouteHealthController.class)
             .run(c->{assertThat(c).hasNotFailed();assertThat(c.getBean(PaytmRouteHealthBridge.class).enabled()).isTrue();});
-        for(String mode:new String[]{"LIVE","paper"}) assertThat(new PaytmRouteHealthBridge(route,TOKEN,mode,READ,n::get).enabled()).isFalse();
-        assertThat(new PaytmRouteHealthBridge(route,TOKEN,"PAPER",TOKEN,n::get).enabled()).isFalse();
-        assertThat(new PaytmRouteHealthBridge(route,"short","PAPER",READ,n::get).enabled()).isFalse();
+        for(String mode:new String[]{"LIVE","paper"}) assertThat(new PaytmRouteHealthBridge(route,TOKEN,mode,READ,n::get,()->new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE")).enabled()).isFalse();
+        assertThat(new PaytmRouteHealthBridge(route,TOKEN,"PAPER",TOKEN,n::get,()->null).enabled()).isFalse();
+        assertThat(new PaytmRouteHealthBridge(route,"short","PAPER",READ,n::get,()->new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE")).enabled()).isFalse();
     }
-    @Test void validEvidenceRequiresExplicitArmAndDoesNotCallNetwork() {
+    @Test void validEvidenceRequiresExplicitArmAndDoesNotCallRouteTransport() {
         assertThat(bridge.submit(evidence(bridge.challenge())).accepted()).isTrue();
         route.head();assertThat(calls.get()).isZero();route.arm();assertThat(route.head().tlsVerified()).isTrue();
         assertThat(calls.get()).isEqualTo(1);
@@ -102,5 +102,25 @@ class PaytmRouteHealthBridgeTest {
         assertThat(accepted.accepted()).isTrue();assertThat(accepted.ordersEnabled()).isFalse();
         var replay=(PaytmRouteHealthBridge.Receipt)controller.command("submit",request(payload(c))).getBody();assertThat(replay.accepted()).isFalse();
         assertThat(calls.get()).isZero();
+    }
+    @Test void serverProbeFailureOverridesCallerTransportClaim() {
+        var b=new PaytmRouteHealthBridge(route,TOKEN,"PAPER",READ,n::get,()->new PaytmGatewayTransport.Observation("TRANSPORT_FAILED",0,false,"SSLException"));
+        assertThat(b.submit(evidence(b.challenge())).accepted()).isFalse();
+        assertThat(route.arm().status()).isEqualTo("TIMING_BLOCKED");
+    }
+    @Test void probeExceptionIsRedactedAndLocks() {
+        var b=new PaytmRouteHealthBridge(route,TOKEN,"PAPER",READ,n::get,()->{throw new IllegalStateException("SECRET");});
+        var result=b.submit(evidence(b.challenge()));assertThat(result.accepted()).isFalse();assertThat(result.toString()).doesNotContain("SECRET");
+    }
+    @Test void deadlineIncludesServerProbeTime() {
+        var b=new PaytmRouteHealthBridge(route,TOKEN,"PAPER",READ,n::get,()->{n.set(10_000_000_000L);return new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE");});
+        assertThat(b.submit(evidence(b.challenge())).status()).isEqualTo("REJECTED_AND_LOCKED");
+    }
+    @Test void replayAndUnhealthyInputCannotTriggerProbe() {
+        var probes=new AtomicInteger();
+        var b=new PaytmRouteHealthBridge(route,TOKEN,"PAPER",READ,n::get,()->{probes.incrementAndGet();return new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE");});
+        var c=b.challenge();var bad=new PaytmRouteHealthBridge.Evidence(c.challenge(),c.bootId(),false,true,0,0);
+        b.submit(bad);assertThat(probes.get()).isZero();
+        var good=evidence(b.challenge());b.submit(good);b.submit(good);assertThat(probes.get()).isEqualTo(1);
     }
 }

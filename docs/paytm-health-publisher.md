@@ -1,5 +1,7 @@
 # Health publisher contract after E268
 
+Historical V1 publisher accepted as E269. The [V2 Java-owned transport contract](paytm-java-health-transport.md) supersedes caller-provided applicationTransportVerified and uses a three-second submit timeout. No repeat of the old fixture script is requested.
+
 ## Accepted real evidence
 
 The live rehearsal passed all three rounds, with collection durations 2.001, 1.681 and 1.705 seconds. Full interactive run elapsed 97.799 seconds. Windows last-good-sync age was 219-227 seconds against the 2108-second diagnostic limit; VPS NTP confirmed yes. Java-minus-VPS offset intervals were within approximately -1.071 to +0.122 seconds. The Windows proxy returned TLS-verified HTTP 503 in every round; this does not establish API readiness. Settings/container unchanged, no health submitted, no orders, Pageant cleanup owner-confirmed. All eight source hashes match d2c5cf1. See evidence/paytm-live-health-accepted-20261115.json.

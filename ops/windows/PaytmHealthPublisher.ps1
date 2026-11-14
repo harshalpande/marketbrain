@@ -2,6 +2,7 @@
 function Invoke-PaytmHealthHttp([ValidateSet('challenge','submit')][string]$Command,[string]$Token,$Body) {
  if($Token -cnotmatch '^[A-Za-z0-9_-]{32,128}$'){throw 'HEALTH_PUBLISHER_TOKEN_INVALID'}
  $arguments=@{Uri=('http://127.0.0.1:8080/api/v1/paytm/route-health/'+$Command);Method='POST';Headers=@{'X-MarketBrain-Paytm-Health-Token'=$Token;'X-MarketBrain-Paytm-Health'='diagnostic-health'};NoProxy=$true;TimeoutSec=2;MaximumRedirection=0;SkipHttpErrorCheck=$true}
+ if($Command -eq 'submit'){$arguments.TimeoutSec=3}
  if($null -ne $Body){$arguments.ContentType='application/json';$arguments.Body=[Text.Encoding]::UTF8.GetBytes(($Body|ConvertTo-Json -Compress))}
  try{
   $r=Invoke-WebRequest @arguments
@@ -16,13 +17,13 @@ function Invoke-PaytmHealthPublishOnce([string]$Token,[scriptblock]$Collect,[scr
  try{
   $c=Invoke-PaytmHealthHttp 'challenge' $Token $null
   $uuid='^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
-  if($c.status -cne 'CHALLENGE' -or $c.challenge -cnotmatch $uuid -or $c.bootId -cnotmatch $uuid -or $c.validForSeconds -ne 10 -or $c.accepted -isnot [bool] -or $c.accepted -or $c.ordersEnabled -isnot [bool] -or $c.ordersEnabled){throw 'HEALTH_PUBLISHER_CHALLENGE_INVALID'}
+  if($c.healthContractVersion -cne 'SERVER_TRANSPORT_V2' -or $c.status -cne 'CHALLENGE' -or $c.challenge -cnotmatch $uuid -or $c.bootId -cnotmatch $uuid -or $c.validForSeconds -ne 10 -or $c.accepted -isnot [bool] -or $c.accepted -or $c.ordersEnabled -isnot [bool] -or $c.ordersEnabled){throw 'HEALTH_PUBLISHER_CHALLENGE_INVALID'}
   $healthy=$false;$lower=0.0;$upper=0.0
   try{
    $round=& $Collect
    $assessment=Get-PaytmLiveHealthAssessment $round
-   # The rehearsal Windows TLS probe alone is never sufficient authority for Java.
-   $healthy=$assessment.collectionPassed -and ($round.applicationTransportVerified -is [bool]) -and $round.applicationTransportVerified
+   # V2 Java independently probes its own fixed proxy before it accepts this claim.
+   $healthy=$assessment.collectionPassed
    $lower=[double]$assessment.applicationMinusVpsLowerSeconds;$upper=[double]$assessment.applicationMinusVpsUpperSeconds
   }catch{$result.failure='HEALTH_PUBLISHER_COLLECTION_FAILED'}
   $elapsed=(& $MonotonicSeconds)-$start
@@ -33,7 +34,7 @@ function Invoke-PaytmHealthPublishOnce([string]$Token,[scriptblock]$Collect,[scr
   $body=@{challenge=$c.challenge;bootId=$c.bootId;synchronizedClock=[bool]$healthy;transportHealthy=[bool]$healthy;lowerOffsetSeconds=$lower;upperOffsetSeconds=$upper}
   $result.submissionAttempted=$true;$result.healthySubmitted=[bool]$healthy
   $receipt=Invoke-PaytmHealthHttp 'submit' $Token $body
-  if($receipt.bootId -cne $c.bootId -or $receipt.ordersEnabled -isnot [bool] -or $receipt.ordersEnabled -or $receipt.accepted -isnot [bool]){throw 'HEALTH_PUBLISHER_RECEIPT_INVALID'}
+  if($receipt.healthContractVersion -cne 'SERVER_TRANSPORT_V2' -or $receipt.bootId -cne $c.bootId -or $receipt.ordersEnabled -isnot [bool] -or $receipt.ordersEnabled -or $receipt.accepted -isnot [bool]){throw 'HEALTH_PUBLISHER_RECEIPT_INVALID'}
   if($receipt.accepted){
    if(-not $healthy -or $receipt.status -cne 'HEALTH_RECORDED_EXPLICIT_ARM_REQUIRED'){throw 'HEALTH_PUBLISHER_RECEIPT_INVALID'}
    $result.healthAccepted=$true;$result.status='HEALTH_PUBLISHED_EXPLICIT_ARM_REQUIRED'

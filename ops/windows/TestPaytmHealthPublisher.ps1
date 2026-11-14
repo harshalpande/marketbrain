@@ -29,15 +29,15 @@ try{
   $script:events+=,$Command
   if($Command -eq 'challenge'){
    if($script:scenario -eq 'challengefail'){throw 'HEALTH_PUBLISHER_HTTP_FAILED'}
-   return @{status='CHALLENGE';challenge='11111111-1111-1111-1111-111111111111';bootId='22222222-2222-2222-2222-222222222222';validForSeconds=10;accepted=$false;ordersEnabled=($script:scenario -eq 'badchallenge')}
+   return @{healthContractVersion=$(if($script:scenario -eq 'oldserver'){'OLD'}else{'SERVER_TRANSPORT_V2'});status='CHALLENGE';challenge='11111111-1111-1111-1111-111111111111';bootId='22222222-2222-2222-2222-222222222222';validForSeconds=10;accepted=$false;ordersEnabled=($script:scenario -eq 'badchallenge')}
   }
   if($Command -cne 'submit'){throw 'Unexpected route action'}
   $script:sent=$Body
   if($script:scenario -eq 'submitfail'){throw 'HEALTH_PUBLISHER_HTTP_FAILED'}
   $accepted=$Body.transportHealthy -and $script:scenario -ne 'rejected'
-  @{bootId=$(if($script:scenario -eq 'wrongboot'){'different'}else{$Body.bootId});ordersEnabled=$false;accepted=$accepted;status=$(if($accepted){'HEALTH_RECORDED_EXPLICIT_ARM_REQUIRED'}else{'UNHEALTHY_AND_LOCKED'})}
+  @{healthContractVersion='SERVER_TRANSPORT_V2';bootId=$(if($script:scenario -eq 'wrongboot'){'different'}else{$Body.bootId});ordersEnabled=$false;accepted=$accepted;status=$(if($accepted){'HEALTH_RECORDED_EXPLICIT_ARM_REQUIRED'}else{'UNHEALTHY_AND_LOCKED'})}
  }
- $cases=@('healthy','window','collectorfailed','windowsOnly','unsynchronized','tlsfailed','staleSync','nanBounds','challengefail','badchallenge','submitfail','wrongboot','rejected')
+ $cases=@('healthy','window','collectorfailed','windowsOnly','unsynchronized','tlsfailed','staleSync','nanBounds','challengefail','badchallenge','oldserver','submitfail','wrongboot','rejected')
  foreach($script:scenario in $cases){
   $script:events=@();$script:sent=$null;$script:t=0.0
   $collector={
@@ -54,16 +54,16 @@ try{
    };return $r
   }
   $result=Invoke-PaytmHealthPublishOnce $token $collector {$script:t}
-  $expected=switch($script:scenario){'healthy'{'HEALTH_PUBLISHED_EXPLICIT_ARM_REQUIRED'} {$_ -in @('challengefail','badchallenge','submitfail','wrongboot')}{'PUBLISHER_FAILED_LOCK_UNCONFIRMED'} default{'HEALTH_REJECTED_LOCK_CONFIRMED'}}
+  $expected=switch($script:scenario){{$_ -in @('healthy','windowsOnly')}{'HEALTH_PUBLISHED_EXPLICIT_ARM_REQUIRED'} {$_ -in @('challengefail','badchallenge','oldserver','submitfail','wrongboot')}{'PUBLISHER_FAILED_LOCK_UNCONFIRMED'} default{'HEALTH_REJECTED_LOCK_CONFIRMED'}}
   if($result.status -cne $expected){throw "Fixture failed: $script:scenario"}
-  if($script:scenario -in @('challengefail','badchallenge')){if(($script:events -join ',') -cne 'challenge'){throw 'Collection before valid challenge'}}
+  if($script:scenario -in @('challengefail','badchallenge','oldserver')){if(($script:events -join ',') -cne 'challenge'){throw 'Collection before valid challenge'}}
   else{if(($script:events -join ',') -cne 'challenge,collect,submit'){throw 'Ordering or retry regression'}}
   if($result.routeArmed -or $result.ordersEnabled -or ($result|ConvertTo-Json).Contains('SECRET')){throw 'Authority or redaction regression'}
   if($script:sent -and -not $script:sent.transportHealthy -and ($script:sent.lowerOffsetSeconds -ne 0 -or $script:sent.upperOffsetSeconds -ne 0)){throw 'Unhealthy bounds not sanitized'}
   $report.checks++
   Write-Progress -Activity 'Publisher fixtures' -PercentComplete (10+80*($cases.IndexOf($script:scenario)+1)/$cases.Count) -Status $script:scenario
  }
- if($report.checks -ne 15){throw 'Incomplete fixture batch'}
+ if($report.checks -ne 16){throw 'Incomplete fixture batch'}
  $report.status='PUBLISHER_CONTRACT_PASSED_RUNTIME_PENDING'
 }catch{$report.failure=$_.Exception.Message}
 finally{
