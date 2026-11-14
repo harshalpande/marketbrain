@@ -1,5 +1,8 @@
 # Windows Time repair after E258
 
+**Current E259, 2026-11-15:** Repair stopped before mutation: fresh PS5.1 worker lacked the ServiceController assembly; zero repair commands, no resync, temporary task removed (11.185s). All three source hashes match cffa46a. Explicit assembly loading fixes the reproduced defect; real read-only fresh-process tests pass in PS5.1 and PS7, plus 47 helper assertions/four controller fixtures. [Retry the corrected repair](paytm-time-service-repair.md); clock alignment remains pending. Groups 100/100/80/0/0/0;14/30 (46.7%), unchanged.
+
+
 The access diagnostic succeeded. Windows Time is stopped/manual, and the elevated administrator cannot obtain SERVICE_START. SYSTEM has the needed rights in the captured service descriptor. This explains the denied start; it does not yet establish a working NTP source.
 
 ## Purpose and boundaries
@@ -37,3 +40,9 @@ If synchronization fails after startup, the service may remain Running/Automatic
 47 offline helper assertions cover baseline rejection, preserved configuration, exact command order, failures at configuration/start/resync/query/wait, drift and parsing. Four mocked controller workflows cover success, worker failure, report identity mismatch and task cleanup failure. These do not prove actual Windows scheduler/service operation; that is the spare-laptop test above. Native worker syntax is compatible with PowerShell 5.1; controller requires 7.
 
 After accepting this receipt, repeat the fresh Windows/VPS/Java clock comparison, then finish remaining clock/health enforcement review. G3.5 is still open. Groups 1/2/3/4/5/6: **100/100/80/0/0/0%; 14/30 = 46.7%**. No broker login, quote or order readiness is granted by this repair.
+
+## E259 compatibility correction
+
+The first SYSTEM worker failed before any mutation because a clean Windows PowerShell 5.1 process had not loaded System.ServiceProcess. Mocks and syntax checks did not exercise that path. The helper now loads that assembly explicitly when needed before constructing the controller; full System namespace names are used. The regression test reproduces the original failure against cffa46a and passes with the fix, exercising the real read-only snapshot, enum and controller in fresh PS5.1 and PS7 processes. This is not proof of SYSTEM service-start or NTP success.
+
+The receipt confirms mutationAttempted=false, commands empty, resyncRequested=false and taskRemoved=true. A retry is appropriate using the same pinned E258 diagnostic and live baseline checks. The observed existing source is time.windows.com,0x9; its availability is still unproven. No manual task cleanup or service-permission changes are needed.

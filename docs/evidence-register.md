@@ -1,6 +1,9 @@
 # Evidence register and verification procedure
 
-**Current E258, 2026-11-15:** Windows Time access diagnosis captured in 7.911s: stopped/manual service; elevated administrator lacks SERVICE_START, SYSTEM has the required rights. Six source hashes match 2592b23. [Next: one-time SYSTEM repair preserving service ACL and existing time peers](paytm-time-service-repair.md). Offline verification: 47 assertions and four controller workflows; actual repair and fresh clock comparison pending. G3.5 remains blocked; groups 100/100/80/0/0/0, 14/30 (46.7%), unchanged.
+**Current E259, 2026-11-15:** Repair stopped before mutation: fresh PS5.1 worker lacked the ServiceController assembly; zero repair commands, no resync, temporary task removed (11.185s). All three source hashes match cffa46a. Explicit assembly loading fixes the reproduced defect; real read-only fresh-process tests pass in PS5.1 and PS7, plus 47 helper assertions/four controller fixtures. [Retry the corrected repair](paytm-time-service-repair.md); clock alignment remains pending. Groups 100/100/80/0/0/0;14/30 (46.7%), unchanged.
+
+
+**Historical E258, 2026-11-15:** Windows Time access diagnosis captured in 7.911s: stopped/manual service; elevated administrator lacks SERVICE_START, SYSTEM has the required rights. Six source hashes match 2592b23. [Next: one-time SYSTEM repair preserving service ACL and existing time peers](paytm-time-service-repair.md). Offline verification: 47 assertions and four controller workflows; actual repair and fresh clock comparison pending. G3.5 remains blocked; groups 100/100/80/0/0/0, 14/30 (46.7%), unchanged.
 
 
 - **E257 CLOCK_FINDINGS_CAPTURED:** [Evidence](evidence/paytm-clock-findings-20261115.json). Complete10 samples, six hashes verified; VPS16.188-17.325s ahead of Windows, Java closely matches Windows. NTP yes5/5. Screen failed; G3.5 not accepted. [Current Windows diagnosis next](paytm-clock-drift-followup.md).

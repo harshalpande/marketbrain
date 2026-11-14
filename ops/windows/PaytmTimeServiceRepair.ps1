@@ -1,4 +1,11 @@
 # PS5-compatible definitions. No actions on import.
+function Initialize-PaytmTimeRepairRuntime {
+ # A fresh Windows PowerShell 5.1 worker does not preload System.ServiceProcess.
+ if(-not ('System.ServiceProcess.ServiceController' -as [type])){
+  Add-Type -AssemblyName System.ServiceProcess -ErrorAction Stop
+ }
+ if(-not ('System.ServiceProcess.ServiceController' -as [type]) -or -not ('System.ServiceProcess.ServiceControllerStatus' -as [type])){throw 'TIME_REPAIR_SERVICE_ASSEMBLY_UNAVAILABLE'}
+}
 function Invoke-PaytmTimeRepairNative([string]$Tool,[string]$Arguments,[int]$Seconds=15) {
  if($Tool -cnotin @('sc.exe','w32tm.exe')){throw 'TIME_REPAIR_TOOL'}
  if($Arguments -cnotin @('sdshow W32Time','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source')){throw 'TIME_REPAIR_ARGUMENTS'}
@@ -15,6 +22,7 @@ function Invoke-PaytmTimeRepairNative([string]$Tool,[string]$Arguments,[int]$Sec
  }finally{if($started -and -not $p.HasExited){$p.Kill();[void]$p.WaitForExit(3000)};$p.Dispose()}
 }
 function Get-PaytmTimeRepairSnapshot {
+ Initialize-PaytmTimeRepairRuntime
  $key=[Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SYSTEM\CurrentControlSet\Services\W32Time')
  $parameters=$null;$client=$null;$policy=$null;$svc=$null
  try{
@@ -22,7 +30,7 @@ function Get-PaytmTimeRepairSnapshot {
   $parameters=$key.OpenSubKey('Parameters');$client=$key.OpenSubKey('TimeProviders\NtpClient')
   if(-not $parameters -or -not $client){throw 'TIME_REPAIR_SOURCE_CONFIGURATION_MISSING'}
   $policy=[Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SOFTWARE\Policies\Microsoft\W32Time')
-  $svc=[ServiceProcess.ServiceController]::new('W32Time')
+  $svc=[System.ServiceProcess.ServiceController]::new('W32Time')
   $sd=Invoke-PaytmTimeRepairNative 'sc.exe' 'sdshow W32Time'
   if($sd.exitCode -ne 0 -or $sd.output.Trim() -notmatch '^D:'){throw 'TIME_REPAIR_SECURITY_QUERY'}
   [pscustomobject]@{state=$svc.Status.ToString();startType=[int]$key.GetValue('Start');imagePath=[string]$key.GetValue('ImagePath');account=[string]$key.GetValue('ObjectName');sddl=$sd.output.Trim();policyPresent=($null -ne $policy);type=[string]$parameters.GetValue('Type');ntpServer=[string]$parameters.GetValue('NtpServer');ntpClientEnabled=[int]$client.GetValue('Enabled')}
@@ -61,6 +69,7 @@ function Invoke-PaytmTimeRepairSequence($Report,[scriptblock]$Save) {
 }
 
 function Wait-PaytmTimeRepairRunning {
- $svc=[ServiceProcess.ServiceController]::new('W32Time')
- try{$svc.WaitForStatus([ServiceProcess.ServiceControllerStatus]::Running,[TimeSpan]::FromSeconds(20))}finally{$svc.Dispose()}
+ Initialize-PaytmTimeRepairRuntime
+ $svc=[System.ServiceProcess.ServiceController]::new('W32Time')
+ try{$svc.WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Running,[TimeSpan]::FromSeconds(20))}finally{$svc.Dispose()}
 }

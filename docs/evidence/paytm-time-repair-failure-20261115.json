@@ -1,0 +1,17 @@
+{
+  "evidenceId": "E259",
+  "receipt": "paytm-time-repair-90c9e15d006e42c1a54520678f0100da.json",
+  "sha256": "16CB4DB6241ED598FEBAABCE8B23FCC767B7FE4FC093BF40BE7A7E728656F411",
+  "sourceCommit": "cffa46a",
+  "sourceHashesVerified": 3,
+  "elapsedSeconds": 11.1849317,
+  "status": "REVIEW_REQUIRED",
+  "workerFailure": "Unable to find type [ServiceProcess.ServiceController].",
+  "mutationAttempted": false,
+  "resyncRequested": false,
+  "repairCommandCount": 0,
+  "taskRemoved": true,
+  "clockAlignmentVerified": false,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}
