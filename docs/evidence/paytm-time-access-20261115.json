@@ -1,0 +1,18 @@
+{
+  "evidenceId": "E258",
+  "receipt": "paytm-windows-time-access-20261115-005901-8ed634625bae4a1d912cb65d17e48648.json",
+  "sha256": "68D4CCA6429665966142830CFEC6AE11819BA400A209927F01BEFA87769E6EC1",
+  "status": "TIME_ACCESS_CAPTURED_REPAIR_REVIEW_PENDING",
+  "elapsedSeconds": 7.911,
+  "serviceState": "Stopped",
+  "startType": "Manual",
+  "administratorEnabled": true,
+  "administratorServiceStartAllowed": false,
+  "systemServiceStartAllowed": true,
+  "sourceHashCount": 6,
+  "sourceCommit": "2592b23",
+  "repairAccepted": false,
+  "clockAlignmentAccepted": false,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}

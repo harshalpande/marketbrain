@@ -1,6 +1,9 @@
 # E257: current clock mismatch follow-up
 
-**Current E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
+**Current E258, 2026-11-15:** Windows Time access diagnosis captured in 7.911s: stopped/manual service; elevated administrator lacks SERVICE_START, SYSTEM has the required rights. Six source hashes match 2592b23. [Next: one-time SYSTEM repair preserving service ACL and existing time peers](paytm-time-service-repair.md). Offline verification: 47 assertions and four controller workflows; actual repair and fresh clock comparison pending. G3.5 remains blocked; groups 100/100/80/0/0/0, 14/30 (46.7%), unchanged.
+
+
+**Historical E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
 
 Earlier instructions below are historical; use the follow-up linked above.
 

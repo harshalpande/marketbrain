@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+**Current E258, 2026-11-15:** Windows Time access diagnosis captured in 7.911s: stopped/manual service; elevated administrator lacks SERVICE_START, SYSTEM has the required rights. Six source hashes match 2592b23. [Next: one-time SYSTEM repair preserving service ACL and existing time peers](paytm-time-service-repair.md). Offline verification: 47 assertions and four controller workflows; actual repair and fresh clock comparison pending. G3.5 remains blocked; groups 100/100/80/0/0/0, 14/30 (46.7%), unchanged.
+
+
 - **E257 CLOCK_FINDINGS_CAPTURED:** [Evidence](evidence/paytm-clock-findings-20261115.json). Complete10 samples, six hashes verified; VPS16.188-17.325s ahead of Windows, Java closely matches Windows. NTP yes5/5. Screen failed; G3.5 not accepted. [Current Windows diagnosis next](paytm-clock-drift-followup.md).
 
 - **E256 RUNTIME_LATCH_RECOVERY_ACCEPTED:** [Evidence](evidence/paytm-runtime-latch-accepted-20261115.json).33.485s,9 hashes verified, exact runtime latch persisted10.868s, marker archive/one start/recovered route/account/locks passed. G3.2 accepted;14/30 (46.7%). [Fresh clocks next](paytm-clock-refresh.md); G3.5 remains open.
