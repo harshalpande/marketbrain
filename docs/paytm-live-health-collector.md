@@ -1,5 +1,7 @@
 # Live health collector rehearsal after E267
 
+Accepted as E268. No rehearsal rerun needed. Continue with [publisher contract verification](paytm-health-publisher.md).
+
 E267 accepts 30 JUnit tests including 39 guard assertions on the spare laptop, 111.486 seconds and successful container cleanup. All 18 source hashes match 5eae02e. The report confirms no live collector, running-application changes or orders. Evidence: evidence/paytm-health-bridge-accepted-20261115.json.
 
 ## What this step establishes

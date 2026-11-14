@@ -1,0 +1,20 @@
+{
+  "evidence": "E268",
+  "file": "paytm-live-health-20261115-022556-78ae275dd4234715b40498b204109820.json",
+  "sha256": "2F4A4F7CACCB50EA5DC6A0305421EA1B74D0BF1DFD97CD72DF720E2BD1D405BC",
+  "sourceRevision": "d2c5cf1",
+  "sourceCount": 8,
+  "elapsedSeconds": 97.7987532,
+  "status": "LIVE_HEALTH_COLLECTION_PASSED_PUBLISHER_PENDING",
+  "roundsPassed": 3,
+  "roundSeconds": [
+    2.000817,
+    1.6814476,
+    1.7049179
+  ],
+  "containerUnchanged": true,
+  "keyCleanupOwnerConfirmed": true,
+  "healthSubmitted": false,
+  "applicationTransportVerified": false,
+  "ordersEnabled": false
+}
