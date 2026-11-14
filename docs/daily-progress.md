@@ -1,6 +1,8 @@
 # Daily progress and decision log
 
-**Current E247, 2026-11-14:** Current-state report confirms worker STOPPED, disabled task and absent process after overflow. Saved counters:one connection attempt, zero transport failures; final HTTPS probe621ms. [Next: guarded five-minute capture rerun](paytm-capture-resume.md), corrected bounded report storage, no installed-code replacement. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+**Current E248, 2026-11-14:** Diagnostic collection accepted:303.812s,55 ready samples, zero sampled outages/recorded transport failures; final stop, account and locks passed. Report22,202 bytes. [Next: existing30-minute stability check after guarded start](paytm-tls-stability.md), no installed-code change. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E247, 2026-11-14:** Current-state report confirms worker STOPPED, disabled task and absent process after overflow. Saved counters:one connection attempt, zero transport failures; final HTTPS probe621ms. [Next: guarded five-minute capture rerun](paytm-capture-resume.md), corrected bounded report storage, no installed-code replacement. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 
 **E246 follow-up:** Owner reports no saved JSON. Current-state-only collector now requires no checkpoint; five local workflows passed. Same read-only boundary and unchanged readiness.
 

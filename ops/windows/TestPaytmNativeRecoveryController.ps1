@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture)
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture)
 if($TlsResumeFixture){$TlsPhaseFixture=$true}
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1')
@@ -77,6 +77,10 @@ try{
    $extra.TlsCaptureResume=$true
    [IO.File]::WriteAllText((Join-Path $ops 'PaytmTlsCaptureResume.ps1'),'# mocked adapter')
   }
+  if($TlsStabilityFixture){
+   $extra.TlsStabilityRecovery=$true
+   [IO.File]::WriteAllText((Join-Path $ops 'PaytmTlsStabilityRecovery.ps1'),'# mocked adapter')
+  }
   if($case -eq 'pass'){
    # Test controller completion only with a shortened local copy; production has
    # no duration switch. The 30-minute spare observation is explicitly pending.
@@ -96,6 +100,7 @@ try{
   if($files.Count -ne 1){throw $caught};Check ($files.Count -eq 1) 'ONE_REPORT'
   $v=Read-PaytmHostJson $files[0].FullName 65536
   if($TlsResumeFixture){Check ($v.recoveryMode -ceq 'TLS_CAPTURE_RESUME_NO_CODE_REPLACEMENT') 'RESUME_MODE_WIRED'}
+  if($TlsStabilityFixture){Check ($v.recoveryMode -ceq 'TLS_STABILITY_AFTER_ACCEPTED_CAPTURE_NO_CODE_REPLACEMENT') 'STABILITY_MODE_WIRED'}
   if($TlsPhaseFixture -and $case -eq 'pass'){
    Check ($v.status -ceq 'TLS_DIAGNOSTICS_CAPTURED_GATEWAY_STOPPED_REVIEW_REQUIRED' -and -not $v.soakPassed -and $v.failureStopVerified -and $v.diagnostic.captureCompleted -and $global:mbNativeControllerFixture.stops -eq 1) 'DIAGNOSTIC_SUCCESS_STOPS_WITHOUT_HEALTH_CREDIT'
    continue

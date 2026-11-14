@@ -1,5 +1,7 @@
 # E247: cleanup confirmed; resume the bounded five-minute capture
 
+**E248 accepted:** Do not rerun this capture adapter. Continue with [sustained stability verification](paytm-tls-stability.md).
+
 The November14 report `48dea31593e345bc95eee1bf4ed94b5b` is accepted as current-state evidence. SHA256 `080D3CBE26AB0872DE413CFB5DDFB481745A822EA6354ECD0C23A20D4BF52D59`; all three source hashes match. Worker `c1fb4e25f96c4e0daca23210ff30a883`/PID3708 is STOPPED at sequence196, elapsed228.818s; task disabled/result267014, control STOP, process absent, no startup-failure or blocked marker. Saved transport counters are one attempt and zero failures. Final recorded probe:621ms native elapsed, proxy CONNECT200, TLS handshake completion442ms and HTTP503. HTTP503 proves a completed TLS/HTTP exchange only, not broker API readiness. This snapshot does not establish an entire300-second observation or independently verify paper balance/application locks.
 
 The reporting overflow stopped the earlier run. Resume with the compact collector; do not repeat installation or reuse the original worker receipt. A new adapter pins this exact current-state receipt and rechecks the stopped worker/sequence, disabled task, STOP control, installed hashes/diagnostic source versions, absent failure markers/checkpoint and free listener. It holds the worker lease, copies and verifies ten files, rechecks them, archives the old status, enables the owned task and starts once. Installed source, manifest and keys are preserved.

@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E248 TLS_CAPTURE_ACCEPTED_STABILITY_PENDING:** [Evidence](evidence/paytm-tls-capture-accepted-20261114.json), [handoff](paytm-tls-stability.md). Ten source hashes match;303.812s capture,55 ready samples/no sampled outages, one attempt/zero failures, final stop/account/locks pass.22,202-byte report. No new checkpoint credit;30-minute stability next.
+
 - **E247 CAPTURE_CLEANUP_CONFIRMED_RERUN_PENDING:** [Evidence](evidence/paytm-capture-state-accepted-20261114.json), [handoff](paytm-capture-resume.md). Three hashes match; disabled task, STOPPED worker, absent process; one attempt/zero recorded failures over228.818s. Bounded five-minute capture rerun pending; no installed-code change or progress increment.
 
 - **E246 CAPTURE_REPORT_SIZE_BUG_FIXED_STATE_PENDING:** [Review/handoff](paytm-capture-size-recovery.md). Console43 ready/zero sampled outages at228s then64KiB failure. Old overflow reproduced;200 atomic writes of fixed bounded report end at35,274 bytes. Cleanup fallback verified. Current state pending; no milestone increase.

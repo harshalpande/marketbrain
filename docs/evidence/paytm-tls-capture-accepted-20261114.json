@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E248",
+  "sourceRunId": "10103fb0a49f4d8583abf08375aef49f",
+  "sourceSha256": "6BE34F12BD1147453E7DA3841C1588FAC4B2E7634DF7A3FA708553863485E0E4",
+  "sourceHashesVerified": 10,
+  "captureControllerSeconds": 303.812,
+  "totalSeconds": 325.229,
+  "readyStateSamples": 55,
+  "outageSamples": 0,
+  "samplesDropped": 0,
+  "recordedConnectionAttempts": 1,
+  "recordedTransportFailures": 0,
+  "reportBytes": 22202,
+  "stopVerified": true,
+  "accountPreserved": true,
+  "finalApplicationLockVerified": true,
+  "thirtyMinuteStabilityPassed": false,
+  "historicalCauseEstablished": false,
+  "nextStep": "One guarded start and existing 30-minute stability check, no code replacement",
+  "acceptedCheckpoints": 12,
+  "totalCheckpoints": 30
+}
