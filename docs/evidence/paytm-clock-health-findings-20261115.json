@@ -1,0 +1,26 @@
+{
+  "evidenceId": "E263",
+  "receipt": "paytm-clock-health-6ee77eb88e18431ebe55db990ef76ce5.json",
+  "sha256": "2D2EF859C6EAD50E44880FC1EEDA04E31EC6808CF6E997E0D80B4E56820518E3",
+  "sourceCommit": "6b896f1",
+  "sourceHashesVerified": 3,
+  "elapsedSeconds": 75.1868512,
+  "findings": [
+    "SYNC_STATUS_UNCONFIRMED"
+  ],
+  "peerOffsetsSeconds": [
+    -0.0104677,
+    0.0194237,
+    0.025849,
+    0.0139399,
+    0.0197535,
+    0.0130435,
+    0.0219799,
+    0.0356891,
+    0.0168809
+  ],
+  "healthAccepted": false,
+  "servicePreserved": true,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}

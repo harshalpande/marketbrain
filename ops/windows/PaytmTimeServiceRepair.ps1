@@ -8,7 +8,7 @@ function Initialize-PaytmTimeRepairRuntime {
 }
 function Invoke-PaytmTimeRepairNative([string]$Tool,[string]$Arguments,[int]$Seconds=15) {
  if($Tool -cnotin @('sc.exe','w32tm.exe')){throw 'TIME_REPAIR_TOOL'}
- if($Arguments -cnotin @('sdshow W32Time','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source','/query /configuration /verbose','/query /peers /verbose','/stripchart /computer:time.windows.com /dataonly /samples:3 /period:2')){throw 'TIME_REPAIR_ARGUMENTS'}
+ if($Arguments -cnotin @('/config /manualpeerlist:time.windows.com,0x8 /update','/config /manualpeerlist:time.windows.com,0x9 /update','sdshow W32Time','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source','/query /configuration /verbose','/query /peers /verbose','/stripchart /computer:time.windows.com /dataonly /samples:3 /period:2')){throw 'TIME_REPAIR_ARGUMENTS'}
  $p=[Diagnostics.Process]::new();$p.StartInfo.FileName=Join-Path $env:WINDIR ('System32\'+$Tool)
  $p.StartInfo.Arguments=$Arguments;$p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true
  $p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true;$started=$false
@@ -86,4 +86,57 @@ function Get-PaytmTimeSyncAssessment($StatusCommand,$SourceCommand) {
  $known=$leap.Success -and $stratum.Success -and $errorCode.Success
  $ok=$known -and $StatusCommand.exitCode -eq 0 -and $SourceCommand.exitCode -eq 0 -and [int]$leap.Groups[1].Value -lt 3 -and [int]$stratum.Groups[1].Value -ge 1 -and [int]$stratum.Groups[1].Value -le 15 -and [int]$errorCode.Groups[1].Value -eq 0 -and $source -match '(?i)^time\.windows\.com(?:,0x[0-9a-f]+)?$'
  [pscustomobject]@{synchronizedReported=[bool]$ok;recognizedEnglishStatus=[bool]$known;source=$source;absoluteAccuracyProven=$false;alignmentVerified=$false}
+}
+
+function Assert-PaytmPollingBaseline($v) {
+ if($v.state -cne 'Running' -or $v.startType -ne 2 -or $v.ntpServer -cne 'time.windows.com,0x9'){throw 'TIME_POLLING_BASELINE_CHANGED'}
+ $copy=$v | Select-Object *;$copy.state='Stopped';$copy.startType=3
+ Assert-PaytmTimeRepairBaseline $copy
+}
+function Assert-PaytmPollingPreserved($Before,$After,[string]$Peer) {
+ if($After.ntpServer -cne $Peer -or $After.state -cne 'Running' -or $After.startType -ne 2){throw 'TIME_POLLING_FINAL_STATE'}
+ $copy=$After | Select-Object *;$copy.ntpServer=$Before.ntpServer
+ Assert-PaytmTimeRepairPreserved $Before $copy
+}
+function Wait-PaytmPollingSample {Start-Sleep -Seconds 10}
+function Invoke-PaytmPollingSequence($Report,[scriptblock]$Save) {
+ $Report.before=Get-PaytmTimeRepairSnapshot;Assert-PaytmPollingBaseline $Report.before
+ $Report.originalPeer=$Report.before.ntpServer;$Report.samples=@();$Report.rollbackAttempted=$false;$Report.rollbackVerified=$false
+ & $Save # Protected worker.json is the before-image; failure to save prevents mutation.
+ try{
+  $Report.mutationAttempted=$true;& $Save
+  $c=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/config /manualpeerlist:time.windows.com,0x8 /update' 20
+  $Report.commands+=,$c;& $Save
+  if($c.exitCode -ne 0 -or $c.output -notmatch '(?im)^The command completed successfully\.\s*$'){throw 'TIME_POLLING_CONFIG_FAILED'}
+  Assert-PaytmPollingPreserved $Report.before (Get-PaytmTimeRepairSnapshot) 'time.windows.com,0x8'
+  $c=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/resync /rediscover' 40
+  $Report.commands+=,$c;$Report.resyncRequested=$true;& $Save
+  for($i=0;$i -lt 3;$i++){
+   Wait-PaytmPollingSample
+   $a=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /status /verbose' 15
+   $b=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /source' 15
+   $Report.samples+=,@{status=$a;source=$b;assessment=(Get-PaytmTimeSyncAssessment $a $b)};& $Save
+  }
+  $Report.after=Get-PaytmTimeRepairSnapshot
+  Assert-PaytmPollingPreserved $Report.before $Report.after 'time.windows.com,0x8'
+  if($c.exitCode -ne 0 -or $c.output -notmatch '(?im)^The command completed successfully\.\s*$' -or $c.output -match '(?i)did not resync|no time data'){throw 'TIME_POLLING_RESYNC_FAILED'}
+  if(@($Report.samples|Where-Object {-not $_.assessment.synchronizedReported}).Count){throw 'TIME_POLLING_SYNC_UNCONFIRMED'}
+  $Report.status='TIME_POLLING_CHANGED_SYNC_OBSERVED_RELEASE_PENDING'
+ }catch{
+  $originalError=$_.Exception.Message
+  if($Report.mutationAttempted){try{
+   $current=Get-PaytmTimeRepairSnapshot
+   if($current.ntpServer -ceq 'time.windows.com,0x8'){
+    Assert-PaytmPollingPreserved $Report.before $current 'time.windows.com,0x8'
+    $Report.rollbackAttempted=$true;& $Save
+    $undo=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/config /manualpeerlist:time.windows.com,0x9 /update' 20
+    $Report.commands+=,$undo;& $Save
+    if($undo.exitCode -ne 0 -or $undo.output -notmatch '(?im)^The command completed successfully\.\s*$'){throw 'TIME_POLLING_ROLLBACK_COMMAND_FAILED'}
+   }
+   $Report.after=Get-PaytmTimeRepairSnapshot
+   Assert-PaytmPollingPreserved $Report.before $Report.after $Report.originalPeer
+   $Report.rollbackVerified=$true
+  }catch{$Report.cleanupFailure=$_.Exception.Message}}
+  throw $originalError
+ }
 }

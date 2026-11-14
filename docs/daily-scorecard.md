@@ -1,6 +1,9 @@
 # Daily delivery scorecard
 
-**Current E262, 2026-11-15:** Three-clock screen accepted in91.317s:10/10 usable observations, VPS NTP yes5/5, no findings, container unchanged and key cleanup confirmed. Bounds versus Windows: VPS -0.043..+0.964s; Java -0.086..+0.073s. Six source hashes matchc7d8f18. Prior16-17s mismatch absent in this observation; durable Windows synchronization remains unproven. [Next: bounded read-only clock-health batch](paytm-clock-health.md). G3.5 stays open;14/30 (46.7%), groups100/100/80/0/0/0.
+**Current E263, 2026-11-15:** Health capture completed in75.187s; all nine peer offsets -10.468..+35.689ms, service Running/Automatic and configuration preserved. All three service observations remain unsynchronized; no health acceptance. Three source hashes match6b896f1. Owner authorized [controlled polling correction with rollback](paytm-polling-correction.md): same server,0x9 to0x8, one SYSTEM task, resync and three status samples. Local tests only; runtime pending. Groups100/100/80/0/0/0;14/30 (46.7%), unchanged.
+
+
+**Historical E262, 2026-11-15:** Three-clock screen accepted in91.317s:10/10 usable observations, VPS NTP yes5/5, no findings, container unchanged and key cleanup confirmed. Bounds versus Windows: VPS -0.043..+0.964s; Java -0.086..+0.073s. Six source hashes matchc7d8f18. Prior16-17s mismatch absent in this observation; durable Windows synchronization remains unproven. [Next: bounded read-only clock-health batch](paytm-clock-health.md). G3.5 stays open;14/30 (46.7%), groups100/100/80/0/0/0.
 
 
 **Historical E261, 2026-11-15:** Read-only source review captured in6.243s. Three stripchart offsets +6.275/+14.154/+18.705ms; events37/35 record valid data/synchronization. Current status still leap3/stratum0/error1: conflicting evidence, not synchronization acceptance. Both source hashes matcha7405e4; service remains Running/Automatic and configuration unchanged. [Next: independent three-clock comparison](paytm-clock-after-source-review.md), no repair rerun or peer changes. G3.5 remains open; groups100/100/80/0/0/0;14/30 (46.7%).
