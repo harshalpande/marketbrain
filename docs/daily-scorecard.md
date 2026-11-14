@@ -1,5 +1,7 @@
 # Daily delivery scorecard
 
+**Current E249, 2026-11-14:** Sustained gateway stability accepted: 1803.187 seconds, 144 observations, same worker and SSH child, one connection attempt and zero recorded transport failures. Both application routes, unchanged INR100000 paper account and final locks passed. [Next: fresh sign-out and full shutdown/startup verification](paytm-gateway-session.md). Groups 100/100/40/0/0/0; 12/30 (40%), unchanged until G3.4 passes. Broker authentication and quotes remain untested.
+
 **Current E242, 2026-11-13:** AfterLogoff failed with HOST_AGENT_UNAVAILABLE; TLS instability also existed before sign-out. [Next: agent-query/native-phase diagnostic recovery](paytm-agent-recovery.md). Do not proceed to shutdown or reuse the old session phase. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
 
 **Historical E241, 2026-11-13:** Windows diagnostic recovery accepted: 1805.703s soak, 129 observations, zero reconnects/failures, both application routes and final locks/account passed. [Next: fresh sign-out/full-shutdown workflow](paytm-gateway-session.md). No rebuild or recovery rerun. Groups 100/100/40/0/0/0; 12/30 (40%), G3.4 pending.

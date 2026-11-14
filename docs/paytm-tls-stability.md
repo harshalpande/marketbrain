@@ -1,3 +1,9 @@
+# E249: stability accepted; do not rerun recovery
+
+**Current E249, 2026-11-14:** Sustained gateway stability accepted: 1803.187 seconds, 144 observations, same worker and SSH child, one connection attempt and zero recorded transport failures. Both application routes, unchanged INR100000 paper account and final locks passed. [Next: fresh sign-out and full shutdown/startup verification](paytm-gateway-session.md). Groups 100/100/40/0/0/0; 12/30 (40%), unchanged until G3.4 passes. Broker authentication and quotes remain untested.
+
+The E248 recovery instructions below are historical.
+
 # E248: successful diagnostic capture; sustained stability next
 
 Accepted November14,2026: `10103fb0a49f4d8583abf08375aef49f`, SHA256 `6BE34F12BD1147453E7DA3841C1588FAC4B2E7634DF7A3FA708553863485E0E4`. All ten source hashes match e453746 with CRLF. Capture completed at303.812 controller seconds; total325.229s. There are55 ready-state samples, zero sampled outages, zero dropped samples, one recorded connection attempt and zero recorded transport failures. Sampled latest-probe elapsed values range488–1706ms (repeated observations are not independent requests). Same worker and SSH child persisted in sampled evidence. Final stop/disable verification, unchanged paper account and application/writer locks passed. The22,202-byte report fits the unchanged64KiB bound.

@@ -1,28 +1,8 @@
-# Current E242: session testing paused after agent-query failure
+# E249: fresh sign-out and full shutdown/startup verification
 
-AfterLogoff failed with HOST_AGENT_UNAVAILABLE. Do not proceed to full shutdown or repeat the previous phases. [Agent-query/native-timing diagnostic recovery](paytm-agent-recovery.md) is the next handoff. The old checkpoint is preserved until verified archival in recovery; a new worker will require a fresh baseline. Progress remains 40%, with G3.4 pending.
+**Current E249, 2026-11-14:** Sustained gateway stability accepted: 1803.187 seconds, 144 observations, same worker and SSH child, one connection attempt and zero recorded transport failures. Both application routes, unchanged INR100000 paper account and final locks passed. [Next: fresh sign-out and full shutdown/startup verification](paytm-gateway-session.md). Groups 100/100/40/0/0/0; 12/30 (40%), unchanged until G3.4 passes. Broker authentication and quotes remain untested.
 
-## Historical E241 handoff: fresh sign-out and full shutdown test
-
-The 2026-11-13 diagnostic recovery passed its full 30-minute observation. Use the existing session controller in elevated PowerShell 7 on the spare laptop. Docker and the existing application container must be running. Pull the documentation update once before the Before phase; do not pull or modify installed code between phases because the checkpoint pins collector and installation hashes.
-
-1. Run `TestPaytmGatewaySession.ps1 -Phase Before`. Continue only on `BASELINE_SAVED_AWAITING_SIGNOUT`. This stores the current worker and Windows logon baseline, checks the application route and restores locks. Save other work, then use Windows **Sign out**, not lock or switch user. Sign back in as the same Windows user. Start Docker Desktop/the existing application container if needed; never manually start the gateway task, import keys or use Pageant.
-2. Run `TestPaytmGatewaySession.ps1 -Phase AfterLogoff -ConfirmSignedOut -ConfirmNoManualGatewayStart`. Continue only on `LOGOFF_PASSED_AWAITING_FULL_SHUTDOWN`. This requires a new interactive logon and the same advancing background gateway worker. Save work and perform a normal full shutdown using `shutdown.exe /s /t 0`. Wait until powered off, then turn the laptop on and sign in as the same user. Do not unplug power or run a manual gateway start. Open Docker Desktop and start the same application container if needed; do not rebuild or recreate it.
-3. Run `TestPaytmGatewaySession.ps1 -Phase AfterBoot -ConfirmFullShutdown -ConfirmNoManualGatewayStart`. Expected status `GATEWAY_LOGOFF_AND_FULL_BOOT_PASSED`. This requires a new Windows boot and fresh gateway worker already started before collection, and verifies application/account/locks. Share the single accumulated `paytm-gateway-session-*.json` printed by the controller. The existing phase report filename is reused; it contains prior phase proofs.
-
-If any phase throws or prints REVIEW_REQUIRED, stop and share that JSON. Do not proceed to the next power/session action, reinstall, delete the checkpoint or rerun the recovery script. Each collection is normally a few minutes plus Windows/Docker startup time. This is an orderly shutdown test, not an abrupt-power-loss guarantee. G3.4 credit is pending review of the completed report; current group percentages remain 100/100/40/0/0/0 (12/30, 40%). Older paused instructions below are historical.
-
-# Gateway sign-out and full shutdown/startup verification
-
-**Current E237, 2026-11-13:** Account signing accepted: expected key and two signatures passed, temporary task removed, production state preserved. [Next: archived gateway recovery and 30-minute observation](paytm-agent-recovery.md). Original failure cause remains unknown. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
-
-**Historical E236, 2026-11-06:** Agent diagnostic accepted in **4.957s**; four source hashes match `f8a3061` CRLF. ssh-agent was Running/automatic with zero exit codes; all six event queries were empty, and the checkpoint was unchanged. The production worker is stopped; historical cause remains unknown. [Next: dedicated-account local signing](paytm-agent-signing.md), one temporary task and one JSON, preserving production state. Full shutdown remains paused. Groups **100/100/40/0/0/0, 12/30 (40%)**, unchanged.
-
-**Historical E235, 2026-11-06:** Session baseline passed; AfterLogoff stopped after **49.36s** with `HOST_AGENT_UNAVAILABLE` in the background worker. All eight source hashes match `7c9e321` with CRLF. The report does not distinguish an SSH-agent query timeout from a nonzero exit. [Next: read-only service/event evidence](paytm-agent-failure.md), one JSON; preserve the checkpoint and pause sign-out/shutdown testing. Current gateway health is blocked. Groups remain **100/100/40/0/0/0, 12/30 (40%)**, with no new checkpoint accepted.
-
-**Historical E234, 2026-11-05:** Native recovery and 30-minute observation accepted: **1847.099s total, 1809.708s observation, 129 observations**, all six source hashes match `60cc983`. Eight-file archive verified, one start, same worker/SSH child, zero transport failures/reconnects; both application route checks, final application/writer locks and unchanged INR100000 account pass. Original historical native operation remains unknown. [Next: baseline, actual Windows sign-out and full shutdown/startup](paytm-gateway-session.md), one report across three phases. A missing application-checkpoint callback was caught locally and corrected before handoff. No recovery/network repeat. Groups remain **100/100/40/0/0/0, 12/30 (40%)**; G3.4 closes only after its final runtime report passes.
-
-**Paused at E236.** Run the [dedicated-account signing check](paytm-agent-signing.md) only. The three-phase procedure below is retained for reference; do not execute it until recovery and checkpoint handling are reviewed.
+This handoff supersedes the paused E242 session instructions. The new stability run passed; do not rerun recovery. Use a fresh Before phase, then AfterLogoff and AfterBoot in order. The collector refuses any unexpected existing checkpoint.
 
 ## Purpose and limits
 
