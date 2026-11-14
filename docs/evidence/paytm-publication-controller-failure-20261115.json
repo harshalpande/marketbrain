@@ -1,0 +1,14 @@
+{
+  "evidence": "E273",
+  "file": "paytm-live-publication-20261115-031022-bf24ede74428471694f317edba710e2a.json",
+  "sha256": "0A77CC493A2D65329D3421C4EFD3C33FA7644B5E72473272196F569DD8ABDB7F",
+  "status": "REVIEW_REQUIRED",
+  "elapsedSeconds": 3.9669091,
+  "observed": "LOCATE exit zero; discovery still DISCOVERING; no publication attempted",
+  "codeDiagnosis": "Missing Save-Report hook required by Invoke-PaytmPrivateDocker; original error masked by controller generic classification",
+  "healthPublicationAttempted": false,
+  "finalRevocationVerified": false,
+  "fix": "Add checkpoint adapter and preserve allowlisted application error codes; exercise actual discovery helper in fixtures",
+  "localControllerFixturesPassed": 7,
+  "runtimeRerunPending": true
+}

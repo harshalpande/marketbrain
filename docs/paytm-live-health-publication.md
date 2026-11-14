@@ -2,6 +2,10 @@
 
 E272 accepts deployment in 195.378 seconds, including authentication, unhealthy input, replay, expiry and restart rejection. All eight source hashes match 6baf042. No rollback was necessary. The paper account is preserved and writer/route remain locked.
 
+## Correction after E273
+
+The first run stopped before publication because the shared Docker helper called a missing Save-Report checkpoint hook. This was a controller defect, not evidence of a Docker or gateway outage. The hook now delegates to Save-LiveHealth. Safe application helper error codes are preserved instead of replaced by a generic clock error. Rerun the same command below; do not redeploy. Final revocation/account/writer checks were not reached in the failed run and are not claimed as verified by that report.
+
 ## Purpose and limits
 
 This test connects the already verified collector and publisher to the deployed bridge. Three fresh challenge-then-collect rounds check Windows synchronization, pinned VPS time, Java time and Windows fixed-proxy TLS. Java independently checks its own proxy TLS before accepting health. No saved report is replayed as health. The accepted activation report pins the deployed image; the script reads tokens privately from the validated container environment.
@@ -12,7 +16,7 @@ The script preserves account, writer lock, container identity and time-service s
 
 ## Verification
 
-Six controller fixtures exercise the real publisher with mocked OS/Docker/SSH/HTTP: success, unhealthy clock input, collection failure, server rejection, account drift and final revocation failure. They verify failure status, cleanup and absence of tokens in evidence. Existing collector and publisher component checks remain applicable. Runtime acceptance requires the spare-laptop report.
+Seven controller fixtures exercise the real publisher with mocked OS/Docker/SSH/HTTP: success, unhealthy clock input, collection failure, server rejection, account drift, final revocation failure and native discovery failure. Discovery uses the real shared helper and checkpoint hook; external processes are mocked. They verify failure status, cleanup and absence of tokens in evidence. Existing collector and publisher component checks remain applicable. Runtime acceptance requires the spare-laptop report.
 
 ## Spare laptop steps
 

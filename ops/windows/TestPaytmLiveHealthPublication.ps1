@@ -18,6 +18,7 @@ function Save-LiveHealth {
     $report.elapsedSeconds=$timer.Elapsed.TotalSeconds
     [IO.File]::WriteAllText($path,($report|ConvertTo-Json -Depth 16),[Text.UTF8Encoding]::new($false))
 }
+function Save-Report { Save-LiveHealth } # Shared application helpers checkpoint through this hook.
 try{
     Save-LiveHealth
     if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne '61F63499AA91C62C59C3470B56BC90B13B1BDD6145D370060CB1CC199954BECB'){throw 'LIVE_HEALTH_EVIDENCE_MISMATCH'}
@@ -85,7 +86,7 @@ try{
     if($report.assessment.roundsPassed -ne 3 -or @($report.publications|Where-Object healthAccepted).Count -ne 3){throw 'LIVE_HEALTH_PUBLICATION_NOT_ACCEPTED'}
     $report.status='LIVE_HEALTH_PUBLICATION_PASSED_UNATTENDED_PENDING'
 }catch{
-    $report.failure=if($_.Exception.Message -cmatch '^(CLOCK|LIVE_HEALTH|TIME_REPAIR)_[A-Z_]+$'){$_.Exception.Message}else{'CLOCK_COLLECTION_FAILED_CHECK_LOCAL_PREREQUISITES'}
+    $report.failure=if($_.Exception.Message -cmatch '^(CLOCK|LIVE_HEALTH|TIME_REPAIR|APP_ROUTE|HEALTH_ACTIVATION|HEALTH_PUBLISHER)_[A-Z_]+$'){$_.Exception.Message}else{'CLOCK_COLLECTION_FAILED_CHECK_LOCAL_PREREQUISITES'}
 }finally{
     if($healthToken){
         try{

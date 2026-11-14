@@ -1,5 +1,8 @@
 # MarketBrain: canonical project baseline
 
+**E273 correction, 2026-11-15:** Live publication stopped in 3.967 seconds before publication. Shared Docker helper required Save-Report but the controller only defined Save-LiveHealth. Added the checkpoint adapter and retained safe helper error codes. Seven controller fixtures now exercise real discovery/checkpoint helpers with mocked external processes, including native discovery failure. [Rerun the same publication test](paytm-live-health-publication.md); no rebuild/restart. Readiness unchanged: 14/30 (46.7%), groups 100/100/80/0/0/0.
+
+
 **Current E272, 2026-11-15:** Guarded health activation accepted in 195.378 seconds. All eight script hashes match 6baf042; HTTP negative/replay/expiry and restart checks passed, account preserved, writer and route locked, no rollback needed. [Next: live health publication](paytm-live-health-publication.md), three fresh rounds and final revocation in one run. Six mocked controller workflows passed locally. Healthy publication and unattended collection still await runtime evidence. G1/G2/G3/G4/G5/G6: 100/100/80/0/0/0%; 14/30 = 46.7%, no checkpoint increase.
 
 
