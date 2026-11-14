@@ -52,6 +52,7 @@ function Wait-PaytmManagedHost([string]$Id,[string]$Phase,[string]$PreviousInsta
         Write-Progress -Activity 'Managed Windows transport' -Status ("Waiting for $Phase ($([int]$watch.Elapsed.TotalSeconds)/$TimeoutSeconds seconds)") -PercentComplete 70
         Start-Sleep -Milliseconds 500
     }while($watch.Elapsed.TotalSeconds -lt $TimeoutSeconds)
+    if($v -and $v.phase -cne $Phase){throw 'TRANSPORT_REQUESTED_STATE_TIMEOUT'}
     throw 'TRANSPORT_HEARTBEAT_TIMEOUT'
 }
 function Initialize-PaytmManagedApplication {

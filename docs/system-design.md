@@ -1,6 +1,8 @@
 # System and INR 100,000 paper-portal design
 
-**Current E244, 2026-11-13:** SSH incident evidence accepted:196 journal rows, one gateway key login, no classified throttling entries. Exact connection match and cause unproven. [Next: one controlled recovery without code replacement](paytm-incident-recovery.md), then existing30-minute stability/application/account checks. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+**Current E245, 2026-11-14:** Recovery again failed: HTTPS timeouts after CONNECT200, while BACKOFF heartbeats advanced. Failure cleanup/account/locks passed. [Next: five-minute TLS phase diagnostic with mandatory stop](paytm-tls-phase-diagnostic.md). Misleading readiness timeout corrected; root cause unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E244, 2026-11-13:** SSH incident evidence accepted:196 journal rows, one gateway key login, no classified throttling entries. Exact connection match and cause unproven. [Next: one controlled recovery without code replacement](paytm-incident-recovery.md), then existing30-minute stability/application/account checks. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 
 **Historical E243, 2026-11-13:** Diagnostic recovery reached initial TLS, then failed at reconnect TCP timeout. Cleanup stopped the worker; account and final locks preserved. [Next: read-only SSH incident correlation](paytm-ssh-incident.md), no restart or sign-out. VPS accepted a gateway key, but exact connection matching and cause remain unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 

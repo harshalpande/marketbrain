@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E245 REPEATED_HTTPS_TIMEOUT_TLS_PHASE_DIAGNOSTIC_PENDING:** [Review and handoff](paytm-tls-phase-diagnostic.md). Seven receipt hashes match f76fbda;86.719s, three curl timeouts after CONNECT200. Heartbeats advanced; cleanup/account/locks passed.321 local assertions; five-minute diagnostic mandatory stop, no health acceptance. Cause unproven, groups unchanged.
+
 - **E244 SSH_INCIDENT_ACCEPTED_CONTROLLED_RECOVERY_PENDING:** [Acceptance](evidence/paytm-ssh-incident-accepted-20261113.json), [handoff](paytm-incident-recovery.md). Both source hashes verified;196 journal rows, one key acceptance, zero classified throttle/penalty entries. Cause and current health unproven.199 local recovery assertions pass; runtime pending. No checkpoint increase.
 
 - **E243 RECOVERY_RECONNECT_TIMEOUT_SSH_CORRELATION_PENDING:** [Review and handoff](paytm-ssh-incident.md). Receipt ba7938fb742c4ac8bc289a2dcd2ff175:80.827s, initial TLS passed, subsequent curl timeout and TCP_CONNECT_TIMEOUT; STOP/account/final locks verified. Nine Python tests and six PowerShell collection workflows passed. Read-only historical VPS correlation pending; no cause or checkpoint accepted.

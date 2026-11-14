@@ -25,7 +25,7 @@ function Test-PaytmFirstFailureRunnerHash([string]$Hash){
 }
 function Test-PaytmObservedTransportHash([string]$Hash){
  # E224: bounded stderr drain and structured SSH observations, exact LF/CRLF sources.
- $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash) -or (Test-PaytmTlsObservedTransportHash $Hash) -or (Test-PaytmAgentProbeSourceHash 'PaytmSupervisorTransport.ps1' $Hash)
+ $Hash -cin @('1D36CDBCBAB8BECF1D60355454CCCC7E5EFC370E9FDFF5D19AF3FE439C8E9A75','0A0686E1DED26378AAC7365AE0E426485FDB9FB7C0849D2C9F30BE349781DE81') -or (Test-PaytmOutboundTransportHash $Hash) -or (Test-PaytmTlsPhaseHash $Hash) -or (Test-PaytmTlsObservedTransportHash $Hash) -or (Test-PaytmAgentProbeSourceHash 'PaytmSupervisorTransport.ps1' $Hash)
 }
 function Test-PaytmTlsObservedTransportHash([string]$Hash){
  # Bounded numeric TLS diagnostics; original health and retry policy unchanged.
@@ -113,4 +113,8 @@ function Test-PaytmAgentProbeSourceHash([string]$Name,[string]$Hash){
  'PaytmSupervisorTransport.ps1'=@('8D2734E0C4A2236186745AB541EC255ED17EDC0166DFB9D9B764F58075EF716E','5F2F841D2EE0935225CCF91663A93F3546C2D2037496100B4298FCE622990384')
  }
  $pins.ContainsKey($Name) -and $Hash -cin $pins[$Name]
+}
+
+function Test-PaytmTlsPhaseHash([string]$Hash){
+ $Hash -cin @('F48B2E838C1C877E6A1C714EBB6FD4C1F818C573B139E414BFF08BFF8E34D0BD','AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1')
 }

@@ -1,5 +1,7 @@
 # E244: incident collection accepted; one controlled recovery
 
+**Superseded after failure:** Do not rerun this adapter. Use [E245 TLS phase diagnostics](paytm-tls-phase-diagnostic.md).
+
 The incident report `93a4edc9f423415184a3243b2f76c414` is accepted as collected evidence. SHA256 `841B4F91E312C866E98E50DBA61DA15C055ED00BA375A9B36FCC5432ECA41827`; both source hashes match a686a40 with CRLF. The VPS read196 journal entries without reported truncation: one gateway key acceptance/session opening, zero classified throttling or penalty entries. No disconnect is recorded in this selected window. Absence of a logged event is not proof that it could not occur. `19:02:22+05:30` represents `13:32:22 UTC`; JSON timestamp conversion did not change the instant. Historical clock offset and exact cross-host connection match remain unknown.
 
 ## Why this run

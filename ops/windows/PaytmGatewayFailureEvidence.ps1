@@ -48,11 +48,15 @@ function ConvertTo-PaytmWorkerEvidence($Value){
   $probe=Get-PaytmEvidenceProperty $Value $name
   if($null -eq $probe){continue}
   $o=[ordered]@{}
-  foreach($n in @('version','elapsedMilliseconds','exitCode','connectStatus','tlsVerifyCode','httpStatus','requestedTimeoutMilliseconds','nativeErrorCode','StartMilliseconds','WaitMilliseconds','StopMilliseconds','DrainMilliseconds','TotalMilliseconds')){
+  foreach($n in @('version','elapsedMilliseconds','exitCode','connectStatus','tlsVerifyCode','httpStatus','requestedTimeoutMilliseconds','nativeErrorCode','StartMilliseconds','WaitMilliseconds','StopMilliseconds','DrainMilliseconds','TotalMilliseconds','tcpConnectMilliseconds','tlsHandshakeCompletedMilliseconds','firstByteMilliseconds','curlTotalMilliseconds')){
    $v=Get-PaytmEvidenceProperty $probe $n
    if(($v -is [int] -or $v -is [long]) -and ($v -ge 0 -or $n -ceq 'exitCode')){$o[$n]=$v}
   }
-  foreach($n in @('timedOut','metricsParsed')){$v=Get-PaytmEvidenceProperty $probe $n;if($v -is [bool]){$o[$n]=$v}}
+  foreach($n in @('timedOut','metricsParsed','phaseMetricsParsed')){$v=Get-PaytmEvidenceProperty $probe $n;if($v -is [bool]){$o[$n]=$v}}
+  foreach($n in @('lastCompletedStage','nativeErrorCategory')){
+   $v=Get-PaytmEvidenceProperty $probe $n
+   if($v -cin @('HTTP_RESPONSE_STARTED','TLS_HANDSHAKE_COMPLETED','PROXY_CONNECT_ACCEPTED','LOCAL_PROXY_TCP_CONNECTED','NO_CONNECT_TIMING','CERTIFICATE_OR_REVOCATION','TLS_BACKEND_ERROR','TIMEOUT','RECEIVE_ERROR','UNCLASSIFIED')){$o[$n]=$v}
+  }
   foreach($n in @('operation','classification')){
    $v=Get-PaytmEvidenceProperty $probe $n
    if($v -cin @('LIST_IDENTITIES','TEST_SIGNATURE','UNCLASSIFIED','TIMEOUT','COMMAND_SUCCEEDED','NO_IDENTITIES','AGENT_CONNECTION_ERROR')){$o[$n]=$v}

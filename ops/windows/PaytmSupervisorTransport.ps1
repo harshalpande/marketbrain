@@ -72,14 +72,16 @@ function Start-PaytmTransportChild([string]$Custody) {
     $null=Assert-PaytmGatewayEffectiveConfig $config.Output $known $pub
     [MarketBrain.Transport.Child]::new($tool,[string[]](@('-v')+(Get-PaytmGatewaySshArguments $known $pub)))
 }
-function Invoke-PaytmTransportCurl([string]$Url='https://developer.paytmmoney.com/') {
+function Invoke-PaytmTransportCurl([string]$Url='https://developer.paytmmoney.com/',[switch]$Detailed) {
     if($Url -cnotin @('https://developer.paytmmoney.com/','https://example.com/','https://developer.paytmmoney.com:444/','http://developer.paytmmoney.com/')){throw 'TRANSPORT_URL_INVALID'}
-    [MarketBrain.Supervisor.NativeCommand]::Run('C:\Windows\System32\curl.exe',[string[]]@('-q','--silent','--show-error','--connect-timeout','4','--max-time','6','--max-redirs','0','--proxy','http://127.0.0.1:18889','--noproxy','','--head','--output','NUL','--write-out','%{http_connect}|%{ssl_verify_result}|%{http_code}',$Url),8000)
+    $format='%{http_connect}|%{ssl_verify_result}|%{http_code}'
+    if($Detailed){$format+='|%{time_connect}|%{time_appconnect}|%{time_starttransfer}|%{time_total}'}
+    [MarketBrain.Supervisor.NativeCommand]::Run('C:\Windows\System32\curl.exe',[string[]]@('-q','--silent','--show-error','--connect-timeout','4','--max-time','6','--max-redirs','0','--proxy','http://127.0.0.1:18889','--noproxy','','--head','--output','NUL','--write-out',$format,$Url),8000)
 }
 function Test-PaytmTransportTls($Report=$null) {
     $clock=[Diagnostics.Stopwatch]::StartNew()
     $observation=[ordered]@{version=1;observedUtc=[DateTime]::UtcNow.ToString('o');elapsedMilliseconds=0;exitCode=$null;timedOut=$false;metricsParsed=$false;connectStatus=$null;tlsVerifyCode=$null;httpStatus=$null;exceptionType=$null}
-    try{$r=Invoke-PaytmTransportCurl}catch{
+    try{$r=Invoke-PaytmTransportCurl -Detailed}catch{
         $observation.exceptionType=$_.Exception.GetBaseException().GetType().Name
         $observation.elapsedMilliseconds=$clock.ElapsedMilliseconds
         if($null -ne $Report){Save-PaytmTlsObservation $Report $observation $true}
@@ -90,13 +92,22 @@ function Test-PaytmTransportTls($Report=$null) {
     foreach($name in @('StartMilliseconds','WaitMilliseconds','StopMilliseconds','DrainMilliseconds','TotalMilliseconds')){
         if($r.PSObject.Properties[$name]){$observation[$name]=[long]$r.$name}
     }
-    if($r.Output -cmatch '^([0-9]{3})\|([0-9]{1,9})\|([0-9]{3})$'){
+    $basic=$r.Output
+    if($r.Output -cmatch '^([0-9]{3}\|[0-9]{1,9}\|[0-9]{3})\|([0-9]{1,5}\.[0-9]{1,6})\|([0-9]{1,5}\.[0-9]{1,6})\|([0-9]{1,5}\.[0-9]{1,6})\|([0-9]{1,5}\.[0-9]{1,6})$'){
+        $basic=$Matches[1];$values=@($Matches[2],$Matches[3],$Matches[4],$Matches[5])
+        $names=@('tcpConnectMilliseconds','tlsHandshakeCompletedMilliseconds','firstByteMilliseconds','curlTotalMilliseconds')
+        for($i=0;$i -lt 4;$i++){$observation[$names[$i]]=[long][math]::Round(1000*[double]::Parse($values[$i],[Globalization.CultureInfo]::InvariantCulture))}
+        $observation.phaseMetricsParsed=$true
+        $observation.lastCompletedStage=if($observation.firstByteMilliseconds -gt 0){'HTTP_RESPONSE_STARTED'}elseif($observation.tlsHandshakeCompletedMilliseconds -gt 0){'TLS_HANDSHAKE_COMPLETED'}elseif($basic.StartsWith('200|')){'PROXY_CONNECT_ACCEPTED'}elseif($observation.tcpConnectMilliseconds -gt 0){'LOCAL_PROXY_TCP_CONNECTED'}else{'NO_CONNECT_TIMING'}
+    }
+    $observation.nativeErrorCategory=if($r.Error -match 'certificate|CERT_|revocation'){'CERTIFICATE_OR_REVOCATION'}elseif($r.Error -match 'schannel|SSL|TLS'){'TLS_BACKEND_ERROR'}elseif($r.Error -match 'timed out|Timeout'){'TIMEOUT'}elseif($r.Error -match 'reset|closed|recv|receive'){'RECEIVE_ERROR'}else{'UNCLASSIFIED'}
+    if($basic -cmatch '^([0-9]{3})\|([0-9]{1,9})\|([0-9]{3})$'){
         $observation.metricsParsed=$true;$observation.connectStatus=[int]$Matches[1];$observation.tlsVerifyCode=[int]$Matches[2];$observation.httpStatus=[int]$Matches[3]
     }
-    $failed=$r.TimedOut -or $r.ExitCode -ne 0 -or $r.Output -cnotmatch '^200\|0\|([2-5][0-9]{2})$'
+    $failed=$r.TimedOut -or $r.ExitCode -ne 0 -or $basic -cnotmatch '^200\|0\|([2-5][0-9]{2})$'
     if($null -ne $Report){Save-PaytmTlsObservation $Report $observation $failed}
     if($r.TimedOut -or $r.ExitCode -cin @(5,7,28,52,55,56)){return [pscustomobject]@{ok=$false;httpStatus=0}}
-    if($r.ExitCode -ne 0 -or $r.Output -cnotmatch '^200\|0\|([2-5][0-9]{2})$'){throw 'TRANSPORT_TLS_FAILED'}
+    if($r.ExitCode -ne 0 -or $basic -cnotmatch '^200\|0\|([2-5][0-9]{2})$'){throw 'TRANSPORT_TLS_FAILED'}
     [pscustomobject]@{ok=$true;httpStatus=[int]$Matches[1]}
 }
 function Save-PaytmTlsObservation($Report,$Observation,[bool]$Failed){

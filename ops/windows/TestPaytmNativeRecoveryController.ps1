@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([switch]$IncidentRecoveryFixture)
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewaySession.ps1')
@@ -41,6 +41,10 @@ function Wait-PaytmManagedHost {
  @{installationId=('a'*32);instanceId=('b'*32);processId=1;sequence=$global:mbNativeControllerFixture.sequence;elapsedSeconds=10;transportState=@{lastHealthSeconds=10};httpStatus=503}
 }
 function Assert-PaytmNativeSoakSample($First,$Current){if($Current.sequence -le $First.sequence){throw 'HOST_NATIVE_SAMPLE_STALE'}}
+function Invoke-PaytmTlsDiagnosticCapture {
+ if($global:mbNativeControllerFixture.case -in @('soak_failed','stop_failed')){throw 'HOST_TLS_CAPTURE_FAILED'}
+ $report.diagnostic=@{captureCompleted=$true}
+}
 function Invoke-PaytmApplicationHttp {if($global:mbNativeControllerFixture.case -eq 'lock_failed'){throw 'APP_ROUTE_FINAL_LOCK_FAILED'};@{state='LOCKED';bootId='boot'}}
 function Assert-PaytmWriterLocked {}
 function Get-PaytmApplicationContainer {@{Id='container';Image='image';State=@{StartedAt='start'}}}
@@ -60,6 +64,10 @@ try{
    [IO.File]::WriteAllText((Join-Path $ops 'PaytmIncidentRecovery.ps1'),'# adapter mocked separately')
    $extra.IncidentRecovery=$true
   }
+  if($TlsPhaseFixture){
+   foreach($n in @('PaytmTlsPhaseRecovery.ps1','PaytmTlsDiagnosticCapture.ps1')){[IO.File]::WriteAllText((Join-Path $ops $n),'# adapter mocked separately')}
+   $extra.TlsPhaseDiagnostic=$true
+  }
   if($case -eq 'pass'){
    # Test controller completion only with a shortened local copy; production has
    # no duration switch. The 30-minute spare observation is explicitly pending.
@@ -70,6 +78,10 @@ try{
   Check ($failed -eq ($case -ne 'pass')) ($case+'_OUTCOME')
   $files=@(Get-ChildItem -LiteralPath $out -Filter '*.json');if($files.Count -ne 1){throw $caught};Check ($files.Count -eq 1) 'ONE_REPORT'
   $v=Read-PaytmHostJson $files[0].FullName 65536
+  if($TlsPhaseFixture -and $case -eq 'pass'){
+   Check ($v.status -ceq 'TLS_DIAGNOSTICS_CAPTURED_GATEWAY_STOPPED_REVIEW_REQUIRED' -and -not $v.soakPassed -and $v.failureStopVerified -and $v.diagnostic.captureCompleted -and $global:mbNativeControllerFixture.stops -eq 1) 'DIAGNOSTIC_SUCCESS_STOPS_WITHOUT_HEALTH_CREDIT'
+   continue
+  }
   if($IncidentRecoveryFixture){Check ($v.recoveryMode -ceq 'AFTER_SSH_INCIDENT_NO_CODE_REPLACEMENT') 'INCIDENT_MODE_WIRED'}
   if($case -eq 'pass'){
    Check ($v.status -ceq 'NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED' -and $v.soakPassed -and $v.accountPreserved -and $v.finalApplicationLockVerified -and $v.soak.observations -eq 2 -and $global:mbNativeControllerFixture.stops -eq 0) 'COMPLETION_AND_FINAL_SAMPLE'
@@ -81,7 +93,7 @@ try{
   Check (-not ([IO.File]::ReadAllText($files[0].FullName)).Contains('PRIVATE_TOKEN')) 'TOKEN_NOT_RECORDED'
   Check ($v.workerDiagnostics.readOnly) 'FAILURE_DIAGNOSTICS_PRESERVED'
   if($case -eq 'stop_failed'){Check ($v.cleanupFailure -eq 'HOST_NATIVE_FAILURE_STOP_REVIEW_REQUIRED' -and -not $v.failureStopVerified) 'STOP_FAILURE_VISIBLE'}
-  if($case -eq 'soak_failed'){Check ($v.failure -eq 'TRANSPORT_WORKER_BLOCKED' -and $v.finalApplicationLockVerified -and $v.accountPreserved) 'SOAK_FAILURE_LOCKS_AND_ACCOUNT'}
+  if($case -eq 'soak_failed'){$expectedFailure=if($TlsPhaseFixture){'HOST_TLS_CAPTURE_FAILED'}else{'TRANSPORT_WORKER_BLOCKED'};Check ($v.failure -eq $expectedFailure -and $v.finalApplicationLockVerified -and $v.accountPreserved) 'SOAK_FAILURE_LOCKS_AND_ACCOUNT'}
  }
  [pscustomobject]@{status='NATIVE_CONTROLLER_FAILURES_PASSED';assertions=$checks;workflows=8;acceleratedSuccessFixtureOnly=$true;runtimeApisMocked=$true}|ConvertTo-Json
 }finally{

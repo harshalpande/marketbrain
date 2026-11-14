@@ -31,5 +31,14 @@ Check ($report.tlsFailureCount -eq 5 -and $report.firstTlsFailure -eq $first) 'F
 Check ($report.lastTlsFailure.exceptionType -eq 'InvalidOperationException') 'LAST_FAILURE_RETAINED_AFTER_SUCCESS'
 $projected=ConvertTo-PaytmWorkerEvidence $report
 Check ($projected.firstTlsFailure.timedOut -and $projected.lastTlsObservation.httpStatus -eq 503 -and $projected.tlsFailureCount -eq 5) 'FAILURE_REPORT_PROJECTION'
-Check (($report|ConvertTo-Json -Depth 8 -Compress).Length -lt 2500) 'BOUNDED_EVIDENCE'
+Check (($report|ConvertTo-Json -Depth 8 -Compress).Length -lt 5000) 'BOUNDED_EVIDENCE'
+foreach($pair in @(@('200|0|000|0.001|0.000|0.000|4.001','PROXY_CONNECT_ACCEPTED'),@('200|0|000|0.001|0.250|0.000|6.001','TLS_HANDSHAKE_COMPLETED'),@('200|0|503|0.001|0.250|0.400|0.410','HTTP_RESPONSE_STARTED'))){
+ $script:case='phase';$script:result=@{TimedOut=$false;ExitCode=$(if($pair[1] -eq 'HTTP_RESPONSE_STARTED'){0}else{28});Output=$pair[0];Error='timeout SECRET_URL'}
+ $v=Test-PaytmTransportTls $report
+ Check ($v.ok -eq ($pair[1] -eq 'HTTP_RESPONSE_STARTED')) 'PHASE_POLICY_UNCHANGED'
+ Check ($report.lastTlsObservation.lastCompletedStage -ceq $pair[1]) 'PHASE_CAPTURED'
+ $projection=ConvertTo-PaytmWorkerEvidence $report
+ Check ($projection.lastTlsObservation.tcpConnectMilliseconds -eq 1 -and $projection.lastTlsObservation.phaseMetricsParsed) 'PHASE_PROJECTED'
+ Check (($projection|ConvertTo-Json -Depth 8) -notmatch 'SECRET') 'PHASE_REDACTION'
+}
 Write-Host "PASS: $checks TLS observation assertions; no network or native process."
