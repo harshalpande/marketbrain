@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E253 SSH_REJECTIONS_ACCEPTED:** [Evidence](evidence/paytm-ssh-rejections-accepted-20261115.json). Both actual SSH host/key rejections and disposable cleanup pass in8.257s; ten hashes verified; same advancing worker and unchanged attempt/failure counts. Controller Windows identity only. Listener-conflict and G3.5 evidence remain pending;13/30 (43.3%).
+
 - **E252 TLS_PROXY_SECURITY_ACCEPTED:** [Evidence](evidence/paytm-security-accepted-20261115.json). Six actual rejection/control checks pass in8.53s; nine source hashes match; same advancing worker. [Next disposable SSH probes](paytm-ssh-negative-probes.md); local31 assertions/six controller workflows pass. No checkpoint credit yet.
 
 - **E251 SECURITY_PROBES_PREPARED:** [Local evidence](evidence/paytm-security-probes-local-20261115.json), [handoff](paytm-security-probes.md).55 assertions/four controller workflows pass. Actual spare TLS-pin/proxy-denial evidence pending; no checkpoint credit.

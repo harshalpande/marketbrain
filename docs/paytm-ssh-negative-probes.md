@@ -1,3 +1,9 @@
+# E253: SSH rejection evidence accepted
+
+**Current E253, 2026-11-15:** Disposable SSH rejection batch accepted in8.257s. Incorrect host identity and unregistered key both rejected; disposable files removed. All ten source hashes match8f40d5e CRLF; same advancing gateway, attempts2->2, failures0->0. No installed credentials, application access or configuration changes. Next: installed listener-conflict/failure-latching coverage, then clock/health/application no-fallback. G3.2/G3.5 remain open;13/30 (43.3%). No SSH test rerun needed.
+
+The run instructions below are historical; do not repeat this test.
+
 # Disposable SSH rejection probes
 
 E252, November15,2026. The prior six TLS/proxy probes passed; do not repeat them. This next mode performs two actual SSH attempts as the elevated controller Windows identity, targeting only the existing gateway Linux username. It does not claim dedicated Windows-account behavior or supervisor failure-latching coverage.
