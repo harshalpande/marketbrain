@@ -1,0 +1,23 @@
+{
+  "evidence": "E279",
+  "file": "paytm-clock-reader-recovery-4030243548354550b4fd49989d49dab2.json",
+  "sha256": "F405B93AEFC465797D69A80F96C4A43D31DEEA65034B50B825B0FD05EBDA53E9",
+  "sourceRunId": "f4990f6148224b49a80fc7bb481eb95f",
+  "server": {
+    "version": 1,
+    "runId": "f4990f6148224b49a80fc7bb481eb95f",
+    "status": "CLOCK_READER_STAGED_KEY_AND_SSH_POLICY_PENDING",
+    "failure": null,
+    "accountCreated": true,
+    "passwordLocked": true,
+    "programVerified": true,
+    "allowedCommandVerified": true,
+    "deniedCommandVerified": true,
+    "keylessVerified": true,
+    "sshConfigurationChanged": false,
+    "sshAccessEnabled": false,
+    "ordersEnabled": false,
+    "elapsedSeconds": 0.237
+  },
+  "scope": "Recovered historical installation receipt, not a fresh VPS inspection"
+}
