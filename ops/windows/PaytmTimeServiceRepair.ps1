@@ -8,7 +8,7 @@ function Initialize-PaytmTimeRepairRuntime {
 }
 function Invoke-PaytmTimeRepairNative([string]$Tool,[string]$Arguments,[int]$Seconds=15) {
  if($Tool -cnotin @('sc.exe','w32tm.exe')){throw 'TIME_REPAIR_TOOL'}
- if($Arguments -cnotin @('sdshow W32Time','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source')){throw 'TIME_REPAIR_ARGUMENTS'}
+ if($Arguments -cnotin @('sdshow W32Time','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source','/query /configuration /verbose','/query /peers /verbose','/stripchart /computer:time.windows.com /dataonly /samples:3 /period:2')){throw 'TIME_REPAIR_ARGUMENTS'}
  $p=[Diagnostics.Process]::new();$p.StartInfo.FileName=Join-Path $env:WINDIR ('System32\'+$Tool)
  $p.StartInfo.Arguments=$Arguments;$p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true
  $p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true;$started=$false
@@ -60,8 +60,12 @@ function Invoke-PaytmTimeRepairSequence($Report,[scriptblock]$Save) {
  $Report.commands+=,$r;$Report.resyncRequested=$true;& $Save
  # Capture status/source even when the existing NTP source cannot be reached.
  foreach($arg in @('/query /status /verbose','/query /source')){$Report.commands+=,(Invoke-PaytmTimeRepairNative 'w32tm.exe' $arg 15);& $Save}
- if($r.exitCode -ne 0){throw 'TIME_REPAIR_RESYNC_NOT_ACCEPTED'}
+ if($r.exitCode -ne 0 -or $r.output -notmatch '(?im)^The command completed successfully\.\s*$' -or $r.output -match '(?i)did not resync|no time data'){throw 'TIME_REPAIR_RESYNC_NOT_ACCEPTED'}
  if(@($Report.commands | Where-Object {$_.exitCode -ne 0}).Count){throw 'TIME_REPAIR_STATUS_QUERY_FAILED'}
+ $statusCommand=@($Report.commands | Where-Object {$_.arguments -ceq '/query /status /verbose'})[0]
+ $sourceCommand=@($Report.commands | Where-Object {$_.arguments -ceq '/query /source'})[0]
+ $Report.syncAssessment=Get-PaytmTimeSyncAssessment $statusCommand $sourceCommand
+ if(-not $Report.syncAssessment.synchronizedReported){throw 'TIME_REPAIR_SYNC_NOT_CONFIRMED'}
  $Report.after=Get-PaytmTimeRepairSnapshot
  Assert-PaytmTimeRepairPreserved $Report.before $Report.after
  if($Report.after.startType -ne 2 -or $Report.after.state -cne 'Running'){throw 'TIME_REPAIR_FINAL_STATE'}
@@ -72,4 +76,14 @@ function Wait-PaytmTimeRepairRunning {
  Initialize-PaytmTimeRepairRuntime
  $svc=[System.ServiceProcess.ServiceController]::new('W32Time')
  try{$svc.WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Running,[TimeSpan]::FromSeconds(20))}finally{$svc.Dispose()}
+}
+
+function Get-PaytmTimeSyncAssessment($StatusCommand,$SourceCommand) {
+ $t=[string]$StatusCommand.output;$source=([string]$SourceCommand.output).Trim()
+ $leap=[regex]::Match($t,'(?im)^Leap Indicator:\s*([0-3])\b')
+ $stratum=[regex]::Match($t,'(?im)^Stratum:\s*(\d+)\b')
+ $errorCode=[regex]::Match($t,'(?im)^Last Sync Error:\s*(\d+)\b')
+ $known=$leap.Success -and $stratum.Success -and $errorCode.Success
+ $ok=$known -and $StatusCommand.exitCode -eq 0 -and $SourceCommand.exitCode -eq 0 -and [int]$leap.Groups[1].Value -lt 3 -and [int]$stratum.Groups[1].Value -ge 1 -and [int]$stratum.Groups[1].Value -le 15 -and [int]$errorCode.Groups[1].Value -eq 0 -and $source -match '(?i)^time\.windows\.com(?:,0x[0-9a-f]+)?$'
+ [pscustomobject]@{synchronizedReported=[bool]$ok;recognizedEnglishStatus=[bool]$known;source=$source;absoluteAccuracyProven=$false;alignmentVerified=$false}
 }

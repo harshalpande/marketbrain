@@ -1,6 +1,9 @@
 # E257: current clock mismatch follow-up
 
-**Current E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
+**Current E260, 2026-11-15:** Service repair confirmed in12.837s: Running/Automatic, ACL and peer preserved, task removed. Synchronization NOT accepted: w32tm returned zero but explicitly reported no time data; leap3/stratum0/error1. Three source hashes match852c212. False-positive resync classification corrected; [read-only source review next](paytm-time-source-review.md), do not rerun repair. G3.5 blocked; groups100/100/80/0/0/0,14/30 (46.7%), unchanged.
+
+
+**Historical E257, 2026-11-15:** Clock collection completed with findings, not acceptance: VPS16.188-17.325s ahead of Windows; Java relative to Windows -0.030 to+0.033s. All10 samples collected, VPS NTP yes5/5, six source hashes matchca02d27 CRLF, unchanged container and key cleanup confirmed. [Next: fresh read-only Windows Time access diagnosis](paytm-clock-drift-followup.md). Historical SERVICE_START denial is not assumed current. G3.5 blocked;14/30 (46.7%), unchanged.
 
 Earlier instructions below are historical; use the follow-up linked above.
 

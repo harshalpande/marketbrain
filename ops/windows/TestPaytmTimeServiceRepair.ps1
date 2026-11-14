@@ -17,7 +17,7 @@ foreach($field in @('sddl','imagePath','account','policyPresent','type','ntpServ
 }
 function Get-PaytmTimeRepairSnapshot {$script:reads++;if($script:reads -eq 1){return (Clone $base)};$v=Clone $base;$v.state='Running';$v.startType=2;if($script:drift){$v.ntpServer='changed'};return $v}
 function Wait-PaytmTimeRepairRunning {if($script:waitFail){throw 'fixture wait failure'}}
-function Invoke-PaytmTimeRepairNative($Tool,$Arguments,$Seconds){$script:calls+=,$Arguments;@{tool=$Tool;arguments=$Arguments;exitCode=$(if($Arguments -eq $script:failArg){1}else{0});output='fixture'}}
+function Invoke-PaytmTimeRepairNative($Tool,$Arguments,$Seconds){$script:calls+=,$Arguments;@{tool=$Tool;arguments=$Arguments;exitCode=$(if($Arguments -eq $script:failArg){1}else{0});output=$(switch($Arguments){'/resync /rediscover'{'The command completed successfully.'};'/query /status /verbose'{"Leap Indicator: 0`nStratum: 3`nLast Sync Error: 0"};'/query /source'{'time.windows.com,0x9'};default{'fixture'}})}}
 foreach($scenario in @('pass','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source','wait','drift')){
  $script:reads=0;$script:calls=@();$script:failArg=$scenario;$script:drift=$scenario -eq 'drift';$script:waitFail=$scenario -eq 'wait';$script:saves=0
  $r=@{commands=@();status='REVIEW_REQUIRED'};$err=$null
