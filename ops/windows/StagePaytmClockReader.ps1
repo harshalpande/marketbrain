@@ -30,8 +30,8 @@ MB_CLOCK_STAGE
  Write-Host 'In PuTTY run sudo -v and enter your administrator password there. Then paste the clipboard command.'
  Write-Host 'This creates only a locked, keyless clock account/program. No SSH reload, key installation or gateway restart.'
  Write-Host 'After it finishes, copy the complete MB_CLOCK_STAGE_REPORT: line from PuTTY to the clipboard.'
- if((Read-Host 'Back HERE in PowerShell type REPORT-COPIED after copying the report') -cne 'REPORT-COPIED'){throw 'CLOCK_STAGE_REPORT_NOT_CONFIRMED'}
- $raw=Get-Clipboard -Raw
+ $answer=Read-Host 'Paste the complete MB_CLOCK_STAGE_REPORT line HERE, or press Enter to read it from the clipboard'
+ $raw=if([string]::IsNullOrWhiteSpace($answer) -or $answer -ceq 'REPORT-COPIED'){Get-Clipboard -Raw}else{$answer}
  if($raw.Length -gt 16384){throw 'CLOCK_STAGE_REPORT_SIZE'}
  $text=($raw -replace '\s','')
  if($text -cnotmatch '^MB_CLOCK_STAGE_REPORT:([A-Za-z0-9+/]+={0,2})$'){throw 'CLOCK_STAGE_REPORT_FORMAT'}

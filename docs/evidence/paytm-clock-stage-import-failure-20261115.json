@@ -1,0 +1,10 @@
+{
+  "evidence": "E278",
+  "sourceRunId": "f4990f6148224b49a80fc7bb481eb95f",
+  "failure": "CLOCK_STAGE_REPORT_NOT_CONFIRMED",
+  "sha256": "AF4F25BED8C64EA45916DFC12B0E36EBE3E7B8B037BF494C66E442A7871DBBDE",
+  "serverResultCaptured": false,
+  "vpsInstallationOutcome": "UNCONFIRMED",
+  "recovery": "Import original encoded report only; do not reinstall",
+  "localFixtureCount": 10
+}

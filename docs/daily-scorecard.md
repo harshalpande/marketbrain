@@ -1,5 +1,8 @@
 # Daily delivery scorecard
 
+**E278, 2026-11-15:** Staging report import stopped at CLOCK_STAGE_REPORT_NOT_CONFIRMED because the encoded report was pasted into a confirmation-word prompt. Server result is null; VPS success or failure is not yet established. Do not rerun installation. RecoverPaytmClockReaderReport.ps1 imports only the original run f4990f6148224b49a80fc7bb481eb95f from clipboard/direct paste. Ten import/handoff fixtures pass; no VPS mutation. G3 remains 80%, 14/30 (46.7%).
+
+
 **Current E277, 2026-11-15:** Unattended preflight accepted in 40.810 seconds; 13 hashes match 00a79ea, proposed accounts/task absent, VPS Python/timedatectl present, account/writer/container preserved. [Next: keyless VPS clock-reader staging](paytm-clock-reader-stage.md). Eleven local tests passed; VPS execution pending. No background key/token/task installed. G3 80%, 14/30 (46.7%); explicitly announce G3 100% only after remaining acceptance.
 
 
