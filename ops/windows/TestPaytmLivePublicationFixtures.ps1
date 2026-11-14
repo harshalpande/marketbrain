@@ -6,11 +6,17 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmHealthActivation.ps1')
 $work=Join-Path ([IO.Path]::GetTempPath()) ('mb-publication-'+[guid]::NewGuid().ToString('N'))
 $null=New-Item -ItemType Directory $work
-$e=Join-Path $work 'accepted.json';[IO.File]::WriteAllText($e,'{"newImageId":"fixture-image"}')
+$e=Join-Path $work 'accepted.json';[IO.File]::WriteAllText($e,'{"newImageId":"fixture-image","container":{"image":"fixture-image"}}')
 $src=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'TestPaytmLiveHealthPublication.ps1'))
 $src=[regex]::Replace($src,'(?m)^\. \(Join-Path \$PSScriptRoot .*\)\r?\n','')
 $src=$src.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))
 $src=$src.Replace('61F63499AA91C62C59C3470B56BC90B13B1BDD6145D370060CB1CC199954BECB',(Get-FileHash $e).Hash)
+$src=$src.Replace('0F5CA8DE54E0FCFF966286ADD4ED209EFC7E53AD50255699B56540DE663CA609',(Get-FileHash $e).Hash)
+function Invoke-PaytmHealthLifecycle($Publish,$Revoke,$Checkpoint){
+ $null=& $Publish;$null=& $Publish;$null=& $Revoke
+ if($script:case -eq 'lifecyclefail'){throw 'HEALTH_LIFECYCLE_ROUTE_MISMATCH'}
+ @{passed=$true}
+}
 function Resolve-PaytmClockTool($Name){$Name}
 function Invoke-PaperRuntimeProcess($File,$Arguments,$Root,$Limit) {
  if($File -eq 'plink.exe'){return @{exitCode=0;stdout='Release 0.83';stderr=''}}
@@ -53,11 +59,13 @@ function Invoke-PaytmHealthHttp($Command,$Token,$Body){
  @{healthContractVersion='SERVER_TRANSPORT_V2';bootId=$boot;accepted=$yes;ordersEnabled=$false;status=$(if($yes){'HEALTH_RECORDED_EXPLICIT_ARM_REQUIRED'}else{'UNHEALTHY_AND_LOCKED'})}
 }
 $count=0
-foreach($script:case in @('pass','unhealthy','collectionfail','serverreject','accountdrift','revocationfail','locatefail')){
+foreach($script:case in @('pass','unhealthy','collectionfail','serverreject','accountdrift','revocationfail','locatefail','lifecyclepass','lifecyclefail')){
  $script:accounts=0;$script:submits=0;$out=Join-Path $work $script:case;$err=$null
- try{& ([scriptblock]::Create($src)) -EvidencePath $e -OutputDirectory $out}catch{$err=$_.Exception.Message}
+ try{& ([scriptblock]::Create($src)) -EvidencePath $e -OutputDirectory $out -LifecycleChecks:($script:case -like 'lifecycle*')}catch{$err=$_.Exception.Message}
  $raw=Get-Content (Get-ChildItem $out -Filter '*.json').FullName -Raw;$r=$raw|ConvertFrom-Json
- if($script:case -eq 'pass'){
+ if($script:case -eq 'lifecyclepass'){
+  if($err -or $r.status -cne 'LIVE_HEALTH_LIFECYCLE_PASSED_UNATTENDED_PENDING' -or -not $r.lifecycle.passed -or $r.publications.Count -ne 5 -or -not $r.finalRevocationVerified){throw 'Lifecycle orchestration'}
+ }elseif($script:case -eq 'pass'){
   if($r.applicationDiscovery.result -cne 'VERIFIED' -or $r.applicationCommands.Count -ne 2){throw 'Real discovery helper did not checkpoint'}
   if($err -or $r.status -cne 'LIVE_HEALTH_PUBLICATION_PASSED_UNATTENDED_PENDING' -or $r.publications.Count -ne 3 -or -not $r.accountPreserved -or -not $r.writerLocked -or $script:submits -ne 4){throw "Pass failed: $err"}
  }elseif(-not $err -or $r.status -cne 'REVIEW_REQUIRED'){throw "Failure accepted: $script:case"}

@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$EvidencePath='C:\MarketBrainData\Review\paytm-health-activation-e2d7180e5f49468fbeddb080c4e1098a.json',[string]$OutputDirectory='C:\MarketBrainData\Review')
+[CmdletBinding()]param([string]$EvidencePath='C:\MarketBrainData\Review\paytm-health-activation-e2d7180e5f49468fbeddb080c4e1098a.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[switch]$LifecycleChecks)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmClockComparison.ps1')
 . (Join-Path $PSScriptRoot 'PaytmTimeServiceRepair.ps1')
@@ -8,10 +8,11 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmHealthDeploymentPreflight.ps1')
 . (Join-Path $PSScriptRoot 'PaytmHealthPublisher.ps1')
 . (Join-Path $PSScriptRoot 'PaytmHealthActivation.ps1')
+. (Join-Path $PSScriptRoot 'PaytmHealthLifecycle.ps1')
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $route=@{Root=$root};$application=@{Docker=$null;Id=$null;Token=$null};$healthToken=$null;$account=$null
 $run=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew();$context=$null;$keyConfirmed=$false;$keyRequested=$false
-$report=[ordered]@{schemaVersion=1;runId=$run;status='REVIEW_REQUIRED';startedUtc=[DateTimeOffset]::UtcNow.ToString('o');applicationCommands=[Collections.Generic.List[object]]::new();applicationDiscovery=$null;healthPublicationAttempted=$false;publications=@();finalRevocationVerified=$false;accountPreserved=$false;writerLocked=$false;rounds=@();assessment=$null;before=$null;after=$null;container=$null;containerUnchanged=$false;failure=$null;elapsedSeconds=0;keyCleanupOwnerConfirmed=$false;settingsChanged=$false;databaseWritesPerformed=$false;brokerCredentialsUsed=$false;ordersEnabled=$false;applicationChanged=$false;gatewayStarted=$false;absoluteUtcAccuracyProven=$false;automaticSynchronizationProven=$false;quoteTimingApproved=$false}
+$report=[ordered]@{schemaVersion=1;runId=$run;status='REVIEW_REQUIRED';startedUtc=[DateTimeOffset]::UtcNow.ToString('o');applicationCommands=[Collections.Generic.List[object]]::new();applicationDiscovery=$null;lifecycle=$null;healthPublicationAttempted=$false;publications=@();finalRevocationVerified=$false;accountPreserved=$false;writerLocked=$false;rounds=@();assessment=$null;before=$null;after=$null;container=$null;containerUnchanged=$false;failure=$null;elapsedSeconds=0;keyCleanupOwnerConfirmed=$false;settingsChanged=$false;databaseWritesPerformed=$false;brokerCredentialsUsed=$false;ordersEnabled=$false;applicationChanged=$false;gatewayStarted=$false;absoluteUtcAccuracyProven=$false;automaticSynchronizationProven=$false;quoteTimingApproved=$false}
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory ('paytm-live-publication-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$run+'.json')
 function Save-LiveHealth {
@@ -21,12 +22,12 @@ function Save-LiveHealth {
 function Save-Report { Save-LiveHealth } # Shared application helpers checkpoint through this hook.
 try{
     Save-LiveHealth
-    if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne '61F63499AA91C62C59C3470B56BC90B13B1BDD6145D370060CB1CC199954BECB'){throw 'LIVE_HEALTH_EVIDENCE_MISMATCH'}
+    if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne $(if($LifecycleChecks){'0F5CA8DE54E0FCFF966286ADD4ED209EFC7E53AD50255699B56540DE663CA609'}else{'61F63499AA91C62C59C3470B56BC90B13B1BDD6145D370060CB1CC199954BECB'})){throw 'LIVE_HEALTH_EVIDENCE_MISMATCH'}
     $report.sourceHashes=@{}
-    foreach($name in @('TestPaytmLiveHealthPublication.ps1','PaytmHealthPublisher.ps1','PaytmHealthActivation.ps1','PaytmApplicationRoute.ps1','PaytmHealthDeploymentPreflight.ps1','PaytmLiveHealthCollector.ps1','PaytmTimeServiceRepair.ps1','PaytmClockComparison.ps1','PaperRuntimeReview.ps1','PaperRuntimeDeployment.ps1','PaperAccountReadReview.ps1','PaytmTunnelVerification.ps1')){
+    foreach($name in @('TestPaytmLiveHealthPublication.ps1','PaytmHealthPublisher.ps1','PaytmHealthActivation.ps1','PaytmHealthLifecycle.ps1','PaytmApplicationRoute.ps1','PaytmHealthDeploymentPreflight.ps1','PaytmLiveHealthCollector.ps1','PaytmTimeServiceRepair.ps1','PaytmClockComparison.ps1','PaperRuntimeReview.ps1','PaperRuntimeDeployment.ps1','PaperAccountReadReview.ps1','PaytmTunnelVerification.ps1')){
         $report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash
     }
-    Write-Host '[5%] Publish three fresh diagnostic health observations, then revoke. No arming, deployment, service or clock changes.'
+    if($LifecycleChecks){Write-Host '[5%] Diagnostic lifecycle: fresh health, explicit diagnostic arm, stale blocking, recovery and revocation. No broker credentials/orders or deployment.'}else{Write-Host '[5%] Publish three fresh diagnostic health observations, then revoke. No arming, deployment, service or clock changes.'}
     if(-not [Diagnostics.Stopwatch]::IsHighResolution){throw 'CLOCK_MONOTONIC_TIMER_REQUIRED'}
     $plink=Resolve-PaytmClockTool 'plink.exe'
     $docker=Resolve-PaytmClockTool 'docker.exe'
@@ -44,7 +45,8 @@ try{
     $application.Docker=$docker;$application.Token=$context.token
     $current=Get-PaytmApplicationContainer;$application.Id=$current.Id
     $accepted=Get-Content -LiteralPath $EvidencePath -Raw|ConvertFrom-Json
-    if($current.Image -cne $accepted.newImageId){throw 'LIVE_HEALTH_DEPLOYED_IMAGE_CHANGED'}
+    $expectedImage=if($LifecycleChecks){$accepted.container.image}else{$accepted.newImageId}
+    if($current.Image -cne $expectedImage){throw 'LIVE_HEALTH_DEPLOYED_IMAGE_CHANGED'}
     $map=ConvertTo-PaperRuntimeEnvironment $current.Config.Env
     $healthToken=$map['MARKETBRAIN_PAYTM_HEALTH_TOKEN']
     if($healthToken -cnotmatch '^[A-Za-z0-9_-]{32,128}$' -or $healthToken -ceq $context.token -or $map.MARKETBRAIN_PAYTM_ENABLED -cne 'false' -or $map.MARKETBRAIN_PAYTM_ACCESS_TOKEN){throw 'LIVE_HEALTH_TOKEN_OR_PROVIDER_CONFIGURATION'}
@@ -73,20 +75,32 @@ try{
         $report.rounds+=,$row;Save-LiveHealth
         if($i -lt 3){Start-Sleep -Seconds 2}
     }
+    if($LifecycleChecks){
+        $report.lifecycle=Invoke-PaytmHealthLifecycle -Publish {
+            $result=Invoke-PaytmHealthPublishOnce $healthToken { Invoke-PaytmLiveHealthRound $plink $root $context.token }
+            $report.publications+=,$result;Save-LiveHealth
+            return $result
+        } -Revoke {
+            $c=Invoke-PaytmHealthHttp 'challenge' $healthToken $null
+            $v=Invoke-PaytmHealthHttp 'submit' $healthToken @{challenge=$c.challenge;bootId=$c.bootId;synchronizedClock=$false;transportHealthy=$false;lowerOffsetSeconds=0;upperOffsetSeconds=0}
+            Assert-PaytmHealthActivationReceipt $v 'UNHEALTHY_AND_LOCKED' $c.bootId
+        } -Checkpoint {param($Value) $report.lifecycle=$Value;Save-LiveHealth}
+        Save-LiveHealth
+    }
     $report.after=Get-PaytmTimeRepairSnapshot
     Assert-PaytmTimeRepairPreserved $report.before $report.after
     if($report.before.state -cne $report.after.state -or $report.before.startType -ne $report.after.startType){throw 'LIVE_HEALTH_SERVICE_CHANGED'}
-    $report.assessment=[ordered]@{roundsPassed=@($report.rounds|Where-Object {$_.assessment.collectionPassed}).Count;roundsRequired=3;healthSubmitted=$true;unattendedCollectorInstalled=$false;applicationTransportVerified=(@($report.publications|Where-Object healthAccepted).Count -eq 3)}
+    $report.assessment=[ordered]@{roundsPassed=@($report.rounds|Where-Object {$_.assessment.collectionPassed}).Count;roundsRequired=3;healthSubmitted=$true;unattendedCollectorInstalled=$false;applicationTransportVerified=(@($report.publications|Where-Object {-not $_.healthAccepted}).Count -eq 0)}
     $after=Get-PaytmClockContainer $docker $root
     if(($after.identity|ConvertTo-Json -Compress) -cne ($context.identity|ConvertTo-Json -Compress) -or $after.token -cne $context.token){throw 'CLOCK_APPLICATION_CHANGED_DURING_COLLECTION'}
     $report.containerUnchanged=$true
     Assert-PaytmWriterLocked;$report.writerLocked=$true
     if((Read-PaytmHealthPreflightAccount $application.Token) -cne $account){throw 'LIVE_HEALTH_ACCOUNT_CHANGED'}
     $report.accountPreserved=$true
-    if($report.assessment.roundsPassed -ne 3 -or @($report.publications|Where-Object healthAccepted).Count -ne 3){throw 'LIVE_HEALTH_PUBLICATION_NOT_ACCEPTED'}
-    $report.status='LIVE_HEALTH_PUBLICATION_PASSED_UNATTENDED_PENDING'
+    if($report.assessment.roundsPassed -ne 3 -or @($report.publications|Where-Object {-not $_.healthAccepted}).Count -ne 0){throw 'LIVE_HEALTH_PUBLICATION_NOT_ACCEPTED'}
+    $report.status=if($LifecycleChecks){'LIVE_HEALTH_LIFECYCLE_PASSED_UNATTENDED_PENDING'}else{'LIVE_HEALTH_PUBLICATION_PASSED_UNATTENDED_PENDING'}
 }catch{
-    $report.failure=if($_.Exception.Message -cmatch '^(CLOCK|LIVE_HEALTH|TIME_REPAIR|APP_ROUTE|HEALTH_ACTIVATION|HEALTH_PUBLISHER)_[A-Z_]+$'){$_.Exception.Message}else{'CLOCK_COLLECTION_FAILED_CHECK_LOCAL_PREREQUISITES'}
+    $report.failure=if($_.Exception.Message -cmatch '^(CLOCK|LIVE_HEALTH|TIME_REPAIR|APP_ROUTE|HEALTH_ACTIVATION|HEALTH_PUBLISHER|HEALTH_LIFECYCLE)_[A-Z_]+$'){$_.Exception.Message}else{'CLOCK_COLLECTION_FAILED_CHECK_LOCAL_PREREQUISITES'}
 }finally{
     if($healthToken){
         try{

@@ -1,0 +1,23 @@
+{
+  "evidence": "E274",
+  "file": "paytm-live-publication-20261115-031735-9ca1d951d69c491eb1d03043b00c5e28.json",
+  "sha256": "0F5CA8DE54E0FCFF966286ADD4ED209EFC7E53AD50255699B56540DE663CA609",
+  "sourceRevision": "34962b5",
+  "sourceCount": 12,
+  "status": "LIVE_HEALTH_PUBLICATION_PASSED_UNATTENDED_PENDING",
+  "elapsedSeconds": 248.1851455,
+  "publicationSeconds": [
+    2.9017724999994243,
+    3.2530882000010024,
+    1.9620988999995461
+  ],
+  "acceptedRounds": 3,
+  "finalRevocationVerified": true,
+  "accountPreserved": true,
+  "writerLocked": true,
+  "containerUnchanged": true,
+  "keyCleanupOwnerConfirmed": true,
+  "unattendedCollectorInstalled": false,
+  "routeArmed": false,
+  "ordersEnabled": false
+}
