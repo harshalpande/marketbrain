@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E256 RUNTIME_LATCH_RECOVERY_ACCEPTED:** [Evidence](evidence/paytm-runtime-latch-accepted-20261115.json).33.485s,9 hashes verified, exact runtime latch persisted10.868s, marker archive/one start/recovered route/account/locks passed. G3.2 accepted;14/30 (46.7%). [Fresh clocks next](paytm-clock-refresh.md); G3.5 remains open.
+
 - **E255 LISTENER_POLICY_ACCEPTED_RUNTIME_PREPARED:** [Evidence](evidence/paytm-listener-policy-accepted-20261115.json).15 checks/6.439s,10 hashes verified, same worker. Actual duplicate bind refused; isolated rules not conflated with runtime. [Next runtime batch](paytm-runtime-latch.md),23 local helper assertions/six controller workflows. No checkpoint credit yet.
 
 - **E254 LISTENER_POLICY_PREPARED:** [Local evidence](evidence/paytm-listener-policy-local-20261115.json), [handoff](paytm-listener-policy-probes.md).15 checks/eight assertions/nine controller workflows passed. Real ephemeral sockets tested locally; installed production worker latching not tested. No checkpoint credit.

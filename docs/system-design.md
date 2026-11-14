@@ -1,6 +1,8 @@
 # System and INR 100,000 paper-portal design
 
-**Current E255, 2026-11-15:** Listener/policy report accepted:15 checks in6.439s,10 source hashes match9eb99f5 CRLF, same advancing worker. Real duplicate bind refused with AddressAlreadyInUse; isolated policy results remain separate. [Next: actual runtime listener latch, absent-tunnel Java failure and owned recovery](paytm-runtime-latch.md).23 helper assertions and six controller workflows passed locally. G3.2/G3.5 pending;13/30 (43.3%).
+**Current E256, 2026-11-15:** Actual runtime listener latch/recovery accepted in33.485s. Nine source hashes match1c1b99c CRLF; exact worker conflict persisted10.868s, verified marker archive, one start, fresh recovered worker. Java absent-tunnel failure and subsequent lock passed; account/container/final locks preserved. G3.2 complete: groups100/100/80/0/0/0;14/30 (46.7%). [Next: fresh read-only three-clock snapshot](paytm-clock-refresh.md); G3.5 remains open.
+
+**Historical E255, 2026-11-15:** Listener/policy report accepted:15 checks in6.439s,10 source hashes match9eb99f5 CRLF, same advancing worker. Real duplicate bind refused with AddressAlreadyInUse; isolated policy results remain separate. [Next: actual runtime listener latch, absent-tunnel Java failure and owned recovery](paytm-runtime-latch.md).23 helper assertions and six controller workflows passed locally. G3.2/G3.5 pending;13/30 (43.3%).
 
 **Historical E254, 2026-11-15:** [Listener and installed-policy batch prepared](paytm-listener-policy-probes.md). Real owned-listener/duplicate-bind checks plus isolated execution of hash-verified installed latch/deadline functions, in one report without restarting the gateway. Local15 checks/eight assertions/nine controller workflows pass;55 existing probe assertions pass. Runtime supervisor latching and clock/application enforcement are not established. Groups100/100/60/0/0/0;13/30 (43.3%), unchanged.
 

@@ -8,6 +8,10 @@ $report=[ordered]@{schemaVersion=1;runId=$run;status='REVIEW_REQUIRED';startedUt
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory ('paytm-clock-snapshot-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$run+'.json')
 try{
+    $report.sourceHashes=@{}
+    foreach($name in @('TestPaytmClockSnapshot.ps1','PaytmClockComparison.ps1','PaperRuntimeReview.ps1','PaperRuntimeDeployment.ps1','PaperAccountReadReview.ps1','PaytmTunnelVerification.ps1')){
+        $report.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name)).Hash
+    }
     Write-Host '[5%] Read-only Windows/VPS/main-Java clock snapshot. No deployment, service or clock changes.'
     if(-not [Diagnostics.Stopwatch]::IsHighResolution){throw 'CLOCK_MONOTONIC_TIMER_REQUIRED'}
     $plink=Resolve-PaytmClockTool 'plink.exe'

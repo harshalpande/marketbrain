@@ -1,0 +1,22 @@
+{
+  "evidenceId": "E256",
+  "sourceRunId": "65efc550f51f4efd9a2524e19bc0c733",
+  "sourceSha256": "D3EEF248F0769425700907EC302D50A06AA41E94FD52D06E174A790406581A47",
+  "sourceCommit": "1c1b99c",
+  "sourceHashesVerified": 9,
+  "elapsedSeconds": 33.485,
+  "runtimeListenerLatchPassed": true,
+  "quietSeconds": 10.8677922,
+  "quietSamples": 9,
+  "archiveVerified": true,
+  "recoveryStartAttempts": 1,
+  "freshRecoveredWorker": true,
+  "applicationRouteChecksPassed": 3,
+  "accountPreserved": true,
+  "finalApplicationLockVerified": true,
+  "checkpointAccepted": "G3.2",
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30,
+  "nextClockComparisonAssertions": 113,
+  "nextClockHttpAssertions": 28
+}

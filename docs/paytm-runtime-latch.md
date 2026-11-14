@@ -1,3 +1,9 @@
+# E256: runtime latch/recovery accepted
+
+**Current E256, 2026-11-15:** Actual runtime listener latch/recovery accepted in33.485s. Nine source hashes match1c1b99c CRLF; exact worker conflict persisted10.868s, verified marker archive, one start, fresh recovered worker. Java absent-tunnel failure and subsequent lock passed; account/container/final locks preserved. G3.2 complete: groups100/100/80/0/0/0;14/30 (46.7%). [Next: fresh read-only three-clock snapshot](paytm-clock-refresh.md); G3.5 remains open.
+
+The runtime test below is complete. Do not rerun it.
+
 # Runtime listener latch and controlled recovery
 
 E255, November15,2026. This batch intentionally interrupts the installed gateway briefly. Run with other MarketBrain jobs idle and Docker/the existing application container running. No broker credentials or trades are used. No VPS change, build, task re-registration, key import or application restart.
