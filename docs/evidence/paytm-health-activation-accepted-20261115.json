@@ -1,0 +1,17 @@
+{
+  "evidence": "E272",
+  "sha256": "61F63499AA91C62C59C3470B56BC90B13B1BDD6145D370060CB1CC199954BECB",
+  "file": "paytm-health-activation-e2d7180e5f49468fbeddb080c4e1098a.json",
+  "sourceRevision": "6baf0424b538bf6fe2b0ca74f7a7b51bb7307af8",
+  "elapsedSeconds": 195.3781108,
+  "status": "HEALTH_BRIDGE_DEPLOYED_LOCKED_LIVE_PUBLICATION_PENDING",
+  "boundaryVerified": true,
+  "restartVerified": true,
+  "accountPreserved": true,
+  "writerLocked": true,
+  "finalRouteLocked": true,
+  "rollbackAttempted": false,
+  "healthyEvidencePublished": false,
+  "unattendedPublisherInstalled": false,
+  "ordersEnabled": false
+}
