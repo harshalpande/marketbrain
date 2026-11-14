@@ -1,0 +1,18 @@
+{
+  "evidence": "E267",
+  "file": "paytm-timed-route-2c397f318f4744808491f291c471c59c.json",
+  "sha256": "92434854384A0EF910587571CF2693178B143AD9CD4E4A39F725CC34BF342929",
+  "status": "HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING",
+  "elapsedSeconds": 111.4863793,
+  "sourceRevision": "5eae02e",
+  "verifiedSourceCount": 18,
+  "result": {
+    "status": "HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING",
+    "junitTests": 30,
+    "guardAssertions": 39,
+    "liveHealthProviderConnected": false,
+    "runningApplicationChanged": false,
+    "ordersEnabled": false
+  },
+  "containerRemoved": true
+}

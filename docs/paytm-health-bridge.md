@@ -1,5 +1,7 @@
 # Authenticated diagnostic health input after E266
 
+Accepted as E267. Continue with [live collector rehearsal](paytm-live-health-collector.md). The following describes the historical bridge batch.
+
 E266 accepts the spare-laptop isolated Docker run: 20 JUnit tests including 39 guard assertions, 199.867 seconds, no failures, disposable container removed. All 15 source hashes match d7c63e2 (including Windows line-ending normalization). See evidence/paytm-timed-route-accepted-20261115.json.
 
 ## Purpose and boundaries
