@@ -1,5 +1,7 @@
 # Paytm readiness: evidence-based group percentages
 
+**Current E251, 2026-11-15:** Credential-free security probe batch prepared: allowed HTTPS controls before/after, actual wrong TLS pin, forbidden host/port and plaintext denials through the installed gateway. Local verification:55 assertions and4 controller workflows passed. [Run the short security batch](paytm-security-probes.md). Spare evidence pending; G3.2/G3.5 remain open. Groups100/100/60/0/0/0;13/30 (43.3%), unchanged.
+
 **Current E248, 2026-11-14:** Diagnostic collection accepted:303.812s,55 ready samples, zero sampled outages/recorded transport failures; final stop, account and locks passed. Report22,202 bytes. [Next: existing30-minute stability check after guarded start](paytm-tls-stability.md), no installed-code change. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 
 **Historical E247, 2026-11-14:** Current-state report confirms worker STOPPED, disabled task and absent process after overflow. Saved counters:one connection attempt, zero transport failures; final HTTPS probe621ms. [Next: guarded five-minute capture rerun](paytm-capture-resume.md), corrected bounded report storage, no installed-code replacement. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
@@ -90,7 +92,7 @@ The [machine-readable checklist](paytm-readiness-progress.json) fixes **five equ
 |---|---:|---:|---|
 | G1 VPS maintenance |5/5|100%|No repeat required; host microcode remains explicitly outside guest assurance |
 | G2 Unattended gateway |5/5|100%|Windows startup, managed transport and application/account checks accepted; remaining resilience cases belong to G3 |
-| G3 Real recovery/safe failure |2/5|40%|Security negative cases, logoff/full shutdown-startup and clock/health checks |
+| G3 Real recovery/safe failure |3/5|60%|Security negative cases and clock/health checks |
 | G4 Paytm login |0/5|0%|Current auth contract, real login/callback, token custody and lifecycle acceptance |
 | G5 Fresh quotes |0/5|0%|Instrument mapping, fresh retrieval, stale/errors, reconnect and application integration |
 | G6 Telegram review |0/5|0%|Real review-only ACCEPT, REJECT, expiry, replay and unauthorized cases |

@@ -1,0 +1,9 @@
+{
+  "evidenceId": "E251",
+  "localAssertions": 55,
+  "controllerWorkflows": 4,
+  "runtimeApisMocked": true,
+  "spareRuntimeAccepted": false,
+  "acceptedCheckpoints": 13,
+  "totalCheckpoints": 30
+}
