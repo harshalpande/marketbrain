@@ -1,0 +1,19 @@
+{
+  "evidence": "E266",
+  "sourceFile": "paytm-timed-route-23619cf7a5124c8aa3f92e8eec541eed.json",
+  "sha256": "4DD1DF3B6F31527BE5E71A2EE03D1CEFD4BBCEEBB65140DACCB23BD24B69EAB7",
+  "status": "TIMED_ROUTE_INTEGRATION_TESTS_PASSED_DEPLOYMENT_PENDING",
+  "elapsedSeconds": 199.8673654,
+  "sourceHashesVerifiedAgainst": "d7c63e2",
+  "verifiedSourceCount": 15,
+  "result": {
+    "status": "TIMED_ROUTE_INTEGRATION_TESTS_PASSED_DEPLOYMENT_PENDING",
+    "junitTests": 20,
+    "guardAssertions": 39,
+    "liveHealthProviderConnected": false,
+    "runningApplicationChanged": false,
+    "ordersEnabled": false
+  },
+  "containerRemoved": true,
+  "scope": "Isolated Docker engineering acceptance only; G3.5 remains open."
+}

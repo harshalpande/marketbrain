@@ -35,7 +35,7 @@ public final class PaytmApplicationRoute {
         this.permitted = permitted; this.timing = new PaytmDiagnosticTimingGuard(nanoTime, wallMillis);
         this.request = request;
     }
-    // No HTTP endpoint publishes evidence. Trusted runtime provider is deliberately still pending.
+    // Authenticated bridge can publish evidence; trusted runtime collector remains pending.
     boolean observeHealth(PaytmDiagnosticTimingGuard.Health evidence) { return timing.observe(evidence); }
 
     public record Receipt(String version, String bootId, String state, String status,

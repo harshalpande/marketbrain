@@ -1,5 +1,7 @@
 # Guarded diagnostic-route integration verification after E265
 
+Historical E265 handoff below. E266 accepted this batch; the runner now verifies the expanded [health bridge batch](paytm-health-bridge.md). Use that current handoff.
+
 E265 accepts the spare-laptop isolated guard:39 deterministic checks, compiler/JVM exit0,6.514s, five source hashes verified. This establishes the test behaviour, not runtime enforcement.
 
 ## Changes and deployment boundary

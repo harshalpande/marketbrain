@@ -4,5 +4,5 @@ COPY pom.xml .
 RUN mvn -q -DskipTests dependency:go-offline
 COPY src src
 # Populate test dependencies during build; repeat the tests offline with networking disabled at runtime.
-RUN mvn -q -Dtest=PaytmApplicationRouteTest,PaytmTimedRouteIntegrationTest,PaytmGatewayTransportTest test
-CMD ["sh", "-c", "mvn -o -q -Dtest=PaytmApplicationRouteTest,PaytmTimedRouteIntegrationTest,PaytmGatewayTransportTest test && java -cp target/test-classes:target/classes in.marketbrain.marketdata.paytm.PaytmTimedRouteReport"]
+RUN mvn -q -Dtest=PaytmApplicationRouteTest,PaytmTimedRouteIntegrationTest,PaytmGatewayTransportTest,PaytmRouteHealthBridgeTest test
+CMD ["sh", "-c", "mvn -o -q -Dtest=PaytmApplicationRouteTest,PaytmTimedRouteIntegrationTest,PaytmGatewayTransportTest,PaytmRouteHealthBridgeTest test && java -cp target/test-classes:target/classes in.marketbrain.marketdata.paytm.PaytmTimedRouteReport"]

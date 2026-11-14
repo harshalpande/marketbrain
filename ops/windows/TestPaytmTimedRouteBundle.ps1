@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
- [string]$EvidencePath='C:\MarketBrainData\Review\paytm-timing-guard-b435aa1bbc1d4b5eb6163574525cc27d.json',
+ [string]$EvidencePath='C:\MarketBrainData\Review\paytm-timed-route-23619cf7a5124c8aa3f92e8eec541eed.json',
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'NumericalEvaluationEngineering.ps1')
@@ -13,7 +13,7 @@ $r=[ordered]@{version=1;runId=$run;status='REVIEW_REQUIRED';failure=$null;cleanu
 function Save-TimedRoute {$r.elapsedSeconds=$timer.Elapsed.TotalSeconds;[IO.File]::WriteAllText($path,($r|ConvertTo-Json -Depth 14),[Text.UTF8Encoding]::new($false))}
 try{
  Save-TimedRoute
- if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne 'C62CA3A41DBD4721AD408B356F5B871F4899C7FEFA9A18204AC11762F140E5D4'){throw 'TIMED_ROUTE_EVIDENCE_MISMATCH'}
+ if((Get-FileHash -LiteralPath $EvidencePath).Hash -cne '4DD1DF3B6F31527BE5E71A2EE03D1CEFD4BBCEEBB65140DACCB23BD24B69EAB7'){throw 'TIMED_ROUTE_EVIDENCE_MISMATCH'}
  if($env:DOCKER_HOST -or $env:DOCKER_CONTEXT){throw 'TIMED_ROUTE_DOCKER_OVERRIDE'}
  $docker=(Get-Command docker -CommandType Application -ErrorAction Stop|Select-Object -First 1).Source
  $context=Invoke-EvaluationProcess $docker @('context','show') 10
@@ -21,8 +21,8 @@ try{
  $endpoint=Invoke-EvaluationProcess $docker @('context','inspect',$context.stdout.Trim(),'--format','{{.Endpoints.docker.Host}}') 10
  if($endpoint.exitCode -ne 0 -or $endpoint.stdout.Trim() -notmatch '^npipe://'){throw 'TIMED_ROUTE_LOCAL_DOCKER_REQUIRED'}
  $files=@('marketbrain-service/pom.xml','marketbrain-service/Dockerfile.paytm-timing-verification','ops/windows/TestPaytmTimedRouteBundle.ps1','ops/windows/NumericalEvaluationEngineering.ps1','ops/windows/NumericalHistoryEvidence.ps1')
- foreach($n in @('PaytmDiagnosticTimingGuard','PaytmApplicationRoute','PaytmApplicationRouteController','PaytmGatewayTransport')){$files+='marketbrain-service/src/main/java/in/marketbrain/marketdata/paytm/'+$n+'.java'}
- foreach($n in @('PaytmDiagnosticTimingVerification','PaytmApplicationRouteTest','PaytmTimedRouteIntegrationTest','PaytmGatewayTransportTest','PaytmRouteVerification','PaytmTimedRouteReport')){$files+='marketbrain-service/src/test/java/in/marketbrain/marketdata/paytm/'+$n+'.java'}
+ foreach($n in @('PaytmDiagnosticTimingGuard','PaytmApplicationRoute','PaytmApplicationRouteController','PaytmGatewayTransport','PaytmRouteHealthBridge','PaytmRouteHealthController')){$files+='marketbrain-service/src/main/java/in/marketbrain/marketdata/paytm/'+$n+'.java'}
+ foreach($n in @('PaytmDiagnosticTimingVerification','PaytmApplicationRouteTest','PaytmTimedRouteIntegrationTest','PaytmGatewayTransportTest','PaytmRouteVerification','PaytmTimedRouteReport','PaytmRouteHealthBridgeTest')){$files+='marketbrain-service/src/test/java/in/marketbrain/marketdata/paytm/'+$n+'.java'}
  foreach($file in $files){$r.sourceHashes[$file]=(Get-FileHash -LiteralPath (Join-Path $root $file)).Hash}
  Write-Host '[10%] Build isolated verification image; existing application and database are untouched'
  Write-Progress -Activity 'Timed diagnostic route verification' -PercentComplete 10 -Status 'Build test image (dependencies may download)'
@@ -35,8 +35,8 @@ try{
  if($r.process.timedOut -or $r.process.exitCode -ne 0){throw 'TIMED_ROUTE_TEST_FAILED'}
  $line=@($r.process.stdout -split '\r?\n'|Where-Object {$_ -match '^\{"status"'})[-1]
  $r.result=$line|ConvertFrom-Json
- if($r.result.status -cne 'TIMED_ROUTE_INTEGRATION_TESTS_PASSED_DEPLOYMENT_PENDING' -or $r.result.junitTests -ne 20 -or $r.result.guardAssertions -ne 39 -or $r.result.liveHealthProviderConnected -ne $false -or $r.result.runningApplicationChanged -ne $false -or $r.result.ordersEnabled -ne $false){throw 'TIMED_ROUTE_RESULT_INVALID'}
- $r.status='TIMED_ROUTE_INTEGRATION_TESTS_PASSED_DEPLOYMENT_PENDING'
+ if($r.result.status -cne 'HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING' -or $r.result.junitTests -ne 30 -or $r.result.guardAssertions -ne 39 -or $r.result.liveHealthProviderConnected -ne $false -or $r.result.runningApplicationChanged -ne $false -or $r.result.ordersEnabled -ne $false){throw 'TIMED_ROUTE_RESULT_INVALID'}
+ $r.status='HEALTH_BRIDGE_TESTS_PASSED_COLLECTOR_PENDING'
 }catch{$r.failure=$_.Exception.Message}
 finally{
  if($started){try{
