@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E247 CAPTURE_CLEANUP_CONFIRMED_RERUN_PENDING:** [Evidence](evidence/paytm-capture-state-accepted-20261114.json), [handoff](paytm-capture-resume.md). Three hashes match; disabled task, STOPPED worker, absent process; one attempt/zero recorded failures over228.818s. Bounded five-minute capture rerun pending; no installed-code change or progress increment.
+
 - **E246 CAPTURE_REPORT_SIZE_BUG_FIXED_STATE_PENDING:** [Review/handoff](paytm-capture-size-recovery.md). Console43 ready/zero sampled outages at228s then64KiB failure. Old overflow reproduced;200 atomic writes of fixed bounded report end at35,274 bytes. Cleanup fallback verified. Current state pending; no milestone increase.
 
 - **E245 REPEATED_HTTPS_TIMEOUT_TLS_PHASE_DIAGNOSTIC_PENDING:** [Review and handoff](paytm-tls-phase-diagnostic.md). Seven receipt hashes match f76fbda;86.719s, three curl timeouts after CONNECT200. Heartbeats advanced; cleanup/account/locks passed.321 local assertions; five-minute diagnostic mandatory stop, no health acceptance. Cause unproven, groups unchanged.

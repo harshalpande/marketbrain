@@ -1,5 +1,7 @@
 # E246: diagnostic report-size correction
 
+**E247 current state accepted:** Stop/disable and absent worker confirmed. Continue with [bounded capture rerun](paytm-capture-resume.md); do not repeat state collection.
+
 **Follow-up:** The owner reports no saved JSON is available. Use `GetPaytmTlsCaptureState.ps1 -CurrentStateOnly`; this needs no historical file. The collector now reads current state first and also tolerates an empty checkpoint directory. Five local collector workflows pass. Historical cleanup remains unverified until the current-state report is reviewed.
 
 November14,2026: owner console shows43 ready samples, zero sampled outages and228/300 seconds, then SESSION_REPORT_TOO_LARGE. This is a reproduced collector bug: full worker snapshots were repeated in every sample and exceeded the existing64KiB atomic report limit. The previous tests used small worker fixtures and did not test the real serialization budget. These observations are encouraging but do not complete the diagnostic or prove uninterrupted connectivity or final cleanup.

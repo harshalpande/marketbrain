@@ -1,0 +1,21 @@
+{
+  "evidenceId": "E247",
+  "sourceRunId": "48dea31593e345bc95eee1bf4ed94b5b",
+  "sourceSha256": "080D3CBE26AB0872DE413CFB5DDFB481745A822EA6354ECD0C23A20D4BF52D59",
+  "sourceHashesVerified": 3,
+  "taskState": "Disabled",
+  "control": "STOP",
+  "workerPhase": "STOPPED",
+  "processAbsent": true,
+  "recordedWorkerSeconds": 228.818,
+  "recordedTransportAttempts": 1,
+  "recordedTransportFailures": 0,
+  "lastProbeMilliseconds": 621,
+  "lastHttpStatus": 503,
+  "fullDiagnosticCompleted": false,
+  "currentTransportHealthEstablished": false,
+  "applicationLocksAndAccountIndependentlyVerified": false,
+  "nextStep": "Guarded five-minute capture rerun, no installed-code replacement, mandatory stop",
+  "acceptedCheckpoints": 12,
+  "totalCheckpoints": 30
+}

@@ -26,6 +26,7 @@ function Invoke-PaytmTlsDiagnosticCapture([string]$Id){
   $v=$null
   try{$v=Read-PaytmHostJson (Join-Path $c.work 'status.json')}catch [IO.FileNotFoundException]{}
   if($v){
+   if($report.Contains('capturePreviousInstance') -and $v.instanceId -ceq $report.capturePreviousInstance){throw 'HOST_TLS_CAPTURE_OLD_WORKER'}
    if($v.installationId -cne $Id -or $v.instanceId -ceq 'd1516d1bbd85469a818133aeadb29d10' -or $v.instanceId -cnotmatch '^[a-f0-9]{32}$' -or $v.brokerReady -ne $false -or $v.ordersEnabled -ne $false -or $v.failure){throw 'HOST_TLS_CAPTURE_IDENTITY_OR_SCOPE'}
    if(-not $instance){$instance=$v.instanceId}
    if($v.instanceId -cne $instance){throw 'HOST_TLS_CAPTURE_WORKER_REPLACED'}
