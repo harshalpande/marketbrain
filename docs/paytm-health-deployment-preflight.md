@@ -1,3 +1,5 @@
+Accepted as E271 on 2026-11-15. Continue with [guarded activation](paytm-health-activation.md); historical preflight instructions follow.
+
 # Real deployment preflight after E270
 
 E270 accepts the spare isolated Java health-transport run: 34 JUnit tests including 39 guard assertions, 110.305 seconds, successful cleanup, no application change. All 18 source hashes match 4568724. Evidence: evidence/paytm-java-health-accepted-20261115.json.

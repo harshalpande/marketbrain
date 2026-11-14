@@ -35,7 +35,7 @@ try{
  if($r.process.timedOut -or $r.process.exitCode -ne 0){throw 'TIMED_ROUTE_TEST_FAILED'}
  $line=@($r.process.stdout -split '\r?\n'|Where-Object {$_ -match '^\{"status"'})[-1]
  $r.result=$line|ConvertFrom-Json
- if($r.result.status -cne 'JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING' -or $r.result.junitTests -ne 34 -or $r.result.guardAssertions -ne 39 -or $r.result.liveHealthProviderConnected -ne $false -or $r.result.runningApplicationChanged -ne $false -or $r.result.ordersEnabled -ne $false){throw 'TIMED_ROUTE_RESULT_INVALID'}
+ if($r.result.status -cne 'JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING' -or $r.result.junitTests -ne 35 -or $r.result.guardAssertions -ne 39 -or $r.result.liveHealthProviderConnected -ne $false -or $r.result.runningApplicationChanged -ne $false -or $r.result.ordersEnabled -ne $false){throw 'TIMED_ROUTE_RESULT_INVALID'}
  $r.status='JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING'
 }catch{$r.failure=$_.Exception.Message}
 finally{

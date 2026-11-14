@@ -46,6 +46,7 @@ marketbrain:
     maximum-data-age-seconds: ${MARKETBRAIN_MAXIMUM_DATA_AGE_SECONDS:90}
     target-alert-submission-seconds: ${MARKETBRAIN_TARGET_ALERT_SUBMISSION_SECONDS:60}
   paytm-money:
+    health-token: ${MARKETBRAIN_PAYTM_HEALTH_TOKEN:}
     base-url: ${MARKETBRAIN_PAYTM_BASE_URL:https://developer.paytmmoney.com}
     enabled: ${MARKETBRAIN_PAYTM_ENABLED:false}
     access-token: ${MARKETBRAIN_PAYTM_ACCESS_TOKEN:}

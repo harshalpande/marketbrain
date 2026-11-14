@@ -1,0 +1,21 @@
+{
+  "evidence": "E271",
+  "file": "paytm-health-deployment-preflight-deeca536524746189bda5a0823e43daa.json",
+  "sha256": "DFF50F8D473456A69A8D650074EBA5B46AE4B935E5C281982582360B2CF26F71",
+  "sourceRevision": "c2f3ea6",
+  "sourceCount": 9,
+  "elapsedSeconds": 9.2442877,
+  "migrations": {
+    "matched": true,
+    "packagedCount": 28,
+    "sourceCount": 28,
+    "differences": [],
+    "comparison": "UTF8_TEXT_CRLF_NORMALIZED_NOT_DATABASE_SCHEMA_CHECK"
+  },
+  "status": "HEALTH_DEPLOYMENT_PREFLIGHT_PASSED_ACTIVATION_PENDING",
+  "rollbackImageId": "sha256:2dec7b023f05ad425f10c78c704716fc461654b6d1557f9d58c14a287b758d40",
+  "containerId": "abce5278caa97c0a6ba165a8bff22711c7a4132883fb41156b423e220f6ac9c9",
+  "accountPreserved": true,
+  "writerLocked": true,
+  "containerUnchanged": true
+}

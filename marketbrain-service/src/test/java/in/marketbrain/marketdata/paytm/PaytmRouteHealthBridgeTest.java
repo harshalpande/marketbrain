@@ -123,4 +123,12 @@ class PaytmRouteHealthBridgeTest {
         b.submit(bad);assertThat(probes.get()).isZero();
         var good=evidence(b.challenge());b.submit(good);b.submit(good);assertThat(probes.get()).isEqualTo(1);
     }
+    @Test void deploymentEnvironmentAliasLoadsThroughApplicationYaml() {
+        new ApplicationContextRunner()
+            .withInitializer(new org.springframework.boot.test.context.ConfigDataApplicationContextInitializer())
+            .withPropertyValues("MARKETBRAIN_PAYTM_HEALTH_TOKEN="+TOKEN,"MARKETBRAIN_PAPER_READ_TOKEN="+READ)
+            .withBean(MarketBrainProperties.class,()->PaytmApplicationRouteTest.properties(false,""))
+            .withUserConfiguration(PaytmApplicationRoute.class,PaytmRouteHealthBridge.class)
+            .run(c->{assertThat(c).hasNotFailed();assertThat(c.getBean(PaytmRouteHealthBridge.class).authenticates(TOKEN)).isTrue();});
+}
 }

@@ -17,7 +17,7 @@ function Invoke-EvaluationProcess($Executable,$Arguments,$TimeoutSeconds){
  'run'{
   if($Arguments -notcontains 'none' -or $Arguments -contains '-v' -or $Arguments -contains '-p'){throw 'Container isolation regression'}
   $script:label=($Arguments|Where-Object {$_ -like 'marketbrain.verification.run=*'}).Split('=')[1]
-  $v.stdout='{"status":"JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING","junitTests":34,"guardAssertions":39,"liveHealthProviderConnected":false,"runningApplicationChanged":false,"ordersEnabled":false}'
+  $v.stdout='{"status":"JAVA_HEALTH_TRANSPORT_TESTS_PASSED_DEPLOYMENT_PENDING","junitTests":35,"guardAssertions":39,"liveHealthProviderConnected":false,"runningApplicationChanged":false,"ordersEnabled":false}'
   if($script:scenario -eq 'runfail'){$v.exitCode=1}
  }
  'ps'{if($script:scenario -in @('runfail','cleanupfail')){$v.stdout='owned-container'}}
