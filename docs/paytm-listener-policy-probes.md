@@ -1,3 +1,9 @@
+# E255: listener/policy results accepted
+
+**Current E255, 2026-11-15:** Listener/policy report accepted:15 checks in6.439s,10 source hashes match9eb99f5 CRLF, same advancing worker. Real duplicate bind refused with AddressAlreadyInUse; isolated policy results remain separate. [Next: actual runtime listener latch, absent-tunnel Java failure and owned recovery](paytm-runtime-latch.md).23 helper assertions and six controller workflows passed locally. G3.2/G3.5 pending;13/30 (43.3%).
+
+The earlier listener/policy handoff below is complete; do not repeat it.
+
 # Listener and installed-policy verification
 
 E254, November15,2026. One batch covers actual socket protection and isolated checks of the currently installed policy functions. It does not stop, restart, replace or reconfigure the gateway. Keep the existing gateway running; use PowerShell7 as Administrator. No PuTTY, Pageant, rebuild, credentials or application access.

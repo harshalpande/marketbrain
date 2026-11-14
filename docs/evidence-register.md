@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E255 LISTENER_POLICY_ACCEPTED_RUNTIME_PREPARED:** [Evidence](evidence/paytm-listener-policy-accepted-20261115.json).15 checks/6.439s,10 hashes verified, same worker. Actual duplicate bind refused; isolated rules not conflated with runtime. [Next runtime batch](paytm-runtime-latch.md),23 local helper assertions/six controller workflows. No checkpoint credit yet.
+
 - **E254 LISTENER_POLICY_PREPARED:** [Local evidence](evidence/paytm-listener-policy-local-20261115.json), [handoff](paytm-listener-policy-probes.md).15 checks/eight assertions/nine controller workflows passed. Real ephemeral sockets tested locally; installed production worker latching not tested. No checkpoint credit.
 
 - **E253 SSH_REJECTIONS_ACCEPTED:** [Evidence](evidence/paytm-ssh-rejections-accepted-20261115.json). Both actual SSH host/key rejections and disposable cleanup pass in8.257s; ten hashes verified; same advancing worker and unchanged attempt/failure counts. Controller Windows identity only. Listener-conflict and G3.5 evidence remain pending;13/30 (43.3%).

@@ -1,0 +1,16 @@
+{
+  "evidenceId": "E255",
+  "sourceRunId": "01f6e87fbfc2425e85601d9002e8c9f8",
+  "sourceSha256": "FB71029F2448F56F15CEB90B1EC0E37E75A388C6C3EFB911342FA68CF9604D4E",
+  "sourceCommit": "9eb99f5",
+  "sourceHashesVerified": 10,
+  "elapsedSeconds": 6.439,
+  "checksPassed": 15,
+  "duplicateBindError": "AddressAlreadyInUse",
+  "sameAdvancingWorker": true,
+  "runtimeLatchAccepted": false,
+  "nextBatchLocalAssertions": 23,
+  "nextBatchControllerWorkflows": 6,
+  "acceptedCheckpoints": 13,
+  "totalCheckpoints": 30
+}
