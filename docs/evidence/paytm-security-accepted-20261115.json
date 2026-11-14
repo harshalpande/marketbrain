@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E252",
+  "sourceRunId": "f95b05385abf462d93e9e702554154df",
+  "sourceSha256": "46BBFEBD385F853260176E3C7781CD88A045673CF0ED7398068182F513A5F115",
+  "sourceHashesVerified": 9,
+  "sourceCommit": "029068f",
+  "elapsedSeconds": 8.53,
+  "checksPassed": 6,
+  "sameAdvancingWorker": true,
+  "wrongTlsPinExit": 90,
+  "proxyDenialsVerified": true,
+  "rootHttpStatus": 503,
+  "brokerReady": false,
+  "newCheckpointAccepted": false,
+  "sshLocalAssertions": 31,
+  "controllerWorkflows": 6,
+  "spareSshTested": false,
+  "acceptedCheckpoints": 13,
+  "totalCheckpoints": 30
+}

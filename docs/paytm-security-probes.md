@@ -1,3 +1,9 @@
+# E252: TLS/proxy batch accepted; no repeat needed
+
+**Current E252, 2026-11-15:** Actual TLS/proxy rejection batch accepted in8.53s: all six checks pass, nine source hashes match029068f CRLF, same advancing gateway before/after. Wrong TLS pin exit90; host/port/plaintext403; allowed root503 is transport-only. [Next: two disposable SSH rejection probes](paytm-ssh-negative-probes.md).31 SSH assertions, real local key generation and six controller workflows pass. G3.2/G3.5 remain pending;13/30 (43.3%).
+
+The TLS/proxy run instructions below are historical.
+
 # Installed gateway: TLS and proxy rejection batch
 
 E251, November15,2026. G3.4 is accepted; do not repeat sign-out or shutdown. This next collection sends six fixed, credential-free HEAD requests through the existing loopback gateway. No direct network fallback, gateway/task/configuration mutation, key import, application unlock, database access or broker login is performed. No PuTTY or Pageant is needed. Leave the gateway running and use elevated PowerShell7.

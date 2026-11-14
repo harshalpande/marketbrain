@@ -1,8 +1,10 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
+ [switch]$SshNegative,
  [string]$OutputDirectory='C:\MarketBrainData\Review',
  [string]$TransportReportPath='C:\MarketBrainData\Review\paytm-managed-transport-20261103-171133-8ac7cdda3ca7475eb001df485797cb70.json')
 $ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'PaytmSshNegativeProbes.ps1')
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmSecurityProbes.ps1')){. (Join-Path $PSScriptRoot $name)}
 $watch=[Diagnostics.Stopwatch]::StartNew();$lease=$null;$manifest=$null
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';failure=$null;cleanupFailure=$null;elapsedSeconds=0;checks=@();sourceHashes=@{};credentialsUsed=$false;ordersEnabled=$false;gatewayChanged=$false;applicationAccessed=$false;checkpointCompleted=$false}
@@ -27,11 +29,16 @@ try{
  $manifest=Assert-PaytmInstalledTransport $receipt
  $report.before=Wait-PaytmManagedHost $manifest.installationId TRANSPORT_READY -TimeoutSeconds 30
  Save-SecurityReport
- Invoke-PaytmSecurityProbeBatch -Run {
+ if($SshNegative){
+  $report.sourceHashes['PaytmSshNegativeProbes.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmSshNegativeProbes.ps1')).Hash
+  $report.probeMode='DISPOSABLE_SSH_NEGATIVES_CONTROLLER_IDENTITY'
+  Save-SecurityReport
+  Invoke-PaytmSshNegativeBatch $OutputDirectory {param($Row) $report.checks+=,$Row;Save-SecurityReport}
+ }else{Invoke-PaytmSecurityProbeBatch -Run {
   param($Arguments)
   Invoke-PaperRuntimeProcess 'C:\Windows\System32\curl.exe' $Arguments $PSScriptRoot 12
- } -Record {param($Row) $report.checks+=,$Row;Save-SecurityReport}
- $report.status='SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING'
+ } -Record {param($Row) $report.checks+=,$Row;Save-SecurityReport}}
+ $report.status=if($SshNegative){'SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING'}else{'SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING'}
 }catch{$report.failure=$_.Exception.Message}
 finally{
  if($manifest){
@@ -50,4 +57,4 @@ finally{
  Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
  Write-Host "Share this ONE file: $reportPath"
 }
-if($report.status -cne 'SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING'){throw "Review report: $($report.failure) $($report.cleanupFailure)"}
+if($report.status -cnotin @('SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING','SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING')){throw "Review report: $($report.failure) $($report.cleanupFailure)"}

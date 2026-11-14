@@ -1,6 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E251, 2026-11-15:** Credential-free security probe batch prepared: allowed HTTPS controls before/after, actual wrong TLS pin, forbidden host/port and plaintext denials through the installed gateway. Local verification:55 assertions and4 controller workflows passed. [Run the short security batch](paytm-security-probes.md). Spare evidence pending; G3.2/G3.5 remain open. Groups100/100/60/0/0/0;13/30 (43.3%), unchanged.
+**Current E252, 2026-11-15:** Actual TLS/proxy rejection batch accepted in8.53s: all six checks pass, nine source hashes match029068f CRLF, same advancing gateway before/after. Wrong TLS pin exit90; host/port/plaintext403; allowed root503 is transport-only. [Next: two disposable SSH rejection probes](paytm-ssh-negative-probes.md).31 SSH assertions, real local key generation and six controller workflows pass. G3.2/G3.5 remain pending;13/30 (43.3%).
+
+**Historical E251, 2026-11-15:** Credential-free security probe batch prepared: allowed HTTPS controls before/after, actual wrong TLS pin, forbidden host/port and plaintext denials through the installed gateway. Local verification:55 assertions and4 controller workflows passed. [Run the short security batch](paytm-security-probes.md). Spare evidence pending; G3.2/G3.5 remain open. Groups100/100/60/0/0/0;13/30 (43.3%), unchanged.
 
 **Current E248, 2026-11-14:** Diagnostic collection accepted:303.812s,55 ready samples, zero sampled outages/recorded transport failures; final stop, account and locks passed. Report22,202 bytes. [Next: existing30-minute stability check after guarded start](paytm-tls-stability.md), no installed-code change. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 

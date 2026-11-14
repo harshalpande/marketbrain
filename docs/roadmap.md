@@ -1,6 +1,8 @@
 # Roadmap and completion dashboard
 
-**Current E251, 2026-11-15:** Credential-free security probe batch prepared: allowed HTTPS controls before/after, actual wrong TLS pin, forbidden host/port and plaintext denials through the installed gateway. Local verification:55 assertions and4 controller workflows passed. [Run the short security batch](paytm-security-probes.md). Spare evidence pending; G3.2/G3.5 remain open. Groups100/100/60/0/0/0;13/30 (43.3%), unchanged.
+**Current E252, 2026-11-15:** Actual TLS/proxy rejection batch accepted in8.53s: all six checks pass, nine source hashes match029068f CRLF, same advancing gateway before/after. Wrong TLS pin exit90; host/port/plaintext403; allowed root503 is transport-only. [Next: two disposable SSH rejection probes](paytm-ssh-negative-probes.md).31 SSH assertions, real local key generation and six controller workflows pass. G3.2/G3.5 remain pending;13/30 (43.3%).
+
+**Historical E251, 2026-11-15:** Credential-free security probe batch prepared: allowed HTTPS controls before/after, actual wrong TLS pin, forbidden host/port and plaintext denials through the installed gateway. Local verification:55 assertions and4 controller workflows passed. [Run the short security batch](paytm-security-probes.md). Spare evidence pending; G3.2/G3.5 remain open. Groups100/100/60/0/0/0;13/30 (43.3%), unchanged.
 
 **Historical E250, 2026-11-15:** Sign-out and full shutdown/startup accepted. All eight source hashes match 641c77c CRLF; same background worker across changed logon, new worker after new Windows boot, all three route/account/final-lock proofs pass. Transient failures recovered automatically (AfterLogoff: 4 attempts/3 failures; new boot: 2 attempts/1 failure); uninterrupted availability is not established. G3.4 complete. Groups 100/100/60/0/0/0; 13/30 (43.3%). Next: G3.2 security-negative cases and G3.5 clock/health/no-direct-fallback review. No session test rerun needed.
 

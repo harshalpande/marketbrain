@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E252 TLS_PROXY_SECURITY_ACCEPTED:** [Evidence](evidence/paytm-security-accepted-20261115.json). Six actual rejection/control checks pass in8.53s; nine source hashes match; same advancing worker. [Next disposable SSH probes](paytm-ssh-negative-probes.md); local31 assertions/six controller workflows pass. No checkpoint credit yet.
+
 - **E251 SECURITY_PROBES_PREPARED:** [Local evidence](evidence/paytm-security-probes-local-20261115.json), [handoff](paytm-security-probes.md).55 assertions/four controller workflows pass. Actual spare TLS-pin/proxy-denial evidence pending; no checkpoint credit.
 
 - **E250 SESSION_ACCEPTED:** [Evidence](evidence/paytm-session-accepted-20261115.json). Eight source hashes verified; baseline/sign-out/full-startup proofs pass, account/locks preserved. Transient failures recovered; no uninterrupted-availability claim. G3.4 accepted; 13/30 (43.3%).
