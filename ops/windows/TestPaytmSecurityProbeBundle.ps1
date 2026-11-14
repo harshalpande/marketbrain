@@ -1,10 +1,12 @@
 #Requires -Version 7.0
 [CmdletBinding()]param(
  [switch]$SshNegative,
+ [switch]$ListenerPolicy,
  [string]$OutputDirectory='C:\MarketBrainData\Review',
  [string]$TransportReportPath='C:\MarketBrainData\Review\paytm-managed-transport-20261103-171133-8ac7cdda3ca7475eb001df485797cb70.json')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmSshNegativeProbes.ps1')
+. (Join-Path $PSScriptRoot 'PaytmListenerPolicyProbes.ps1')
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmSecurityProbes.ps1')){. (Join-Path $PSScriptRoot $name)}
 $watch=[Diagnostics.Stopwatch]::StartNew();$lease=$null;$manifest=$null
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';failure=$null;cleanupFailure=$null;elapsedSeconds=0;checks=@();sourceHashes=@{};credentialsUsed=$false;ordersEnabled=$false;gatewayChanged=$false;applicationAccessed=$false;checkpointCompleted=$false}
@@ -17,6 +19,7 @@ function Save-SecurityReport {
 }
 try{
  Save-SecurityReport
+ if($SshNegative -and $ListenerPolicy){throw 'SECURITY_MODE_CONFLICT'}
  Assert-PaytmCustodyController
  Import-Module ScheduledTasks
  foreach($n in @('TestPaytmSecurityProbeBundle.ps1','PaytmSecurityProbes.ps1','PaytmGatewayRestart.ps1','PaytmManagedTransport.ps1','PaytmSupervisorTransport.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorHost.ps1','PaytmGatewaySession.ps1','PaperRuntimeReview.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash}
@@ -29,7 +32,13 @@ try{
  $manifest=Assert-PaytmInstalledTransport $receipt
  $report.before=Wait-PaytmManagedHost $manifest.installationId TRANSPORT_READY -TimeoutSeconds 30
  Save-SecurityReport
- if($SshNegative){
+ if($ListenerPolicy){
+  $report.sourceHashes['PaytmListenerPolicyProbes.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmListenerPolicyProbes.ps1')).Hash
+  $report.probeMode='REAL_LISTENER_AND_ISOLATED_INSTALLED_POLICY'
+  $report.installedHashes=$manifest.hashes
+  Save-SecurityReport
+  Invoke-PaytmListenerPolicyBatch $manifest $report.before {param($Row) $report.checks+=,$Row;Save-SecurityReport}
+ }elseif($SshNegative){
   $report.sourceHashes['PaytmSshNegativeProbes.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmSshNegativeProbes.ps1')).Hash
   $report.probeMode='DISPOSABLE_SSH_NEGATIVES_CONTROLLER_IDENTITY'
   Save-SecurityReport
@@ -38,7 +47,7 @@ try{
   param($Arguments)
   Invoke-PaperRuntimeProcess 'C:\Windows\System32\curl.exe' $Arguments $PSScriptRoot 12
  } -Record {param($Row) $report.checks+=,$Row;Save-SecurityReport}}
- $report.status=if($SshNegative){'SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING'}else{'SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING'}
+ $report.status=if($ListenerPolicy){'LISTENER_AND_POLICY_PASSED_RUNTIME_LATCH_AND_CLOCK_PENDING'}elseif($SshNegative){'SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING'}else{'SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING'}
 }catch{$report.failure=$_.Exception.Message}
 finally{
  if($manifest){
@@ -57,4 +66,4 @@ finally{
  Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
  Write-Host "Share this ONE file: $reportPath"
 }
-if($report.status -cnotin @('SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING','SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING')){throw "Review report: $($report.failure) $($report.cleanupFailure)"}
+if($report.status -cnotin @('SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING','SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING','LISTENER_AND_POLICY_PASSED_RUNTIME_LATCH_AND_CLOCK_PENDING')){throw "Review report: $($report.failure) $($report.cleanupFailure)"}

@@ -1,0 +1,13 @@
+{
+  "evidenceId": "E254",
+  "batchChecks": 15,
+  "localAssertions": 8,
+  "controllerWorkflows": 9,
+  "existingProbeAssertions": 55,
+  "realLocalEphemeralSocketsTested": true,
+  "productionGatewayTested": false,
+  "runtimeLatchingTested": false,
+  "actualClockDriftTested": false,
+  "acceptedCheckpoints": 13,
+  "totalCheckpoints": 30
+}

@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E254 LISTENER_POLICY_PREPARED:** [Local evidence](evidence/paytm-listener-policy-local-20261115.json), [handoff](paytm-listener-policy-probes.md).15 checks/eight assertions/nine controller workflows passed. Real ephemeral sockets tested locally; installed production worker latching not tested. No checkpoint credit.
+
 - **E253 SSH_REJECTIONS_ACCEPTED:** [Evidence](evidence/paytm-ssh-rejections-accepted-20261115.json). Both actual SSH host/key rejections and disposable cleanup pass in8.257s; ten hashes verified; same advancing worker and unchanged attempt/failure counts. Controller Windows identity only. Listener-conflict and G3.5 evidence remain pending;13/30 (43.3%).
 
 - **E252 TLS_PROXY_SECURITY_ACCEPTED:** [Evidence](evidence/paytm-security-accepted-20261115.json). Six actual rejection/control checks pass in8.53s; nine source hashes match; same advancing worker. [Next disposable SSH probes](paytm-ssh-negative-probes.md); local31 assertions/six controller workflows pass. No checkpoint credit yet.

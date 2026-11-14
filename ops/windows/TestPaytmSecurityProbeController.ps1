@@ -5,6 +5,7 @@ $source=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'TestPaytmSecurityProb
 $start=$source.IndexOf('foreach($name in @(');$end=$source.IndexOf('$watch=', $start)
 $source=$source.Remove($start,$end-$start)
 $source=$source.Replace(". (Join-Path `$PSScriptRoot 'PaytmSshNegativeProbes.ps1')",'')
+$source=$source.Replace(". (Join-Path `$PSScriptRoot 'PaytmListenerPolicyProbes.ps1')",'')
 $source=$source.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))
 $fixture=Join-Path ([IO.Path]::GetTempPath()) ('paytm-security-fixture-'+[guid]::NewGuid().ToString('N'))
 $null=New-Item -ItemType Directory $fixture
@@ -41,11 +42,16 @@ function Invoke-PaytmSshNegativeBatch($Directory,$Record){
  & $Record @{name='WRONG_KEY';passed=$true}
  & $Record @{name='DISPOSABLE_FILES_REMOVED';passed=$true}
 }
+function Invoke-PaytmListenerPolicyBatch($Manifest,$Worker,$Record){
+ & $Record @{name='ACTUAL_OWNED_LOOPBACK_LISTENER';passed=$true}
+ if($script:mode -eq 'LISTENER_FAIL'){throw 'FIXTURE_BIND_NOT_DENIED'}
+ & $Record @{name='DUPLICATE_BIND_DENIED';passed=$true}
+}
 $checks=0
-foreach($mode in @('PASS','TIMEOUT','WRONG_ACCEPT','FINAL_DRIFT','SSH_PASS','SSH_FAIL')){
+foreach($mode in @('PASS','TIMEOUT','WRONG_ACCEPT','FINAL_DRIFT','SSH_PASS','SSH_FAIL','LISTENER_PASS','LISTENER_FAIL','MODE_CONFLICT')){
  $script:mode=$mode;$script:installCalls=0;$script:sequence=0
  $dir=Join-Path $fixture $mode;$threw=$false
- try{& ([scriptblock]::Create($source)) -OutputDirectory $dir -TransportReportPath (Join-Path $fixture 'receipt.json') -SshNegative:($mode -like 'SSH_*')}catch{$threw=$true}
+ try{& ([scriptblock]::Create($source)) -OutputDirectory $dir -TransportReportPath (Join-Path $fixture 'receipt.json') -SshNegative:($mode -like 'SSH_*' -or $mode -eq 'MODE_CONFLICT') -ListenerPolicy:($mode -like 'LISTENER_*' -or $mode -eq 'MODE_CONFLICT')}catch{$threw=$true}
  $files=@(Get-ChildItem -LiteralPath $dir -Filter '*.json')
  if($files.Count -ne 1){throw 'CONTROLLER_REPORT_COUNT'}
  $r=Get-Content -LiteralPath $files[0].FullName -Raw|ConvertFrom-Json
@@ -53,6 +59,8 @@ foreach($mode in @('PASS','TIMEOUT','WRONG_ACCEPT','FINAL_DRIFT','SSH_PASS','SSH
   if($threw -or $r.status -ne 'SECURITY_PROBES_PASSED_SSH_AND_HEALTH_TESTS_PENDING' -or $r.checks.Count -ne 6){throw 'CONTROLLER_PASS'}
  }elseif($mode -eq 'SSH_PASS'){
   if($threw -or $r.status -ne 'SSH_REJECTIONS_PASSED_LISTENER_AND_HEALTH_PENDING' -or $r.checks.Count -ne 3){throw 'CONTROLLER_SSH_PASS'}
+ }elseif($mode -eq 'LISTENER_PASS'){
+  if($threw -or $r.status -ne 'LISTENER_AND_POLICY_PASSED_RUNTIME_LATCH_AND_CLOCK_PENDING' -or $r.checks.Count -ne 2){throw 'CONTROLLER_LISTENER_PASS'}
  }elseif(-not $threw -or $r.status -ne 'REVIEW_REQUIRED'){throw 'CONTROLLER_FAIL_CLOSED'}
  if($mode -eq 'TIMEOUT' -and $r.failure -ne 'RUNTIME_PROCESS_TIMEOUT'){throw 'CONTROLLER_ROOT_CAUSE'}
  if($mode -eq 'FINAL_DRIFT' -and $r.cleanupFailure -ne 'FIXTURE_DRIFT'){throw 'CONTROLLER_FINAL_DRIFT'}
