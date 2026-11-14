@@ -1,5 +1,7 @@
 # Java-owned health transport after E269
 
+Accepted as E270. Continue with [real deployment preflight](paytm-health-deployment-preflight.md); no isolated batch rerun needed.
+
 E269 accepts the spare publisher contract: 15 fixtures, 0.201 seconds, zero network calls, no credentials/application changes. Three source hashes match d22592c. Evidence: evidence/paytm-publisher-accepted-20261115.json.
 
 ## Integration change
