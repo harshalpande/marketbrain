@@ -1,5 +1,8 @@
 # Three-clock comparison after E261
 
+**Current E262, 2026-11-15:** Three-clock screen accepted in91.317s:10/10 usable observations, VPS NTP yes5/5, no findings, container unchanged and key cleanup confirmed. Bounds versus Windows: VPS -0.043..+0.964s; Java -0.086..+0.073s. Six source hashes matchc7d8f18. Prior16-17s mismatch absent in this observation; durable Windows synchronization remains unproven. [Next: bounded read-only clock-health batch](paytm-clock-health.md). G3.5 stays open;14/30 (46.7%), groups100/100/80/0/0/0.
+
+
 The source diagnostic completed, but synchronization acceptance remains open. All three read-only peer samples succeeded (+6.2752, +14.1538, +18.7051ms). System events37/35 record valid time data and synchronization. Service status still reports leap3, stratum0 and last sync error1, while peer status reports success. Do not dismiss either side as stale without evidence. The historical16.3575s phase-offset field is not a fresh independent offset measurement.
 
 Service remains Running/Automatic; peer and permissions are unchanged. No evidence now supports replacing the time server or resetting the service. SpecialPollInterval32768s and time remaining32395s were observed; they are not proof of the cause of contradictory status. No settings are changed in this step.

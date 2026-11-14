@@ -1,0 +1,35 @@
+{
+  "evidenceId": "E262",
+  "receipt": "paytm-clock-snapshot-20261115-012410-af351b5a10e64d6b8b72a14d5598667b.json",
+  "sha256": "75B582A215A014EB2D15EED94F1932358E59C607C20466D841A368BA85A84281",
+  "sourceCommit": "c7d8f18",
+  "sourceHashesVerified": 6,
+  "elapsedSeconds": 91.317,
+  "usableSamples": 10,
+  "vpsNtpYesCount": 5,
+  "assessment": {
+    "findings": [],
+    "offsetsRelativeToWindows": {
+      "VPS": {
+        "lowerSeconds": -0.043039600000000025,
+        "upperSeconds": 0.9637952000000001
+      },
+      "APPLICATION": {
+        "lowerSeconds": -0.0858975,
+        "upperSeconds": 0.072639
+      }
+    },
+    "applicationMinusVps": {
+      "lowerSeconds": -1.0496927,
+      "upperSeconds": 0.11567860000000002
+    },
+    "screenPassed": true,
+    "absoluteUtcAccuracyProven": false,
+    "automaticSynchronizationProven": false,
+    "quoteTimingApproved": false
+  },
+  "containerUnchanged": true,
+  "keyCleanupConfirmed": true,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}
