@@ -1,0 +1,15 @@
+{
+  "evidence": "E275",
+  "file": "paytm-live-publication-20261115-032659-8e06b03f2a3b407fbb6ad56957e167ae (1).json",
+  "sha256": "33C1B802AADFE39ACE832ECC73F2B18E87144FFC33B169027B0CB9DFA3293D96",
+  "status": "REVIEW_REQUIRED",
+  "failure": "LIVE_HEALTH_COLLECTION_FAILED",
+  "publicationSeconds": 8.3387765,
+  "healthySubmitted": false,
+  "finalRevocationVerified": true,
+  "lifecycleStarted": false,
+  "cause": "Collection exception and exceeded window observed; original failing phase not retained, underlying cause unproven",
+  "correction": "Retain phase, safe collection code, native exit when available, and separate windowExceeded flag",
+  "localChecksPassed": 48,
+  "runtimeRerunPending": true
+}

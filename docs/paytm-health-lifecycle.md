@@ -1,5 +1,8 @@
 # Runtime health expiry, recovery and revocation
 
+**E275, 2026-11-15:** Lifecycle test stopped before lifecycle began: first collection failed and publication took 8.339 seconds, exceeding the unchanged eight-second freshness budget. Unhealthy submission rejected and final revocation/lock confirmed. Original failing phase was not retained; no specific network cause is claimed. Collector/publisher now retain safe phase/error/exit metadata and independent windowExceeded. 48 local checks passed. Rerun [lifecycle test](paytm-health-lifecycle.md); no rebuild. G3 80%, overall 14/30 (46.7%).
+
+
 E274 accepts 3/3 fresh publications in 1.962-3.253 seconds each, with final revocation, account/writer/container/time-service preservation and key cleanup. Total 248.185 seconds includes human prompt time. All 12 script hashes match 34962b5. Root HEAD 503 remains transport-only evidence, not authenticated API readiness.
 
 ## Combined next test

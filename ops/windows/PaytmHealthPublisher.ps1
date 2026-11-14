@@ -12,7 +12,7 @@ function Invoke-PaytmHealthHttp([ValidateSet('challenge','submit')][string]$Comm
 }
 function Invoke-PaytmHealthPublishOnce([string]$Token,[scriptblock]$Collect,[scriptblock]$MonotonicSeconds={ [Diagnostics.Stopwatch]::GetTimestamp()/[double][Diagnostics.Stopwatch]::Frequency }) {
  # Collect is a trusted in-process adapter, never a saved-report import or user-provided payload.
- $result=[ordered]@{status='PUBLISHER_FAILED';healthAccepted=$false;healthySubmitted=$false;submissionAttempted=$false;failure=$null;elapsedSeconds=0;ordersEnabled=$false;routeArmed=$false}
+ $result=[ordered]@{status='PUBLISHER_FAILED';healthAccepted=$false;healthySubmitted=$false;submissionAttempted=$false;failure=$null;collectionFailure=$null;collectionPhase=$null;windowExceeded=$false;elapsedSeconds=0;ordersEnabled=$false;routeArmed=$false}
  $start=& $MonotonicSeconds
  try{
   $c=Invoke-PaytmHealthHttp 'challenge' $Token $null
@@ -22,12 +22,13 @@ function Invoke-PaytmHealthPublishOnce([string]$Token,[scriptblock]$Collect,[scr
   try{
    $round=& $Collect
    $assessment=Get-PaytmLiveHealthAssessment $round
+   if($round.PSObject.Properties['collectionFailure'] -and $round.collectionFailure){$result.collectionFailure=$round.collectionFailure;$result.collectionPhase=$round.failedPhase;$result.failure='HEALTH_PUBLISHER_COLLECTION_FAILED'}
    # V2 Java independently probes its own fixed proxy before it accepts this claim.
    $healthy=$assessment.collectionPassed
    $lower=[double]$assessment.applicationMinusVpsLowerSeconds;$upper=[double]$assessment.applicationMinusVpsUpperSeconds
-  }catch{$result.failure='HEALTH_PUBLISHER_COLLECTION_FAILED'}
+  }catch{$result.failure='HEALTH_PUBLISHER_COLLECTION_FAILED';$result.collectionFailure='LIVE_HEALTH_COLLECTOR_EXCEPTION'}
   $elapsed=(& $MonotonicSeconds)-$start
-  if(-not [double]::IsFinite($elapsed) -or $elapsed -lt 0 -or $elapsed -ge 8){$healthy=$false;$result.failure='HEALTH_PUBLISHER_WINDOW_EXCEEDED'}
+  if(-not [double]::IsFinite($elapsed) -or $elapsed -lt 0 -or $elapsed -ge 8){$healthy=$false;$result.windowExceeded=$true;if(-not $result.failure){$result.failure='HEALTH_PUBLISHER_WINDOW_EXCEEDED'}}
   # Even failed collection attempts submit a one-use unhealthy result to revoke prior authority.
   # If delivery fails, revocation is unconfirmed; the server's existing health TTL remains the bound.
   if(-not $healthy){$lower=0.0;$upper=0.0}

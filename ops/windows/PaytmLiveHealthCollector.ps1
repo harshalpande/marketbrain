@@ -1,5 +1,8 @@
 # Definitions only. No service, clock, gateway or application mutations.
 function Get-PaytmLiveHealthAssessment($Round) {
+ if($Round.PSObject.Properties['collectionFailure'] -and $Round.collectionFailure){
+  return [pscustomobject]@{collectionPassed=$false;findings=@($Round.collectionFailure);failedPhase=$Round.failedPhase;applicationMinusVpsLowerSeconds=0.0;applicationMinusVpsUpperSeconds=0.0;submitted=$false;absoluteAccuracyProven=$false}
+ }
  $reasons=[Collections.Generic.List[string]]::new()
  if(-not [double]::IsFinite($Round.elapsedSeconds) -or $Round.elapsedSeconds -lt 0 -or $Round.elapsedSeconds -ge 8){$reasons.Add('COLLECTION_EXCEEDS_EIGHT_SECOND_BUDGET')}
  if(-not [double]::IsFinite($Round.wallSeconds) -or [math]::Abs($Round.wallSeconds-$Round.elapsedSeconds) -gt 0.1){$reasons.Add('WINDOWS_CLOCK_MOVEMENT')}
@@ -37,23 +40,39 @@ function Invoke-PaytmLiveHealthTransport([string]$Root) {
 }
 function Invoke-PaytmLiveHealthRound([string]$Plink,[string]$Root,[string]$Token) {
  $wall=[DateTimeOffset]::UtcNow;$clock=[Diagnostics.Stopwatch]::StartNew()
+ $phase='WINDOWS_SERVICE';$ssh=$null
+ try{
  $service=Get-PaytmTimeRepairSnapshot
+ $phase='WINDOWS_STATUS'
  $status=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /status /verbose' 5
+ $phase='WINDOWS_SOURCE'
  $source=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /source' 5
  $nonce=[guid]::NewGuid().ToString('N')
  $start=[DateTimeOffset]::UtcNow;$watch=[Diagnostics.Stopwatch]::StartNew()
+ $phase='VPS_SSH'
  $ssh=Invoke-PaperRuntimeProcess $Plink (New-PaytmClockSshArguments $nonce) $Root 8
  $end=[DateTimeOffset]::UtcNow;$watch.Stop()
  if($ssh.exitCode -ne 0){throw 'LIVE_HEALTH_VPS_READ_FAILED'}
+ $phase='VPS_RECEIPT'
  $vps=Read-PaytmClockSshReceipt $ssh.stdout $nonce
  $vpsBounds=Get-PaytmClockBounds $start $end $watch.Elapsed.TotalSeconds $vps.time
  $start=[DateTimeOffset]::UtcNow;$watch.Restart()
+ $phase='JAVA_CLOCK'
  $java=Invoke-PaytmClockApplication $Token
  $end=[DateTimeOffset]::UtcNow;$watch.Stop()
  $appBounds=Get-PaytmClockBounds $start $end $watch.Elapsed.TotalSeconds $java
+ $phase='PROXY_TLS'
  $transport=Invoke-PaytmLiveHealthTransport $Root
  $clock.Stop()
  $row=[pscustomobject]@{service=$service;windowsStatus=$status;sync=(Get-PaytmTimeSyncAssessment $status $source);vps=@{ntp=$vps.ntp;bounds=$vpsBounds};application=@{bounds=$appBounds};transport=$transport;elapsedSeconds=$clock.Elapsed.TotalSeconds;wallSeconds=([DateTimeOffset]::UtcNow-$wall).TotalSeconds;assessment=$null}
+ $phase='ASSESSMENT'
  $row.assessment=Get-PaytmLiveHealthAssessment $row
  return $row
+ }catch{
+  $clock.Stop()
+  $failure=if($_.Exception.Message -cmatch '^(CLOCK|LIVE_HEALTH|TIME_REPAIR)_[A-Z_]+$'){$_.Exception.Message}else{'LIVE_HEALTH_STAGE_FAILED'}
+  $row=[pscustomobject]@{collectionFailure=$failure;failedPhase=$phase;elapsedSeconds=$clock.Elapsed.TotalSeconds;wallSeconds=([DateTimeOffset]::UtcNow-$wall).TotalSeconds;nativeExitCode=$(if($null -ne $ssh){$ssh.exitCode}else{$null});assessment=$null}
+  $row.assessment=Get-PaytmLiveHealthAssessment $row
+  return $row
+ }
 }

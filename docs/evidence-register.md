@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+**E275, 2026-11-15:** Lifecycle test stopped before lifecycle began: first collection failed and publication took 8.339 seconds, exceeding the unchanged eight-second freshness budget. Unhealthy submission rejected and final revocation/lock confirmed. Original failing phase was not retained; no specific network cause is claimed. Collector/publisher now retain safe phase/error/exit metadata and independent windowExceeded. 48 local checks passed. Rerun [lifecycle test](paytm-health-lifecycle.md); no rebuild. G3 80%, overall 14/30 (46.7%).
+
+
 **Current E274, 2026-11-15:** Three live publications accepted (1.962-3.253 seconds each); final revocation, writer lock, account/container/time-service preservation and key cleanup passed. All 12 script hashes match 34962b5. [Next: runtime health lifecycle](paytm-health-lifecycle.md), combining stale blocking, recovery without auto-arm and explicit revocation. Fifteen local fixtures pass. G3 remains 80%; groups 100/100/80/0/0/0 and 14/30 (46.7%). Explicitly notify the owner when accepted G3.5 evidence makes G3 reach 100%; do not infer completion from engineering tests.
 
 

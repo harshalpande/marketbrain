@@ -71,8 +71,9 @@ try{
         $report.publications+=,$publication;Save-LiveHealth
         $row=$script:publicationRound
         if($null -eq $row){throw 'LIVE_HEALTH_COLLECTION_FAILED'}
-        Assert-PaytmTimeRepairPreserved $report.before $row.service
         $report.rounds+=,$row;Save-LiveHealth
+        if($row.PSObject.Properties['collectionFailure'] -and $row.collectionFailure){throw $row.collectionFailure}
+        Assert-PaytmTimeRepairPreserved $report.before $row.service
         if($i -lt 3){Start-Sleep -Seconds 2}
     }
     if($LifecycleChecks){
