@@ -1,6 +1,9 @@
 # Evidence register and verification procedure
 
-**Current E279, 2026-11-15:** Original clock-reader staging receipt recovered and accepted: password locked, keyless, fixed reader hash and allowed/denied command checks passed in 0.237 seconds. This is historical installation evidence; next installer rechecks live state. [Next: keyless SSH policy](paytm-clock-ssh-policy.md), with ten local tests. G3 remains 80%, 14/30 (46.7%); no unattended key/worker accepted yet.
+**Current E280, 2026-11-15:** VPS keyless SSH policy accepted in 0.214 seconds: effective restrictions, other-account preservation and reload passed; keyless/password-locked retained. [Next: encrypted clock key preparation](paytm-clock-key-preparation.md). Five new local checks plus 122 existing custody assertions passed. No VPS authorization or worker installed by key preparation. G3 80%; 14/30 (46.7%).
+
+
+**Historical E279, 2026-11-15:** Original clock-reader staging receipt recovered and accepted: password locked, keyless, fixed reader hash and allowed/denied command checks passed in 0.237 seconds. This is historical installation evidence; next installer rechecks live state. [Next: keyless SSH policy](paytm-clock-ssh-policy.md), with ten local tests. G3 remains 80%, 14/30 (46.7%); no unattended key/worker accepted yet.
 
 
 **E278, 2026-11-15:** Staging report import stopped at CLOCK_STAGE_REPORT_NOT_CONFIRMED because the encoded report was pasted into a confirmation-word prompt. Server result is null; VPS success or failure is not yet established. Do not rerun installation. RecoverPaytmClockReaderReport.ps1 imports only the original run f4990f6148224b49a80fc7bb481eb95f from clipboard/direct paste. Ten import/handoff fixtures pass; no VPS mutation. G3 remains 80%, 14/30 (46.7%).

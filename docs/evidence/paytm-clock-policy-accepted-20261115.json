@@ -1,0 +1,24 @@
+{
+  "evidence": "E280",
+  "file": "paytm-clock-policy-5bcacd66db8749e19d8513323978439d.json",
+  "sha256": "ACFAE34FA921547D547BAAE3FEF1F156CA0AB85FBC71534D32D982E5AAD489BF",
+  "server": {
+    "version": 1,
+    "runId": "5bcacd66db8749e19d8513323978439d",
+    "status": "CLOCK_SSH_POLICY_INSTALLED_KEYLESS_CUSTODY_PENDING",
+    "failure": null,
+    "rollbackFailure": null,
+    "policyCreated": true,
+    "effectivePolicyVerified": true,
+    "otherAccountsUnchanged": true,
+    "keylessVerified": true,
+    "passwordLocked": true,
+    "reloaded": true,
+    "rollbackVerified": false,
+    "sshAccessEnabled": false,
+    "ordersEnabled": false,
+    "elapsedSeconds": 0.214
+  },
+  "elapsedSeconds": 79.9858197,
+  "scope": "Effective SSH configuration and reload accepted; no authorized key or login yet"
+}

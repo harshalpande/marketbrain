@@ -52,7 +52,7 @@ function Read-PaytmKeyString([byte[]]$Bytes,[ref]$Offset,[int]$Max=8192) {
     $value=[byte[]]::new([int]$n);[Array]::Copy($Bytes,$Offset.Value,$value,0,$n);$Offset.Value+=[int]$n
     return ,$value
 }
-function Assert-PaytmEncryptedKey([byte[]]$FileBytes) {
+function Assert-PaytmEncryptedKey([byte[]]$FileBytes,[string]$ExpectedPublicBlob=(Get-PaytmKeyContract).publicBlob) {
     if($FileBytes.Length -gt 16384 -or $FileBytes.Length -lt 100 -or @($FileBytes|Where-Object {$_ -gt 127}).Count){throw 'KEY_FILE_SIZE_OR_ENCODING'}
     $text=[Text.Encoding]::ASCII.GetString($FileBytes)
     if($text -cnotmatch '\A-----BEGIN OPENSSH PRIVATE KEY-----\r?\n([A-Za-z0-9+/=\r\n]+)-----END OPENSSH PRIVATE KEY-----(?:\r?\n)?\z'){throw 'KEY_OPENSSH_FORMAT_REQUIRED'}
@@ -69,19 +69,19 @@ function Assert-PaytmEncryptedKey([byte[]]$FileBytes) {
         if($salt.Length -lt 16 -or $koff -ne $options.Length -or $rounds -lt 16 -or $rounds -gt 1024){throw 'KEY_KDF_PARAMETERS'}
         if((Read-PaytmKeyU32 $bytes ([ref]$offset)) -ne 1){throw 'KEY_SINGLE_IDENTITY_REQUIRED'}
         $pub=Read-PaytmKeyString $bytes ([ref]$offset) 1024
-        if([Convert]::ToBase64String($pub) -cne (Get-PaytmKeyContract).publicBlob){throw 'KEY_IDENTITY_MISMATCH'}
+        if([Convert]::ToBase64String($pub) -cne $ExpectedPublicBlob){throw 'KEY_IDENTITY_MISMATCH'}
         $encrypted=Read-PaytmKeyString $bytes ([ref]$offset) 8192
         if($encrypted.Length -lt 80 -or $encrypted.Length%16 -ne 0 -or $offset -ne $bytes.Length){throw 'KEY_CIPHERTEXT_LAYOUT'}
         [pscustomobject]@{encrypted=$true;cipher=$cipher;kdf=$kdf;rounds=$rounds;fingerprint=Get-PaytmKeyFingerprint $pub}
     }finally{if($null -ne $bytes){[Array]::Clear($bytes,0,$bytes.Length)}}
 }
-function Test-PaytmEncryptedKeyFile([string]$Path) {
+function Test-PaytmEncryptedKeyFile([string]$Path,[string]$ExpectedPublicBlob=(Get-PaytmKeyContract).publicBlob) {
     $stream=[IO.File]::Open($Path,'Open','Read','Read');$data=$null
     try{
         if($stream.Length -gt 16384 -or $stream.Length -lt 100){throw 'KEY_INPUT_SIZE'}
         $data=[byte[]]::new([int]$stream.Length);$read=0
         while($read -lt $data.Length){$n=$stream.Read($data,$read,$data.Length-$read);if($n -le 0){throw 'KEY_INPUT_TRUNCATED'};$read+=$n}
-        Assert-PaytmEncryptedKey $data
+        Assert-PaytmEncryptedKey $data $ExpectedPublicBlob
     }finally{if($null -ne $data){[Array]::Clear($data,0,$data.Length)};$stream.Dispose()}
 }
 function ConvertTo-PaytmPinnedHost([string]$Text) {
