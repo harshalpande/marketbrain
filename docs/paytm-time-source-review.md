@@ -1,5 +1,8 @@
 # Read-only time-source review after E260
 
+**Current E261, 2026-11-15:** Read-only source review captured in6.243s. Three stripchart offsets +6.275/+14.154/+18.705ms; events37/35 record valid data/synchronization. Current status still leap3/stratum0/error1: conflicting evidence, not synchronization acceptance. Both source hashes matcha7405e4; service remains Running/Automatic and configuration unchanged. [Next: independent three-clock comparison](paytm-clock-after-source-review.md), no repair rerun or peer changes. G3.5 remains open; groups100/100/80/0/0/0;14/30 (46.7%).
+
+
 E260 establishes service-start repair only. Windows Time is Running/Automatic, the service ACL and time.windows.com,0x9 peer are unchanged, and the temporary task was removed. The resync output explicitly says no time data was available despite exit0. Status reports leap3 (not synchronized), stratum0 and last error1. A last-success timestamp and phase offset do not override those failure indicators. The old success label is not accepted as synchronization evidence.
 
 The repair checker now requires positive resync text and recognized healthy English status fields; unknown/localized output remains review-required. Eight semantic regressions include this exact zero-exit failure, alongside47 helper assertions, four repair-controller and four collector workflows. No service repair retry is needed.

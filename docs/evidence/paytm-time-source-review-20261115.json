@@ -1,0 +1,32 @@
+{
+  "evidenceId": "E261",
+  "receipt": "paytm-time-source-88d9c624b3174c2f89b32ed81b0675b7.json",
+  "sha256": "D8AA040DE857B44784742D9C7D34746629227D0110648DF539D997ADA9C4B60D",
+  "sourceCommit": "a7405e4",
+  "sourceHashesVerified": 2,
+  "elapsedSeconds": 6.2430693,
+  "status": "TIME_SOURCE_CAPTURED_SYNC_UNCONFIRMED",
+  "stripchartOffsetsSeconds": [
+    0.0062752,
+    0.0141538,
+    0.0187051
+  ],
+  "eventIds": [
+    35,
+    37,
+    158
+  ],
+  "serviceRunningAutomatic": true,
+  "configurationPreserved": true,
+  "serviceLeapIndicator": 3,
+  "serviceStratum": 0,
+  "serviceLastSyncError": 1,
+  "peerLastSyncError": 0,
+  "peerValidDataCounter": 1,
+  "specialPollIntervalSeconds": 32768,
+  "conflictingSynchronizationEvidence": true,
+  "automaticSynchronizationAccepted": false,
+  "clockAlignmentVerified": false,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}

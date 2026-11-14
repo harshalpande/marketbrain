@@ -1,6 +1,9 @@
 # MarketBrain: canonical project baseline
 
-**Current E260, 2026-11-15:** Service repair confirmed in12.837s: Running/Automatic, ACL and peer preserved, task removed. Synchronization NOT accepted: w32tm returned zero but explicitly reported no time data; leap3/stratum0/error1. Three source hashes match852c212. False-positive resync classification corrected; [read-only source review next](paytm-time-source-review.md), do not rerun repair. G3.5 blocked; groups100/100/80/0/0/0,14/30 (46.7%), unchanged.
+**Current E261, 2026-11-15:** Read-only source review captured in6.243s. Three stripchart offsets +6.275/+14.154/+18.705ms; events37/35 record valid data/synchronization. Current status still leap3/stratum0/error1: conflicting evidence, not synchronization acceptance. Both source hashes matcha7405e4; service remains Running/Automatic and configuration unchanged. [Next: independent three-clock comparison](paytm-clock-after-source-review.md), no repair rerun or peer changes. G3.5 remains open; groups100/100/80/0/0/0;14/30 (46.7%).
+
+
+**Historical E260, 2026-11-15:** Service repair confirmed in12.837s: Running/Automatic, ACL and peer preserved, task removed. Synchronization NOT accepted: w32tm returned zero but explicitly reported no time data; leap3/stratum0/error1. Three source hashes match852c212. False-positive resync classification corrected; [read-only source review next](paytm-time-source-review.md), do not rerun repair. G3.5 blocked; groups100/100/80/0/0/0,14/30 (46.7%), unchanged.
 
 
 **Historical E259, 2026-11-15:** Repair stopped before mutation: fresh PS5.1 worker lacked the ServiceController assembly; zero repair commands, no resync, temporary task removed (11.185s). All three source hashes match cffa46a. Explicit assembly loading fixes the reproduced defect; real read-only fresh-process tests pass in PS5.1 and PS7, plus 47 helper assertions/four controller fixtures. [Retry the corrected repair](paytm-time-service-repair.md); clock alignment remains pending. Groups 100/100/80/0/0/0;14/30 (46.7%), unchanged.
