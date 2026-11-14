@@ -1,0 +1,72 @@
+{
+  "evidenceId": "E250",
+  "reviewDate": "2026-11-15",
+  "sourceRunId": "c202753051234c9383455a876052960f",
+  "sourceSha256": "09A4A48AC40FE5A4E442D480A02AC45DF0A84740C10276601954786BE54C0519",
+  "sourceHashesVerified": 8,
+  "sourceCommit": "641c77c",
+  "status": "GATEWAY_LOGOFF_AND_FULL_BOOT_PASSED",
+  "phaseProofs": {
+    "Before": {
+      "accountPreserved": true,
+      "ownerConfirmsNoManualGatewayStart": false,
+      "elapsedSeconds": 10.271,
+      "ownerConfirmsFullShutdown": false,
+      "ownerConfirmsSignedOut": false,
+      "finalApplicationLockVerified": true,
+      "applicationBootId": "65e5a10a-7b91-4163-8a33-d4abe6d9237a",
+      "routeChecks": [
+        {
+          "label": "Explicit diagnostic route Before",
+          "expectedTls": true,
+          "passed": true
+        }
+      ]
+    },
+    "AfterLogoff": {
+      "finalApplicationLockVerified": true,
+      "ownerConfirmsSignedOut": true,
+      "ownerConfirmsFullShutdown": false,
+      "accountPreserved": true,
+      "routeChecks": [
+        {
+          "label": "Explicit diagnostic route AfterLogoff",
+          "expectedTls": true,
+          "passed": true
+        }
+      ],
+      "elapsedSeconds": 29.179,
+      "ownerConfirmsNoManualGatewayStart": true,
+      "applicationBootId": "34918920-1ad8-4887-a856-d9602d5df857"
+    },
+    "AfterBoot": {
+      "elapsedSeconds": 16.175,
+      "applicationBootId": "fd4bbf34-3041-46de-8eb6-c9528c31e57d",
+      "routeChecks": [
+        {
+          "label": "Explicit diagnostic route AfterBoot",
+          "expectedTls": true,
+          "passed": true
+        }
+      ],
+      "finalApplicationLockVerified": true,
+      "ownerConfirmsFullShutdown": true,
+      "ownerConfirmsNoManualGatewayStart": true,
+      "ownerConfirmsSignedOut": false,
+      "accountPreserved": true
+    }
+  },
+  "sameWorkerAfterLogoff": true,
+  "newBootAndWorker": true,
+  "afterLogoffAttempts": 4,
+  "afterLogoffFailures": 3,
+  "newBootAttempts": 2,
+  "newBootFailures": 1,
+  "uninterruptedAvailabilityProven": false,
+  "abruptPowerLossTested": false,
+  "credentialsUsed": false,
+  "ordersEnabled": false,
+  "checkpointAccepted": "G3.4",
+  "acceptedCheckpoints": 13,
+  "totalCheckpoints": 30
+}

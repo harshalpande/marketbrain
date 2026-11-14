@@ -1,8 +1,10 @@
-# E249: fresh sign-out and full shutdown/startup verification
+# E250: sign-out and full shutdown/startup accepted
 
-**Current E249, 2026-11-14:** Sustained gateway stability accepted: 1803.187 seconds, 144 observations, same worker and SSH child, one connection attempt and zero recorded transport failures. Both application routes, unchanged INR100000 paper account and final locks passed. [Next: fresh sign-out and full shutdown/startup verification](paytm-gateway-session.md). Groups 100/100/40/0/0/0; 12/30 (40%), unchanged until G3.4 passes. Broker authentication and quotes remain untested.
+**Current E250, 2026-11-15:** Sign-out and full shutdown/startup accepted. All eight source hashes match 641c77c CRLF; same background worker across changed logon, new worker after new Windows boot, all three route/account/final-lock proofs pass. Transient failures recovered automatically (AfterLogoff: 4 attempts/3 failures; new boot: 2 attempts/1 failure); uninterrupted availability is not established. G3.4 complete. Groups 100/100/60/0/0/0; 13/30 (43.3%). Next: G3.2 security-negative cases and G3.5 clock/health/no-direct-fallback review. No session test rerun needed.
 
-This handoff supersedes the paused E242 session instructions. The new stability run passed; do not rerun recovery. Use a fresh Before phase, then AfterLogoff and AfterBoot in order. The collector refuses any unexpected existing checkpoint.
+**Historical E249, 2026-11-14:** Sustained gateway stability accepted: 1803.187 seconds, 144 observations, same worker and SSH child, one connection attempt and zero recorded transport failures. Both application routes, unchanged INR100000 paper account and final locks passed. [Next: fresh sign-out and full shutdown/startup verification](paytm-gateway-session.md). Groups 100/100/40/0/0/0; 12/30 (40%), unchanged until G3.4 passes. Broker authentication and quotes remain untested.
+
+The procedure below is historical and complete; do not rerun it. This handoff superseded the paused E242 session instructions. The new stability run passed; do not rerun recovery. Use a fresh Before phase, then AfterLogoff and AfterBoot in order. The collector refuses any unexpected existing checkpoint.
 
 ## Purpose and limits
 

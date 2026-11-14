@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+- **E250 SESSION_ACCEPTED:** [Evidence](evidence/paytm-session-accepted-20261115.json). Eight source hashes verified; baseline/sign-out/full-startup proofs pass, account/locks preserved. Transient failures recovered; no uninterrupted-availability claim. G3.4 accepted; 13/30 (43.3%).
+
 - **E249 TLS_STABILITY_ACCEPTED_SESSION_PENDING:** [Evidence](evidence/paytm-tls-stability-accepted-20261114.json), [next session test](paytm-gateway-session.md). Seven source hashes match 69fdafa CRLF; 1803.187s, 144 observations, zero recorded transport failures; routes/account/locks passed. No new checkpoint credit.
 
 - **E248 TLS_CAPTURE_ACCEPTED_STABILITY_PENDING:** [Evidence](evidence/paytm-tls-capture-accepted-20261114.json), [handoff](paytm-tls-stability.md). Ten source hashes match;303.812s capture,55 ready samples/no sampled outages, one attempt/zero failures, final stop/account/locks pass.22,202-byte report. No new checkpoint credit;30-minute stability next.
