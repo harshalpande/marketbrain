@@ -1,8 +1,25 @@
 #Requires -Version 7.0
 function Get-PaytmTlsDiagnosticClock {[Diagnostics.Stopwatch]::StartNew()}
+function Add-PaytmTlsDiagnosticSample($Diagnostic,$Value){
+ $full=ConvertTo-PaytmWorkerEvidence $Value
+ if(-not $Diagnostic.Contains('firstObservation')){$Diagnostic.firstObservation=$full}
+ $Diagnostic.lastObservation=$full
+ $sample=[ordered]@{}
+ foreach($n in @('sequence','elapsedSeconds','phase','httpStatus')){
+  $sample[$n]=Get-PaytmEvidenceProperty $full $n
+ }
+ $state=Get-PaytmEvidenceProperty $full transportState
+ foreach($n in @('attempts','failures')){$sample[$n]=Get-PaytmEvidenceProperty $state $n}
+ $tls=Get-PaytmEvidenceProperty $full lastTlsObservation
+ $sample.tlsElapsedMs=Get-PaytmEvidenceProperty $tls elapsedMilliseconds
+ $sample.tlsExitCode=Get-PaytmEvidenceProperty $tls exitCode
+ $sample.tlsStage=Get-PaytmEvidenceProperty $tls lastCompletedStage
+ if($Diagnostic.samples.Count -ge 64){$Diagnostic.samples.RemoveAt(0);$Diagnostic.samplesDropped++}
+ $Diagnostic.samples.Add([pscustomobject]$sample)
+}
 function Invoke-PaytmTlsDiagnosticCapture([string]$Id){
  $c=Get-PaytmHostContract;$clock=Get-PaytmTlsDiagnosticClock
- $report.diagnostic=[ordered]@{requiredSeconds=300;elapsedSeconds=0;captureCompleted=$false;samples=[Collections.Generic.List[object]]::new();healthySamples=0;outageSamples=0}
+ $report.diagnostic=[ordered]@{requiredSeconds=300;elapsedSeconds=0;captureCompleted=$false;samples=[Collections.Generic.List[object]]::new();samplesDropped=0;healthySamples=0;outageSamples=0}
  $instance=$null;$previous=$null;$lastAdvance=0.0
  do{
   foreach($name in @('startup-failure.json','blocked.json')){if(Test-Path -LiteralPath (Join-Path $c.work $name)){throw 'TRANSPORT_WORKER_BLOCKED'}}
@@ -16,7 +33,7 @@ function Invoke-PaytmTlsDiagnosticCapture([string]$Id){
    if(-not $previous -or $v.sequence -gt $previous.sequence){$lastAdvance=$clock.Elapsed.TotalSeconds}
    if($previous -and $v.sequence -lt $previous.sequence){throw 'HOST_TLS_CAPTURE_SEQUENCE_REVERSED'}
    $previous=$v
-   $report.diagnostic.samples.Add((ConvertTo-PaytmWorkerEvidence $v))
+   Add-PaytmTlsDiagnosticSample $report.diagnostic $v
    if($v.phase -ceq 'TRANSPORT_READY'){$report.diagnostic.healthySamples++}else{$report.diagnostic.outageSamples++}
   }
   if($clock.Elapsed.TotalSeconds-$lastAdvance -gt 45){throw 'TRANSPORT_HEARTBEAT_TIMEOUT'}

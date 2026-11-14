@@ -1,6 +1,8 @@
 # Daily progress and decision log
 
-**Current E245, 2026-11-14:** Recovery again failed: HTTPS timeouts after CONNECT200, while BACKOFF heartbeats advanced. Failure cleanup/account/locks passed. [Next: five-minute TLS phase diagnostic with mandatory stop](paytm-tls-phase-diagnostic.md). Misleading readiness timeout corrected; root cause unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+**Current E246, 2026-11-14:** Diagnostic collector exceeded64KiB after43 ready samples; final cleanup unverified from console. Reproduced and fixed with bounded samples and fallback cleanup receipt. [Next: read-only checkpoint/current-state capture](paytm-capture-size-recovery.md); do not rerun stale recovery. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
+
+**Historical E245, 2026-11-14:** Recovery again failed: HTTPS timeouts after CONNECT200, while BACKOFF heartbeats advanced. Failure cleanup/account/locks passed. [Next: five-minute TLS phase diagnostic with mandatory stop](paytm-tls-phase-diagnostic.md). Misleading readiness timeout corrected; root cause unproven. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 
 **Historical E244, 2026-11-13:** SSH incident evidence accepted:196 journal rows, one gateway key login, no classified throttling entries. Exact connection match and cause unproven. [Next: one controlled recovery without code replacement](paytm-incident-recovery.md), then existing30-minute stability/application/account checks. Groups100/100/40/0/0/0;12/30 (40%), unchanged.
 

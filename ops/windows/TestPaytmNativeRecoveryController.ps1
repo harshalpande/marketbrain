@@ -42,6 +42,7 @@ function Wait-PaytmManagedHost {
 }
 function Assert-PaytmNativeSoakSample($First,$Current){if($Current.sequence -le $First.sequence){throw 'HOST_NATIVE_SAMPLE_STALE'}}
 function Invoke-PaytmTlsDiagnosticCapture {
+ if($global:mbNativeControllerFixture.case -eq 'report_oversize'){$report.oversizedFixture='X'*70000}
  if($global:mbNativeControllerFixture.case -in @('soak_failed','stop_failed')){throw 'HOST_TLS_CAPTURE_FAILED'}
  $report.diagnostic=@{captureCompleted=$true}
 }
@@ -52,7 +53,9 @@ function Read-PaytmPaperAccount {'same'}
 function Get-PaytmWorkerFailureEvidence {@{readOnly=$true;files=@{}}}
 function Stop-PaytmFailedManagedHost {$global:mbNativeControllerFixture.stops++;if($global:mbNativeControllerFixture.case -eq 'stop_failed'){throw 'HOST_STOP_FAILED'}}
 try{
- foreach($case in @('pass','preflight','application_unavailable','build_failed','start_failed','soak_failed','lock_failed','stop_failed')){
+ $cases=@('pass','preflight','application_unavailable','build_failed','start_failed','soak_failed','lock_failed','stop_failed')
+ if($TlsPhaseFixture){$cases+='report_oversize'}
+ foreach($case in $cases){
   $base=Join-Path $tmp $case;$root=Join-Path $base root;$ops=Join-Path $base 'ops/windows';$out=Join-Path $base out
   $null=New-Item -ItemType Directory -Path $root,$ops,$out -Force
   $global:mbNativeControllerFixture=@{case=$case;root=$root;receipt=(Join-Path $base receipt.json);stops=0;sequence=1}
@@ -76,7 +79,15 @@ try{
   }
   $failed=$false;try{& $file @extra -DiagnosticReportPath $global:mbNativeControllerFixture.receipt -TransportReportPath $global:mbNativeControllerFixture.receipt -OutputDirectory $out 6>$null}catch{$failed=$true;$caught=$_}
   Check ($failed -eq ($case -ne 'pass')) ($case+'_OUTCOME')
-  $files=@(Get-ChildItem -LiteralPath $out -Filter '*.json');if($files.Count -ne 1){throw $caught};Check ($files.Count -eq 1) 'ONE_REPORT'
+  $files=@(Get-ChildItem -LiteralPath $out -Filter '*.json')
+  if($case -eq 'report_oversize'){
+   Check ($files.Count -eq 2 -and $global:mbNativeControllerFixture.stops -eq 1) 'OVERSIZE_STOP_AND_FALLBACK'
+   $fallback=@($files|Where-Object Name -Like '*.final.json')
+   $small=Read-PaytmHostJson $fallback[0].FullName 65536
+   Check ($small.failureStopVerified -and $small.finalApplicationLockVerified -and $small.accountPreserved -and $small.status -ceq 'REVIEW_REQUIRED') 'FALLBACK_PRESERVES_CLEANUP_RESULTS'
+   continue
+  }
+  if($files.Count -ne 1){throw $caught};Check ($files.Count -eq 1) 'ONE_REPORT'
   $v=Read-PaytmHostJson $files[0].FullName 65536
   if($TlsPhaseFixture -and $case -eq 'pass'){
    Check ($v.status -ceq 'TLS_DIAGNOSTICS_CAPTURED_GATEWAY_STOPPED_REVIEW_REQUIRED' -and -not $v.soakPassed -and $v.failureStopVerified -and $v.diagnostic.captureCompleted -and $global:mbNativeControllerFixture.stops -eq 1) 'DIAGNOSTIC_SUCCESS_STOPS_WITHOUT_HEALTH_CREDIT'
@@ -95,7 +106,7 @@ try{
   if($case -eq 'stop_failed'){Check ($v.cleanupFailure -eq 'HOST_NATIVE_FAILURE_STOP_REVIEW_REQUIRED' -and -not $v.failureStopVerified) 'STOP_FAILURE_VISIBLE'}
   if($case -eq 'soak_failed'){$expectedFailure=if($TlsPhaseFixture){'HOST_TLS_CAPTURE_FAILED'}else{'TRANSPORT_WORKER_BLOCKED'};Check ($v.failure -eq $expectedFailure -and $v.finalApplicationLockVerified -and $v.accountPreserved) 'SOAK_FAILURE_LOCKS_AND_ACCOUNT'}
  }
- [pscustomobject]@{status='NATIVE_CONTROLLER_FAILURES_PASSED';assertions=$checks;workflows=8;acceleratedSuccessFixtureOnly=$true;runtimeApisMocked=$true}|ConvertTo-Json
+ [pscustomobject]@{status='NATIVE_CONTROLLER_FAILURES_PASSED';assertions=$checks;workflows=$cases.Count;acceleratedSuccessFixtureOnly=$true;runtimeApisMocked=$true}|ConvertTo-Json
 }finally{
  $full=[IO.Path]::GetFullPath($tmp);$parent=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
  if(-not $full.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($full) -notmatch '^mb-native-controller-[a-f0-9]{32}$'){throw 'UNSAFE_NATIVE_CONTROLLER_CLEANUP'}

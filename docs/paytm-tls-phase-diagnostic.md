@@ -1,5 +1,7 @@
 # E245: HTTPS phase diagnostic after repeated recovery failure
 
+**E246 interrupted by report-size bug:** Do not rerun this installation against the already changed worker. [Capture current state first](paytm-capture-size-recovery.md).
+
 Reviewed November14,2026. Receipt `7c7bced74095402285b8cb199f472802`, SHA256 `B6B496859A0CB49C34EDC8EE9341622295635228300FA89BB05DAE0115487D0A`, failed after86.719s. The initial application TLS route passed. Three TLS probes timed out with curl exit28, proxy CONNECT200 and no final HTTP response; one captured timeout took4094ms. Worker sequence38 advanced to42 in BACKOFF/PROXY_UNAVAILABLE. STOP/disable cleanup, final application locks and unchanged INR100000 account passed. This is not evidence of an SSH authentication failure. The specific reason for the HTTPS stall remains unknown.
 
 ## Correction and purpose

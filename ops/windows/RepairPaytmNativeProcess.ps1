@@ -122,7 +122,16 @@ try{
  if($lease){$lease.Dispose()}
  if($finished -and -not $report.failure -and -not $report.cleanupFailure -and $report.soakPassed -and $report.accountPreserved -and $report.finalApplicationLockVerified){$report.status='NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED';$report.stage='COMPLETE'}
  if($TlsPhaseDiagnostic -and $finished -and -not $report.failure -and -not $report.cleanupFailure -and $report.diagnostic.captureCompleted -and $report.failureStopVerified -and $report.accountPreserved -and $report.finalApplicationLockVerified){$report.status='TLS_DIAGNOSTICS_CAPTURED_GATEWAY_STOPPED_REVIEW_REQUIRED';$report.stage='COMPLETE'}
- Save-NativeRecoveryReport
+ try{Save-NativeRecoveryReport}catch{
+  # Cleanup above must remain independent of final report serialization. Preserve
+  # a small receipt if the full report cannot fit; never overwrite a good checkpoint.
+  $emergency=[ordered]@{version=1;runId=$report.runId;status='REVIEW_REQUIRED';failure=$report.failure;cleanupFailure=$report.cleanupFailure;reportWriteFailure=$_.Exception.GetType().Name;nativeRecoveryAttempted=$report.nativeRecoveryAttempted;failureStopVerified=$report.failureStopVerified;accountPreserved=$report.accountPreserved;finalApplicationLockVerified=$report.finalApplicationLockVerified;brokerCredentialsUsed=$false;ordersEnabled=$false;lastCheckpoint=$script:nativeRecoveryReportPath}
+  $fallback=$script:nativeRecoveryReportPath+'.final.json'
+  $emergency.reportWriteFailureCode=if($_.Exception.Message -ceq 'SESSION_REPORT_TOO_LARGE'){'SESSION_REPORT_TOO_LARGE'}else{'REPORT_WRITE_FAILED'}
+  Write-PaytmSessionReport $fallback $emergency
+  Write-Host "Final cleanup receipt: $fallback"
+  $report.status='REVIEW_REQUIRED'
+ }
  Write-Progress -Activity 'Gateway native recovery and 30-minute observation' -Completed
  Write-Progress -Activity 'Managed Windows transport' -Completed
  Write-Host "[100%] $($report.status); elapsed=$($report.elapsedSeconds)s"
