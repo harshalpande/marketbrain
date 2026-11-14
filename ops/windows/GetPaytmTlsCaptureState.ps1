@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$CheckpointPath,[string]$OutputDirectory='C:\MarketBrainData\Review')
+[CmdletBinding()]param([string]$CheckpointPath,[switch]$CurrentStateOnly,[string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 foreach($name in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaperRuntimeReview.ps1')){. (Join-Path $PSScriptRoot $name)}
 $report=[ordered]@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';failure=$null;readOnly=$true;gatewayChanged=$false;taskStarted=$false;brokerCredentialsUsed=$false;ordersEnabled=$false}
@@ -10,9 +10,20 @@ try{
  Assert-PaytmCustodyController;Import-Module ScheduledTasks
  $report.sourceHashes=@{}
  foreach($n in @('GetPaytmTlsCaptureState.ps1','PaytmGatewayFailureEvidence.ps1','PaytmGatewaySession.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash}
+ Write-Host '[25%] Read current worker, task and controls. No start, stop or reset.'
+ $report.current=Get-PaytmWorkerFailureEvidence
+ if($CurrentStateOnly){
+  $report.checkpoint=@{availability='NOT_REQUESTED_CURRENT_STATE_ONLY'}
+  $report.status='TLS_CAPTURE_STATE_COLLECTED_REVIEW_REQUIRED'
+  return
+ }
  if(-not $CheckpointPath){
   $latest=Get-ChildItem -LiteralPath $OutputDirectory -Filter 'paytm-native-recovery-*.json' -File | Where-Object Name -NotLike '*.final.json' | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-  if(-not $latest){throw 'HOST_TLS_CAPTURE_CHECKPOINT_NOT_FOUND'}
+  if(-not $latest){
+   $report.checkpoint=@{availability='NO_CHECKPOINT_FOUND'}
+   $report.status='TLS_CAPTURE_STATE_COLLECTED_REVIEW_REQUIRED'
+   return
+  }
   $CheckpointPath=$latest.FullName
  }
  $null=Assert-PaytmAccountPath $CheckpointPath
@@ -25,8 +36,6 @@ try{
   $rows=@($d.samples)
   $report.checkpoint.capture=@{captureCompleted=$d.captureCompleted;elapsedSeconds=$d.elapsedSeconds;healthySamples=$d.healthySamples;outageSamples=$d.outageSamples;storedSamples=$rows.Count;first=$(if($rows.Count){$rows[0]}else{$null});last=$(if($rows.Count){$rows[-1]}else{$null})}
  }
- Write-Host '[60%] Read current worker, task and controls. No start, stop or reset.'
- $report.current=Get-PaytmWorkerFailureEvidence
  if((Get-FileHash -LiteralPath $CheckpointPath).Hash -cne $report.checkpoint.sha256){throw 'HOST_TLS_CAPTURE_CHECKPOINT_CHANGED'}
  $report.status='TLS_CAPTURE_STATE_COLLECTED_REVIEW_REQUIRED'
 }catch{
