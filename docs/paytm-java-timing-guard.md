@@ -1,5 +1,8 @@
 # Isolated Java timing guard after E264
 
+**Current E265, 2026-11-15:** Spare isolated Java guard passed39 checks in6.514s; compiler/JVM exit0, no network/settings/application changes. Five source hashes matchb06b1db. [Next: isolated Spring/diagnostic-route integration batch](paytm-timed-route-integration.md). Source route now uses guard and defaults locked without trusted health; do not deploy main application yet. Runtime health provider and deployment remain pending; G3.5 open,14/30 (46.7%), groups100/100/80/0/0/0.
+
+
 The polling correction passed on the spare laptop: config/resync explicitly succeeded, all three status observations report leap0/stratum5/error0, same server with adaptive polling flag0x8, original service ACL and Running/Automatic state preserved. Task removed; rollback not needed. The reported26.328ms phase offset is a service estimate, not an independent UTC error bound. `timeServersChanged=true` compares the complete peer string: only the flag changed. This does not establish long-term drift or restart persistence.
 
 ## Next engineering batch

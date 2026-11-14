@@ -3,7 +3,7 @@ package in.marketbrain.marketdata.paytm;
 import java.util.UUID;
 import java.util.function.LongSupplier;
 
-/** Isolated engineering policy, NOT wired to Spring, broker calls, approvals or orders.
+/** Diagnostic-route timing policy. No broker, approval or order authority.
  * Constants are diagnostic test policy, not approved trading timing tolerances. */
 public final class PaytmDiagnosticTimingGuard {
     public static final long HEALTH_TTL_NANOS = 30_000_000_000L;
@@ -11,7 +11,7 @@ public final class PaytmDiagnosticTimingGuard {
     private final String bootId = UUID.randomUUID().toString();
     private final LongSupplier monotonic, wallMillis;
     private long sequence = -1, observedNano, observedWall, armedNano;
-    private boolean healthy;
+    private boolean healthy, leaseValid;
     private int remaining;
     private String reason = "NO_HEALTH_EVIDENCE";
     public PaytmDiagnosticTimingGuard(LongSupplier monotonic, LongSupplier wallMillis) {
@@ -24,7 +24,7 @@ public final class PaytmDiagnosticTimingGuard {
     public record Decision(boolean diagnosticAllowed, String reason, int remainingRequests) {}
     public synchronized boolean observe(Health value) {
         if (value == null || !bootId.equals(value.bootId()) || value.sequence() <= sequence || value.sequence() < 0) {
-            healthy = false; remaining = 0; reason = "EVIDENCE_IDENTITY_OR_REPLAY"; return false;
+            healthy = false; leaseValid = false; remaining = 0; reason = "EVIDENCE_IDENTITY_OR_REPLAY"; return false;
         }
         // A new observation cannot erase a detected discontinuity and retain the old lease.
         if (healthy) healthValid(monotonic.getAsLong());
@@ -33,7 +33,7 @@ public final class PaytmDiagnosticTimingGuard {
                 && Double.isFinite(value.lowerOffsetSeconds()) && Double.isFinite(value.upperOffsetSeconds())
                 && value.lowerOffsetSeconds() <= value.upperOffsetSeconds()
                 && value.lowerOffsetSeconds() >= -5 && value.upperOffsetSeconds() <= 5;
-        if (!healthy) { remaining = 0; reason = "HEALTH_UNCONFIRMED"; }
+        if (!healthy) { leaseValid = false; remaining = 0; reason = "HEALTH_UNCONFIRMED"; }
         return healthy;
     }
     private boolean healthValid(long now) {
@@ -47,22 +47,34 @@ public final class PaytmDiagnosticTimingGuard {
         } catch (ArithmeticException invalid) { return fail("WALL_CLOCK_DISCONTINUITY"); }
         return true;
     }
-    private boolean fail(String why) { healthy = false; remaining = 0; reason = why; return false; }
+    private boolean fail(String why) { healthy = false; leaseValid = false; remaining = 0; reason = why; return false; }
     public synchronized Decision arm() {
         long now = monotonic.getAsLong();
         if (!healthValid(now)) return new Decision(false, reason, remaining);
-        armedNano = now; remaining = 4; reason = "ARMED";
+        armedNano = now; leaseValid = true; remaining = 4; reason = "ARMED";
         return new Decision(true, reason, remaining);
     }
-    public synchronized Decision checkAndConsume() {
+    public synchronized Decision status() { return decide(false); }
+    public synchronized Decision checkAndConsume() { return decide(true); }
+    private Decision decide(boolean consume) {
         long now = monotonic.getAsLong();
         if (!healthValid(now)) return new Decision(false, reason, 0);
         long elapsed = now - armedNano;
-        if (remaining <= 0) return new Decision(false, "LOCKED_OR_BUDGET_EXHAUSTED", 0);
+        if (!leaseValid || remaining <= 0) return new Decision(false, "LOCKED_OR_BUDGET_EXHAUSTED", 0);
         if (elapsed < 0 || elapsed >= LEASE_NANOS) {
-            remaining = 0; reason = "LEASE_EXPIRED"; return new Decision(false, reason, 0);
+            leaseValid = false; remaining = 0; reason = "LEASE_EXPIRED"; return new Decision(false, reason, 0);
         }
-        remaining--; return new Decision(true, "DIAGNOSTIC_ONLY", remaining);
+        if (consume) remaining--; return new Decision(true, "DIAGNOSTIC_ONLY", remaining);
     }
-    public synchronized void lock() { remaining = 0; reason = "EXPLICIT_LOCK"; }
+    public synchronized Decision validateCompletion() {
+        if (!leaseValid) return new Decision(false, "LEASE_REVOKED", 0);
+        long now = monotonic.getAsLong();
+        if (!healthValid(now)) return new Decision(false, reason, 0);
+        long elapsed = now - armedNano;
+        if (elapsed < 0 || elapsed >= LEASE_NANOS) {
+            leaseValid = false; remaining = 0; reason = "LEASE_EXPIRED"; return new Decision(false, reason, 0);
+        }
+        return new Decision(true, "DIAGNOSTIC_ONLY", remaining);
+    }
+    public synchronized void lock() { leaseValid = false; remaining = 0; reason = "EXPLICIT_LOCK"; }
 }

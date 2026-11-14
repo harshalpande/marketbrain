@@ -14,33 +14,39 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PaytmApplicationRouteTest {
     private static final String TOKEN = "a".repeat(40);
     private static final PaytmGatewayTransport.Observation TLS = new PaytmGatewayTransport.Observation("TLS_RESPONSE",503,true,"NONE");
+    static PaytmApplicationRoute healthyRoute(boolean permitted, java.util.function.LongSupplier nano,
+            java.util.function.Supplier<PaytmGatewayTransport.Observation> request) {
+        var route = new PaytmApplicationRoute(permitted, nano, () -> nano.getAsLong()/1_000_000L, request);
+        route.observeHealth(new PaytmDiagnosticTimingGuard.Health(route.status().bootId(),0,true,true,0,0));
+        return route;
+    }
     static MarketBrainProperties properties(boolean enabled, String token) {
         return new MarketBrainProperties("PAPER", null, null, null,
                 new MarketBrainProperties.PaytmMoney("https://developer.paytmmoney.com", enabled, token), null, null);
     }
     @Test void startsLockedAndNeverCallsTransport() {
-        var calls = new AtomicInteger(); var route = new PaytmApplicationRoute(true, System::nanoTime, () -> {calls.incrementAndGet();return TLS;});
+        var calls = new AtomicInteger(); var route = healthyRoute(true, System::nanoTime, () -> {calls.incrementAndGet();return TLS;});
         assertThat(route.status().state()).isEqualTo("LOCKED"); assertThat(route.head().status()).isEqualTo("LOCKED");
         assertThat(calls.get()).isZero();
     }
     @Test void fixedBudgetAndExplicitLock() {
-        var calls = new AtomicInteger(); var route = new PaytmApplicationRoute(true, System::nanoTime, () -> {calls.incrementAndGet();return TLS;});
+        var calls = new AtomicInteger(); var route = healthyRoute(true, System::nanoTime, () -> {calls.incrementAndGet();return TLS;});
         route.arm(); for(int i=0;i<4;i++) assertThat(route.head().tlsVerified()).isTrue();
         assertThat(route.head().status()).isEqualTo("LOCKED"); assertThat(calls.get()).isEqualTo(4);
         route.arm(); route.lock(); assertThat(route.head().status()).isEqualTo("LOCKED");
     }
     @Test void monotonicExpiryAndFreshInstanceLocked() {
-        var time = new AtomicLong(); var route = new PaytmApplicationRoute(true, time::get, () -> TLS);
+        var time = new AtomicLong(); var route = healthyRoute(true, time::get, () -> TLS);
         route.arm(); time.set(Duration.ofMinutes(20).toNanos()); assertThat(route.head().status()).isEqualTo("LOCKED");
-        var fresh = new PaytmApplicationRoute(true, time::get, () -> TLS);
+        var fresh = healthyRoute(true, time::get, () -> TLS);
         assertThat(fresh.status().bootId()).isNotEqualTo(route.status().bootId()); assertThat(fresh.status().state()).isEqualTo("LOCKED");
     }
     @Test void networkFailureRelocksAndRequiresExplicitRearm() {
-        var route = new PaytmApplicationRoute(true,System::nanoTime,()->new PaytmGatewayTransport.Observation("TRANSPORT_FAILED",0,false,"ConnectException"));
+        var route = healthyRoute(true,System::nanoTime,()->new PaytmGatewayTransport.Observation("TRANSPORT_FAILED",0,false,"ConnectException"));
         route.arm(); assertThat(route.head().state()).isEqualTo("LOCKED"); assertThat(route.head().status()).isEqualTo("LOCKED");
     }
     @Test void exceptionsDoNotLeakAndRelock() {
-        var route = new PaytmApplicationRoute(true,System::nanoTime,()->{throw new IllegalStateException("SECRET");});
+        var route = healthyRoute(true,System::nanoTime,()->{throw new IllegalStateException("SECRET");});
         route.arm(); assertThat(route.head().toString()).doesNotContain("SECRET").contains("INTERNAL_FAILURE");
         assertThat(route.status().state()).isEqualTo("LOCKED");
     }
@@ -65,7 +71,7 @@ class PaytmApplicationRouteTest {
         runner.run(c->{var r=c.getBean(PaytmApplicationRoute.class);assertThat(r.status().bootId()).isNotEqualTo(id[0]);assertThat(r.status().state()).isEqualTo("LOCKED");});
     }
     @Test void controllerAuthenticationAndInputRejection() throws Exception {
-        var route = new PaytmApplicationRoute(true,System::nanoTime,()->TLS);
+        var route = healthyRoute(true,System::nanoTime,()->TLS);
         var mvc=MockMvcBuilders.standaloneSetup(new PaytmApplicationRouteController(route,TOKEN,"PAPER")).build();
         mvc.perform(post("/api/v1/paytm/route/arm")).andExpect(status().isUnauthorized());
         mvc.perform(post("/api/v1/paytm/route/arm").header("X-MarketBrain-Paper-Read-Token",TOKEN)).andExpect(status().isBadRequest());
@@ -82,7 +88,7 @@ class PaytmApplicationRouteTest {
         assertThat(route.status().state()).isEqualTo("LOCKED");
     }
     @Test void controllerPositiveContractAndNoBrokerAuthority() throws Exception {
-        var mvc=MockMvcBuilders.standaloneSetup(new PaytmApplicationRouteController(new PaytmApplicationRoute(true,System::nanoTime,()->TLS),TOKEN,"PAPER")).build();
+        var mvc=MockMvcBuilders.standaloneSetup(new PaytmApplicationRouteController(healthyRoute(true,System::nanoTime,()->TLS),TOKEN,"PAPER")).build();
         for(String command : new String[]{"status","arm","head","lock"})
             mvc.perform(post("/api/v1/paytm/route/"+command).header("Host","127.0.0.1:8080")
                     .header("X-MarketBrain-Paper-Read-Token",TOKEN).header("X-MarketBrain-Paytm-Route","credential-free"))

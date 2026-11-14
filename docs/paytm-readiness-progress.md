@@ -1,6 +1,9 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E264, 2026-11-15:** Adaptive polling correction accepted in42.829s. Explicit config/resync success; three samples leap0/stratum5/error0, phase estimate26.328ms. Same time.windows.com server, flag0x9->0x8; Running/Automatic and ACL preserved, task removed, no rollback. Three source hashes matchf1618ec. [Next: isolated Java timing-guard verification](paytm-java-timing-guard.md);39 deterministic checks and full collector pass locally, production wiring pending. G3.5 open;14/30 (46.7%), groups100/100/80/0/0/0.
+**Current E265, 2026-11-15:** Spare isolated Java guard passed39 checks in6.514s; compiler/JVM exit0, no network/settings/application changes. Five source hashes matchb06b1db. [Next: isolated Spring/diagnostic-route integration batch](paytm-timed-route-integration.md). Source route now uses guard and defaults locked without trusted health; do not deploy main application yet. Runtime health provider and deployment remain pending; G3.5 open,14/30 (46.7%), groups100/100/80/0/0/0.
+
+
+**Historical E264, 2026-11-15:** Adaptive polling correction accepted in42.829s. Explicit config/resync success; three samples leap0/stratum5/error0, phase estimate26.328ms. Same time.windows.com server, flag0x9->0x8; Running/Automatic and ACL preserved, task removed, no rollback. Three source hashes matchf1618ec. [Next: isolated Java timing-guard verification](paytm-java-timing-guard.md);39 deterministic checks and full collector pass locally, production wiring pending. G3.5 open;14/30 (46.7%), groups100/100/80/0/0/0.
 
 
 **Historical E263, 2026-11-15:** Health capture completed in75.187s; all nine peer offsets -10.468..+35.689ms, service Running/Automatic and configuration preserved. All three service observations remain unsynchronized; no health acceptance. Three source hashes match6b896f1. Owner authorized [controlled polling correction with rollback](paytm-polling-correction.md): same server,0x9 to0x8, one SYSTEM task, resync and three status samples. Local tests only; runtime pending. Groups100/100/80/0/0/0;14/30 (46.7%), unchanged.
