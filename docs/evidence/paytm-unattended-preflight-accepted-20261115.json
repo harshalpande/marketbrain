@@ -1,0 +1,23 @@
+{
+  "evidence": "E277",
+  "file": "paytm-unattended-preflight-20261115-034000-c0e727fb8ab647ddb6bf02e39ba2197c.json",
+  "sha256": "943E5AB49FBD6FFE56C17EEFF005388E1C21C3F6BF0B5443E323FC0B68C6C502",
+  "sourceRevision": "00a79ea",
+  "sourceCount": 13,
+  "status": "UNATTENDED_HEALTH_PREFLIGHT_PASSED_INSTALLATION_PENDING",
+  "elapsedSeconds": 40.8097773,
+  "inventory": {
+    "installationPerformed": false,
+    "windowsCollectorAccountExists": false,
+    "sshAgentServicePresent": true,
+    "adminKeyApprovedForBackgroundUse": false,
+    "collectorTaskExists": false,
+    "vpsCollectorAccountExists": false,
+    "vpsTimedatectlPresent": true,
+    "vpsPythonPresent": true,
+    "adminKeyUsedForReadOnlyInventory": true
+  },
+  "accountPreserved": true,
+  "writerLocked": true,
+  "containerUnchanged": true
+}

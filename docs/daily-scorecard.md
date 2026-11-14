@@ -1,6 +1,9 @@
 # Daily delivery scorecard
 
-**Current E276, 2026-11-15:** Runtime lifecycle accepted in 133.478 seconds: fresh diagnostic arm, stale block/re-arm refusal, recovery requiring explicit arm and explicit revocation passed. Final revocation/account/writer/container/key cleanup passed; all 13 script hashes match 88df07b. [Next: unattended collector preflight](paytm-unattended-health.md). G3 still 80%; unattended identity, custody and lifecycle acceptance remain. 14/30 (46.7%), groups 100/100/80/0/0/0. Explicitly notify owner when G3 reaches 100%.
+**Current E277, 2026-11-15:** Unattended preflight accepted in 40.810 seconds; 13 hashes match 00a79ea, proposed accounts/task absent, VPS Python/timedatectl present, account/writer/container preserved. [Next: keyless VPS clock-reader staging](paytm-clock-reader-stage.md). Eleven local tests passed; VPS execution pending. No background key/token/task installed. G3 80%, 14/30 (46.7%); explicitly announce G3 100% only after remaining acceptance.
+
+
+**Historical E276, 2026-11-15:** Runtime lifecycle accepted in 133.478 seconds: fresh diagnostic arm, stale block/re-arm refusal, recovery requiring explicit arm and explicit revocation passed. Final revocation/account/writer/container/key cleanup passed; all 13 script hashes match 88df07b. [Next: unattended collector preflight](paytm-unattended-health.md). G3 still 80%; unattended identity, custody and lifecycle acceptance remain. 14/30 (46.7%), groups 100/100/80/0/0/0. Explicitly notify owner when G3 reaches 100%.
 
 
 **E275, 2026-11-15:** Lifecycle test stopped before lifecycle began: first collection failed and publication took 8.339 seconds, exceeding the unchanged eight-second freshness budget. Unhealthy submission rejected and final revocation/lock confirmed. Original failing phase was not retained; no specific network cause is claimed. Collector/publisher now retain safe phase/error/exit metadata and independent windowExceeded. 48 local checks passed. Rerun [lifecycle test](paytm-health-lifecycle.md); no rebuild. G3 80%, overall 14/30 (46.7%).
