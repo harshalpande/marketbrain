@@ -35,7 +35,7 @@ function Invoke-ClockLoginNative([string]$Executable,[string[]]$Arguments,[int]$
  [pscustomobject]@{exitCode=0;stdout="MB_CLOCK_V1|$nonce|1794800000000|$sync";stderr=''}
 }
 '@
- $prep=Join-Path $dir 'preparation.json';[IO.File]::WriteAllText($prep,'{"privateKeyPath":"fixture-only"}')
+ $prep=Join-Path $dir 'preparation.json';[IO.File]::WriteAllText($prep,'{"privateKeyPath":"C:/Fixture User/clock.openssh"}')
  $global:clockFixtureCalls=0;$global:clockFixtureCase=$case;$caught=$false
  try{& "$dir/TestPaytmClockLogin.ps1" -PreparationPath $prep -EvidencePath (Join-Path $dir 'authorization.json') -OutputDirectory $dir}catch{$caught=$true}
  $file=Get-ChildItem -LiteralPath $dir -Filter 'paytm-clock-login-*.json'
@@ -43,7 +43,7 @@ function Invoke-ClockLoginNative([string]$Executable,[string[]]$Arguments,[int]$
  if($case -eq 'success'){
   if($caught -or $r.status -cne 'CLOCK_SSH_LOGIN_AND_COMMAND_DENIAL_PASSED_CUSTODY_PENDING' -or $global:clockFixtureCalls -ne 3){throw 'controller success fixture failed'}
  }else{
-  $expected=switch($case){authFailure{'CLOCK_LOGIN_DENIAL_NOT_PROVEN'} unsynchronized{'CLOCK_LOGIN_VPS_NTP_UNSYNCHRONIZED'} wrongHost{'KEY_HOST_PIN_MISMATCH'}}
+  $expected=switch($case){authFailure{'CLOCK_LOGIN_AUTHENTICATION_FAILED'} unsynchronized{'CLOCK_LOGIN_VPS_NTP_UNSYNCHRONIZED'} wrongHost{'KEY_HOST_PIN_MISMATCH'}}
   if(-not $caught -or $r.failure -cne $expected){throw "controller $case fixture failed: $($r.failure)"}
   if($case -eq 'wrongHost' -and $global:clockFixtureCalls -ne 0){throw 'connection attempted after wrong pin'}
  }

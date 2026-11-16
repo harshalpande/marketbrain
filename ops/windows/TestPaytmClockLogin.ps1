@@ -30,9 +30,7 @@ try{
  if(Test-Path -LiteralPath $temp){throw 'CLOCK_LOGIN_TEMP_EXISTS'}
  $null=New-Item -ItemType Directory -Path $temp
  $known=Join-Path $temp 'known_hosts';[IO.File]::WriteAllText($known,$pins.knownHost)
- $common=@('-F','NUL','-T','-i',$key)
- foreach($o in @('IdentitiesOnly=yes','IdentityAgent=none','AddKeysToAgent=no','StrictHostKeyChecking=yes','GlobalKnownHostsFile=none',"UserKnownHostsFile=$($known.Replace('\','/'))",'HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256','PasswordAuthentication=no','KbdInteractiveAuthentication=no','PreferredAuthentications=publickey','NumberOfPasswordPrompts=1','ConnectTimeout=15','ConnectionAttempts=1','ServerAliveInterval=5','ServerAliveCountMax=2','ClearAllForwardings=yes','ProxyCommand=none','ProxyJump=none','PermitLocalCommand=no')){$common+=@('-o',$o)}
- $common+='marketbrain-health@130.250.191.137'
+ $common=Get-ClockLoginSshArguments $known $key
  for($i=0;$i -lt 3;$i++){
   $allowed=$i -ne 1;$nonce=[guid]::NewGuid().ToString('N')
   $command=if($allowed){"marketbrain-clock $nonce"}else{'marketbrain-clock INVALID'}

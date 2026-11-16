@@ -1,0 +1,25 @@
+{
+  "evidence": "E284",
+  "file": "paytm-clock-login-f79ce5a8175449e4a55580a0386119ca.json",
+  "sha256": "32056141b5688a7d16a6ce74c8ab46e8c81fd074da3da326fad0941d2bed7160",
+  "sourceRevision": "6fc21cc",
+  "status": "REVIEW_REQUIRED",
+  "failure": "CLOCK_LOGIN_RESPONSE_INVALID",
+  "nativeResult": {
+    "exitCode": 255,
+    "stdout": "",
+    "stderr": "No RSA host key is known for 130.250.191.137 and you have requested strict checking.\r\nHost key verification failed.\r\n"
+  },
+  "elapsedSeconds": 0.7859082,
+  "cause": "UserKnownHostsFile lacked SSH configuration quoting for Windows profile paths containing spaces. Fingerprint check passed but SSH did not load intended file.",
+  "verification": {
+    "realWindowsSshLoopback": [
+      "old unquoted path reproduces exit 255 host verification failure",
+      "quoted path completes authenticated command with exit 0",
+      "wrong pin remains rejected with exit 255"
+    ],
+    "existingLocalTests": 8,
+    "controllerTests": 6
+  },
+  "scope": "No spare authentication accepted. Loopback verification uses generated fixture keys. G3 remains 80 percent."
+}

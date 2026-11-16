@@ -1,6 +1,8 @@
 # MarketBrain: canonical project baseline
 
-**Current E283, 2026-11-16:** Clock login stopped before authentication because Windows ssh-keyscan reported an unsupported KEX method. Removed the redundant scan; reuse the previously supplied RSA public key after verifying the unchanged accepted fingerprint. Six new controller/public-pin checks, eight clock checks and 122 shared custody assertions pass locally. [Rerun only clock login](paytm-clock-login.md); no VPS setup rerun. G3 remains 80%, overall 14/30 (46.7%).
+**Current E284, 2026-11-16:** Clock login fingerprint passed but SSH could not load known_hosts under the spaced Windows profile path. Fixed SSH configuration-level path quoting. Real Windows ssh.exe loopback tests reproduce the old failure, pass the corrected authenticated command and reject a wrong host key. Eight existing clock checks and six controller checks pass. [Rerun only clock login](paytm-clock-login.md). No VPS changes. G3 remains 80%, overall 14/30 (46.7%).
+
+**Historical E283, 2026-11-16:** Clock login stopped before authentication because Windows ssh-keyscan reported an unsupported KEX method. Removed the redundant scan; reuse the previously supplied RSA public key after verifying the unchanged accepted fingerprint. Six new controller/public-pin checks, eight clock checks and 122 shared custody assertions pass locally. [Rerun only clock login](paytm-clock-login.md); no VPS setup rerun. G3 remains 80%, overall 14/30 (46.7%).
 
 **Historical E282, 2026-11-16:** VPS clock public-key authorization accepted (136.119 seconds overall, 0.078 seconds server operation). Four source hashes match d3816f3. Effective restrictions, reader integrity, public-key readability and locked password passed. No private transfer or SSH reload. [Next: actual clock SSH login and command denial](paytm-clock-login.md); eight local tests passed. Unattended custody remains pending. G3 80%; overall 14/30 (46.7%).
 
