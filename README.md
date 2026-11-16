@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Current E282, 2026-11-16:** VPS clock public-key authorization accepted (136.119 seconds overall, 0.078 seconds server operation). Four source hashes match d3816f3. Effective restrictions, reader integrity, public-key readability and locked password passed. No private transfer or SSH reload. [Next: actual clock SSH login and command denial](docs/paytm-clock-login.md); eight local tests passed. Unattended custody remains pending. G3 80%; overall 14/30 (46.7%).
+
 **Current E242, 2026-11-13:** AfterLogoff failed with HOST_AGENT_UNAVAILABLE; TLS instability also existed before sign-out. [Next: agent-query/native-phase diagnostic recovery](docs/paytm-agent-recovery.md). Do not proceed to shutdown or reuse the old session phase. Cause unproven; groups 100/100/40/0/0/0, 12/30 (40%).
 
 **Historical E241, 2026-11-13:** Windows diagnostic recovery accepted: 1805.703s soak, 129 observations, zero reconnects/failures, both application routes and final locks/account passed. [Next: fresh sign-out/full-shutdown workflow](docs/paytm-gateway-session.md). No rebuild or recovery rerun. Groups 100/100/40/0/0/0; 12/30 (40%), G3.4 pending.

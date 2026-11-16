@@ -1,0 +1,26 @@
+{
+  "evidence": "E282",
+  "file": "paytm-clock-key-authorization-8b3fc82ef05a4e9194efea01f7bfb76c.json",
+  "sha256": "a4d85cc3d9bf6f88978f5bce881e5088810e9205b04e4061eb759f9b47543329",
+  "sourceRevision": "d3816f3",
+  "status": "CLOCK_PUBLIC_KEY_AUTHORIZED_LOGIN_AND_CUSTODY_PENDING",
+  "elapsedSeconds": 136.1193154,
+  "server": {
+    "version": 1,
+    "runId": "8b3fc82ef05a4e9194efea01f7bfb76c",
+    "status": "CLOCK_PUBLIC_KEY_AUTHORIZED_LOGIN_AND_CUSTODY_PENDING",
+    "failure": null,
+    "rollbackFailure": null,
+    "keyInstalled": true,
+    "effectivePolicyVerified": true,
+    "readerVerified": true,
+    "publicKeyReadable": true,
+    "passwordLocked": true,
+    "rollbackVerified": false,
+    "sshReloaded": false,
+    "privateKeyTransferred": false,
+    "loginTested": false,
+    "ordersEnabled": false,
+    "elapsedSeconds": 0.078
+  }
+}
