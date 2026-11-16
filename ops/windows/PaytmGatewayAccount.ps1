@@ -150,7 +150,7 @@ function Get-PaytmLocalMembershipSnapshot {
         [pscustomobject]@{groupSid=$group.SID.Value;memberSids=@(Get-LocalGroupMember -SID $group.SID -ErrorAction Stop | ForEach-Object {$_.SID.Value})}
     }
 }
-function New-PaytmAccountProbeSource([string]$Sid,[string]$RunId) {
+function New-PaytmAccountProbeSource([string]$Sid,[string]$RunId,[ValidateSet('C:\ProgramData\MarketBrainPaytmGateway','C:\ProgramData\MarketBrainPaytmHealth')][string]$Root='C:\ProgramData\MarketBrainPaytmGateway') {
     if($Sid -cnotmatch '^S-1-5-21-\d+-\d+-\d+-\d+$' -or $RunId -cnotmatch '^[a-f0-9]{32}$'){throw 'ACCOUNT_PROBE_BINDING_INVALID'}
     # Compatible with built-in Windows PowerShell 5.1: no per-user PowerShell 7 installation dependency.
     $template=@'
@@ -195,7 +195,7 @@ try{
 }
 $probe|ConvertTo-Json -Compress
 '@
-    $template.Replace('__SID__',$Sid).Replace('__RUN__',$RunId)
+    $template.Replace('__SID__',$Sid).Replace('__RUN__',$RunId).Replace('C:\ProgramData\MarketBrainPaytmGateway',$Root)
 }
 function Assert-PaytmAccountProbe($Probe,[string]$RunId) {
     if($Probe.version -ne 1 -or $Probe.runId -cne $RunId -or $null -ne $Probe.failure -or $Probe.agentExit -ne 1){throw 'ACCOUNT_PROBE_FAILED'}
@@ -203,15 +203,15 @@ function Assert-PaytmAccountProbe($Probe,[string]$RunId) {
         if($Probe.$field -isnot [bool] -or -not $Probe.$field){throw "ACCOUNT_PROBE_$($field.ToUpperInvariant())"}
     }
 }
-function New-PaytmAccountProbeStartInfo([Security.SecureString]$Password) {
+function New-PaytmAccountProbeStartInfo([Security.SecureString]$Password,[ValidateSet('marketbrain-gateway','marketbrain-health')][string]$AccountName='marketbrain-gateway') {
     # CreateProcessWithLogonW has a 1024-character command-line limit. Keep only a
     # fixed small bootstrap in argv; send non-secret probe code over redirected stdin.
     $bootstrap='[Console]::InputEncoding=[Text.Encoding]::UTF8; & ([scriptblock]::Create([Console]::In.ReadToEnd()))'
     $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($bootstrap))
     $info=[Diagnostics.ProcessStartInfo]::new('C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',('-NoLogo -NoProfile -NonInteractive -EncodedCommand '+$encoded))
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.WindowStyle='Hidden';$info.LoadUserProfile=$true
-    $info.UserName='marketbrain-gateway';$info.Domain=$env:COMPUTERNAME;$info.Password=$Password
-    $info.WorkingDirectory='C:\ProgramData\MarketBrainPaytmGateway'
+    $info.UserName=$AccountName;$info.Domain=$env:COMPUTERNAME;$info.Password=$Password
+    $info.WorkingDirectory=if($AccountName -ceq 'marketbrain-health'){'C:\ProgramData\MarketBrainPaytmHealth'}else{'C:\ProgramData\MarketBrainPaytmGateway'}
     $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.RedirectStandardInput=$true
     $info.StandardInputEncoding=[Text.UTF8Encoding]::new($false)
     foreach($name in @('SSH_AUTH_SOCK','SSH_AGENT_PID','SSH_ASKPASS','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY')){$info.EnvironmentVariables.Remove($name)}

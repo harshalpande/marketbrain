@@ -1,0 +1,46 @@
+{
+  "evidence": "E285",
+  "file": "paytm-clock-login-d2ae8a85fc4c4e389fd15bd0a30abb0c.json",
+  "sha256": "5d68a3e08148c8409767b1c1a670e02817395100b5301d886120695d4d77adef",
+  "sourceRevision": "aeb2e12",
+  "status": "CLOCK_SSH_LOGIN_AND_COMMAND_DENIAL_PASSED_CUSTODY_PENDING",
+  "elapsedSeconds": 63.9711662,
+  "checks": [
+    {
+      "fingerprint": "SHA256:YTQ8GV8J4qOQkY4j3dGGyCTAzyR2iX/KSJoGK0p2dKI",
+      "source": "previously supplied public key",
+      "stage": "hostPin"
+    },
+    {
+      "result": {
+        "exitCode": 0,
+        "stdout": "MB_CLOCK_V1|2a4e8dbabf104b7880b7c7eb89b4762d|1794839368849|yes\n",
+        "stderr": ""
+      },
+      "nonce": "2a4e8dbabf104b7880b7c7eb89b4762d",
+      "stage": "request-0",
+      "allowed": true
+    },
+    {
+      "result": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "CLOCK_READ_DENIED_OR_UNAVAILABLE\n"
+      },
+      "nonce": "08ffa5e64e454d5ebfa5a1302a1491b2",
+      "stage": "request-1",
+      "allowed": false
+    },
+    {
+      "result": {
+        "exitCode": 0,
+        "stdout": "MB_CLOCK_V1|10c7c3b962bf4b36bc1136c7c7e30375|1794839418599|yes\n",
+        "stderr": ""
+      },
+      "nonce": "10c7c3b962bf4b36bc1136c7c7e30375",
+      "stage": "request-2",
+      "allowed": true
+    }
+  ],
+  "scope": "Operator-controlled native SSH accepted. Both nonce-bound samples synchronized; invalid command rejected. Unattended custody not tested; no clock-offset accuracy inference from interactive timing."
+}

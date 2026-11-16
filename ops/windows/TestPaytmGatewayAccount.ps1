@@ -8,8 +8,8 @@ function Reject([scriptblock]$Action,[string]$Name){$bad=$false;try{&$Action|Out
 $sid='S-1-5-21-111-222-333-1001';$run='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 $progress=@(Get-PaytmReadinessProgress)
 Check ($progress.Count -eq 6) 'six progress groups'
-Check ($progress[0].percent -eq 100 -and $progress[1].percent -eq 40) 'accepted evidence percentages after E194'
-Check (@($progress[2..5]|Where-Object {$_.percent -ne 0}).Count.Equals(0)) 'no speculative runtime credit'
+Check ($progress[0].percent -eq 100 -and $progress[1].percent -eq 100 -and $progress[2].percent -eq 80) 'accepted evidence percentages through E285'
+Check (@($progress[3..5]|Where-Object {$_.percent -ne 0}).Count.Equals(0)) 'no speculative runtime credit'
 $inventory=[pscustomobject]@{elevated=$true;native64Bit=$true;toolsPresent=$true;agentImage='"C:\Windows\System32\OpenSSH\ssh-agent.exe"';agentStartName='LocalSystem';accountExists=$false;rootExists=$false;agentStatus='Stopped';agentStartType='Disabled';secondaryLogonStartType='Manual';agentControlError=0}
 Assert-PaytmAccountInventory $inventory Apply;$script:checks++
 foreach($field in @('elevated','native64Bit','toolsPresent')){$bad=$inventory.PSObject.Copy();$bad.$field=$false;Reject {Assert-PaytmAccountInventory $bad Apply} $field}
