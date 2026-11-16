@@ -1,6 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
-**Current E282, 2026-11-16:** VPS clock public-key authorization accepted (136.119 seconds overall, 0.078 seconds server operation). Four source hashes match d3816f3. Effective restrictions, reader integrity, public-key readability and locked password passed. No private transfer or SSH reload. [Next: actual clock SSH login and command denial](paytm-clock-login.md); eight local tests passed. Unattended custody remains pending. G3 80%; overall 14/30 (46.7%).
+**Current E283, 2026-11-16:** Clock login stopped before authentication because Windows ssh-keyscan reported an unsupported KEX method. Removed the redundant scan; reuse the previously supplied RSA public key after verifying the unchanged accepted fingerprint. Six new controller/public-pin checks, eight clock checks and 122 shared custody assertions pass locally. [Rerun only clock login](paytm-clock-login.md); no VPS setup rerun. G3 remains 80%, overall 14/30 (46.7%).
+
+**Historical E282, 2026-11-16:** VPS clock public-key authorization accepted (136.119 seconds overall, 0.078 seconds server operation). Four source hashes match d3816f3. Effective restrictions, reader integrity, public-key readability and locked password passed. No private transfer or SSH reload. [Next: actual clock SSH login and command denial](paytm-clock-login.md); eight local tests passed. Unattended custody remains pending. G3 80%; overall 14/30 (46.7%).
 
 **Historical E281, 2026-11-16:** Dedicated encrypted Ed25519 clock key accepted from spare report (35.822 seconds); protected directory and identity checks passed; three source hashes match e3f76db. [Next: authorize reviewed public key](paytm-clock-key-authorization.md). Ten local tests passed. Private key remains on Windows; real SSH login and unattended custody not accepted yet. G3 80%, overall 14/30 (46.7%).
 

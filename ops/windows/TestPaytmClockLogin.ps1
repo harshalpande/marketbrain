@@ -21,17 +21,15 @@ try{
  $verified=Test-PaytmEncryptedKeyFile $key 'AAAAC3NzaC1lZDI1NTE5AAAAIB/0obZcN+dR0yxN6IWDvIsk37mxi6VbQfmlacUR/jk4'
  if(-not $verified.encrypted){throw 'CLOCK_LOGIN_ENCRYPTION_REQUIRED'}
  $bin=Join-Path $env:WINDIR 'System32/OpenSSH'
- Write-Host '[10%] Verify VPS host key against the previously accepted fingerprint.'
- $scan=Invoke-ClockLoginNative "$bin/ssh-keyscan.exe" @('-T','10','-t','rsa','130.250.191.137') 15
- $report.checks+=@{stage='hostScan';result=$scan};Save-ClockLogin
- $lines=@($scan.stdout -split '\r?\n'|Where-Object {$_ -cmatch '^130\.250\.191\.137 ssh-rsa [A-Za-z0-9+/=]+$'})
- if($scan.exitCode -ne 0 -or $lines.Count -ne 1){throw 'CLOCK_LOGIN_HOST_SCAN_FAILED'}
- $blob=($lines[0] -split ' ')[2]
- if((Get-PaytmKeyFingerprint ([Convert]::FromBase64String($blob))) -cne 'SHA256:YTQ8GV8J4qOQkY4j3dGGyCTAzyR2iX/KSJoGK0p2dKI'){throw 'CLOCK_LOGIN_HOST_PIN_MISMATCH'}
+ Write-Host '[10%] Verify the previously supplied VPS public key against its accepted fingerprint (no keyscan).'
+ $hostFile=Join-Path $PSScriptRoot 'paytm-vps-host-rsa.pub'
+ $report.sourceHashes['paytm-vps-host-rsa.pub']=(Get-FileHash -LiteralPath $hostFile).Hash
+ $pins=ConvertFrom-PaytmHostPublicKey ([IO.File]::ReadAllText($hostFile).Trim())
+ $report.checks+=@{stage='hostPin';source='previously supplied public key';fingerprint=$pins.fingerprint};Save-ClockLogin
  $report.hostPinned=$true
  if(Test-Path -LiteralPath $temp){throw 'CLOCK_LOGIN_TEMP_EXISTS'}
  $null=New-Item -ItemType Directory -Path $temp
- $known=Join-Path $temp 'known_hosts';[IO.File]::WriteAllText($known,$lines[0]+"`n")
+ $known=Join-Path $temp 'known_hosts';[IO.File]::WriteAllText($known,$pins.knownHost)
  $common=@('-F','NUL','-T','-i',$key)
  foreach($o in @('IdentitiesOnly=yes','IdentityAgent=none','AddKeysToAgent=no','StrictHostKeyChecking=yes','GlobalKnownHostsFile=none',"UserKnownHostsFile=$($known.Replace('\','/'))",'HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256','PasswordAuthentication=no','KbdInteractiveAuthentication=no','PreferredAuthentications=publickey','NumberOfPasswordPrompts=1','ConnectTimeout=15','ConnectionAttempts=1','ServerAliveInterval=5','ServerAliveCountMax=2','ClearAllForwardings=yes','ProxyCommand=none','ProxyJump=none','PermitLocalCommand=no')){$common+=@('-o',$o)}
  $common+='marketbrain-health@130.250.191.137'

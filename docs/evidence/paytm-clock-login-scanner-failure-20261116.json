@@ -1,0 +1,16 @@
+{
+  "evidence": "E283",
+  "file": "paytm-clock-login-9fd4aaa34b9f4c77892d8df708ff91ad.json",
+  "sha256": "07cfff6689a568be8c4babf8473a24679f5d88e38da3c49824b5bbd2eae5df68",
+  "sourceRevision": "6082ed3",
+  "status": "REVIEW_REQUIRED",
+  "failure": "CLOCK_LOGIN_HOST_SCAN_FAILED",
+  "nativeFailure": {
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "# 130.250.191.137:22 SSH-2.0-OpenSSH_10.0p2 Debian-7+deb13u4\r\nchoose_kex: unsupported KEX method sntrup761x25519-sha512@openssh.com\r\n"
+  },
+  "elapsedSeconds": 10.4217985,
+  "scope": "Failure before SSH authentication; Windows keyscan unsupported KEX. No remote mutation, agent change or orders. Reuse previously operator-supplied RSA public key with unchanged fingerprint pin.",
+  "verification": "6 new public-pin/controller tests, 8 existing clock tests, 122 shared custody assertions; no remote runtime acceptance"
+}
