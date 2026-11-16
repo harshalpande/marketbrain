@@ -1,0 +1,13 @@
+{
+  "evidence": "E281",
+  "file": "paytm-clock-key-preparation-c192c546fbc2470f961341ea21f52266.json",
+  "sha256": "6DDEB3B0B3DAFC9F67E4D6FFF8DAD671D57860B3ECD944778E489FBE4400D2DE",
+  "sourceRevision": "e3f76db",
+  "status": "CLOCK_ENCRYPTED_KEY_PREPARED_CUSTODY_AND_AUTHORIZATION_PENDING",
+  "elapsedSeconds": 35.8216246,
+  "encrypted": true,
+  "directoryAclVerified": true,
+  "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB/0obZcN+dR0yxN6IWDvIsk37mxi6VbQfmlacUR/jk4 marketbrain-clock-reader",
+  "fingerprint": "SHA256:TqoeCxI+3t+k2XTi8E6f+7iX4HCyhc1gshoZqnfyaX0",
+  "scope": "Encrypted operator-side preparation; unattended custody and VPS authorization pending"
+}
