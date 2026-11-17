@@ -21,8 +21,10 @@ try{
  $result=Invoke-PaytmCustodyNative 'ssh.exe' $a 25
  $r.clockResult=@{nonce=$nonce;exitCode=$result.ExitCode;timedOut=$result.StoppedByRunner;stdout=$result.Stdout;stderr=$result.Stderr}
  if($result.StoppedByRunner -or $result.ExitCode -ne 0 -or $result.Stdout.Trim() -cnotmatch ('^MB_CLOCK_V1\|'+$nonce+'\|[0-9]{13}\|yes$')){throw 'SCHEDULE_CLOCK_NOT_VERIFIED'}
- $r.clockVerified=$true;$r.stage='COMPLETE'
-}catch{$r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|HEALTH_KEY|KEY)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_WORKER_FAILED'}}finally{
+ $r.clockVerified=$true
+__TOKEN_CHECK__
+ $r.stage='COMPLETE'
+}catch{$r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|HEALTH_KEY|HEALTH_TOKEN|KEY)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_WORKER_FAILED'}}finally{
  $r.elapsedSeconds=$watch.Elapsed.TotalSeconds
  $bytes=[Text.Encoding]::UTF8.GetBytes(($r|ConvertTo-Json -Depth 5 -Compress))
  $f=[IO.File]::Open('__RESULT__','CreateNew','Write','Read');try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}

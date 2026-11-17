@@ -1,7 +1,8 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review')
+[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='')
 $ErrorActionPreference='Stop'
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmHealthAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthBatchLogon.ps1')){. (Join-Path $PSScriptRoot $n)}
+. (Join-Path $PSScriptRoot 'PaytmHealthScheduledToken.ps1')
 $run=[guid]::NewGuid().ToString('N');$c=Get-HealthScheduledProbeContract $run;$watch=[Diagnostics.Stopwatch]::StartNew();$password=$null;$mayExist=$false
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory "paytm-health-scheduled-$run.json"
@@ -13,13 +14,18 @@ try{
  Import-Module ScheduledTasks -ErrorAction Stop
  Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction Stop
  $null=Assert-HealthScheduledPrerequisites $CustodyReportPath
+ if($TokenReportPath){Assert-HealthScheduledTokenPrerequisites $TokenReportPath;$r['tokenMode']=$true}
+ $preparedSource=New-HealthScheduledWorkerSource $run -WithToken:([bool]$TokenReportPath)
+ $r.sourceHashes['PaytmHealthScheduledToken.ps1']=(Get-FileHash -LiteralPath "$PSScriptRoot/PaytmHealthScheduledToken.ps1").Hash
  foreach($n in @('TestPaytmHealthScheduledAccess.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthScheduledWorker.ps1','PaytmHealthBatchLogon.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthAccount.ps1','PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmGatewayKeyCustody.ps1','paytm-vps-host-rsa.pub')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
  $pins=ConvertFrom-PaytmHostPublicKey ([IO.File]::ReadAllText("$PSScriptRoot/paytm-vps-host-rsa.pub").Trim())
  $null=Assert-PaytmAccountPath $c.directory;$null=Assert-PaytmAccountPath $c.result
  if((Test-Path -LiteralPath $c.directory) -or (Test-Path -LiteralPath $c.result) -or @(Get-HealthProbeTask $c.name).Count){throw 'SCHEDULE_TARGET_COLLISION'}
  Health-Step 'REVIEW_BATCH_LOGON_POLICY' 10
  $r.policyBefore=Get-HealthBatchPolicy;Assert-HealthBatchPolicy $r.policyBefore $r;Save-HealthScheduled
+ if($TokenReportPath -and (Get-HealthScheduledKeyContract).accountSid -cnotin @($r.policyBefore.allow)){throw 'SCHEDULE_TOKEN_BATCH_RIGHT_CHANGED'}
  Write-Host 'One temporary background task will sign twice and read the pinned VPS clock. If needed, only marketbrain-health receives Log on as a batch job. No deny policy is removed. The allow right remains for the future collector.'
+ if($TokenReportPath){Write-Host 'Also decrypt the existing health token in session 0 and authenticate locally with an unhealthy/locked submission. No token import or healthy publication.'}
  $password=Read-Host 'Existing WINDOWS marketbrain-health account password (no SSH passphrase needed)' -AsSecureString
  Health-Step 'VALIDATE_EXACT_ACCOUNT_PASSWORD_AND_SIGNING' 20
  $i=New-PaytmAccountProbeStartInfo $password 'marketbrain-health';$diag=@{}
@@ -32,9 +38,10 @@ try{
  if((Get-HealthScheduledKeyContract).accountSid -cnotin @($before.allow)){$r.batchGrantAttempted=$true;Save-HealthScheduled;Add-HealthBatchRight}
  $r.policyAfter=Get-HealthBatchPolicy;Save-HealthScheduled;Assert-HealthBatchPolicyDelta $before $r.policyAfter
  $null=Assert-HealthScheduledPrerequisites $CustodyReportPath
+ if($TokenReportPath){Assert-HealthScheduledTokenPrerequisites $TokenReportPath}
  $null=New-Item -ItemType Directory -Path $c.directory -ErrorAction Stop
  Set-PaytmAccountDirectoryAcl $c.directory (Get-HealthScheduledKeyContract).accountSid
- foreach($item in @(@('worker.ps1',(New-HealthScheduledWorkerSource $run)),@('known_hosts',$pins.knownHost))){
+ foreach($item in @(@('worker.ps1',$preparedSource),@('known_hosts',$pins.knownHost))){
   $f=[IO.File]::Open((Join-Path $c.directory $item[0]),'CreateNew','Write','None');try{$b=[Text.Encoding]::UTF8.GetBytes($item[1]);$f.Write($b,0,$b.Length);$f.Flush($true)}finally{$f.Dispose()}
  }
  $workerHash=(Get-FileHash -LiteralPath (Join-Path $c.directory 'worker.ps1')).Hash
@@ -50,8 +57,10 @@ try{
  Start-ScheduledTask -TaskName $c.name -TaskPath $c.path -ErrorAction Stop;$r.taskStarted=$true;Save-HealthScheduled
  Wait-HealthProbeTask $run $r {Save-HealthScheduled}
  Assert-HealthScheduledWorker $r.worker $run
+ if($TokenReportPath){Assert-HealthScheduledTokenResult $r.worker}
  if($r.lastTaskResult -ne 0){throw 'SCHEDULE_TASK_NONZERO_RESULT'}
  $r.status='HEALTH_SCHEDULED_SIGNING_AND_CLOCK_PASSED_COLLECTOR_PENDING';$r.stage='COMPLETE'
+ if($TokenReportPath){$r.status='HEALTH_SCHEDULED_CLOCK_AND_TOKEN_PASSED_COLLECTOR_PENDING'}
 }catch{
  $r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY|HEALTH_KEY|HEALTH_ACCOUNT)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_SETUP_FAILED'}
  $e=$_.Exception.GetBaseException();$r.failureDetails=@{type=$e.GetType().Name;hresult=$e.HResult;line=$_.InvocationInfo.ScriptLineNumber}

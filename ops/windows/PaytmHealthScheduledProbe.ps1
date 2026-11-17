@@ -31,10 +31,11 @@ function Assert-HealthScheduledPrerequisites([string]$ReceiptPath) {
     if((Get-Item -LiteralPath $pub).Length -gt 1024 -or [IO.File]::ReadAllText($pub).Trim() -cne ('ssh-ed25519 '+$k.publicBlob)){throw 'SCHEDULE_PUBLIC_IDENTITY_DRIFT'}
     [pscustomobject]@{sid=$saved.sid;custodyRun=$state.runId;fingerprint=$state.fingerprint}
 }
-function New-HealthScheduledWorkerSource([string]$RunId) {
+function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken) {
  $c=Get-HealthScheduledProbeContract $RunId
  $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmHealthScheduledWorker.ps1'))
- $source.Replace('__RUN__',$RunId).Replace('__RESULT__',$c.result).Replace('__KNOWN__',((Join-Path $c.directory 'known_hosts').Replace('\','/')))
+ $tokenCode=if($WithToken){Get-HealthScheduledTokenSource}else{''}
+ $source.Replace('__RUN__',$RunId).Replace('__RESULT__',$c.result).Replace('__KNOWN__',((Join-Path $c.directory 'known_hosts').Replace('\','/'))).Replace('__TOKEN_CHECK__',$tokenCode)
 }
 function Get-HealthScheduledArguments([string]$RunId) {
     $c=Get-HealthScheduledProbeContract $RunId

@@ -1,0 +1,40 @@
+{
+  "evidenceId": "E290",
+  "reviewedDate": "2026-11-17",
+  "sourceReceipt": "paytm-health-token-88ebf8fdc3de4c158351e86df95e7217.json",
+  "sourceSha256": "957F45858B02613726FC3B54F38FEADCDC4C322E2FBD7A4D7481299F6D7D114C",
+  "sourceRevision": "9de6e9d",
+  "sourceHashesVerified": 14,
+  "status": "HEALTH_TOKEN_CUSTODY_PASSED_COLLECTOR_PENDING",
+  "elapsedSeconds": 23.7317803,
+  "stageWorker": {
+    "version": 1,
+    "runId": "88ebf8fdc3de4c158351e86df95e7217",
+    "mode": "Stage",
+    "identityVerified": true,
+    "encrypted": true,
+    "authenticated": true,
+    "locked": true,
+    "bootId": "f864b697-786b-4ab6-a314-33c72cd30de8",
+    "failure": null
+  },
+  "freshWorker": {
+    "version": 1,
+    "runId": "88ebf8fdc3de4c158351e86df95e7217",
+    "mode": "Verify",
+    "identityVerified": true,
+    "encrypted": true,
+    "authenticated": true,
+    "locked": true,
+    "bootId": "f864b697-786b-4ab6-a314-33c72cd30de8",
+    "failure": null
+  },
+  "operatorDecryptionDenied": true,
+  "stagedCipherRemoved": true,
+  "containerUnchanged": true,
+  "finalLocked": true,
+  "taskInstalled": false,
+  "ordersEnabled": false,
+  "recoveryBackupVerified": true,
+  "remaining": "Scheduled session token decryption/authentication, collector integration and lifecycle acceptance. G3 remains 80%."
+}

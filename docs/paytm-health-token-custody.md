@@ -1,5 +1,7 @@
 # Diagnostic health-token custody
 
+E290 accepts the recovery in 23.732 seconds. Do not rerun provisioning. Continue with [scheduled clock and token verification](paytm-health-scheduled-token.md).
+
 E288 accepts the scheduled health-account signing and VPS clock test in 37.204 seconds. Its ten source hashes match 2a5d076. The temporary task was removed; only health SID ending 1011 gained batch-logon allow, with deny rules unchanged.
 
 The next batch gives that account encrypted custody of the existing Java diagnostic health token. This token authenticates local route-health reports; it is not a Paytm credential or the paper-account read token. The collector will need it to report health without an operator typing credentials.

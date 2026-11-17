@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 $ErrorActionPreference='Stop'
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmHealthAccount.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthBatchLogon.ps1')){. (Join-Path $PSScriptRoot $n)}
+. (Join-Path $PSScriptRoot 'PaytmHealthScheduledToken.ps1')
 $run='a'*32;$c=Get-HealthScheduledProbeContract $run;$k=Get-HealthScheduledKeyContract;$count=0
 function GoodTask {
  [pscustomobject]@{TaskName=$c.name;TaskPath=$c.path;Description=('MarketBrain temporary health clock probe '+$run);Principal=[pscustomobject]@{UserId=$k.accountSid;LogonType='Password';RunLevel='Limited'};Actions=@([pscustomobject]@{Execute=$c.executable;Arguments=(Get-HealthScheduledArguments $run);WorkingDirectory=$c.directory});Triggers=@();Settings=[pscustomobject]@{Enabled=$false;MultipleInstances='IgnoreNew';RestartCount=0;AllowDemandStart=$true;AllowHardTerminate=$true;WakeToRun=$false;StartWhenAvailable=$false;RunOnlyIfNetworkAvailable=$false;RunOnlyIfIdle=$false;DisallowStartIfOnBatteries=$false;StopIfGoingOnBatteries=$false;ExecutionTimeLimit='PT2M'}}
@@ -34,13 +35,14 @@ if(-not $caught){throw 'GATEWAY_GRANT_ACCEPTED'}
 '@)
 & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File $compile $cs
 if($LASTEXITCODE -ne 0){throw 'INTEROP_VALIDATION_FAILED'};$count++
-foreach($case in @('success','wrongNonce','signFailure','interactive','identityFailure')){
+foreach($case in @('success','wrongNonce','signFailure','interactive','identityFailure','tokenSuccess','decryptFailure','authFailure')){
  $dir=Join-Path $root $case;$null=New-Item -ItemType Directory $dir
  [IO.File]::WriteAllText((Join-Path $dir 'parser.ps1'),'')
  [IO.File]::WriteAllText((Join-Path $dir 'native.ps1'),'')
  $mock=@'
 function Assert-HealthKeyIdentity {if('__CASE__' -ceq 'identityFailure'){throw 'HEALTH_KEY_IDENTITY'}}
 function Assert-HealthKeyAgent {}
+function Get-FileHash {param($LiteralPath) [pscustomobject]@{Hash='C93B10DF35EBE8ED703D115CD192DAD13547CC30B35C7069B5EFEF396AB349DC'}}
 function Get-Process {param($Id) [pscustomobject]@{SessionId=if('__CASE__' -ceq 'interactive'){1}else{0}}}
 function Assert-PaytmSigningResult {param($Result,$Expected) if($Result.ExitCode -ne 0){throw 'KEY_SIGNING_RESULT_UNEXPECTED'}}
 function Invoke-PaytmCustodyNative {param($Tool,[string[]]$Arguments,$Seconds)
@@ -51,14 +53,25 @@ function Invoke-PaytmCustodyNative {param($Tool,[string[]]$Arguments,$Seconds)
 }
 '@
  [IO.File]::WriteAllText((Join-Path $dir 'health.ps1'),$mock.Replace('__CASE__',$case))
+ $tokenMock=@'
+function Unprotect-HealthToken {param($Cipher) if('__CASE__' -ceq 'decryptFailure'){throw 'HEALTH_TOKEN_DECRYPT_FAILED'};'fixture-token-never-print'}
+function Test-HealthTokenAuthority {param($Token) if('__CASE__' -ceq 'authFailure'){throw 'HEALTH_TOKEN_HTTP_FAILED'};'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'}
+'@
+ [IO.File]::WriteAllText((Join-Path $dir 'library.ps1'),$tokenMock.Replace('__CASE__',$case))
+ [IO.File]::WriteAllBytes((Join-Path $dir 'health-token.dpapi'),[byte[]]::new(200))
  $result=Join-Path $dir 'result.json';$worker=Join-Path $dir 'worker.ps1'
- $source=(New-HealthScheduledWorkerSource $run).Replace('C:\ProgramData\MarketBrainPaytmHealth\key-custody',$dir).Replace($c.result,$result)
+ $withToken=$case -cin @('tokenSuccess','decryptFailure','authFailure')
+ $source=(New-HealthScheduledWorkerSource $run -WithToken:$withToken).Replace('C:\ProgramData\MarketBrainPaytmHealth\key-custody',$dir).Replace('C:\ProgramData\MarketBrainPaytmHealth\token-custody',$dir).Replace($c.result,$result)
  [IO.File]::WriteAllText($worker,$source)
  & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File $worker
  $exit=$LASTEXITCODE;$report=Get-Content -LiteralPath $result -Raw|ConvertFrom-Json
- if($case -ceq 'success'){if($exit -ne 0){throw 'WORKER_SUCCESS_FAILED'};Assert-HealthScheduledWorker $report $run}
+ if($case -cin @('success','tokenSuccess')){if($exit -ne 0){throw 'WORKER_SUCCESS_FAILED'};Assert-HealthScheduledWorker $report $run;if($withToken){Assert-HealthScheduledTokenResult $report}}
  else{$caught=$false;try{Assert-HealthScheduledWorker $report $run}catch{$caught=$true};if($exit -eq 0 -or -not $caught -or -not $report.failure){throw "WORKER_FAILURE_ACCEPTED_$case"}}
  $count++
+ if(([IO.File]::ReadAllText($result)).Contains('fixture-token-never-print')){throw 'TOKEN_IN_REPORT'}
+}
+foreach($bad in @([pscustomobject]@{tokenDecrypted=$false;tokenAuthenticated=$true;applicationLocked=$true;applicationBootId='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'},[pscustomobject]@{tokenDecrypted=$true;tokenAuthenticated='true';applicationLocked=$true;applicationBootId='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'},[pscustomobject]@{tokenDecrypted=$true;tokenAuthenticated=$true;applicationLocked=$true;applicationBootId='wrong'})){
+ $caught=$false;try{Assert-HealthScheduledTokenResult $bad}catch{$caught=$true};if(-not $caught){throw 'TOKEN_INVALID_PROOF_ACCEPTED'};$count++
 }
 $tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'TestPaytmHealthScheduledAccess.ps1'),[ref]$tokens,[ref]$errors)
 if($errors){throw $errors};$count++
