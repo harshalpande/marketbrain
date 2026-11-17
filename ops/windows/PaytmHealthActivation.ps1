@@ -1,4 +1,22 @@
 # Definitions only. Activation controller owns all mutations and rollback decisions.
+function Test-PaytmHealthClockBoundary([string]$HealthToken,[string]$Boot){
+ $c=Invoke-PaytmHealthHttp 'challenge' $HealthToken $null
+ $v=Invoke-PaytmHealthHttp 'clock' $HealthToken $null
+ if($v.clockContractVersion -cne 'HEALTH_CLOCK_V1' -or $v.bootId -cne $Boot -or $v.accepted -isnot [bool] -or $v.accepted -or $v.ordersEnabled -isnot [bool] -or $v.ordersEnabled -or $v.observedEpochMillis -isnot [long] -or $v.observedEpochMillis -lt 0){throw 'HEALTH_ACTIVATION_CLOCK_CONTRACT'}
+ try{$observed=[DateTimeOffset]::FromUnixTimeMilliseconds($v.observedEpochMillis)}catch{throw 'HEALTH_ACTIVATION_CLOCK_TIMESTAMP'}
+ # Reading the clock must not replace or consume the outstanding health challenge.
+ $body=@{challenge=$c.challenge;bootId=$c.bootId;synchronizedClock=$false;transportHealthy=$false;lowerOffsetSeconds=0;upperOffsetSeconds=0}
+ Assert-PaytmHealthActivationReceipt (Invoke-PaytmHealthHttp 'submit' $HealthToken $body) 'UNHEALTHY_AND_LOCKED' $Boot
+ foreach($case in @('wrongToken','body')){
+  $token=if($case -eq 'wrongToken'){$application.Token}else{$HealthToken}
+  $a=@{Uri='http://127.0.0.1:8080/api/v1/paytm/route-health/clock';Method='Post';Headers=@{'X-MarketBrain-Paytm-Health-Token'=$token;'X-MarketBrain-Paytm-Health'='diagnostic-health'};NoProxy=$true;TimeoutSec=3;MaximumRedirection=0;SkipHttpErrorCheck=$true}
+  if($case -eq 'body'){$a.Body='{}';$a.ContentType='application/json'}
+  try{$r=Invoke-WebRequest @a}catch{throw 'HEALTH_ACTIVATION_CLOCK_NEGATIVE_HTTP'}
+  $expected=if($case -eq 'wrongToken'){401}else{400}
+  if($r.StatusCode -ne $expected){throw 'HEALTH_ACTIVATION_CLOCK_BOUNDARY'}
+ }
+ [pscustomobject]@{contractVerified=$true;bootId=$v.bootId;observedEpochMillis=$v.observedEpochMillis;challengePreserved=$true;readTokenRejected=$true;bodyRejected=$true;ordersEnabled=$false}
+}
 function Assert-PaytmHealthCompose($Plan,$Before,[string]$Image,[string]$HealthToken) {
  $property=$Plan.services.'marketbrain-service'.environment.PSObject.Properties['MARKETBRAIN_PAYTM_HEALTH_TOKEN']
  if($null -eq $property -or [string]$property.Value -cne $HealthToken){throw 'HEALTH_ACTIVATION_TOKEN_PLAN_MISMATCH'}

@@ -1,5 +1,7 @@
 # Scheduled clock and token verification
 
+E291 accepts this batch in 54.449 seconds. Do not repeat it; continue with [restricted Java clock deployment](paytm-health-clock-deployment.md).
+
 E290 accepts diagnostic health-token custody in 23.732 seconds. Both password-launched health processes authenticated; operator decryption failed as intended, staging ciphertext was removed and the application stayed locked. Fourteen source hashes match 9de6e9d.
 
 The next test verifies the encrypted token under a Task Scheduler Password/Limited logon in session 0. The earlier scheduled clock test did not load a DPAPI token; fresh password-launched process success does not alone prove this logon/profile combination. This combines key signing, real VPS clock reading and local token authentication in one temporary task. It does not install a production collector.

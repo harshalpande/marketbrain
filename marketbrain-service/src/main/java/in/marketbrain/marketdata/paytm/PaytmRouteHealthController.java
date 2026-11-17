@@ -29,8 +29,9 @@ public final class PaytmRouteHealthController {
                 || request.getHeader("X-Forwarded-Host")!=null || request.getHeader("Transfer-Encoding")!=null
                 || request.getContentLengthLong()>2048) return response(400,"REJECTED");
         try {
-            if("challenge".equals(command)) {
+            if("challenge".equals(command) || "clock".equals(command)) {
                 if(request.getContentLengthLong()>0 || request.getInputStream().read()!=-1) return response(400,"REJECTED");
+                if("clock".equals(command)) return response(200,bridge.clock());
                 return response(200,bridge.challenge());
             }
             if(!"submit".equals(command) || request.getContentLengthLong()<1

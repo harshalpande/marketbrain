@@ -32,19 +32,34 @@ foreach($bad in @(@{healthContractVersion='OLD';status='REJECTED_AND_LOCKED';boo
  $rejected=$false;try{Assert-PaytmHealthActivationReceipt $bad 'REJECTED_AND_LOCKED' $fixtureBoot}catch{$rejected=$true}
  if(-not $rejected){throw 'Unsafe receipt accepted'};$count++
 }
+# Exercise real clock HTTP contract before replacing it in deployment fixtures.
+function Invoke-WebRequest {
+ param($Uri,$Method,$Headers,[switch]$NoProxy,$TimeoutSec,$MaximumRedirection,[switch]$SkipHttpErrorCheck,$Body,$ContentType)
+ if(-not $NoProxy -or $MaximumRedirection -ne 0){throw 'Clock HTTP boundary'}
+ @{StatusCode=$(if($Headers['X-MarketBrain-Paytm-Health-Token'] -ceq 'READ_FIXTURE'){401}else{400})}
+}
+function Invoke-PaytmHealthHttp($Command,$Token,$Body){
+ if($Command -eq 'clock'){return @{clockContractVersion='HEALTH_CLOCK_V1';bootId=$fixtureBoot;observedEpochMillis=[long]1794873600000;accepted=$false;ordersEnabled=$false}}
+ if($Command -eq 'challenge'){return @{challenge='nonce';bootId=$fixtureBoot}}
+ if($Body.synchronizedClock -or $Body.transportHealthy){throw 'Clock test published health'}
+ @{healthContractVersion='SERVER_TRANSPORT_V2';status='UNHEALTHY_AND_LOCKED';bootId=$fixtureBoot;accepted=$false;ordersEnabled=$false}
+}
+$clockProof=Test-PaytmHealthClockBoundary ('F'*64) $fixtureBoot
+if(-not $clockProof.contractVerified -or -not $clockProof.challengePreserved -or -not $clockProof.readTokenRejected -or -not $clockProof.bodyRejected){throw 'Clock boundary proof'};$count++
 # Real controller with all Docker/HTTP/build boundaries replaced. No service changes.
 $src=Get-Content (Join-Path $PSScriptRoot 'ActivatePaytmHealthBridge.ps1') -Raw
 foreach($n in @('PaytmApplicationRoute.ps1','PaytmHealthDeploymentPreflight.ps1','PaytmHealthPublisher.ps1','PaytmHealthActivation.ps1')){$src=$src.Replace(". (Join-Path `$PSScriptRoot '$n')",'')}
 $src=$src.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))
 $work=Join-Path ([IO.Path]::GetTempPath()) ('mb-health-activation-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $work
 $oldId='a'*64;$newId='c'*64;$oldImage='sha256:'+('b'*64);$newImage='sha256:'+('d'*64)
-$e=Join-Path $work 'receipt.json';@{containerId=$oldId;rollbackImageId=$oldImage}|ConvertTo-Json|Set-Content $e
+$e=Join-Path $work 'receipt.json';@{containerId=$oldId;rollbackImageId=$oldImage;worker=@{applicationBootId='oldboot'}}|ConvertTo-Json|Set-Content $e
 $src=$src.Replace('DFF50F8D473456A69A8D650074EBA5B46AE4B935E5C281982582360B2CF26F71',(Get-FileHash $e).Hash)
+$src=$src.Replace('2556897BC07D9C3258EA627A1580B8FCF550C8B5F96BA79E0E63BCE5A5930B9E',(Get-FileHash $e).Hash)
 function git {param([Parameter(ValueFromRemainingArguments=$true)]$Arguments) $global:LASTEXITCODE=0;if($Arguments -contains 'rev-parse'){'e'*40}}
 function Get-Command {param($Name,$CommandType,$ErrorAction) @{Source='mock-docker'}}
 function Get-PaytmApplicationContainer {
  $isNew=$script:phase -eq 'new'
- [pscustomobject]@{Id=$(if($isNew){$newId}else{$oldId});Image=$(if($isNew){$newImage}else{$oldImage});State=@{StartedAt=$(if($isNew){'new'+$script:restarted}else{'old'})};Config=@{Labels=@{'com.docker.compose.project'='fixture'};Env=@('MARKETBRAIN_PAYTM_ENABLED=false','MARKETBRAIN_PAYTM_ACCESS_TOKEN=','MARKETBRAIN_PAPER_READ_TOKEN=SECRET_READ_FIXTURE','MARKETBRAIN_PAPER_REVIEW_DATABASE_OID=1')};Mounts=@(@{Destination='/run/secrets/paper-approval.key';Source='C:/fixture/key'},@{Destination='/marketbrain-review';Source='C:/fixture/review'})}
+ [pscustomobject]@{Id=$(if($isNew){$newId}else{$oldId});Image=$(if($isNew){$newImage}else{$oldImage});State=@{StartedAt=$(if($isNew){'new'+$script:restarted}else{'old'})};Config=@{Labels=@{'com.docker.compose.project'='fixture'};Env=@('MARKETBRAIN_PAYTM_ENABLED=false','MARKETBRAIN_PAYTM_ACCESS_TOKEN=','MARKETBRAIN_PAPER_READ_TOKEN=SECRET_READ_FIXTURE','MARKETBRAIN_PAPER_REVIEW_DATABASE_OID=1')+$(if($script:upgrade){@('MARKETBRAIN_PAYTM_HEALTH_TOKEN='+('A'*64))}else{@()})};Mounts=@(@{Destination='/run/secrets/paper-approval.key';Source='C:/fixture/key'},@{Destination='/marketbrain-review';Source='C:/fixture/review'})}
 }
 function ConvertTo-PaperHostMount($Path){$Path}
 function Assert-PaytmWriterLocked {}
@@ -56,7 +71,8 @@ function Assert-PaytmHealthPreserved($Before,$After,$HealthToken){if([string]$en
 function Wait-PaytmApplicationHealth {}
 function Test-PaytmHealthActivationBoundary($HealthToken){if($script:scenario -eq 'boundaryfail'){throw 'HEALTH_ACTIVATION_BOUNDARY_FAILURE'};if($HealthToken -cnotmatch '^[A-F0-9]{64}$'){throw 'Random token format'};'oldboot'}
 function Invoke-PaytmHealthHttp($Command,$Token,$Body){if($Command -eq 'challenge'){@{challenge='nonce';bootId='oldboot'}}else{@{}}}
-function Invoke-PaytmHealthActivationRoute($Command){@{bootId='newboot'}}
+function Invoke-PaytmHealthActivationRoute($Command){@{bootId=$(if($script:restarted){'newboot'}else{'oldboot'})}}
+function Test-PaytmHealthClockBoundary($HealthToken,$Boot){if($HealthToken -cne ('A'*64)){throw 'CLOCK_TOKEN_ROTATED'};@{contractVerified=$true;bootId=$Boot}}
 function Assert-PaytmHealthActivationReceipt($Value,$Status,$Boot){}
 function Assert-PaytmHealthRollbackOwnership($Project,$OldImage,$NewImage){if($script:scenario -eq 'rollbackfail'){throw 'HEALTH_ACTIVATION_FOREIGN_CONTAINER'}}
 function Invoke-PaytmPrivateDocker($Arguments,$Phase,$Limit=30){
@@ -74,11 +90,15 @@ function Invoke-PaytmPrivateDocker($Arguments,$Phase,$Limit=30){
  }
 }
 $original=[string][Environment]::GetEnvironmentVariable('MARKETBRAIN_PAYTM_HEALTH_TOKEN','Process')
+foreach($script:upgrade in @($false,$true)){
 foreach($script:scenario in @('pass','buildfail','deployfail','boundaryfail','rollbackfail')){
- $script:phase='old';$script:restarted=$false;$script:operations=@();$script:observedToken=$null;$out=Join-Path $work $script:scenario;$errorText=$null
- try{& ([scriptblock]::Create($src)) -EvidencePath $e -OutputDirectory $out}catch{$errorText=$_.Exception.Message}
+ $script:phase='old';$script:restarted=$false;$script:operations=@();$script:observedToken=$null;$out=Join-Path $work ($script:scenario+$script:upgrade);$errorText=$null
+ $argsForRun=@{EvidencePath=$e;OutputDirectory=$out};if($script:upgrade){$argsForRun.ClockUpgradeReport=$e}
+ try{& ([scriptblock]::Create($src)) @argsForRun}catch{$errorText=$_.Exception.Message}
  $raw=Get-Content (Get-ChildItem $out -Filter '*.json').FullName -Raw;$r=$raw|ConvertFrom-Json
  $expected=switch($script:scenario){'pass'{'HEALTH_BRIDGE_DEPLOYED_LOCKED_LIVE_PUBLICATION_PENDING'} {$_ -in @('deployfail','boundaryfail')}{'ACTIVATION_FAILED_ROLLBACK_VERIFIED'} default{'REVIEW_REQUIRED'}}
+ if($script:upgrade -and $script:scenario -eq 'pass'){$expected='HEALTH_CLOCK_DEPLOYED_LOCKED_COLLECTOR_PENDING';if(-not $r.existingHealthTokenPreserved -or -not $r.clockBeforeRestart.contractVerified -or -not $r.clockAfterRestart.contractVerified){throw 'Clock upgrade flags'}}
+ if($script:upgrade -and $r.rollbackVerified -and -not $r.diagnosticTokenConfigured){throw 'Rollback lost existing token'}
  if($r.status -cne $expected){throw "Unexpected $script:scenario status: $($r.failure) / $errorText"}
  if($script:scenario -eq 'pass' -and (-not $r.boundaryVerified -or -not $r.restartVerified -or -not $r.accountPreserved -or -not $r.writerLocked -or -not $r.finalRouteLocked -or $errorText)){throw 'Pass flags'}
  if($script:scenario -eq 'buildfail' -and $r.rollbackAttempted){throw 'Premature rollback'}
@@ -86,5 +106,6 @@ foreach($script:scenario in @('pass','buildfail','deployfail','boundaryfail','ro
  if($raw.Contains('SECRET_READ_FIXTURE') -or ($script:observedToken -and $raw.Contains($script:observedToken)) -or $r.ordersEnabled -or $r.healthyEvidencePublished){throw 'Secret/authority leak'}
  if([string][Environment]::GetEnvironmentVariable('MARKETBRAIN_PAYTM_HEALTH_TOKEN','Process') -cne $original){throw 'Environment restoration'}
  $count++
+}
 }
 Write-Host "PASS: $count activation/rollback fixtures; no Docker, network or application calls."

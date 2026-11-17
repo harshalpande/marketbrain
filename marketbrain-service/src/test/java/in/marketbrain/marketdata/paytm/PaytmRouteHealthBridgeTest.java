@@ -28,6 +28,32 @@ class PaytmRouteHealthBridgeTest {
     String payload(PaytmRouteHealthBridge.Receipt c) {
         return "{\"challenge\":\""+c.challenge()+"\",\"bootId\":\""+c.bootId()+"\",\"synchronizedClock\":true,\"transportHealthy\":true,\"lowerOffsetSeconds\":0,\"upperOffsetSeconds\":0}";
     }
+    @Test void healthClockIsReadOnlyAndDoesNotReplaceChallenge() {
+        var challenge=bridge.challenge();
+        var before=System.currentTimeMillis();
+        var response=controller.command("clock",request(""));
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getCacheControl()).isEqualTo("no-store");
+        var clock=(PaytmRouteHealthBridge.ClockReceipt)response.getBody();
+        assertThat(clock.clockContractVersion()).isEqualTo("HEALTH_CLOCK_V1");
+        assertThat(clock.bootId()).isEqualTo(challenge.bootId());
+        assertThat(clock.observedEpochMillis()).isBetween(before,System.currentTimeMillis());
+        assertThat(clock.accepted()).isFalse();assertThat(clock.ordersEnabled()).isFalse();
+        assertThat(calls.get()).isZero();
+        assertThat(bridge.submit(new PaytmRouteHealthBridge.Evidence(challenge.challenge(),challenge.bootId(),false,false,0,0)).status()).isEqualTo("UNHEALTHY_AND_LOCKED");
+    }
+    @Test void healthClockRejectsBodyReadTokenAndForwardedRequests() {
+        assertThat(controller.command("clock",request("{}")).getStatusCode().value()).isEqualTo(400);
+        var wrong=request("");wrong.removeHeader("X-MarketBrain-Paytm-Health-Token");wrong.addHeader("X-MarketBrain-Paytm-Health-Token",READ);
+        assertThat(controller.command("clock",wrong).getStatusCode().value()).isEqualTo(401);
+        for(String name:new String[]{"Origin","Forwarded","X-Forwarded-For","X-Forwarded-Host","Transfer-Encoding"}) {
+            var r=request("");r.addHeader(name,"unexpected");
+            assertThat(controller.command("clock",r).getStatusCode().value()).isEqualTo(400);
+        }
+        var r=request("");r.setQueryString("token=unexpected");
+        assertThat(controller.command("clock",r).getStatusCode().value()).isEqualTo(400);
+        assertThat(calls.get()).isZero();
+    }
     @Test void springDefaultsDisabledAndTokenCannotReuseReadAuthority() {
         new ApplicationContextRunner().withBean(MarketBrainProperties.class,()->PaytmApplicationRouteTest.properties(false,""))
             .withUserConfiguration(PaytmApplicationRoute.class,PaytmRouteHealthBridge.class,PaytmRouteHealthController.class)

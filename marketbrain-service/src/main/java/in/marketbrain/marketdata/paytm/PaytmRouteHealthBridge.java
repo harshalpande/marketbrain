@@ -25,6 +25,13 @@ public final class PaytmRouteHealthBridge {
                            boolean transportHealthy, double lowerOffsetSeconds, double upperOffsetSeconds) {}
     public record Receipt(String status, String challenge, String bootId, int validForSeconds,
                           boolean accepted, boolean ordersEnabled, String healthContractVersion) {}
+    public record ClockReceipt(String clockContractVersion, String bootId, long observedEpochMillis,
+                               boolean accepted, boolean ordersEnabled) {}
+    /** Read-only clock sample: does not issue/consume a challenge, publish health or arm a route. */
+    public ClockReceipt clock() {
+        if(!enabled) throw new IllegalStateException("DISABLED");
+        return new ClockReceipt("HEALTH_CLOCK_V1",bootId,System.currentTimeMillis(),false,false);
+    }
     @Autowired
     public PaytmRouteHealthBridge(PaytmApplicationRoute route,
             @Value("${marketbrain.paytm-money.health-token:}") String token,

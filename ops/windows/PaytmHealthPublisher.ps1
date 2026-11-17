@@ -1,5 +1,5 @@
 # Definitions only. No scheduled task, credential provisioning or application changes on import.
-function Invoke-PaytmHealthHttp([ValidateSet('challenge','submit')][string]$Command,[string]$Token,$Body) {
+function Invoke-PaytmHealthHttp([ValidateSet('challenge','submit','clock')][string]$Command,[string]$Token,$Body) {
  if($Token -cnotmatch '^[A-Za-z0-9_-]{32,128}$'){throw 'HEALTH_PUBLISHER_TOKEN_INVALID'}
  $arguments=@{Uri=('http://127.0.0.1:8080/api/v1/paytm/route-health/'+$Command);Method='POST';Headers=@{'X-MarketBrain-Paytm-Health-Token'=$Token;'X-MarketBrain-Paytm-Health'='diagnostic-health'};NoProxy=$true;TimeoutSec=2;MaximumRedirection=0;SkipHttpErrorCheck=$true}
  if($Command -eq 'submit'){$arguments.TimeoutSec=3}
