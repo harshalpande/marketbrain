@@ -1,0 +1,31 @@
+{
+  "evidence": "E287",
+  "file": "paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json",
+  "sha256": "87f19aad6973c920748eb38c1cc076e9685f2679a9255230a665b113ba515ba6",
+  "sourceRevision": "ca49c93",
+  "status": "HEALTH_KEY_CUSTODY_PASSED_SCHEDULED_ACCESS_PENDING",
+  "elapsedSeconds": 38.9673003,
+  "accountSid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+  "worker": {
+    "version": 1,
+    "runId": "d5e799ea1ba84d438008f64c13e41571",
+    "stage": "COMPLETE",
+    "identityVerified": true,
+    "importAttempted": true,
+    "imported": true,
+    "revocationVerified": true,
+    "reloadVerified": true,
+    "failure": null,
+    "nativeError": null
+  },
+  "fresh": {
+    "runId": "d5e799ea1ba84d438008f64c13e41571",
+    "identityVerified": true,
+    "signingVerified": true,
+    "failure": null
+  },
+  "stagedCopyRemoved": true,
+  "operatorSigningDeniedBefore": true,
+  "operatorSigningDeniedAfter": true,
+  "scope": "Exact-account key import/revoke/reimport and fresh-process signing accepted. Scheduled access and unattended collector still pending."
+}
