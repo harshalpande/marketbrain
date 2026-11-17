@@ -1,6 +1,8 @@
 # MarketBrain: canonical project baseline
 
-**Current E285, 2026-11-16:** Actual clock SSH batch accepted in 63.971 seconds: pinned host, two valid nonce-bound NTP-synchronized replies, invalid-command rejection. All four source hashes match aeb2e12. [Next: Windows health account, protected storage and exact-account probe](paytm-health-account.md). Eight new tests plus 320 shared account assertions/26 mocked workflows pass locally. Key import and unattended worker remain pending. G3 80%, overall 14/30 (46.7%).
+**Current E286, 2026-11-17:** Windows health account and storage accepted in 71.473 seconds; exact SID/non-admin token, protected write denial, work access and empty per-account agent passed. Three source hashes match fe6ae8d. [Next: clock-key custody batch](paytm-health-key-custody.md). Thirteen local checks plus 122 shared custody assertions passed. Scheduled access, token/collector and unattended acceptance remain pending. G3 80%, overall 14/30 (46.7%).
+
+**Historical E285, 2026-11-16:** Actual clock SSH batch accepted in 63.971 seconds: pinned host, two valid nonce-bound NTP-synchronized replies, invalid-command rejection. All four source hashes match aeb2e12. [Next: Windows health account, protected storage and exact-account probe](paytm-health-account.md). Eight new tests plus 320 shared account assertions/26 mocked workflows pass locally. Key import and unattended worker remain pending. G3 80%, overall 14/30 (46.7%).
 
 **Historical E284, 2026-11-16:** Clock login fingerprint passed but SSH could not load known_hosts under the spaced Windows profile path. Fixed SSH configuration-level path quoting. Real Windows ssh.exe loopback tests reproduce the old failure, pass the corrected authenticated command and reject a wrong host key. Eight existing clock checks and six controller checks pass. [Rerun only clock login](paytm-clock-login.md). No VPS changes. G3 remains 80%, overall 14/30 (46.7%).
 

@@ -1,0 +1,23 @@
+{
+  "evidence": "E286",
+  "file": "paytm-health-account-4f60b36179694f8c9d54aae847bd8e05.json",
+  "sha256": "164187ed3b1819473c204b3d1f0c3360d7d076719304029f5a784be8d917d90b",
+  "sourceRevision": "fe6ae8d",
+  "status": "HEALTH_ACCOUNT_AND_STORAGE_VERIFIED_KEY_CUSTODY_PENDING",
+  "elapsedSeconds": 71.4727079,
+  "accountSid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+  "probe": {
+    "version": 1,
+    "runId": "4f60b36179694f8c9d54aae847bd8e05",
+    "sidMatched": true,
+    "nonAdmin": true,
+    "protectedWriteDenied": true,
+    "workWriteReadDelete": true,
+    "agentEmpty": true,
+    "agentExit": 1,
+    "checkStage": "COMPLETE",
+    "nativeErrorCode": null,
+    "failure": null
+  },
+  "scope": "Dedicated Windows account, protected storage and exact-account empty agent accepted. Key custody, scheduled access and unattended health publication pending."
+}
