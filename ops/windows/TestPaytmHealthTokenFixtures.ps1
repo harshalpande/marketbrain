@@ -4,6 +4,14 @@ $ErrorActionPreference='Stop'
 $count=0
 function Check([bool]$Value){if(-not $Value){throw 'FIXTURE_FAILED'};$script:count++}
 function Reject([scriptblock]$Action){$failed=$false;try{& $Action|Out-Null}catch{$failed=$true};Check $failed}
+# A separate runspace prevents the fixture token below from masking scope dependencies.
+foreach($strict in @($false,$true)){
+ $ps=[PowerShell]::Create()
+ try{
+  $null=$ps.AddScript({param($library,$strict) $ErrorActionPreference='Stop';if($strict){Set-StrictMode -Version Latest};. $library;foreach($m in @('Stage','Verify')){New-HealthTokenWorkerSource ('a'*32) $m}}).AddArgument("$PSScriptRoot/PaytmHealthTokenCustody.ps1").AddArgument($strict)
+  $result=$ps.Invoke();Check (-not $ps.HadErrors -and $result.Count -eq 2)
+ }finally{$ps.Dispose()}
+}
 $token='fixture_only_012345678901234567890123456789'
 $cipher=Protect-HealthToken $token
 Check ((Unprotect-HealthToken $cipher) -ceq $token)
@@ -34,7 +42,7 @@ foreach($mode in @('Stage','Verify')){
  Check ($s.Contains("-1011'") -and -not $s.Contains('marketbrain-gateway') -and -not $s.Contains('PAPER_READ_TOKEN'))
  if($mode -eq 'Verify'){Check (-not $s.Contains($token))}
 }
-foreach($name in @('InstallPaytmHealthTokenCustody.ps1','PaytmHealthTokenCustody.ps1')){
+foreach($name in @('InstallPaytmHealthTokenCustody.ps1','PaytmHealthTokenCustody.ps1','PaytmHealthTokenRecovery.ps1')){
  $errors=$null;$tokens=$null;$null=[Management.Automation.Language.Parser]::ParseFile("$PSScriptRoot/$name",[ref]$tokens,[ref]$errors);Check ($errors.Count -eq 0)
 }
 # Execute generated worker with fixture identity and storage, real DPAPI, stubbed HTTP.

@@ -1,7 +1,8 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$EvidencePath='C:\MarketBrainData\Review\paytm-health-scheduled-0f5818e2c97b4f209ddd8d6200f4595d.json',[string]$OutputDirectory='C:\MarketBrainData\Review')
+[CmdletBinding()]param([string]$EvidencePath='C:\MarketBrainData\Review\paytm-health-scheduled-0f5818e2c97b4f209ddd8d6200f4595d.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$RecoveryReport='')
 $ErrorActionPreference='Stop'
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmHealthAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmHealthKeyCustody.ps1','PaytmClockComparison.ps1','PaytmApplicationRoute.ps1','PaytmHealthActivation.ps1','PaytmHealthTokenCustody.ps1')){. (Join-Path $PSScriptRoot $n)}
+. (Join-Path $PSScriptRoot 'PaytmHealthTokenRecovery.ps1')
 $run=[guid]::NewGuid().ToString('N');$watch=[Diagnostics.Stopwatch]::StartNew();$password=$null;$healthToken=$null;$map=$null;$source=$null;$container=$null
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'));$route=@{Root=$root};$application=@{Docker=$null;Token=$null}
 $directory='C:\ProgramData\MarketBrainPaytmHealth\token-custody';$staged='C:\ProgramData\MarketBrainPaytmHealth\work\token-'+$run+'.dpapi'
@@ -21,7 +22,16 @@ try{
  $owned=Read-PaytmHealthAccount;$k=Get-HealthKeyContract
  if($owned.sid -cne $k.sid -or $owned.runId -cne $k.accountRun -or -not (Get-LocalUser -SID $k.sid).Enabled){throw 'HEALTH_TOKEN_ACCOUNT_CHANGED'}
  $null=Assert-PaytmAccountPath $directory;$null=Assert-PaytmAccountPath $staged
- if((Test-Path -LiteralPath $directory) -or (Test-Path -LiteralPath $staged)){throw 'HEALTH_TOKEN_STORAGE_EXISTS'}
+ if(Test-Path -LiteralPath $staged){throw 'HEALTH_TOKEN_STORAGE_EXISTS'}
+ if($RecoveryReport){
+  $recovery=Read-HealthTokenRecoveryEvidence $RecoveryReport
+  Assert-HealthTokenRecoveryFiles $directory (Join-Path (Split-Path $directory) 'work') $recovery
+  Assert-PaytmAccountAcl (Get-Acl -LiteralPath $directory) $k.sid
+  $report['recoveredFromRun']=$recovery.runId
+ }elseif(Test-Path -LiteralPath $directory){throw 'HEALTH_TOKEN_STORAGE_EXISTS'}
+ # Generate both scripts before any installation changes, with no ambient token dependency.
+ $stageSource=New-HealthTokenWorkerSource $run 'Stage';$verifySource=New-HealthTokenWorkerSource $run 'Verify'
+ $report.sourceHashes['PaytmHealthTokenRecovery.ps1']=(Get-FileHash -LiteralPath "$PSScriptRoot/PaytmHealthTokenRecovery.ps1").Hash
  foreach($n in @('InstallPaytmHealthTokenCustody.ps1','PaytmHealthTokenCustody.ps1','PaytmGatewayAccount.ps1','PaytmHealthAccount.ps1','PaytmHealthKeyCustody.ps1','PaytmGatewayKeyCustody.ps1','PaytmClockComparison.ps1','PaytmApplicationRoute.ps1','PaytmHealthActivation.ps1','PaperRuntimeDeployment.ps1','PaperRuntimeReview.ps1','PaperAccountReadReview.ps1','PaytmTunnelVerification.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
  Token-Step 'VERIFY_LOCAL_APPLICATION_AND_LOCK' 10
  if($env:DOCKER_HOST -or $env:DOCKER_CONTEXT){throw 'HEALTH_TOKEN_DOCKER_OVERRIDE'}
@@ -37,17 +47,27 @@ try{
  Write-Host 'Store only the existing diagnostic HEALTH token encrypted for marketbrain-health. No broker/read token is provisioned, and no healthy route claim is submitted.'
  $password=Read-Host 'Existing WINDOWS marketbrain-health account password' -AsSecureString
  Token-Step 'PROTECTED_TOKEN_LIBRARY' 25
- $null=New-Item -ItemType Directory -Path $directory -ErrorAction Stop;$report.stagingCreated=$true;Save-Report
- Set-PaytmAccountDirectoryAcl $directory $k.sid
+ if($RecoveryReport){
+  Assert-HealthTokenRecoveryFiles $directory (Join-Path (Split-Path $directory) 'work') $recovery
+  Assert-PaytmAccountAcl (Get-Acl -LiteralPath $directory) $k.sid
+  $backup=Join-Path $directory 'library-before-recovery.ps1'
+  [IO.File]::Copy((Join-Path $directory 'library.ps1'),$backup,$false)
+  if((Get-FileHash -LiteralPath $backup).Hash -cne $recovery.sourceHashes.'PaytmHealthTokenCustody.ps1'){throw 'HEALTH_TOKEN_RECOVERY_BACKUP_CHANGED'}
+  $report['recoveryBackupVerified']=$true;Save-Report
+ }else{
+  $null=New-Item -ItemType Directory -Path $directory -ErrorAction Stop;$report.stagingCreated=$true;Save-Report
+  Set-PaytmAccountDirectoryAcl $directory $k.sid
+ }
  $library=Join-Path $directory 'library.ps1';$bytes=[IO.File]::ReadAllBytes("$PSScriptRoot/PaytmHealthTokenCustody.ps1")
- $f=[IO.File]::Open($library,'CreateNew','Write','None');try{$f.Write($bytes,0,$bytes.Length)}finally{$f.Dispose()}
+ $mode=if($RecoveryReport){[IO.FileMode]::Truncate}else{[IO.FileMode]::CreateNew}
+ $f=[IO.File]::Open($library,$mode,'Write','None');try{$f.Write($bytes,0,$bytes.Length)}finally{$f.Dispose()}
  if((Get-FileHash -LiteralPath $library).Hash -cne $report.sourceHashes['PaytmHealthTokenCustody.ps1']){throw 'HEALTH_TOKEN_SOURCE_CHANGED'}
  Token-Step 'ENCRYPT_AND_AUTHENTICATE_AS_HEALTH_ACCOUNT' 40
  $info=New-PaytmAccountProbeStartInfo $password 'marketbrain-health';$diag=@{};$report['stageDiagnostics']=$diag
  try{
   # Token travels in this child-only environment, never in script source, argv or a file.
   $info.EnvironmentVariables['MARKETBRAIN_HEALTH_CUSTODY_TRANSFER']=$healthToken
-  $source=New-HealthTokenWorkerSource $run 'Stage'
+  $source=$stageSource
   $report.stageWorker=Invoke-PaytmAccountProbeProcess $info $source $diag
  }finally{$source=$null;$info.EnvironmentVariables.Remove('MARKETBRAIN_HEALTH_CUSTODY_TRANSFER');$info.Password=$null}
  Save-Report;Assert-TokenWorker $report.stageWorker 'Stage'
@@ -62,7 +82,7 @@ try{
  if((Get-FileHash -LiteralPath $staged).Hash -cne $expected -or (Get-FileHash -LiteralPath $target).Hash -cne $expected){throw 'HEALTH_TOKEN_CIPHER_CHANGED'}
  Token-Step 'FRESH_PROCESS_DECRYPT_AUTHENTICATE_AND_LOCK' 75
  $info=New-PaytmAccountProbeStartInfo $password 'marketbrain-health';$diag=@{};$report['freshDiagnostics']=$diag
- try{$report.freshWorker=Invoke-PaytmAccountProbeProcess $info (New-HealthTokenWorkerSource $run 'Verify') $diag}finally{$info.Password=$null}
+ try{$report.freshWorker=Invoke-PaytmAccountProbeProcess $info $verifySource $diag}finally{$info.Password=$null}
  Save-Report;Assert-TokenWorker $report.freshWorker 'Verify'
  $again=Get-PaytmApplicationContainer;$againMap=ConvertTo-PaperRuntimeEnvironment $again.Config.Env
  if($again.Id -cne $containerId -or $again.Image -cne $image -or $again.State.StartedAt -cne $started -or $againMap.MARKETBRAIN_PAYTM_HEALTH_TOKEN -cne $healthToken){throw 'HEALTH_TOKEN_APPLICATION_CHANGED'}

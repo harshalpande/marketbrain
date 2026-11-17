@@ -47,7 +47,6 @@ function Test-HealthTokenAuthority([string]$Token){
 }
 function New-HealthTokenWorkerSource([string]$Run,[ValidateSet('Stage','Verify')][string]$Mode){
  if($Run -cnotmatch '^[a-f0-9]{32}$'){throw 'HEALTH_TOKEN_RUN'}
- if($Mode -ceq 'Stage' -and $Token -cnotmatch '^[A-Za-z0-9_-]{32,128}$'){throw 'HEALTH_TOKEN_FORMAT'}
  $template=@'
 $ErrorActionPreference='Stop'
 $root='C:\ProgramData\MarketBrainPaytmHealth\token-custody'

@@ -1,0 +1,20 @@
+{
+  "evidenceId": "E289",
+  "reviewedDate": "2026-11-17",
+  "sourceReceipt": "paytm-health-token-3c51b7f72b3342819ab0dd45bbb62897.json",
+  "sourceSha256": "36B5F94E466A075D7553A73128771FEDB19E3AEE43ACBDCFDD4B0227CBA0DF92",
+  "sourceRevision": "caad288",
+  "sourceHashesVerified": 13,
+  "status": "REVIEW_REQUIRED",
+  "failedStage": "ENCRYPT_AND_AUTHENTICATE_AS_HEALTH_ACCOUNT",
+  "sourceLine": 50,
+  "workerLaunched": false,
+  "stagingCreated": true,
+  "elapsedSeconds": 11.0874947,
+  "rootCause": "Removed Token parameter still referenced by generator; ambient fixture token masked missing-variable failure. Reproduced in clean PowerShell 7 under strict mode.",
+  "retryResult": "HEALTH_TOKEN_STORAGE_EXISTS; no changes in retry",
+  "fix": "Remove obsolete guard; generate before writes; receipt-bound library-only recovery with backup, ACL/hash checks and no ciphertext allowed.",
+  "localChecks": 43,
+  "runtimeAcceptancePending": true,
+  "g3Percent": 80
+}
