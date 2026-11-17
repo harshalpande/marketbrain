@@ -1,6 +1,8 @@
 # Daily progress and decision log
 
-**Current E287, 2026-11-17:** Health clock-key custody accepted in 38.967 seconds; import, targeted revocation/reimport, fresh-process signing and operator isolation passed; staged encrypted copy removed. Seven source hashes match ca49c93. [Next: scheduled signing and real clock access](paytm-health-scheduled-access.md), with batch-right precheck. Seventeen local tests passed. Collector/token and unattended lifecycle remain pending. G3 80%, overall 14/30 (46.7%).
+**Current E288, 2026-11-17:** Scheduled health signing and real VPS clock access accepted in 37.204 seconds: non-admin session 0, two signatures, nonce-bound synchronized clock reply, fresh-process signing and temporary task removal. Ten source hashes match 2a5d076; only health SID 1011 gained batch-logon allow, with denies unchanged. [Next: encrypted diagnostic health-token custody](paytm-health-token-custody.md). Collector and unattended lifecycle acceptance remain pending. G3 80%, Paytm readiness 14/30 (46.7%).
+
+**Historical E287, 2026-11-17:** Health clock-key custody accepted in 38.967 seconds; import, targeted revocation/reimport, fresh-process signing and operator isolation passed; staged encrypted copy removed. Seven source hashes match ca49c93. [Next: scheduled signing and real clock access](paytm-health-scheduled-access.md), with batch-right precheck. Seventeen local tests passed. Collector/token and unattended lifecycle remain pending. G3 80%, overall 14/30 (46.7%).
 
 **Historical E286, 2026-11-17:** Windows health account and storage accepted in 71.473 seconds; exact SID/non-admin token, protected write denial, work access and empty per-account agent passed. Three source hashes match fe6ae8d. [Next: clock-key custody batch](paytm-health-key-custody.md). Thirteen local checks plus 122 shared custody assertions passed. Scheduled access, token/collector and unattended acceptance remain pending. G3 80%, overall 14/30 (46.7%).
 
