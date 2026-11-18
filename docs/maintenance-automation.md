@@ -166,3 +166,7 @@ After pulling, run elevated PowerShell 7 on the spare laptop with Docker and Mar
 ```
 
 Expected success is `TRANSPORT_STABILITY_PASSED_APPLICATION_HEALTH_PENDING`. This is transport-only acceptance, not authenticated broker/application readiness. Automatic result return is retained; no file upload is required. Leave the window open for 30-35 minutes; do not retry a failure. Local tests cover 29 resume/archive/start assertions and 48 controller assertions over eight mocked success/failure workflows; real spare runtime remains pending.
+
+Transport-only acceptance, 2026-11-18: recovery `cad6485c136b461c85a1fe71a7e59be0` completed 149 observations over 1811.422 seconds with the same worker, no reported transport failures, preserved account and locked application. Automatic job `5ef8d851-9b45-44dc-a4fc-a65b3106b7de` subsequently confirmed Running task, heartbeat 3935 to 3938, TCP success and both proxy probes exiting 0 (CONNECT 200; root HTTP 503). All reported source hashes verified with Windows line endings where applicable.
+
+This closes the current transport-recovery incident, not G3.5. Health-account Windows time query permissions, scheduled collector and lifecycle remain pending. The deployed catalogue still contains diagnostic and intervention-test only; no arbitrary script execution or remote health-account password submission is available. The current health scheduled test requires a local password and must be adapted before claiming unattended execution. No recovery rerun is required after this acceptance.

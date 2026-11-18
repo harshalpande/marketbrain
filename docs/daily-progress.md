@@ -1,5 +1,8 @@
 # Daily progress and decision log
 
+**Transport stability accepted, 2026-11-18:** [Recovery](evidence/gateway-transport-stability-accepted-20261118.json) passed 149 observations over 1811.422 seconds, same worker, zero reported transport failures, account preserved and application locked. Seven source hashes verified. [Automatic recheck](evidence/automation-transport-recheck-20261118.json) confirms running task, advancing heartbeat, TCP and both TLS probes; two runner/helper hashes verified. Root HTTP 503 remains broker-readiness warning. Health-account Windows time access and collector acceptance remain open; G3 80%, total 14/30 (46.7%).
+
+
 **Recovery test sequencing defect confirmed, 2026-11-18:** [Recovery report](evidence/gateway-recovered-health-blocked-20261118.json) proves gateway TRANSPORT_READY and verified TLS, then application arm rejected TIMING_BLOCKED/HEALTH_UNCONFIRMED. No 30-minute soak completed. Cleanup preserved account/application lock; [automatic follow-up](evidence/gateway-health-stop-confirmed-20261118.json) confirms disabled task, exit 0 and STOPPED heartbeat. [Corrected transport-only resume](maintenance-automation.md#resume-after-application-health-block) prepared; no application health bypass. Runtime acceptance pending. G3 80%; 14/30 (46.7%).
 
 
