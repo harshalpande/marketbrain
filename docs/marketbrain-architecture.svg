@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1060" viewBox="0 0 1200 1060" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1180" viewBox="0 0 1200 1180" role="img" aria-labelledby="title desc">
 
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">E293: scheduled collector rejected Windows time and gateway TLS evidence; final health revoked and task disabled. Native diagnostic capture added; root cause pending, no threshold or permission changes. G3 80 percent; durable collector and lifecycle acceptance pending; live execution disconnected.</desc>
+  <desc id="desc">E294: diagnostic relay and interactive Windows runner prepared; cross-machine acceptance pending. Office controller and spare laptop initiate pinned HTTPS to existing VPS. Existing Paytm jobs not yet adapted; G3 remains 80 percent.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -66,4 +66,8 @@
   <text x="48" y="962" class="body">Explicit promotion / rollback; frozen trial cohorts; no guaranteed improvement or silent active-model changes</text>
   <text x="30" y="1010" class="small">Solid green: existing source foundation • Dashed blue: planned / incomplete • Red: excluded current execution scope</text>
   <text x="30" y="1036" class="small">Canonical: docs/README.md • Progress: docs/roadmap.md • Source presence ≠ tested readiness ≠ predictive value</text>
+  <rect x="30" y="1060" width="1140" height="96" rx="9" class="planned"/>
+  <text x="48" y="1087" class="label">Maintenance automation: separate from trading application</text>
+  <text x="48" y="1115" class="body">Development controller &lt;-&gt; VPS HTTPS queue &lt;-&gt; spare Windows runner + local user prompt</text>
+  <text x="48" y="1141" class="small">Initial fixed diagnostic / intervention jobs; source implemented, cross-machine acceptance pending</text>
 </svg>

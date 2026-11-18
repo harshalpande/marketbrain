@@ -1,0 +1,27 @@
+{
+  "evidence": "E294",
+  "date": "2026-11-18",
+  "sourceReport": "paytm-health-scheduled-3f20293aade542e7985c9055f2c2a79a.json",
+  "sourceSha256": "7a28db1a4739bae46e68ccad93f34df8feaf0aa29e3ed9a67c429713b20079a1",
+  "sourceRevision": "12c9be2",
+  "sourceHashesVerified": 14,
+  "status": "REVIEW_REQUIRED",
+  "confirmedFindings": [
+    "W32Time query access denied 0x80070005 in all three rounds",
+    "Gateway curl exit 28 at approximately two seconds in all three rounds"
+  ],
+  "passed": [
+    "background identity",
+    "SSH signing",
+    "VPS clock",
+    "application token",
+    "final health revocation"
+  ],
+  "gatewayTimeoutRootCause": "not established",
+  "g3AcceptedCheckpoints": 4,
+  "g3TotalCheckpoints": 5,
+  "paytmAcceptedCheckpoints": 14,
+  "paytmTotalCheckpoints": 30,
+  "nextPriority": "maintenance automation first installation",
+  "runtimeAutomationAccepted": false
+}
