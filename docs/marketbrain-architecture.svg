@@ -69,5 +69,5 @@
   <rect x="30" y="1060" width="1140" height="96" rx="9" class="planned"/>
   <text x="48" y="1087" class="label">Maintenance automation: separate from trading application</text>
   <text x="48" y="1115" class="body">Development controller &lt;-&gt; VPS HTTPS queue &lt;-&gt; spare Windows runner + local user prompt</text>
-  <text x="48" y="1141" class="small">Gateway signing accepted: 2 checks, session 0; automatic result return passed; recovery pending</text>
+  <text x="48" y="1141" class="small">Signing accepted; one-start recovery + 30-minute transport check prepared; runtime acceptance pending</text>
 </svg>

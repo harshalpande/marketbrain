@@ -132,3 +132,20 @@ The wrapper preserves the original report and atomically publishes a bounded com
 Tell the agent when the local prompt finishes; no report upload is required. The runner currently accepts only diagnostic and intervention-test jobs: launching this password-dependent test and updating the installed helper still require this local command. This is not unattended signing deployment. A successful signing receipt's legacy status mentions supervisor installation pending; it does not authorize reinstalling an existing supervisor. Review current evidence before preparing recovery.
 
 Acceptance on 2026-11-18: job `9a663296-a5f5-40d3-aadc-e6774c047358` automatically returned signing run `adafbbe28dac485e95cb2ebc75768ccf`. Two signatures passed under non-admin session 0, native operations exited zero, temporary task removed, production state unchanged. Eight source hashes verified with Windows CRLF normalization as needed. Gateway recovery has not run; the current saved failure and idle task remain.
+
+## Current gateway recovery after signing acceptance
+
+Prepared on 2026-11-18; spare-machine runtime acceptance pending. `Invoke-LocalGatewayRecovery.ps1` invokes `RepairPaytmNativeProcess.ps1 -CurrentSigningRecovery` in a separate PowerShell process. The adapter accepts only signing run `adafbbe28dac485e95cb2ebc75768ccf` with the six reviewed source hashes and complete signing/task-cleanup proof. It requires the existing owned task idle with last exit 1, application locked and broker disabled, and saved failure instance `1eef65f6e872480ebd5acfa4d361261d` at heartbeat 12161.
+
+With installer and worker locks held, verify installed code and empty transport listener, snapshot/recheck files and task state, archive and hash-check existing evidence, then clear only the three reviewed incident markers. Preserve any session checkpoint. Start the existing task once; require a fresh worker and advancing transport heartbeat. Reuse the existing 30-minute stability observation and initial/final application route checks. Failure stops/disables the owned task and preserves evidence. No code/key/credential replacement, VPS changes or broker orders.
+
+On the spare laptop, run elevated PowerShell 7 after a clean fast-forward pull:
+
+```powershell
+& .\ops\automation\Update-AutomationDiagnostics.ps1
+& .\ops\automation\Invoke-LocalGatewayRecovery.ps1
+```
+
+Keep Docker Desktop and the existing MarketBrain application running, and leave this window open for approximately 30-35 minutes. No PuTTY or password prompt is expected. One local launch is still required: the deployed relay does not yet expose recovery jobs. The wrapper publishes its bounded result to `C:\MarketBrainData\Review\automation-gateway-recovery-latest.json`; the next diagnostic returns sanitized status, recovery, stability and cleanup fields automatically. Do not rerun on failure. A successful test restores transport evidence; it does not close the separate health-account time-query or durable collector gates.
+
+Local verification: 42 archive/start/drift assertions, 15 receipt/incident rejection cases, 47 existing controller failure/cleanup assertions across eight mocked workflows, and automated snapshot filtering. These fixtures do not claim a real spare-machine recovery or a real 30-minute soak.

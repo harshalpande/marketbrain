@@ -1,5 +1,8 @@
 # Roadmap and completion dashboard
 
+**Current gateway recovery prepared, 2026-11-18:** [Bounded recovery](maintenance-automation.md#current-gateway-recovery-after-signing-acceptance) accepts only the current incident and verified signing receipt. Archive/recheck, one task start, 30-minute transport/application verification, failure cleanup and automatic sanitized result return. Runtime acceptance pending; no keys or installed gateway code replaced. G3 80%; overall 14/30 (46.7%).
+
+
 **Gateway task state confirmed, 2026-11-18:** [Automatic retry](evidence/automation-task-state-20261118.json) confirms task enabled but idle (`Ready`), last result 1; saved HOST_AGENT_UNAVAILABLE remains. [Local signing step with automatic result collection](maintenance-automation.md#password-dependent-signing-with-automatic-result-return) prepared. Its Windows password stays on the spare laptop; runtime acceptance pending. No gateway reset. G3 remains 4/5 (80%), total 14/30 (46.7%).
 
 
