@@ -1,0 +1,297 @@
+{
+  "id": "9a663296-a5f5-40d3-aadc-e6774c047358",
+  "kind": "diagnostic",
+  "state": "SUCCEEDED",
+  "created": 1795015788.7352648,
+  "updated": 1795015812.054514,
+  "result": {
+    "ordersEnabled": false,
+    "observedUtc": "2026-11-18T20:59:57.6263762+05:30",
+    "elapsedSeconds": 13.4690954,
+    "paytmObservation": {
+      "elevated": true,
+      "windowsStatus": {
+        "timedOut": false,
+        "elapsedSeconds": 0.0858755,
+        "stderr": "",
+        "exitCode": 0,
+        "stdout": "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.2886857s\nRoot Dispersion: 4.3193707s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/18/2026 8:54:38 PM\nSource: time.windows.com,0x8 \nPoll Interval: 12 (4096s)\n\nPhase Offset: 0.2631253s\nClockRate: 0.0156250s\nState Machine: 2 (Sync)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 0 (The command completed successfully.)\nTime since Last Good Sync Time: 325.3190743s\n\n"
+      },
+      "windowsSource": {
+        "timedOut": false,
+        "elapsedSeconds": 0.0597442,
+        "stderr": "",
+        "exitCode": 0,
+        "stdout": "time.windows.com,0x8 \n"
+      },
+      "loopbackTcpConnected": false,
+      "permissionChanges": false,
+      "listenerInspectionError": "CimJobException",
+      "proxyObservations": [
+        {
+          "observation": {
+            "timedOut": false,
+            "elapsedSeconds": 2.127833,
+            "stderr": "curl: (28) Connection timed out after 2014 milliseconds\r\n",
+            "exitCode": 28,
+            "stdout": "000|000||0.000000|0.000000|2.014405"
+          },
+          "connectTimeoutSeconds": 2
+        },
+        {
+          "observation": {
+            "timedOut": false,
+            "elapsedSeconds": 2.1126763,
+            "stderr": "curl: (7) Failed to connect to 127.0.0.1 port 18889 after 2022 ms: Could not connect to server\r\n",
+            "exitCode": 7,
+            "stdout": "000|000||0.000000|0.000000|2.043542"
+          },
+          "connectTimeoutSeconds": 8
+        }
+      ],
+      "gatewaySupervisor": {
+        "files": {
+          "transport-control.json": {
+            "fields": {
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "mode": "ENABLED",
+              "version": 1
+            },
+            "state": "READ"
+          },
+          "startup-failure.json": {
+            "fields": {
+              "processId": 6692,
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "instanceId": "1eef65f6e872480ebd5acfa4d361261d",
+              "ordersEnabled": false,
+              "stage": "OBSERVATION_LOOP",
+              "details": {
+                "hresult": -2146233087,
+                "type": "RuntimeException",
+                "line": 70,
+                "outerType": "RuntimeException"
+              },
+              "version": 1,
+              "networkContacted": false,
+              "failure": "HOST_AGENT_UNAVAILABLE"
+            },
+            "state": "READ"
+          },
+          "blocked.json": {
+            "fields": {
+              "failure": "HOST_AGENT_UNAVAILABLE",
+              "instanceId": "1eef65f6e872480ebd5acfa4d361261d"
+            },
+            "state": "READ"
+          },
+          "status.json": {
+            "fields": {
+              "sessionId": 0,
+              "version": 1,
+              "failure": "HOST_AGENT_UNAVAILABLE",
+              "brokerReady": false,
+              "agentIdentityVerified": true,
+              "elapsedSeconds": 140664.294,
+              "identityVerified": true,
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "transportVersion": 1,
+              "transportEnabled": true,
+              "networkContacted": true,
+              "phase": "BLOCKED",
+              "ordersEnabled": false,
+              "processId": 6692,
+              "signingVerified": true,
+              "observedUtc": "2026-11-16T10:21:04.7748113Z",
+              "transportState": {
+                "ordersEnabled": false,
+                "action": "NONE",
+                "attempts": 32,
+                "reason": "PROXY_UNAVAILABLE",
+                "brokerReady": false,
+                "failures": 1,
+                "lastSeconds": 140664,
+                "retryAtSeconds": 140666,
+                "phase": "BACKOFF"
+              },
+              "privateCopyAbsent": true,
+              "sequence": 12161,
+              "instanceId": "1eef65f6e872480ebd5acfa4d361261d"
+            },
+            "state": "READ"
+          },
+          "manifest.json": {
+            "fields": {
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "transportVersion": 1,
+              "version": 1
+            },
+            "state": "READ"
+          },
+          "control.json": {
+            "fields": {
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "mode": "LOCKED",
+              "version": 1
+            },
+            "state": "READ"
+          }
+        },
+        "secondStatus": {
+          "fields": {
+            "sessionId": 0,
+            "version": 1,
+            "failure": "HOST_AGENT_UNAVAILABLE",
+            "brokerReady": false,
+            "agentIdentityVerified": true,
+            "elapsedSeconds": 140664.294,
+            "identityVerified": true,
+            "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+            "transportVersion": 1,
+            "transportEnabled": true,
+            "networkContacted": true,
+            "phase": "BLOCKED",
+            "ordersEnabled": false,
+            "processId": 6692,
+            "signingVerified": true,
+            "observedUtc": "2026-11-16T10:21:04.7748113Z",
+            "transportState": {
+              "ordersEnabled": false,
+              "action": "NONE",
+              "attempts": 32,
+              "reason": "PROXY_UNAVAILABLE",
+              "brokerReady": false,
+              "failures": 1,
+              "lastSeconds": 140664,
+              "retryAtSeconds": 140666,
+              "phase": "BACKOFF"
+            },
+            "privateCopyAbsent": true,
+            "sequence": 12161,
+            "instanceId": "1eef65f6e872480ebd5acfa4d361261d"
+          },
+          "state": "READ"
+        },
+        "localSigningProbe": {
+          "fields": {
+            "version": 1,
+            "runId": "adafbbe28dac485e95cb2ebc75768ccf",
+            "agentChanged": false,
+            "failure": null,
+            "taskStarted": true,
+            "ordersEnabled": false,
+            "elapsedSeconds": 39.464,
+            "lastTaskResult": 0,
+            "status": "SCHEDULED_SIGNING_PASSED_SUPERVISOR_INSTALLATION_PENDING",
+            "cleanupFailure": null,
+            "networkContacted": false,
+            "stage": "COMPLETE",
+            "taskRegistered": true,
+            "keyImported": false,
+            "productionStateUnchanged": true,
+            "worker": {
+              "sessionId": 0,
+              "version": 1,
+              "runId": "adafbbe28dac485e95cb2ebc75768ccf",
+              "nonInteractiveSession": true,
+              "failure": null,
+              "ordersEnabled": false,
+              "agentIdentityVerified": true,
+              "elapsedSeconds": 1.339,
+              "signingChecks": 2,
+              "identityVerified": true,
+              "nativeObservations": [
+                {
+                  "classification": "EXIT_ZERO",
+                  "operation": "LIST_IDENTITIES",
+                  "stdoutCharacters": 85,
+                  "timedOut": false,
+                  "stderrCharacters": 0,
+                  "errorType": null,
+                  "elapsedSeconds": 0.469,
+                  "exitCode": 0,
+                  "limitSeconds": 10
+                },
+                {
+                  "classification": "EXIT_ZERO",
+                  "operation": "SIGN_1",
+                  "stdoutCharacters": 0,
+                  "timedOut": false,
+                  "stderrCharacters": 0,
+                  "errorType": null,
+                  "elapsedSeconds": 0.148,
+                  "exitCode": 0,
+                  "limitSeconds": 10
+                },
+                {
+                  "classification": "EXIT_ZERO",
+                  "operation": "SIGN_2",
+                  "stdoutCharacters": 0,
+                  "timedOut": false,
+                  "stderrCharacters": 0,
+                  "errorType": null,
+                  "elapsedSeconds": 0.101,
+                  "exitCode": 0,
+                  "limitSeconds": 10
+                }
+              ],
+              "networkContacted": false,
+              "stage": "COMPLETE",
+              "processId": 8156,
+              "keyImported": false,
+              "nonAdmin": true,
+              "privateCopyAbsent": true
+            },
+            "taskState": "Ready",
+            "sourceHashes": {
+              "TestPaytmGatewayScheduledSigning.ps1": "DBA1CD184F1EFFDA3AB145C052242E0DF0938FC5A0AA394137A5286A30BD0CBE",
+              "Invoke-LocalGatewaySigning.ps1": "B7BB5904E24C2122ED425E4304EF09E8FC5A89A630464FBDF9975918C3C9A5E2",
+              "PaytmGatewayScheduledProbe.ps1": "5D473A9F234E2AB5D4C8EE80DC57D370DBFB439A1F20379E880EB367778E47E3",
+              "PaytmGatewayAccountRepair.ps1": "2AA61943D64AC10C5EF384C3F4BDEC16EBC75B5C676480CA7F8851EE0688142B",
+              "PaytmGatewayKeyCustody.ps1": "2D0CEDE38E0B3314915FBDB1FEC69E328560F8EFC48DAE86F8BA4F40050FC463",
+              "PaytmGatewayAccount.ps1": "9E64140801D7CC044117206E8411277F9CEA120614EACD5A8E90EE68016D405A"
+            },
+            "taskRemoved": true,
+            "taskDisabled": true
+          },
+          "state": "READ"
+        },
+        "readOnly": true,
+        "task": {
+          "timedOut": false,
+          "elapsedSeconds": 3.3652883,
+          "stderr": "#< CLIXML\r\n<Objs Version=\"1.1.0.1\" xmlns=\"http://schemas.microsoft.com/powershell/2004/04\"><Obj S=\"progress\" RefId=\"0\"><TN RefId=\"0\"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N=\"SourceId\">1</I64><PR N=\"Record\"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj><Obj S=\"progress\" RefId=\"1\"><TNRef RefId=\"0\" /><MS><I64 N=\"SourceId\">2</I64><PR N=\"Record\"><AV>Get-ScheduledTask -TaskName 'Mar",
+          "exitCode": 0,
+          "stdout": "{\"runLevel\":\"Limited\",\"lastRunTime\":\"2026-11-15T00:47:17.0000000+05:30\",\"lastTaskResult\":1,\"logonType\":\"Password\",\"state\":\"Ready\",\"actionCount\":1,\"enabled\":true}\r\n"
+        },
+        "sshAgentService": {
+          "status": "Running",
+          "startType": "Automatic"
+        },
+        "capturedUtc": "2026-11-18T20:59:57.6614125+05:30"
+      },
+      "ordersEnabled": false,
+      "scope": "INTERACTIVE_OPERATOR_READ_ONLY_NOT_HEALTH_ACCOUNT_ACCEPTANCE"
+    },
+    "diagnosticsSha256": "EB4EDD1E1010EE30B5D2F6CE1F69DAECB050317E0643AA04F4835F766B5831A2",
+    "runnerSha256": "14BA08C60CB47EEED0B9B667B825FD7A398C66034FAA20B0D65018C8DDAD2235",
+    "powershell": "7.7.0",
+    "windowsTimeService": "Running",
+    "interactive": true,
+    "sessionId": 3
+  },
+  "review": {
+    "signingAccepted": true,
+    "sourceHashesVerifiedWithWindowsCRLF": true,
+    "workerSigningChecks": 2,
+    "workerSessionId": 0,
+    "productionStateUnchanged": true,
+    "temporaryTaskRemoved": true,
+    "gatewayRecovered": false,
+    "next": "Prepare recovery of current saved HOST_AGENT_UNAVAILABLE instance; do not use historical fixed-receipt recovery scripts",
+    "g3Completed": 4,
+    "g3Total": 5,
+    "readinessCompleted": 14,
+    "readinessTotal": 30
+  }
+}

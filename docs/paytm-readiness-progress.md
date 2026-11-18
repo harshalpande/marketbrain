@@ -1,5 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
+**Gateway signing accepted automatically, 2026-11-18:** [Returned evidence](evidence/automation-signing-accepted-20261118.json) proves two signing checks under the non-admin gateway account in session 0, task exit 0 and removal, production state unchanged. All eight script hashes verified (Windows CRLF where applicable). Automatic result collection passed; no upload needed. Supervisor remains idle with the saved HOST_AGENT_UNAVAILABLE marker. Next: recovery bound to that current instance, followed by transport verification. G3 remains 80%; overall 14/30 (46.7%).
+
+
 **Gateway task state confirmed, 2026-11-18:** [Automatic retry](evidence/automation-task-state-20261118.json) confirms task enabled but idle (`Ready`), last result 1; saved HOST_AGENT_UNAVAILABLE remains. [Local signing step with automatic result collection](maintenance-automation.md#password-dependent-signing-with-automatic-result-return) prepared. Its Windows password stays on the spare laptop; runtime acceptance pending. No gateway reset. G3 remains 4/5 (80%), total 14/30 (46.7%).
 
 
