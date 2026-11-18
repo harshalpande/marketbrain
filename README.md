@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Automation initial acceptance complete, 2026-11-18:** Diagnostic delivery/report return and real spare-laptop popup acknowledgment both passed (2/2 initial tests, 100% of this limited milestone). [Intervention evidence](docs/evidence/automation-intervention-accepted-20261118.json) was retrieved directly by the agent; no manual upload. Existing Paytm catalogue, password/elevation handling, signed-out operation and lifecycle recovery remain pending. Paytm G3 unchanged at 80%; 14/30 overall.
+
 **Automation diagnostic accepted, 2026-11-18:** Actual cross-machine job `0d38eb91-3c98-4e28-923e-b991f1281a13` succeeded and its report returned automatically to the development laptop. Runner source hash verified; Windows session 3, PowerShell 7.7, time service Running, orders disabled. [Evidence](docs/evidence/automation-diagnostic-accepted-20261118.json). Intervention test pending; this does not validate background health-account access or close Paytm G3 (80%; 14/30 overall).
 
 **Automation repair, 2026-11-18:** VPS journal shows relay.py permission denied and no port 18443 listener. Launcher umask 077 filters mkdir(0755) to 0700; installer now explicitly applies code-directory permissions, checks service-account access and verifies real TLS/HTTP readiness. [Existing-installation repair](docs/maintenance-automation.md#repair-permission-denied-on-first-start) preserves pairing, certificate and queue. VPS acceptance pending; Paytm G3 remains 80%, overall 14/30 (46.7%).

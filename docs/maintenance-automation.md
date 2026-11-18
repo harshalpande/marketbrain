@@ -4,7 +4,7 @@ Priority authorized 2026-11-18. Purpose: remove manual script/report transfer be
 
 ## Actual acceptance on 2026-11-18
 
-Diagnostic job `0d38eb91-3c98-4e28-923e-b991f1281a13` passed across the real laptops and VPS; report was read directly from the development laptop. Reviewed runner hash matches, execution 0.065 seconds, approximately 5.59 seconds from queue creation to completion. The interactive user could observe W32Time Running; this does not establish that the separate health account can query synchronization. Intervention remains pending.
+Diagnostic job `0d38eb91-3c98-4e28-923e-b991f1281a13` passed across the real laptops and VPS; report was read directly from the development laptop. Reviewed runner hash matches, execution 0.065 seconds, approximately 5.59 seconds from queue creation to completion. The interactive user could observe W32Time Running; this does not establish that the separate health account can query synchronization. Intervention job `e31fd9a4-e0bc-4e13-bc5b-1182ecbe95f3` subsequently passed: actual user acknowledged the popup, orders remained disabled, and the agent retrieved the report automatically. Both initial acceptance tests are complete (2/2); this is not full maintenance automation completion.
 
 ## Delivered scope and remaining work
 
@@ -76,7 +76,7 @@ Do not rerun initialization. Retry controller diagnostic submission with existin
 
 ## Verification and rollout gates
 
-Local checks cover queue persistence, duplicate requests, lost claim responses, interruption state, immutable results, cancellation, unsupported job rejection, real HTTPS and Windows DPAPI, actual diagnostic worker execution, wrong-certificate rejection, wrong-token rejection and role separation. The Linux systemd installer and actual cross-machine networking require installation acceptance; they are not proven by local fixtures. The intervention popup requires the user acceptance above.
+Local checks cover queue persistence, duplicate requests, lost claim responses, interruption state, immutable results, cancellation, unsupported job rejection, real HTTPS and Windows DPAPI, actual diagnostic worker execution, wrong-certificate rejection, wrong-token rejection and role separation. The Linux systemd installer and actual cross-machine networking require installation acceptance; they are not proven by local fixtures. The actual intervention popup and diagnostic acceptance above passed on 2026-11-18. Linux service recovery and end-to-end availability are established for these runs, not long-term uptime or restart resilience.
 
 Next, after those two jobs pass: adapt the existing Paytm health diagnostic into a fixed catalogue entry with a bounded output schema; introduce explicit local password/elevation handling; then add background signed-out operation, reviewed release updates and lifecycle acceptance. Existing `Read-Host`, clipboard/PuTTY interactions and administrator requirements must be adapted explicitly, not piped blindly into a background process. Automatic analysis and code changes still require an active agent session; queue execution/result collection can operate without one.
 

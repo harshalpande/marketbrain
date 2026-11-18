@@ -1,0 +1,18 @@
+{
+  "id": "e31fd9a4-e0bc-4e13-bc5b-1182ecbe95f3",
+  "kind": "intervention-test",
+  "state": "SUCCEEDED",
+  "created": 1795000623.4641697,
+  "updated": 1795000753.5899103,
+  "result": {
+    "ordersEnabled": false,
+    "elapsedSeconds": 122.2303551,
+    "acknowledged": true
+  },
+  "review": {
+    "scope": "Actual user popup acknowledgment and automatic return to development laptop",
+    "initialAcceptancePassed": 2,
+    "initialAcceptanceTotal": 2,
+    "fullMaintenanceAutomationComplete": false
+  }
+}
