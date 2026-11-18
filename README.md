@@ -1,5 +1,7 @@
 # MarketBrain
 
+**Delayed automation result, 2026-11-18:** [Existing queued job completed](docs/evidence/automation-delayed-old-helper-20261118.json) after network disruption; it was not cancelled. Returned helper is the previous F170 version, so supervisor inspection is still missing. At capture, gateway TCP failed and Windows reported stale time data (sync error 2). Runner updater now requires process/nonce/source-hash startup proof; transport status clears after reconnection. Runtime update acceptance pending; G3 80%, 14/30 overall.
+
 **Gateway supervisor inspection prepared, 2026-11-18:** [Read-only diagnostic extension](docs/maintenance-automation.md#resume-paytm-readiness-diagnostics) captures six fixed control/status/failure snapshots, named task result, SSH-agent state and second heartbeat. Secret/unknown fields excluded; no restart, latch reset or route rearm. Local helper update required; automatic result return already accepted. Actual supervisor cause remains pending. G3 unchanged at 80%, 14/30 overall.
 
 **Paytm automated observation, 2026-11-18:** [Remote report](docs/evidence/automation-paytm-observation-20261118.json) returned automatically; runner/helper hashes match reviewed source. Elevated operator W32Time queries passed. Loopback TCP 18889 failed; 2s proxy probe timed out and 8s probe failed to connect. Gateway supervisor cause is not yet established; inspect before restarting/resetting. Dedicated health-account time access remains unresolved. Collection succeeded, not Paytm readiness: G3 80%, 14/30 overall.

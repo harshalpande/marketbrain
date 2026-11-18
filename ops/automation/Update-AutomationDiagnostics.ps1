@@ -7,18 +7,28 @@ if (-not (Test-Path -LiteralPath $installed)) { throw 'Existing runner not found
 if (Test-Path -LiteralPath (Join-Path $root 'pending.json')) { throw 'Runner has pending work. Preserve it and finish that job before updating.' }
 $oldHash=(Get-FileHash -LiteralPath $installed).Hash
 $newHash=(Get-FileHash -LiteralPath $source).Hash
-if ($oldHash -ne 'C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783' -and $oldHash -ne $newHash) { throw 'Installed runner differs from reviewed baseline. Stop for review.' }
+if ($oldHash -notin @('C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783','DCF48A29C29D2CFC2849B0226FBB8A1ABB72F3AA505FEB0A291AAB4F12F4A662',$newHash)) { throw 'Installed runner differs from reviewed baseline. Stop for review.' }
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent().Name
-$targets=@(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains('"'+$installed+'"') })
+$pattern='(?i)(?:^|\s)-File\s+(?:"'+[regex]::Escape($installed)+'"|'+[regex]::Escape($installed)+')(?:\s|$)'
+$targets=@(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine -match $pattern })
 foreach($target in $targets) {
     $owner=Invoke-CimMethod -InputObject $target -MethodName GetOwner
     if ($owner.ReturnValue -ne 0 -or ($owner.Domain+'\'+$owner.User) -ine $identity) { throw 'Runner process owner mismatch' }
 }
 if ($targets.Count -gt 1) { throw 'Multiple matching runner processes found; inspect before updating.' }
 foreach($target in $targets) {
+    $current=Get-CimInstance Win32_Process -Filter "ProcessId=$($target.ProcessId)"
+    if (-not $current -or $current.CreationDate -ne $target.CreationDate -or $current.CommandLine -notmatch $pattern) { throw 'Runner process identity changed; stop for review.' }
     Stop-Process -Id $target.ProcessId -ErrorAction Stop
     Wait-Process -Id $target.ProcessId -Timeout 10 -ErrorAction SilentlyContinue
 }
+# If command-line inspection missed a worker (for example due to elevation),
+# refuse to replace files while it still owns the shared process mutex.
+$mutex=[Threading.Mutex]::new($false,'Global\MarketBrainAutomationWorker')
+$held=$false
+try {
+    try { $held=$mutex.WaitOne(0) } catch [Threading.AbandonedMutexException] { $held=$true }
+    if (-not $held) { throw 'Existing runner is still active. Run this updater with the same Windows account and elevation as that runner.' }
 # Preserve pending state if a claim raced with the stop. New worker marks it
 # interrupted, rather than repeating the job. No credentials or state reset.
 $backup=Join-Path $root ('runner-backup-'+[guid]::NewGuid().ToString('N'))
@@ -32,8 +42,24 @@ foreach($name in @('Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination ($destination+'.new')
     [IO.File]::Move(($destination+'.new'),$destination,$true)
 }
+} finally { if($held){$mutex.ReleaseMutex()}; $mutex.Dispose() }
 $exe=(Get-Process -Id $PID).Path
-Start-Process -FilePath $exe -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-File',('"'+$installed+'"')) -WindowStyle Hidden
-Write-Host 'Read-only Paytm diagnostics installed; runner restarted. Pairing and reports preserved.'
+$nonce=[guid]::NewGuid().ToString('N')
+$expectedHelper=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash
+$process=Start-Process -FilePath $exe -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-File',('"'+$installed+'"'),'-StartupNonce',$nonce) -WindowStyle Hidden -PassThru
+$watch=[Diagnostics.Stopwatch]::StartNew()
+$verified=$false
+do {
+    $process.Refresh()
+    if ($process.HasExited) { throw "Replacement runner exited with code $($process.ExitCode). Installation preserved; no success claimed." }
+    $statusPath=Join-Path $root 'worker-status.json'
+    if (Test-Path -LiteralPath $statusPath) {
+        $status=Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json
+        if ($status.startupNonce -ceq $nonce -and $status.processId -eq $process.Id -and $status.runnerSha256 -ceq $newHash -and $status.diagnosticsSha256 -ceq $expectedHelper) { $verified=$true;break }
+    }
+    Start-Sleep -Milliseconds 500
+} while ($watch.Elapsed.TotalSeconds -lt 30)
+if (-not $verified) { throw 'New runner startup was not confirmed. Preserve worker-status.json and connection-status.json; do not pair again.' }
+Write-Host 'RUNNER_UPDATE_VERIFIED: replacement process loaded the expected runner and diagnostic helper. Pairing and reports preserved.'
 Write-Host "Runner SHA256: $newHash"
 Write-Host 'Tell the development agent the update completed. No manual Paytm test or file transfer is needed.'

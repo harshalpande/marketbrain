@@ -14,6 +14,7 @@ $controller=Get-AutomationConfig (Join-Path $root 'controller.dpapi')
 $id=[guid]::NewGuid().ToString()
 $null=Invoke-AutomationApi $controller '/submit' @{id=$id;kind='diagnostic'}
 & (Join-Path $PSScriptRoot 'Start-AutomationWorker.ps1') -Once
+if ((Get-Content (Join-Path $root 'connection-status.json') -Raw | ConvertFrom-Json).status -ne 'CONNECTED') { throw 'Recovered connection not recorded' }
 $job=(Invoke-AutomationApi $controller '/result' @{id=$id}).job
 if ($job.state -ne 'SUCCEEDED' -or $job.result.ordersEnabled -ne $false) { throw 'Real Windows worker failed' }
 if (-not (Test-Path (Join-Path $root "reports\$id.json"))) { throw 'Local report missing' }
@@ -36,4 +37,32 @@ if (-not $rejected) { throw 'Wrong token accepted' }
 $rejected=$false
 try { $null=Invoke-AutomationApi $worker '/submit' @{id=[guid]::NewGuid().ToString();kind='diagnostic'} } catch { $rejected=$true }
 if (-not $rejected) { throw 'Worker could submit jobs' }
+if (Test-Path -LiteralPath (Join-Path $root 'pending.json')) { throw 'Unexpected pending fixture work' }
+$installedDirectory=Join-Path $root 'runner'
+New-Item -ItemType Directory -Path $installedDirectory -Force | Out-Null
+foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $installedDirectory }
+$installedWorker=Join-Path $installedDirectory 'Start-AutomationWorker.ps1'
+$exe=(Get-Process -Id $PID).Path
+$oldProcess=$null
+try {
+    # Unquoted -File path when no spaces: the old substring matcher missed it.
+    $oldProcess=Start-Process -FilePath $exe -ArgumentList @('-NoProfile','-File',$installedWorker) -WindowStyle Hidden -PassThru
+    $ready=$false
+    for($attempt=0;$attempt -lt 40;$attempt++) {
+        $statusPath=Join-Path $root 'worker-status.json'
+        if(Test-Path $statusPath) { $s=Get-Content $statusPath -Raw|ConvertFrom-Json; if($s.processId -eq $oldProcess.Id){$ready=$true;break} }
+        Start-Sleep -Milliseconds 250
+    }
+    if(-not $ready){throw 'Fixture worker did not start'}
+    & (Join-Path $PSScriptRoot 'Update-AutomationDiagnostics.ps1')
+    $s=Get-Content $statusPath -Raw|ConvertFrom-Json
+    if($s.processId -eq $oldProcess.Id -or $s.startupNonce -notmatch '^[a-f0-9]{32}$'){throw 'Updater did not confirm a replacement'}
+    $oldProcess.Refresh()
+    if(-not $oldProcess.HasExited){throw 'Old worker survived replacement'}
+    if($s.diagnosticsSha256 -ne (Get-FileHash (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash){throw 'Wrong helper loaded'}
+} finally {
+    # Only processes whose exact fixture path is present; no broad process kill.
+    Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($installedWorker) } | ForEach-Object { Stop-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; Wait-Process -Id $_.ProcessId -Timeout 5 -ErrorAction SilentlyContinue }
+}
+Write-Host 'PASS: real runner replacement, unquoted command-line discovery, nonce/PID/hash startup acknowledgment and original process exit.'
 Write-Host 'PASS: real TLS, DPAPI pairing, HTTP authentication, worker execution, report return, restart interruption, wrong certificate, wrong token and role isolation.'

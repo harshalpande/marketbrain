@@ -1,8 +1,10 @@
 #requires -Version 7.2
 [CmdletBinding()]
-param([switch]$Once)
+param([switch]$Once,[ValidatePattern('^$|^[a-f0-9]{32}$')][string]$StartupNonce='')
 . (Join-Path $PSScriptRoot 'Automation.Common.ps1')
 . (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')
+$loadedRunnerHash=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
+$loadedDiagnosticsHash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash
 $root = Join-Path $env:LOCALAPPDATA 'MarketBrainAutomation'
 $config = Get-AutomationConfig (Join-Path $root 'worker.dpapi')
 if ($config.role -ne 'worker') { throw 'Worker pairing required' }
@@ -12,6 +14,7 @@ $pending = Join-Path $root 'pending.json'
 $history = Join-Path $root 'reports'
 New-Item -ItemType Directory -Path $history -Force | Out-Null
 try {
+    Write-AutomationState (Join-Path $root 'worker-status.json') @{state='STARTED';processId=$PID;startupNonce=$StartupNonce;runnerSha256=$loadedRunnerHash;diagnosticsSha256=$loadedDiagnosticsHash;observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
     do {
         try {
             # Persist before execution; an interrupted job is reported, never replayed.
@@ -27,6 +30,7 @@ try {
                 Remove-Item -LiteralPath $pending
             }
             $job = (Invoke-AutomationApi $config '/claim' @{}).job
+            Write-AutomationState (Join-Path $root 'connection-status.json') @{observedUtc=[DateTimeOffset]::UtcNow.ToString('o');status='CONNECTED'}
             if ($null -ne $job) {
                 $update = @{ id=$job.id; state='RUNNING'; result=$null }
                 Write-AutomationState $pending $update
@@ -44,8 +48,8 @@ try {
                                 windowsTimeService=$time.Status.ToString()
                                 interactive=[Environment]::UserInteractive
                                 sessionId=(Get-Process -Id $PID).SessionId
-                                runnerSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
-                                diagnosticsSha256=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash
+                                runnerSha256=$loadedRunnerHash
+                                diagnosticsSha256=$loadedDiagnosticsHash
                                 ordersEnabled=$false
                                 paytmObservation=(Get-AutomationPaytmObservation)
                             }
