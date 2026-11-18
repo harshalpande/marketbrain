@@ -53,6 +53,14 @@ The first report should return automatically. For the second, click OK in the Ma
 
 ## Recovery, controls and retention
 
+### Repair permission denied on first start
+
+2026-11-18 VPS journal establishes repeated `can't open file '/opt/marketbrain-automation/relay.py': [Errno 13] Permission denied`, with no 18443 listener. The launcher sets umask 077; the original installer requested directory mode 0755 but did not chmod it afterwards, leaving 0700. This is an installer defect, not a pairing failure. The original transient systemctl active check also failed to establish real readiness.
+
+After pulling the corrected repository, run `ops/automation/Copy-RelayPermissionRepair.ps1` from PowerShell 7. In verified administrator PuTTY run `sudo -v`, then paste the copied command. It verifies root-owned, non-symlink program paths and the service identity, stops only the automation service, sets the public code directory to 0755 and program to 0644, checks read-but-not-write access under the actual relay account, restarts and probes TLS plus unauthenticated HTTP denial. It does not change secret-state permissions, tokens, certificates, database, SSH, firewall or Paytm gateway. Expected markers: `SERVICE_CODE_READ_OK_NOT_WRITABLE`, `RELAY_TLS_READY_AUTHENTICATION_REQUIRED`, `REPAIR_COMPLETE`.
+
+Do not rerun initialization. Retry controller diagnostic submission with existing ID `0d38eb91-3c98-4e28-923e-b991f1281a13` once readiness passes. An office-proxy restriction may remain independently; if so, test from the spare laptop before modifying network settings. The repair is prepared locally; actual Linux service recovery needs the VPS output. Local WSL execution was unavailable (logon-type restriction); no Linux execution is claimed.
+
 - Connection failure: runner retains `pending.json` locally and retries delivery. Terminal results are immutable and re-upload is idempotent. Failed jobs are not rerun automatically.
 - Runner interruption: a saved running job becomes `INTERRUPTED` on restart; it is never silently repeated. Repeated claims return the same active ID, so a lost claim response does not strand the queue.
 - Controller disconnect: `last-request.json` contains the ID before submission. Resume with `Send-AutomationJob.ps1 -ReadOnly -JobId '<saved-id>'`; if submission never reached the relay, resubmit using the **same ID and kind**.
