@@ -99,3 +99,7 @@ Next, after those two jobs pass: adapt the existing Paytm health diagnostic into
 ## Latest Paytm evidence, kept separate
 
 Report `paytm-health-scheduled-3f20293aade542e7985c9055f2c2a79a.json` proves all three background collector rounds received W32Time access-denied `0x80070005`, and curl exit 28 after approximately two seconds. SSH signing, VPS clock and application token authentication passed; final health revoked, application locked, failed temporary task disabled. The timeout's underlying network cause is not yet established. Do not change clock thresholds or grant administrator privileges based solely on this evidence. G3 remains **4/5 (80%)**; Paytm readiness **14/30 (46.7%)**. Automation implementation does not close a Paytm checkpoint.
+
+## First automated Paytm observation
+
+Job `c4a87628-9559-4070-9d41-79d535a16b2f` returned automatically on 2026-11-18, in 10.866 seconds execution. Runner/helper hashes verified. This runner was elevated (`elevated: true`); W32Time status/source queries passed with sync age 1753 seconds. These results cannot establish permission under the dedicated health identity. Local TCP 18889 was unreachable; curl returned exit 28 with the 2-second limit and exit 7 (failed connection) with the 8-second limit. Listener inspection reported CimJobException, so do not claim a confirmed empty listener table. No successful TCP or proxy CONNECT/TLS stage occurred. Next inspect the supervisor task/status and existing failure latch before any restart. No automatic route rearm, permission change or health acceptance.

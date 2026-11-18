@@ -1,0 +1,70 @@
+{
+  "id": "c4a87628-9559-4070-9d41-79d535a16b2f",
+  "kind": "diagnostic",
+  "state": "SUCCEEDED",
+  "created": 1795001495.8487518,
+  "updated": 1795001518.186532,
+  "result": {
+    "ordersEnabled": false,
+    "powershell": "7.7.0",
+    "runnerSha256": "DCF48A29C29D2CFC2849B0226FBB8A1ABB72F3AA505FEB0A291AAB4F12F4A662",
+    "windowsTimeService": "Running",
+    "paytmObservation": {
+      "ordersEnabled": false,
+      "loopbackTcpConnected": false,
+      "windowsSource": {
+        "elapsedSeconds": 0.0599614,
+        "stdout": "time.windows.com,0x8 \n",
+        "stderr": "",
+        "timedOut": false,
+        "exitCode": 0
+      },
+      "scope": "INTERACTIVE_OPERATOR_READ_ONLY_NOT_HEALTH_ACCOUNT_ACCEPTANCE",
+      "windowsStatus": {
+        "elapsedSeconds": 0.2650598,
+        "stdout": "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.0643872s\nRoot Dispersion: 3.9572633s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/18/2026 4:32:33 PM\nSource: time.windows.com,0x8 \nPoll Interval: 12 (4096s)\n\nPhase Offset: 0.0272222s\nClockRate: 0.0156250s\nState Machine: 2 (Sync)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 0 (The command completed successfully.)\nTime since Last Good Sync Time: 1753.3009445s\n\n",
+        "stderr": "",
+        "timedOut": false,
+        "exitCode": 0
+      },
+      "proxyObservations": [
+        {
+          "connectTimeoutSeconds": 2,
+          "observation": {
+            "elapsedSeconds": 2.1849133,
+            "stdout": "000|000||0.000000|0.000000|2.001238",
+            "stderr": "curl: (28) Connection timed out after 2001 milliseconds\r\n",
+            "timedOut": false,
+            "exitCode": 28
+          }
+        },
+        {
+          "connectTimeoutSeconds": 8,
+          "observation": {
+            "elapsedSeconds": 2.1836672,
+            "stdout": "000|000||0.000000|0.000000|2.051234",
+            "stderr": "curl: (7) Failed to connect to 127.0.0.1 port 18889 after 2027 ms: Could not connect to server\r\n",
+            "timedOut": false,
+            "exitCode": 7
+          }
+        }
+      ],
+      "elevated": true,
+      "listenerInspectionError": "CimJobException",
+      "permissionChanges": false
+    },
+    "elapsedSeconds": 10.8662486,
+    "diagnosticsSha256": "F17000E18B47A08EEC5DA4E55D342097C0CFC712BE42E7B7461FB08E36C4C93E",
+    "observedUtc": "2026-11-18T17:01:46.6542308+05:30",
+    "sessionId": 3,
+    "interactive": true
+  },
+  "review": {
+    "sourceHashesVerified": true,
+    "collectionSucceeded": true,
+    "paytmReadinessPassed": false,
+    "gatewayFinding": "Loopback TCP 18889 unavailable in this run; exact supervisor cause unknown",
+    "clockFinding": "Elevated operator query passed; health-account permission blocker remains",
+    "next": "Inspect gateway supervisor/task/status without reset or automatic rearm"
+  }
+}

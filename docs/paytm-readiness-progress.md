@@ -1,5 +1,7 @@
 # Paytm readiness: evidence-based group percentages
 
+**Paytm automated observation, 2026-11-18:** [Remote report](evidence/automation-paytm-observation-20261118.json) returned automatically; runner/helper hashes match reviewed source. Elevated operator W32Time queries passed. Loopback TCP 18889 failed; 2s proxy probe timed out and 8s probe failed to connect. Gateway supervisor cause is not yet established; inspect before restarting/resetting. Dedicated health-account time access remains unresolved. Collection succeeded, not Paytm readiness: G3 80%, 14/30 overall.
+
 **Paytm diagnostics resume, 2026-11-18:** [Runner update](maintenance-automation.md#resume-paytm-readiness-diagnostics) prepared to return bounded Windows time-query evidence, local gateway listener/TCP state and 2s/8s proxy timing comparisons automatically. Read-only operator context, no credentials/elevation/threshold changes; it does not establish health-account readiness. One spare runner update required; no VPS change or re-pairing. Runtime diagnostic acceptance pending; G3 80%, 14/30 overall.
 
 **Automation initial acceptance complete, 2026-11-18:** Diagnostic delivery/report return and real spare-laptop popup acknowledgment both passed (2/2 initial tests, 100% of this limited milestone). [Intervention evidence](evidence/automation-intervention-accepted-20261118.json) was retrieved directly by the agent; no manual upload. Existing Paytm catalogue, password/elevation handling, signed-out operation and lifecycle recovery remain pending. Paytm G3 unchanged at 80%; 14/30 overall.
