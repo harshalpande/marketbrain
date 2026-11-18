@@ -8,6 +8,22 @@ Diagnostic job `0d38eb91-3c98-4e28-923e-b991f1281a13` passed across the real lap
 
 ## Delivered scope and remaining work
 
+### Resume Paytm readiness diagnostics
+
+The next runner version extends the existing `diagnostic` job with fixed read-only observations: operator elevation flag, W32Time status/source command exit codes and bounded output, loopback 18889 listener/TCP state, and two verified HEAD probes through that proxy to the fixed Paytm developer root. Probe connect timeouts of two and eight seconds are a diagnostic comparison; production health thresholds remain unchanged. The result includes runner and helper source hashes. A successful collection means evidence was captured, not that Paytm readiness passed. HTTP 503 is transport evidence only.
+
+This runs under the signed-in operator, **not** the dedicated health account. Its findings must be compared with the established health-account access denial; they cannot close that gate. No broker credentials, login, quote fetch, orders, policy changes or administrative permissions are requested. The two bounded network probes are the only provider contact added.
+
+On the spare laptop in PowerShell 7, fast-forward the clean main checkout, then run:
+
+```powershell
+& .\ops\automation\Update-AutomationDiagnostics.ps1
+```
+
+The update validates the old runner hash, refuses pending work, stops only the identified same-user installed runner, preserves a backup and pairing, installs the diagnostic helper and new runner, and starts it again. Any claim racing with the stop remains preserved and is marked interrupted rather than repeated. No VPS change. Tell the agent when the update completes; it can submit `Send-AutomationJob.ps1 -Kind diagnostic` from the development laptop and read the returned report directly.
+
+The existing administrator-only scheduled health test still requires a local password. It is not launched by this job. We will use the new evidence to choose the narrow correction before adapting that privileged test; blindly rerunning the known failing collector would not resolve the cause.
+
 This first release supports two fixed jobs: `diagnostic` (Windows time-service status and runner identity; read-only) and `intervention-test` (local confirmation popup with a five-minute timeout). It does not yet execute the existing Paytm installer catalogue, accept arbitrary PowerShell, update itself, collect passwords, run elevated jobs, or run while the Windows user is signed out. Do not describe this as full maintenance automation acceptance.
 
 The Windows runner starts at sign-in, continues while the user is signed in, and polls every ten seconds. An HTTPS relay on the existing VPS holds jobs and results. Both laptops connect outbound. No incoming laptop port, router change, SMTP, or trading-application endpoint is required. The controller is callable from the agent's workspace after pairing, so the user need not submit later supported jobs manually.

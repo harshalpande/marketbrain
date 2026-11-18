@@ -2,6 +2,7 @@
 [CmdletBinding()]
 param([switch]$Once)
 . (Join-Path $PSScriptRoot 'Automation.Common.ps1')
+. (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')
 $root = Join-Path $env:LOCALAPPDATA 'MarketBrainAutomation'
 $config = Get-AutomationConfig (Join-Path $root 'worker.dpapi')
 if ($config.role -ne 'worker') { throw 'Worker pairing required' }
@@ -35,7 +36,7 @@ try {
                     switch ($job.kind) {
                         'diagnostic' {
                             # Fixed, read-only, bounded catalogue. No credentials,
-                            # arbitrary commands, application changes or broker calls.
+                            # arbitrary commands, application changes or order calls.
                             $time = Get-Service -Name W32Time
                             $report = @{
                                 observedUtc=[DateTimeOffset]::UtcNow.ToString('o')
@@ -44,7 +45,9 @@ try {
                                 interactive=[Environment]::UserInteractive
                                 sessionId=(Get-Process -Id $PID).SessionId
                                 runnerSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
+                                diagnosticsSha256=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash
                                 ordersEnabled=$false
+                                paytmObservation=(Get-AutomationPaytmObservation)
                             }
                         }
                         'intervention-test' {
