@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='')
+[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='',[string]$CollectorDeploymentReport='')
 $ErrorActionPreference='Stop'
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmHealthAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthBatchLogon.ps1')){. (Join-Path $PSScriptRoot $n)}
 . (Join-Path $PSScriptRoot 'PaytmHealthScheduledToken.ps1')
@@ -14,8 +14,13 @@ try{
  Import-Module ScheduledTasks -ErrorAction Stop
  Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction Stop
  $null=Assert-HealthScheduledPrerequisites $CustodyReportPath
+ if($CollectorDeploymentReport){
+  if(-not $TokenReportPath -or (Get-FileHash -LiteralPath $CollectorDeploymentReport).Hash -cne '97822DC022A95034613F3C0F3BFF06F6705B3054FEE7FC51CBE5CF79404B7F69'){throw 'SCHEDULE_COLLECTOR_DEPLOYMENT_RECEIPT'}
+  $r['collectorMode']=$true
+  foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmHealthCollectorCore.ps1')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
+ }
  if($TokenReportPath){Assert-HealthScheduledTokenPrerequisites $TokenReportPath;$r['tokenMode']=$true}
- $preparedSource=New-HealthScheduledWorkerSource $run -WithToken:([bool]$TokenReportPath)
+ $preparedSource=New-HealthScheduledWorkerSource $run -WithToken:([bool]$TokenReportPath) -WithCollector:([bool]$CollectorDeploymentReport)
  $r.sourceHashes['PaytmHealthScheduledToken.ps1']=(Get-FileHash -LiteralPath "$PSScriptRoot/PaytmHealthScheduledToken.ps1").Hash
  foreach($n in @('TestPaytmHealthScheduledAccess.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthScheduledWorker.ps1','PaytmHealthBatchLogon.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthAccount.ps1','PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmGatewayKeyCustody.ps1','paytm-vps-host-rsa.pub')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
  $pins=ConvertFrom-PaytmHostPublicKey ([IO.File]::ReadAllText("$PSScriptRoot/paytm-vps-host-rsa.pub").Trim())
@@ -25,7 +30,8 @@ try{
  $r.policyBefore=Get-HealthBatchPolicy;Assert-HealthBatchPolicy $r.policyBefore $r;Save-HealthScheduled
  if($TokenReportPath -and (Get-HealthScheduledKeyContract).accountSid -cnotin @($r.policyBefore.allow)){throw 'SCHEDULE_TOKEN_BATCH_RIGHT_CHANGED'}
  Write-Host 'One temporary background task will sign twice and read the pinned VPS clock. If needed, only marketbrain-health receives Log on as a batch job. No deny policy is removed. The allow right remains for the future collector.'
- if($TokenReportPath){Write-Host 'Also decrypt the existing health token in session 0 and authenticate locally with an unhealthy/locked submission. No token import or healthy publication.'}
+ if($TokenReportPath -and -not $CollectorDeploymentReport){Write-Host 'Also decrypt the existing health token in session 0 and authenticate locally with an unhealthy/locked submission. No token import or healthy publication.'}
+ if($CollectorDeploymentReport){Write-Host 'Collector mode: three LIVE Windows/VPS/Java/proxy checks; publish diagnostic health only when valid, then revoke health. No route arm or orders.'}
  $password=Read-Host 'Existing WINDOWS marketbrain-health account password (no SSH passphrase needed)' -AsSecureString
  Health-Step 'VALIDATE_EXACT_ACCOUNT_PASSWORD_AND_SIGNING' 20
  $i=New-PaytmAccountProbeStartInfo $password 'marketbrain-health';$diag=@{}
@@ -58,9 +64,13 @@ try{
  Wait-HealthProbeTask $run $r {Save-HealthScheduled}
  Assert-HealthScheduledWorker $r.worker $run
  if($TokenReportPath){Assert-HealthScheduledTokenResult $r.worker}
+ if($CollectorDeploymentReport){
+  if($r.worker.finalHealthRevoked -ne $true -or @($r.worker.collectorRounds).Count -ne 3 -or @($r.worker.collectorRounds|Where-Object {$_.accepted -ne $true -or $_.healthySubmitted -ne $true}).Count){throw 'SCHEDULE_COLLECTOR_PROOF_MISSING'}
+ }
  if($r.lastTaskResult -ne 0){throw 'SCHEDULE_TASK_NONZERO_RESULT'}
  $r.status='HEALTH_SCHEDULED_SIGNING_AND_CLOCK_PASSED_COLLECTOR_PENDING';$r.stage='COMPLETE'
  if($TokenReportPath){$r.status='HEALTH_SCHEDULED_CLOCK_AND_TOKEN_PASSED_COLLECTOR_PENDING'}
+ if($CollectorDeploymentReport){$r.status='HEALTH_COLLECTOR_THREE_ROUNDS_PASSED_REVOKED_LIFECYCLE_PENDING'}
 }catch{
  $r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY|HEALTH_KEY|HEALTH_ACCOUNT)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_SETUP_FAILED'}
  $e=$_.Exception.GetBaseException();$r.failureDetails=@{type=$e.GetType().Name;hresult=$e.HResult;line=$_.InvocationInfo.ScriptLineNumber}

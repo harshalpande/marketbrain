@@ -1,0 +1,37 @@
+{
+  "evidenceId": "E292",
+  "reviewedDate": "2026-11-18",
+  "sourceReceipt": "paytm-health-activation-a3419285c4d94d4dbbe1d30370cbe944.json",
+  "sourceSha256": "97822DC022A95034613F3C0F3BFF06F6705B3054FEE7FC51CBE5CF79404B7F69",
+  "sourceRevision": "2a60978addc70efb9b325754f8ac43bfbeb8ccf3",
+  "sourceHashesVerified": 8,
+  "status": "HEALTH_CLOCK_DEPLOYED_LOCKED_COLLECTOR_PENDING",
+  "elapsedSeconds": 210.8244807,
+  "boundaryVerified": true,
+  "restartVerified": true,
+  "accountPreserved": true,
+  "writerLocked": true,
+  "finalRouteLocked": true,
+  "clockBeforeRestart": {
+    "contractVerified": true,
+    "bootId": "c07d6aab-cab8-42cb-babb-bf46349f36c5",
+    "observedEpochMillis": 1794984793631,
+    "challengePreserved": true,
+    "readTokenRejected": true,
+    "bodyRejected": true,
+    "ordersEnabled": false
+  },
+  "clockAfterRestart": {
+    "contractVerified": true,
+    "bootId": "c8ffc9f4-5696-4f92-8833-d84a8ce97e4d",
+    "observedEpochMillis": 1794984816805,
+    "challengePreserved": true,
+    "readTokenRejected": true,
+    "bodyRejected": true,
+    "ordersEnabled": false
+  },
+  "existingHealthTokenPreserved": true,
+  "unattendedPublisherInstalled": false,
+  "ordersEnabled": false,
+  "remaining": "Three-round scheduled collector integration, durable installation and unattended lifecycle acceptance. G3 remains 80%."
+}

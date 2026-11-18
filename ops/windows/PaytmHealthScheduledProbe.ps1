@@ -31,10 +31,28 @@ function Assert-HealthScheduledPrerequisites([string]$ReceiptPath) {
     if((Get-Item -LiteralPath $pub).Length -gt 1024 -or [IO.File]::ReadAllText($pub).Trim() -cne ('ssh-ed25519 '+$k.publicBlob)){throw 'SCHEDULE_PUBLIC_IDENTITY_DRIFT'}
     [pscustomobject]@{sid=$saved.sid;custodyRun=$state.runId;fingerprint=$state.fingerprint}
 }
-function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken) {
+function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken,[switch]$WithCollector) {
  $c=Get-HealthScheduledProbeContract $RunId
  $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmHealthScheduledWorker.ps1'))
  $tokenCode=if($WithToken){Get-HealthScheduledTokenSource}else{''}
+ if($WithCollector){
+  if(-not $WithToken){throw 'SCHEDULE_COLLECTOR_TOKEN_REQUIRED'}
+  foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmHealthCollectorCore.ps1')){$tokenCode+="`r`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot $n))}
+  $tokenCode+=@'
+
+ $r.stage='COLLECTOR';$r['collectorRounds']=@();$r['finalHealthRevoked']=$false;$r.applicationLocked=$false;$token=$null
+ try{
+  $token=Unprotect-HealthToken ([IO.File]::ReadAllBytes($tokenRoot+'\health-token.dpapi'))
+  try{
+   foreach($iteration in 1..3){$r.collectorRounds+=,(Invoke-CollectorCycle $token $a $r.applicationBootId);if($iteration -lt 3){Start-Sleep -Seconds 1}}
+  }finally{
+   $revocation=Invoke-CollectorCycle $token $a $r.applicationBootId -Revoke
+   $r.finalHealthRevoked=$revocation.revoked;$r.applicationLocked=$revocation.revoked
+  }
+  if(-not $r.finalHealthRevoked -or $r.collectorRounds.Count -ne 3 -or @($r.collectorRounds|Where-Object {-not $_.accepted}).Count){throw 'SCHEDULE_COLLECTOR_NOT_ACCEPTED'}
+ }finally{$token=$null}
+'@
+ }
  $source.Replace('__RUN__',$RunId).Replace('__RESULT__',$c.result).Replace('__KNOWN__',((Join-Path $c.directory 'known_hosts').Replace('\','/'))).Replace('__TOKEN_CHECK__',$tokenCode)
 }
 function Get-HealthScheduledArguments([string]$RunId) {

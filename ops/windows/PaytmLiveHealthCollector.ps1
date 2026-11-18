@@ -1,11 +1,12 @@
 # Definitions only. No service, clock, gateway or application mutations.
+function Test-PaytmFinite([double]$Value){-not [double]::IsNaN($Value) -and -not [double]::IsInfinity($Value)}
 function Get-PaytmLiveHealthAssessment($Round) {
  if($Round.PSObject.Properties['collectionFailure'] -and $Round.collectionFailure){
   return [pscustomobject]@{collectionPassed=$false;findings=@($Round.collectionFailure);failedPhase=$Round.failedPhase;applicationMinusVpsLowerSeconds=0.0;applicationMinusVpsUpperSeconds=0.0;submitted=$false;absoluteAccuracyProven=$false}
  }
  $reasons=[Collections.Generic.List[string]]::new()
- if(-not [double]::IsFinite($Round.elapsedSeconds) -or $Round.elapsedSeconds -lt 0 -or $Round.elapsedSeconds -ge 8){$reasons.Add('COLLECTION_EXCEEDS_EIGHT_SECOND_BUDGET')}
- if(-not [double]::IsFinite($Round.wallSeconds) -or [math]::Abs($Round.wallSeconds-$Round.elapsedSeconds) -gt 0.1){$reasons.Add('WINDOWS_CLOCK_MOVEMENT')}
+ if(-not (Test-PaytmFinite $Round.elapsedSeconds) -or $Round.elapsedSeconds -lt 0 -or $Round.elapsedSeconds -ge 8){$reasons.Add('COLLECTION_EXCEEDS_EIGHT_SECOND_BUDGET')}
+ if(-not (Test-PaytmFinite $Round.wallSeconds) -or [math]::Abs($Round.wallSeconds-$Round.elapsedSeconds) -gt 0.1){$reasons.Add('WINDOWS_CLOCK_MOVEMENT')}
  if($Round.service.state -cne 'Running' -or $Round.service.startType -ne 2){$reasons.Add('WINDOWS_TIME_SERVICE')}
  if(-not $Round.sync.synchronizedReported){$reasons.Add('WINDOWS_SYNC_UNCONFIRMED')}
  $age=[regex]::Match($Round.windowsStatus.output,'(?im)^Time since Last Good Sync Time:\s*([0-9]+(?:\.[0-9]+)?)s\s*$')
@@ -15,11 +16,11 @@ function Get-PaytmLiveHealthAssessment($Round) {
   $ageSeconds=[double]::Parse($age.Groups[1].Value,[Globalization.CultureInfo]::InvariantCulture)
   $pollSeconds=[double]::Parse($poll.Groups[2].Value,[Globalization.CultureInfo]::InvariantCulture)
   $limit=[math]::Min(3600,2*$pollSeconds+60)
-  if(-not [double]::IsFinite($ageSeconds) -or $pollSeconds -lt 1 -or $ageSeconds -gt $limit){$reasons.Add('WINDOWS_LAST_SYNC_TOO_OLD')}
+  if(-not (Test-PaytmFinite $ageSeconds) -or $pollSeconds -lt 1 -or $ageSeconds -gt $limit){$reasons.Add('WINDOWS_LAST_SYNC_TOO_OLD')}
  }else{$reasons.Add('WINDOWS_SYNC_AGE_UNKNOWN')}
  if($Round.vps.ntp -cne 'yes'){$reasons.Add('VPS_NTP_UNCONFIRMED')}
  foreach($b in @($Round.vps.bounds,$Round.application.bounds)){
-  if(-not $b.usable -or -not [double]::IsFinite($b.lowerOffsetSeconds) -or -not [double]::IsFinite($b.upperOffsetSeconds) -or $b.lowerOffsetSeconds -gt $b.upperOffsetSeconds -or $b.lowerOffsetSeconds -lt -5 -or $b.upperOffsetSeconds -gt 5){$reasons.Add('CLOCK_BOUNDS_OUTSIDE_SCREEN')}
+  if(-not $b.usable -or -not (Test-PaytmFinite $b.lowerOffsetSeconds) -or -not (Test-PaytmFinite $b.upperOffsetSeconds) -or $b.lowerOffsetSeconds -gt $b.upperOffsetSeconds -or $b.lowerOffsetSeconds -lt -5 -or $b.upperOffsetSeconds -gt 5){$reasons.Add('CLOCK_BOUNDS_OUTSIDE_SCREEN')}
  }
  $lower=$Round.application.bounds.lowerOffsetSeconds-$Round.vps.bounds.upperOffsetSeconds
  $upper=$Round.application.bounds.upperOffsetSeconds-$Round.vps.bounds.lowerOffsetSeconds

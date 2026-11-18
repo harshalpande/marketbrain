@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1060" viewBox="0 0 1200 1060" role="img" aria-labelledby="title desc">
 
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">E291: combined scheduled clock and token access accepted. Restricted Java clock endpoint deployment next, preserving token custody. Collector and unattended lifecycle pending. G3 80 percent; broker login, quotes and Telegram review pending; live execution disconnected.</desc>
+  <desc id="desc">E292: restricted Java clock deployment accepted. Scheduled collector integration next: Windows, pinned VPS, Java time and fixed proxy TLS, conditional health publication, final revocation. Durable installation and lifecycle pending. G3 80 percent; broker login, quotes and Telegram review pending; live execution disconnected.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>

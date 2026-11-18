@@ -1,5 +1,7 @@
 # Restricted Java clock deployment
 
+E292 accepts this deployment in 210.824 seconds. Continue with [scheduled collector integration](paytm-health-collector-batch.md); no repeat rebuild is required.
+
 E291 accepts the combined scheduled clock/token test in 54.449 seconds. Eleven source hashes match 950f392; the exact non-admin health account ran in session 0, signed, read the VPS clock, decrypted its token and authenticated locally. The temporary task was removed and batch policy was unchanged.
 
 The collector must compare Java time with VPS time without using the broader paper-account read credential. This service update adds `POST /api/v1/paytm/route-health/clock`, authenticated only by the existing diagnostic health token and the existing loopback Host/header restrictions. Its empty-body response contains `HEALTH_CLOCK_V1`, boot ID, numeric `observedEpochMillis`, accepted=false and ordersEnabled=false, with no-store caching. Epoch milliseconds avoid PowerShell version-dependent automatic parsing of ISO strings.
