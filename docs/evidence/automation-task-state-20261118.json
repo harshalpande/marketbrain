@@ -1,0 +1,213 @@
+{
+  "id": "2a9b8a58-550e-449d-9350-85c825210e8a",
+  "kind": "diagnostic",
+  "state": "SUCCEEDED",
+  "created": 1795014113.0806656,
+  "updated": 1795014135.5796006,
+  "result": {
+    "diagnosticsSha256": "C38FB0D18091D23B89DFB7DA2D396AF774B770F057B86209AEF61C5869B02A68",
+    "runnerSha256": "14BA08C60CB47EEED0B9B667B825FD7A398C66034FAA20B0D65018C8DDAD2235",
+    "sessionId": 3,
+    "interactive": true,
+    "windowsTimeService": "Running",
+    "paytmObservation": {
+      "gatewaySupervisor": {
+        "capturedUtc": "2026-11-18T20:32:02.5208185+05:30",
+        "files": {
+          "startup-failure.json": {
+            "state": "READ",
+            "fields": {
+              "failure": "HOST_AGENT_UNAVAILABLE",
+              "networkContacted": false,
+              "instanceId": "1eef65f6e872480ebd5acfa4d361261d",
+              "ordersEnabled": false,
+              "details": {
+                "outerType": "RuntimeException",
+                "type": "RuntimeException",
+                "line": 70,
+                "hresult": -2146233087
+              },
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "version": 1,
+              "stage": "OBSERVATION_LOOP",
+              "processId": 6692
+            }
+          },
+          "manifest.json": {
+            "state": "READ",
+            "fields": {
+              "transportVersion": 1,
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "version": 1
+            }
+          },
+          "control.json": {
+            "state": "READ",
+            "fields": {
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "mode": "LOCKED",
+              "version": 1
+            }
+          },
+          "blocked.json": {
+            "state": "READ",
+            "fields": {
+              "failure": "HOST_AGENT_UNAVAILABLE",
+              "instanceId": "1eef65f6e872480ebd5acfa4d361261d"
+            }
+          },
+          "status.json": {
+            "state": "READ",
+            "fields": {
+              "privateCopyAbsent": true,
+              "elapsedSeconds": 140664.294,
+              "sequence": 12161,
+              "failure": "HOST_AGENT_UNAVAILABLE",
+              "brokerReady": false,
+              "version": 1,
+              "ordersEnabled": false,
+              "phase": "BLOCKED",
+              "instanceId": "1eef65f6e872480ebd5acfa4d361261d",
+              "transportEnabled": true,
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "agentIdentityVerified": true,
+              "signingVerified": true,
+              "processId": 6692,
+              "transportState": {
+                "phase": "BACKOFF",
+                "brokerReady": false,
+                "action": "NONE",
+                "retryAtSeconds": 140666,
+                "failures": 1,
+                "ordersEnabled": false,
+                "lastSeconds": 140664,
+                "reason": "PROXY_UNAVAILABLE",
+                "attempts": 32
+              },
+              "networkContacted": true,
+              "observedUtc": "2026-11-16T10:21:04.7748113Z",
+              "transportVersion": 1,
+              "sessionId": 0,
+              "identityVerified": true
+            }
+          },
+          "transport-control.json": {
+            "state": "READ",
+            "fields": {
+              "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+              "mode": "ENABLED",
+              "version": 1
+            }
+          }
+        },
+        "task": {
+          "exitCode": 0,
+          "stderr": "#< CLIXML\r\n<Objs Version=\"1.1.0.1\" xmlns=\"http://schemas.microsoft.com/powershell/2004/04\"><Obj S=\"progress\" RefId=\"0\"><TN RefId=\"0\"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N=\"SourceId\">1</I64><PR N=\"Record\"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj><Obj S=\"progress\" RefId=\"1\"><TNRef RefId=\"0\" /><MS><I64 N=\"SourceId\">2</I64><PR N=\"Record\"><AV>Get-ScheduledTask -TaskName 'Mar",
+          "timedOut": false,
+          "elapsedSeconds": 3.7049502,
+          "stdout": "{\"runLevel\":\"Limited\",\"lastRunTime\":\"2026-11-15T00:47:17.0000000+05:30\",\"lastTaskResult\":1,\"logonType\":\"Password\",\"state\":\"Ready\",\"actionCount\":1,\"enabled\":true}\r\n"
+        },
+        "secondStatus": {
+          "state": "READ",
+          "fields": {
+            "privateCopyAbsent": true,
+            "elapsedSeconds": 140664.294,
+            "sequence": 12161,
+            "failure": "HOST_AGENT_UNAVAILABLE",
+            "brokerReady": false,
+            "version": 1,
+            "ordersEnabled": false,
+            "phase": "BLOCKED",
+            "instanceId": "1eef65f6e872480ebd5acfa4d361261d",
+            "transportEnabled": true,
+            "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+            "agentIdentityVerified": true,
+            "signingVerified": true,
+            "processId": 6692,
+            "transportState": {
+              "phase": "BACKOFF",
+              "brokerReady": false,
+              "action": "NONE",
+              "retryAtSeconds": 140666,
+              "failures": 1,
+              "ordersEnabled": false,
+              "lastSeconds": 140664,
+              "reason": "PROXY_UNAVAILABLE",
+              "attempts": 32
+            },
+            "networkContacted": true,
+            "observedUtc": "2026-11-16T10:21:04.7748113Z",
+            "transportVersion": 1,
+            "sessionId": 0,
+            "identityVerified": true
+          }
+        },
+        "readOnly": true,
+        "sshAgentService": {
+          "startType": "Automatic",
+          "status": "Running"
+        }
+      },
+      "elevated": true,
+      "proxyObservations": [
+        {
+          "observation": {
+            "exitCode": 28,
+            "stderr": "curl: (28) Connection timed out after 2014 milliseconds\r\n",
+            "timedOut": false,
+            "elapsedSeconds": 2.1382035,
+            "stdout": "000|000||0.000000|0.000000|2.014634"
+          },
+          "connectTimeoutSeconds": 2
+        },
+        {
+          "observation": {
+            "exitCode": 7,
+            "stderr": "curl: (7) Failed to connect to 127.0.0.1 port 18889 after 2043 ms: Could not connect to server\r\n",
+            "timedOut": false,
+            "elapsedSeconds": 2.1148414,
+            "stdout": "000|000||0.000000|0.000000|2.043884"
+          },
+          "connectTimeoutSeconds": 8
+        }
+      ],
+      "windowsStatus": {
+        "exitCode": 0,
+        "stderr": "",
+        "timedOut": false,
+        "elapsedSeconds": 0.0726746,
+        "stdout": "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.4123689s\nRoot Dispersion: 7.8742508s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/18/2026 7:46:22 PM\nSource: time.windows.com,0x8 \nPoll Interval: 12 (4096s)\n\nPhase Offset: 0.1042301s\nClockRate: 0.0156250s\nState Machine: 2 (Sync)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 0 (The command completed successfully.)\nTime since Last Good Sync Time: 2746.3976406s\n\n"
+      },
+      "ordersEnabled": false,
+      "windowsSource": {
+        "exitCode": 0,
+        "stderr": "",
+        "timedOut": false,
+        "elapsedSeconds": 0.0556828,
+        "stdout": "time.windows.com,0x8 \n"
+      },
+      "scope": "INTERACTIVE_OPERATOR_READ_ONLY_NOT_HEALTH_ACCOUNT_ACCEPTANCE",
+      "loopbackTcpConnected": false,
+      "permissionChanges": false,
+      "listenerInspectionError": "CimJobException"
+    },
+    "ordersEnabled": false,
+    "observedUtc": "2026-11-18T20:32:02.5043501+05:30",
+    "powershell": "7.7.0",
+    "elapsedSeconds": 12.4793798
+  },
+  "review": {
+    "sourceHashesVerified": true,
+    "taskState": {
+      "runLevel": "Limited",
+      "lastRunTime": "2026-11-15T00:47:17.0000000+05:30",
+      "lastTaskResult": 1,
+      "logonType": "Password",
+      "state": "Ready",
+      "actionCount": 1,
+      "enabled": true
+    },
+    "readinessPassed": false,
+    "next": "Local exact-account signing with automatic sanitized report return; no supervisor reset"
+  }
+}

@@ -113,3 +113,20 @@ Job `c4a87628-9559-4070-9d41-79d535a16b2f` returned automatically on 2026-11-18,
 ## Verified supervisor capture
 
 Job `53b2fb40-6dab-4d70-b16e-9002e7b9d957` returned the expected runner/helper hashes and supervisor section. Original startup and blocked markers record HOST_AGENT_UNAVAILABLE for instance 1eef65f6e872480ebd5acfa4d361261d; heartbeat sequence 12161 remained unchanged at 2026-11-16T10:21:04.7748113Z. Host control LOCKED, transport ENABLED. Current SSH-agent service is Running/Automatic; gateway account access is not established by this. The scheduled-task query timed out after 12 seconds; no current task state was obtained. Elevated W32Time now reports last error 0 and age about 599 seconds. No controls/latches were changed. Next needs alternate bounded native task inspection and exact-account signing proof before recovery.
+
+## Password-dependent signing with automatic result return
+
+The automatic retry `2a9b8a58-550e-449d-9350-85c825210e8a` resolved the task-query timeout: task enabled, Ready (idle), last result 1. The historical HOST_AGENT_UNAVAILABLE latch and blocked heartbeat remain. Elevated operator time access is not health-account acceptance.
+
+Run the following in elevated PowerShell 7 on the spare laptop after pulling the reviewed commit:
+
+```powershell
+& .\ops\automation\Update-AutomationDiagnostics.ps1
+& .\ops\automation\Invoke-LocalGatewaySigning.ps1
+```
+
+The existing isolated scheduled signing test asks for `TEST-SCHEDULED-KEY`, then the Windows `marketbrain-gateway` account password locally. It verifies signing under the exact non-administrator, noninteractive identity. It does not import keys, change the agent, restart the supervisor or contact the broker. Success removes the temporary task; failure disables and preserves it for review. Do not rerun failed tests automatically.
+
+The wrapper preserves the original report and atomically publishes a bounded completed copy at `C:\MarketBrainData\Review\automation-gateway-signing-latest.json`. It checks production control/status file hashes before and after. The next automated diagnostic returns allowlisted status, worker checks, bounded native classifications and source hashes, excluding raw logs, keys, passwords and unknown fields. A missing or stale report cannot establish acceptance; match run identity, source hashes and the current local completion.
+
+Tell the agent when the local prompt finishes; no report upload is required. The runner currently accepts only diagnostic and intervention-test jobs: launching this password-dependent test and updating the installed helper still require this local command. This is not unattended signing deployment. A successful signing receipt's legacy status mentions supervisor installation pending; it does not authorize reinstalling an existing supervisor. Review current evidence before preparing recovery.

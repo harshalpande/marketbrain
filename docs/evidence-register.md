@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+**Gateway task state confirmed, 2026-11-18:** [Automatic retry](evidence/automation-task-state-20261118.json) confirms task enabled but idle (`Ready`), last result 1; saved HOST_AGENT_UNAVAILABLE remains. [Local signing step with automatic result collection](maintenance-automation.md#password-dependent-signing-with-automatic-result-return) prepared. Its Windows password stays on the spare laptop; runtime acceptance pending. No gateway reset. G3 remains 4/5 (80%), total 14/30 (46.7%).
+
+
 **Gateway inspection accepted, 2026-11-18:** [Automated report](evidence/automation-gateway-blocked-20261118.json) contains the updated helper; both source hashes verified. Preserved HOST_AGENT_UNAVAILABLE latch and unchanged BLOCKED heartbeat from 16 November explain why recovery needs review. Current SSH-agent service Running is not per-account key proof; scheduled-task query timed out, so task state remains unknown. Elevated time sync recovered (error 0). No latch reset/restart; G3 remains 80%, 14/30 overall.
 
 **Delayed automation result, 2026-11-18:** [Existing queued job completed](evidence/automation-delayed-old-helper-20261118.json) after network disruption; it was not cancelled. Returned helper is the previous F170 version, so supervisor inspection is still missing. At capture, gateway TCP failed and Windows reported stale time data (sync error 2). Runner updater now requires process/nonce/source-hash startup proof; transport status clears after reconnection. Runtime update acceptance pending; G3 80%, 14/30 overall.

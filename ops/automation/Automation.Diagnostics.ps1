@@ -49,21 +49,27 @@ function Get-AutomationPaytmObservation {
 function Select-AutomationGatewayFields($Value,[int]$Depth=0) {
     $selected=@{}
     # Never return raw logs, command lines, keys or unknown JSON fields.
-    $numbers=@('version','transportVersion','processId','sessionId','sequence','elapsedSeconds','lastSeconds','attempts','failures','retryAtSeconds','hresult','line','nativeErrorCode','nativePhaseMilliseconds','nativeTotalMilliseconds')
-    $booleans=@('identityVerified','agentIdentityVerified','signingVerified','privateCopyAbsent','networkContacted','transportEnabled','brokerReady','ordersEnabled')
-    $codes=@('phase','mode','stage','failure','reason','action','type','outerType','nativeOperation','cleanupOperation','cleanupType')
+    $numbers=@('version','transportVersion','processId','sessionId','sequence','elapsedSeconds','lastSeconds','attempts','failures','retryAtSeconds','hresult','line','nativeErrorCode','nativePhaseMilliseconds','nativeTotalMilliseconds','signingChecks','lastTaskResult','exitCode','limitSeconds','stdoutCharacters','stderrCharacters')
+    $booleans=@('identityVerified','agentIdentityVerified','signingVerified','privateCopyAbsent','networkContacted','transportEnabled','brokerReady','ordersEnabled','nonAdmin','nonInteractiveSession','taskRegistered','taskStarted','taskDisabled','taskRemoved','keyImported','agentChanged','productionStateUnchanged','timedOut')
+    $codes=@('phase','mode','stage','failure','reason','action','type','outerType','nativeOperation','cleanupOperation','cleanupType','status','cleanupFailure','taskState','operation','classification','errorType')
     foreach($property in $Value.PSObject.Properties) {
         $name=$property.Name; $item=$property.Value
         if ($name -in $numbers -and ($item -is [int] -or $item -is [long] -or $item -is [double])) { $selected[$name]=$item }
         elseif ($name -in $booleans -and $item -is [bool]) { $selected[$name]=$item }
         elseif ($name -in $codes -and ($null -eq $item -or ($item -is [string] -and $item -cmatch '^[A-Za-z][A-Za-z0-9_]{0,119}$'))) { $selected[$name]=$item }
-        elseif ($name -in @('installationId','instanceId') -and $item -is [string] -and $item -cmatch '^[a-f0-9]{32}$') { $selected[$name]=$item }
+        elseif ($name -in @('installationId','instanceId','runId') -and $item -is [string] -and $item -cmatch '^[a-f0-9]{32}$') { $selected[$name]=$item }
+        elseif ($name -eq 'nativeObservations' -and $Depth -lt 2) { $selected[$name]=@( @($item) | Select-Object -First 8 | ForEach-Object { Select-AutomationGatewayFields $_ ($Depth+1) }) }
+        elseif ($name -eq 'sourceHashes' -and $null -ne $item) {
+            $hashes=@{}
+            foreach($hash in $item.PSObject.Properties) { if($hash.Name -cmatch '^[A-Za-z0-9-]+\.ps1$' -and $hash.Value -is [string] -and $hash.Value -cmatch '^[A-Fa-f0-9]{64}$'){$hashes[$hash.Name]=$hash.Value} }
+            $selected[$name]=$hashes
+        }
         elseif ($name -eq 'observedUtc' -and $item -is [string] -and $item.Length -le 50) {
             $parsed=[DateTimeOffset]::MinValue
             if ([DateTimeOffset]::TryParse($item,[ref]$parsed)) { $selected[$name]=$parsed.ToString('o') }
         }
         elseif ($name -eq 'observedUtc' -and ($item -is [DateTime] -or $item -is [DateTimeOffset])) { $selected[$name]=$item.ToString('o') }
-        elseif ($name -in @('transportState','details') -and $Depth -lt 2 -and $null -ne $item) { $selected[$name]=Select-AutomationGatewayFields $item ($Depth+1) }
+        elseif ($name -in @('transportState','details','worker','failureDetails') -and $Depth -lt 2 -and $null -ne $item) { $selected[$name]=Select-AutomationGatewayFields $item ($Depth+1) }
     }
     return $selected
 }
@@ -87,6 +93,7 @@ function Get-AutomationGatewayObservation {
     $code='C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1'
     $work='C:\ProgramData\MarketBrainPaytmGateway\supervisor-work-v1'
     $result=@{readOnly=$true;capturedUtc=[DateTimeOffset]::UtcNow.ToString('o');files=@{}}
+    $result.localSigningProbe=Read-AutomationGatewaySnapshot 'C:\MarketBrainData\Review\automation-gateway-signing-latest.json'
     foreach($name in @('manifest.json','control.json','transport-control.json')) { $result.files[$name]=Read-AutomationGatewaySnapshot (Join-Path $code $name) }
     foreach($name in @('status.json','blocked.json','startup-failure.json')) { $result.files[$name]=Read-AutomationGatewaySnapshot (Join-Path $work $name) }
     $taskSource=@'
