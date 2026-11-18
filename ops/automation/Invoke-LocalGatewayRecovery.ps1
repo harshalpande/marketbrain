@@ -1,11 +1,13 @@
 #requires -Version 7.2
+param([switch]$ResumeAfterHealthBlock)
 $ErrorActionPreference='Stop'
 $directory=Join-Path 'C:\MarketBrainData\Review' ('automation-recovery-'+[guid]::NewGuid().ToString('N'))
 $latest='C:\MarketBrainData\Review\automation-gateway-recovery-latest.json'
 $script=Join-Path $PSScriptRoot '..\windows\RepairPaytmNativeProcess.ps1'
 Write-Host 'Starting one reviewed recovery and 30-minute stability observation. Leave this window open.'
 try {
- & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File $script -CurrentSigningRecovery -OutputDirectory $directory
+ $mode=if($ResumeAfterHealthBlock){'-HealthBlockedTransportResume'}else{'-CurrentSigningRecovery'}
+ & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File $script $mode -OutputDirectory $directory
  $exit=$LASTEXITCODE
 } finally {
  $files=@(Get-ChildItem -LiteralPath $directory -Filter 'paytm-native-recovery-*.json' -ErrorAction SilentlyContinue)

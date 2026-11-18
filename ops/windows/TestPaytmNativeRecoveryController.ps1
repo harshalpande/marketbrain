@@ -1,9 +1,10 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture)
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture)
 if($TlsResumeFixture){$TlsPhaseFixture=$true}
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1')
 . (Join-Path $PSScriptRoot 'PaytmGatewaySession.ps1')
+. (Join-Path $PSScriptRoot 'PaytmTransportHealthResume.ps1')
 Set-StrictMode -Version Latest
 $tmp=Join-Path ([IO.Path]::GetTempPath()) ('mb-native-controller-'+[guid]::NewGuid().ToString('N'))
 $global:mbNativeControllerFixture=@{};$checks=0
@@ -35,7 +36,7 @@ function Invoke-PaytmNativeRecovery {
  if($global:mbNativeControllerFixture.case -eq 'start_failed'){throw 'HOST_NATIVE_START_FAILED'}
  $report.nativeRecovery=@{first=@{installationId=('a'*32);sequence=1;processId=1;instanceId=('b'*32)}}
 }
-function Invoke-PaytmApplicationHead {Save-Report}
+function Invoke-PaytmApplicationHead {if($HealthResumeFixture){throw 'Unexpected route arming in transport-only test'};Save-Report}
 function Wait-PaytmManagedHost {
  if($global:mbNativeControllerFixture.case -ne 'pass'){throw 'TRANSPORT_WORKER_BLOCKED'}
  $global:mbNativeControllerFixture.sequence++
@@ -47,7 +48,7 @@ function Invoke-PaytmTlsDiagnosticCapture {
  if($global:mbNativeControllerFixture.case -in @('soak_failed','stop_failed')){throw 'HOST_TLS_CAPTURE_FAILED'}
  $report.diagnostic=@{captureCompleted=$true}
 }
-function Invoke-PaytmApplicationHttp {if($global:mbNativeControllerFixture.case -eq 'lock_failed'){throw 'APP_ROUTE_FINAL_LOCK_FAILED'};@{state='LOCKED';bootId='boot'}}
+function Invoke-PaytmApplicationHttp {param($Command);if($HealthResumeFixture -and $Command -eq 'arm'){throw 'Unexpected arm'};if($global:mbNativeControllerFixture.case -eq 'lock_failed'){throw 'APP_ROUTE_FINAL_LOCK_FAILED'};@{state='LOCKED';bootId='boot';ordersEnabled=$false;credentialsUsed=$false;status='LOCKED';httpStatus=0;tlsVerified=$false}}
 function Assert-PaytmWriterLocked {}
 function Get-PaytmApplicationContainer {@{Id='container';Image='image';State=@{StartedAt='start'}}}
 function Read-PaytmPaperAccount {'same'}
@@ -64,6 +65,7 @@ try{
   foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaytmNativeRecovery.ps1','PaytmSupervisorNative.cs','RunPaytmGatewaySupervisor.ps1')){[IO.File]::WriteAllText((Join-Path $ops $n),'# fixture')}
   $file=Join-Path $ops 'RepairPaytmNativeProcess.ps1';Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RepairPaytmNativeProcess.ps1') -Destination $file
   $extra=@{}
+  if($HealthResumeFixture){$extra.HealthBlockedTransportResume=$true;[IO.File]::WriteAllText((Join-Path $ops 'PaytmTransportHealthResume.ps1'),'# adapter mocked separately')}
   if($IncidentRecoveryFixture){
    [IO.File]::WriteAllText((Join-Path $ops 'PaytmIncidentRecovery.ps1'),'# adapter mocked separately')
    $extra.IncidentRecovery=$true
@@ -107,7 +109,9 @@ try{
   }
   if($IncidentRecoveryFixture){Check ($v.recoveryMode -ceq 'AFTER_SSH_INCIDENT_NO_CODE_REPLACEMENT') 'INCIDENT_MODE_WIRED'}
   if($case -eq 'pass'){
-   Check ($v.status -ceq 'NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED' -and $v.soakPassed -and $v.accountPreserved -and $v.finalApplicationLockVerified -and $v.soak.observations -eq 2 -and $global:mbNativeControllerFixture.stops -eq 0) 'COMPLETION_AND_FINAL_SAMPLE'
+   $expectedStatus=if($HealthResumeFixture){'TRANSPORT_STABILITY_PASSED_APPLICATION_HEALTH_PENDING'}else{'NATIVE_RECOVERY_AND_30_MINUTE_OBSERVATION_PASSED'}
+   if($HealthResumeFixture){Check ($v.applicationHealthPending -and $v.applicationRouteChecks.Count -eq 2) 'HEALTH_PENDING_AND_LOCK_CHECKS'}
+   Check ($v.status -ceq $expectedStatus -and $v.soakPassed -and $v.accountPreserved -and $v.finalApplicationLockVerified -and $v.soak.observations -eq 2 -and $global:mbNativeControllerFixture.stops -eq 0) 'COMPLETION_AND_FINAL_SAMPLE'
    continue
   }
   Check ($v.status -eq 'REVIEW_REQUIRED' -and -not $v.soakPassed) 'NO_FALSE_SUCCESS'

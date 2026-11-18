@@ -149,3 +149,20 @@ On the spare laptop, run elevated PowerShell 7 after a clean fast-forward pull:
 Keep Docker Desktop and the existing MarketBrain application running, and leave this window open for approximately 30-35 minutes. No PuTTY or password prompt is expected. One local launch is still required: the deployed relay does not yet expose recovery jobs. The wrapper publishes its bounded result to `C:\MarketBrainData\Review\automation-gateway-recovery-latest.json`; the next diagnostic returns sanitized status, recovery, stability and cleanup fields automatically. Do not rerun on failure. A successful test restores transport evidence; it does not close the separate health-account time-query or durable collector gates.
 
 Local verification: 42 archive/start/drift assertions, 15 receipt/incident rejection cases, 47 existing controller failure/cleanup assertions across eight mocked workflows, and automated snapshot filtering. These fixtures do not claim a real spare-machine recovery or a real 30-minute soak.
+
+## Resume after application health block
+
+The 2026-11-18 recovery did restore the gateway: one new worker, advancing heartbeat, proxy CONNECT 200, TLS verification code 0 and HTTP 503 from the root endpoint. Root HTTP 503 does not establish broker readiness. The controller then incorrectly required application route arming before the separate health collector was ready. Application TIMING_BLOCKED/HEALTH_UNCONFIRMED was correct; controller sequencing was defective. No 30-minute stability credit was earned.
+
+Cleanup and automatic diagnostic `cd8b3936-dbd4-45f5-95bc-68d27e0c4bcd` establish task Disabled, last result 0, STOP control, STOPPED instance `117f5ad1df7344828ea88cc3c00a9d3a`, sequence 11, with no new failure marker. The original recovery command must not be rerun against this changed state.
+
+The resume adapter pins the exact completed recovery receipt SHA256 and verifies the current owned disabled task, stopped instance, controls and empty listener. It archives current state without deleting markers or checkpoints, enables/starts the existing task once, and uses the unchanged 30-minute transport observation. Before and after, application status/head must remain LOCKED with no outbound diagnostic request; the paper writer remains locked. It never calls arm or weakens timing/health checks. Failure retains the established stop/disable cleanup.
+
+After pulling, run elevated PowerShell 7 on the spare laptop with Docker and MarketBrain running:
+
+```powershell
+& .\ops\automation\Update-AutomationDiagnostics.ps1
+& .\ops\automation\Invoke-LocalGatewayRecovery.ps1 -ResumeAfterHealthBlock
+```
+
+Expected success is `TRANSPORT_STABILITY_PASSED_APPLICATION_HEALTH_PENDING`. This is transport-only acceptance, not authenticated broker/application readiness. Automatic result return is retained; no file upload is required. Leave the window open for 30-35 minutes; do not retry a failure. Local tests cover 29 resume/archive/start assertions and 48 controller assertions over eight mocked success/failure workflows; real spare runtime remains pending.
