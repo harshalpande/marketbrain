@@ -23,7 +23,10 @@ foreach($target in $targets) {
 # interrupted, rather than repeating the job. No credentials or state reset.
 $backup=Join-Path $root ('runner-backup-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $backup | Out-Null
-Copy-Item -LiteralPath $installed -Destination $backup
+foreach($name in @('Start-AutomationWorker.ps1','Automation.Diagnostics.ps1')) {
+    $previous=Join-Path (Split-Path $installed) $name
+    if (Test-Path -LiteralPath $previous) { Copy-Item -LiteralPath $previous -Destination $backup }
+}
 foreach($name in @('Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) {
     $destination=Join-Path (Split-Path $installed) $name
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination ($destination+'.new')

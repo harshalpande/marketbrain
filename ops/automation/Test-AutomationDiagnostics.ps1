@@ -9,6 +9,7 @@ $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes('Start-Slee
 $result=Invoke-AutomationNativeObservation $exe @('-NoProfile','-EncodedCommand',$encoded) 1
 if (-not $result.timedOut -or $result.elapsedSeconds -gt 8) { throw 'Native timeout was not bounded' }
 $script:calls=@()
+function Get-AutomationGatewayObservation { return @{readOnly=$true} }
 function Invoke-AutomationNativeObservation([string]$Executable,[string[]]$Arguments,[int]$TimeoutSeconds) {
     $script:calls+=,@{executable=$Executable;arguments=$Arguments;timeout=$TimeoutSeconds}
     return @{exitCode=28;timedOut=$false;stdout='000|';stderr='fixture timeout'}

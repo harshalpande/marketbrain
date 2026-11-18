@@ -23,6 +23,7 @@ function Invoke-AutomationNativeObservation([string]$Executable,[string[]]$Argum
 }
 function Get-AutomationPaytmObservation {
     $report=@{scope='INTERACTIVE_OPERATOR_READ_ONLY_NOT_HEALTH_ACCOUNT_ACCEPTANCE';ordersEnabled=$false;permissionChanges=$false}
+    $report.gatewaySupervisor=Get-AutomationGatewayObservation
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     try { $report.elevated=([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) }
     finally { $identity.Dispose() }
@@ -43,4 +44,64 @@ function Get-AutomationPaytmObservation {
         @{connectTimeoutSeconds=$seconds;observation=(Invoke-AutomationNativeObservation $curl $arguments ($seconds+4))}
     })
     return $report
+}
+
+function Select-AutomationGatewayFields($Value,[int]$Depth=0) {
+    $selected=@{}
+    # Never return raw logs, command lines, keys or unknown JSON fields.
+    $numbers=@('version','transportVersion','processId','sessionId','sequence','elapsedSeconds','lastSeconds','attempts','failures','retryAtSeconds','hresult','line','nativeErrorCode','nativePhaseMilliseconds','nativeTotalMilliseconds')
+    $booleans=@('identityVerified','agentIdentityVerified','signingVerified','privateCopyAbsent','networkContacted','transportEnabled','brokerReady','ordersEnabled')
+    $codes=@('phase','mode','stage','failure','reason','action','type','outerType','nativeOperation','cleanupOperation','cleanupType')
+    foreach($property in $Value.PSObject.Properties) {
+        $name=$property.Name; $item=$property.Value
+        if ($name -in $numbers -and ($item -is [int] -or $item -is [long] -or $item -is [double])) { $selected[$name]=$item }
+        elseif ($name -in $booleans -and $item -is [bool]) { $selected[$name]=$item }
+        elseif ($name -in $codes -and ($null -eq $item -or ($item -is [string] -and $item -cmatch '^[A-Za-z][A-Za-z0-9_]{0,119}$'))) { $selected[$name]=$item }
+        elseif ($name -in @('installationId','instanceId') -and $item -is [string] -and $item -cmatch '^[a-f0-9]{32}$') { $selected[$name]=$item }
+        elseif ($name -eq 'observedUtc' -and $item -is [string] -and $item.Length -le 50) {
+            $parsed=[DateTimeOffset]::MinValue
+            if ([DateTimeOffset]::TryParse($item,[ref]$parsed)) { $selected[$name]=$parsed.ToString('o') }
+        }
+        elseif ($name -eq 'observedUtc' -and ($item -is [DateTime] -or $item -is [DateTimeOffset])) { $selected[$name]=$item.ToString('o') }
+        elseif ($name -in @('transportState','details') -and $Depth -lt 2 -and $null -ne $item) { $selected[$name]=Select-AutomationGatewayFields $item ($Depth+1) }
+    }
+    return $selected
+}
+function Read-AutomationGatewaySnapshot([string]$Path) {
+    $stream=$null; $reader=$null
+    try {
+        $stream=[IO.File]::Open($Path,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        if ($stream.Length -gt 65536) { return @{state='TOO_LARGE'} }
+        $reader=[IO.StreamReader]::new($stream)
+        $buffer=[char[]]::new(65537)
+        $length=$reader.ReadBlock($buffer,0,$buffer.Length)
+        if ($length -gt 65536) { return @{state='TOO_LARGE'} }
+        $value=([string]::new($buffer,0,$length)) | ConvertFrom-Json -ErrorAction Stop
+        return @{state='READ';fields=(Select-AutomationGatewayFields $value)}
+    } catch {
+        $errorType=$_.Exception.GetBaseException().GetType().Name
+        return @{state='UNAVAILABLE';errorType=$errorType}
+    } finally { if($reader){$reader.Dispose()}; if($stream){$stream.Dispose()} }
+}
+function Get-AutomationGatewayObservation {
+    $code='C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1'
+    $work='C:\ProgramData\MarketBrainPaytmGateway\supervisor-work-v1'
+    $result=@{readOnly=$true;capturedUtc=[DateTimeOffset]::UtcNow.ToString('o');files=@{}}
+    foreach($name in @('manifest.json','control.json','transport-control.json')) { $result.files[$name]=Read-AutomationGatewaySnapshot (Join-Path $code $name) }
+    foreach($name in @('status.json','blocked.json','startup-failure.json')) { $result.files[$name]=Read-AutomationGatewaySnapshot (Join-Path $work $name) }
+    $taskSource=@'
+$ErrorActionPreference='Stop'
+try {
+ $t=Get-ScheduledTask -TaskName 'MarketBrain-Gateway-Supervisor-v1' -TaskPath '\' -ErrorAction Stop
+ $i=Get-ScheduledTaskInfo -TaskName $t.TaskName -TaskPath '\' -ErrorAction Stop
+ @{state=[string]$t.State;enabled=[bool]$t.Settings.Enabled;lastTaskResult=$i.LastTaskResult;lastRunTime=$i.LastRunTime.ToString('o');logonType=[string]$t.Principal.LogonType;runLevel=[string]$t.Principal.RunLevel;actionCount=@($t.Actions).Count}|ConvertTo-Json -Compress
+} catch { @{errorType=$_.Exception.GetBaseException().GetType().Name}|ConvertTo-Json -Compress;exit 1 }
+'@
+    $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($taskSource))
+    $result.task=Invoke-AutomationNativeObservation (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') @('-NoProfile','-NonInteractive','-EncodedCommand',$encoded) 12
+    try { $s=Get-Service -Name ssh-agent -ErrorAction Stop; $result.sshAgentService=@{status=$s.Status.ToString();startType=$s.StartType.ToString()} }
+    catch { $result.sshAgentService=@{errorType=$_.Exception.GetType().Name} }
+    Start-Sleep -Seconds 2
+    $result.secondStatus=Read-AutomationGatewaySnapshot (Join-Path $work 'status.json')
+    return $result
 }
