@@ -1,0 +1,72 @@
+{
+  "evidenceId": "E293",
+  "reviewedDate": "2026-11-18",
+  "sourceReceipt": "paytm-health-scheduled-5320e935c0034206bc0aed37383d20d4.json",
+  "sourceSha256": "DFBE4657FB41EB3C1E49AB0F7645DCC8432707B28060DD0F5FE97A08F351C2F3",
+  "sourceRevision": "06e77c6",
+  "sourceHashesVerified": 14,
+  "status": "REVIEW_REQUIRED",
+  "elapsedSeconds": 64.6803253,
+  "failure": "SCHEDULE_COLLECTOR_NOT_ACCEPTED",
+  "rounds": [
+    {
+      "healthySubmitted": false,
+      "accepted": false,
+      "status": "UNHEALTHY_AND_LOCKED",
+      "findings": [
+        "WINDOWS_TIME_SERVICE",
+        "WINDOWS_SYNC_UNCONFIRMED",
+        "WINDOWS_SYNC_AGE_UNKNOWN",
+        "GATEWAY_TLS_UNCONFIRMED"
+      ],
+      "failedPhase": null,
+      "lowerOffsetSeconds": 0,
+      "upperOffsetSeconds": 0,
+      "windowExceeded": false,
+      "elapsedSeconds": 5.0696737,
+      "revoked": false
+    },
+    {
+      "healthySubmitted": false,
+      "accepted": false,
+      "status": "UNHEALTHY_AND_LOCKED",
+      "findings": [
+        "WINDOWS_TIME_SERVICE",
+        "WINDOWS_SYNC_UNCONFIRMED",
+        "WINDOWS_SYNC_AGE_UNKNOWN",
+        "CLOCK_BOUNDS_OUTSIDE_SCREEN",
+        "GATEWAY_TLS_UNCONFIRMED"
+      ],
+      "failedPhase": null,
+      "lowerOffsetSeconds": 0,
+      "upperOffsetSeconds": 0,
+      "windowExceeded": false,
+      "elapsedSeconds": 4.558578,
+      "revoked": false
+    },
+    {
+      "healthySubmitted": false,
+      "accepted": false,
+      "status": "UNHEALTHY_AND_LOCKED",
+      "findings": [
+        "WINDOWS_TIME_SERVICE",
+        "WINDOWS_SYNC_UNCONFIRMED",
+        "WINDOWS_SYNC_AGE_UNKNOWN",
+        "GATEWAY_TLS_UNCONFIRMED"
+      ],
+      "failedPhase": null,
+      "lowerOffsetSeconds": 0,
+      "upperOffsetSeconds": 0,
+      "windowExceeded": false,
+      "elapsedSeconds": 3.2443617,
+      "revoked": false
+    }
+  ],
+  "finalHealthRevoked": true,
+  "applicationLocked": true,
+  "taskDisabled": true,
+  "taskRemoved": false,
+  "rootCauseEstablished": false,
+  "diagnosticGap": "w32tm exit/output and curl exit/stderr were discarded; capture these and clock latency/bounds before permission or connectivity changes.",
+  "g3Percent": 80
+}

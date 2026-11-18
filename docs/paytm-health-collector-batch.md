@@ -1,5 +1,15 @@
 # Scheduled collector integration batch
 
+## Diagnostic rerun after E293
+
+Run 5320e935c0034206bc0aed37383d20d4 rejected all three rounds. Findings were WINDOWS_TIME_SERVICE, WINDOWS_SYNC_UNCONFIRMED, WINDOWS_SYNC_AGE_UNKNOWN and GATEWAY_TLS_UNCONFIRMED; round two also reported CLOCK_BOUNDS_OUTSIDE_SCREEN. These findings do not establish whether the cause is account permissions, stopped services, connectivity, latency or command behavior. The original report omitted native errors, so that diagnostic gap must be closed before system changes.
+
+All rounds submitted unhealthy state. Final revocation passed and the application remained locked. The failed temporary task was disabled and retained, not removed. The next invocation creates its own unique task and leaves the old task/evidence untouched; do not re-enable or delete the old task.
+
+Update main and use the same command below. This is an evidence-producing rerun and can still return REVIEW_REQUIRED. Share its one JSON even if it throws. Native w32tm status/source exit codes and excerpts, curl exit code/stdout/stderr/timeout and clock bounds/latency are now retained. Each native text field is capped at 512 characters; the collector worker report uses a bounded 49,152-byte read limit (other scheduled modes retain 8,192). JSON depth preserves nested diagnostics. No tokens, HTTP authorization headers or decrypted ciphertext enter evidence. No permission, firewall or timing-threshold changes are made.
+
+24 collector checks cover diagnostic retention, access-denied and proxy-error findings, bounded excerpts and existing rejection logic. 26 scheduled-worker regression checks also pass, including final revocation after collector rejection or exception. This update fixes missing diagnostics, not an established infrastructure cause. G3 remains 80%.
+
 E292 accepts the restricted Java clock deployment in 210.824 seconds (3m31s). Authentication/body restrictions and challenge preservation passed before and after restart. The existing health token and paper account were preserved; writer and route remained locked. Eight script hashes and the source revision match 2a60978.
 
 ## Purpose and scope

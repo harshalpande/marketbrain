@@ -7,7 +7,7 @@ $run=[guid]::NewGuid().ToString('N');$c=Get-HealthScheduledProbeContract $run;$w
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory "paytm-health-scheduled-$run.json"
 $r=[ordered]@{version=1;runId=$run;status='REVIEW_REQUIRED';stage='PREFLIGHT';failure=$null;failureDetails=$null;cleanupFailure=$null;sourceHashes=@{};policyBefore=$null;policyAfter=$null;denyAssessment=@();batchGrantAttempted=$false;taskName=$c.name;taskRegistered=$false;taskStarted=$false;taskDisabled=$false;taskRemoved=$false;taskState=$null;lastTaskResult=$null;worker=$null;fresh=$null;elapsedSeconds=0;ordersEnabled=$false;keyImported=$false;productionTaskInstalled=$false}
-function Save-HealthScheduled {$r.elapsedSeconds=$watch.Elapsed.TotalSeconds;[IO.File]::WriteAllText($path,($r|ConvertTo-Json -Depth 10))}
+function Save-HealthScheduled {$r.elapsedSeconds=$watch.Elapsed.TotalSeconds;[IO.File]::WriteAllText($path,($r|ConvertTo-Json -Depth 12))}
 function Health-Step([string]$Name,[int]$Percent){$r.stage=$Name;Save-HealthScheduled;Write-Progress -Activity 'Scheduled clock access' -Status $Name -PercentComplete $Percent;Write-Host "[$Percent%] $Name"}
 try{
  Save-HealthScheduled;Assert-PaytmCustodyController
@@ -90,7 +90,7 @@ try{
    if(-not $r.failure){Assert-HealthProbeTask $tasks[0] $run $false;Unregister-ScheduledTask -TaskName $c.name -TaskPath $c.path -Confirm:$false -ErrorAction Stop;if(@(Get-HealthProbeTask $c.name).Count){throw 'SCHEDULE_REMOVE_NOT_CONFIRMED'};$r.taskRemoved=$true}
   }elseif($r.taskRegistered){throw 'SCHEDULE_TASK_DISAPPEARED'}
  }catch{$r.cleanupFailure='SCHEDULE_CLEANUP_REVIEW_REQUIRED'}}
- if($r.taskStarted -and $null -eq $r.worker -and (Test-Path -LiteralPath $c.result)){try{$partial=Read-PaytmRepairJson $c.result 8192;if($partial.runId -ceq $run){$r.worker=$partial}}catch{}}
+ if($r.taskStarted -and $null -eq $r.worker -and (Test-Path -LiteralPath $c.result)){try{$limit=if($CollectorDeploymentReport){49152}else{8192};$partial=Read-PaytmRepairJson $c.result $limit;if($partial.runId -ceq $run){$r.worker=$partial}}catch{}}
  if($null -ne $password){$password.Dispose()}
  if($r.failure -or $r.cleanupFailure){$r.status='REVIEW_REQUIRED'}
  Save-HealthScheduled;Write-Progress -Activity 'Scheduled clock access' -Completed

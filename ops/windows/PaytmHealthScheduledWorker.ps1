@@ -26,7 +26,7 @@ __TOKEN_CHECK__
  $r.stage='COMPLETE'
 }catch{$r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|HEALTH_KEY|HEALTH_TOKEN|COLLECTOR|KEY)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_WORKER_FAILED'}}finally{
  $r.elapsedSeconds=$watch.Elapsed.TotalSeconds
- $bytes=[Text.Encoding]::UTF8.GetBytes(($r|ConvertTo-Json -Depth 5 -Compress))
+ $bytes=[Text.Encoding]::UTF8.GetBytes(($r|ConvertTo-Json -Depth 8 -Compress))
  $f=[IO.File]::Open('__RESULT__','CreateNew','Write','Read');try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
 }
 if($r.failure){exit 1}else{exit 0}

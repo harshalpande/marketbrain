@@ -113,7 +113,8 @@ function Wait-HealthProbeTask([string]$RunId,$Report,[scriptblock]$Checkpoint) {
         $info=Get-ScheduledTaskInfo -TaskName $c.name -TaskPath $c.path -ErrorAction Stop
         $Report.lastTaskResult=[long]$info.LastTaskResult;$Report.taskState=[string]$tasks[0].State
         if(Test-Path -LiteralPath $c.result){
-            $Report.worker=Read-PaytmRepairJson $c.result 8192
+            $limit=if($Report.Contains('collectorMode') -and $Report.collectorMode){49152}else{8192}
+            $Report.worker=Read-PaytmRepairJson $c.result $limit
             if($Report.worker.runId -cne $RunId){throw 'SCHEDULE_WORKER_BINDING'}
             if($Report.taskState -cnotin @('Running','Queued')){return}
         }elseif($Report.taskState -cnotin @('Running','Queued') -and $Report.lastTaskResult -notin @(0,267011,267009)){
