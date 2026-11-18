@@ -1,5 +1,7 @@
 # Daily delivery scorecard
 
+**Automation diagnostic accepted, 2026-11-18:** Actual cross-machine job `0d38eb91-3c98-4e28-923e-b991f1281a13` succeeded and its report returned automatically to the development laptop. Runner source hash verified; Windows session 3, PowerShell 7.7, time service Running, orders disabled. [Evidence](evidence/automation-diagnostic-accepted-20261118.json). Intervention test pending; this does not validate background health-account access or close Paytm G3 (80%; 14/30 overall).
+
 **Automation repair, 2026-11-18:** VPS journal shows relay.py permission denied and no port 18443 listener. Launcher umask 077 filters mkdir(0755) to 0700; installer now explicitly applies code-directory permissions, checks service-account access and verifies real TLS/HTTP readiness. [Existing-installation repair](maintenance-automation.md#repair-permission-denied-on-first-start) preserves pairing, certificate and queue. VPS acceptance pending; Paytm G3 remains 80%, overall 14/30 (46.7%).
 
 **Current E294, 2026-11-18:** Collector diagnostics establish W32Time access denied (0x80070005) and three gateway curl connection timeouts; signing/clock/token passed and final application lock held. Fourteen source hashes match 12c9be2. User prioritized [automatic maintenance delivery and report return](maintenance-automation.md). Initial relay/runner and two-job acceptance prepared; VPS installation and cross-machine acceptance pending. Existing Paytm jobs/elevation and signed-out operation are not automated yet. G3 remains 80%; Paytm readiness 14/30 (46.7%).

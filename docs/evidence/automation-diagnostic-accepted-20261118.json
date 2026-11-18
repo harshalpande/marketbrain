@@ -1,0 +1,24 @@
+{
+  "id": "0d38eb91-3c98-4e28-923e-b991f1281a13",
+  "kind": "diagnostic",
+  "state": "SUCCEEDED",
+  "created": 1795000562.8331761,
+  "updated": 1795000568.4194272,
+  "result": {
+    "sessionId": 3,
+    "runnerSha256": "C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783",
+    "interactive": true,
+    "ordersEnabled": false,
+    "observedUtc": "2026-11-18T16:46:07.7313135+05:30",
+    "windowsTimeService": "Running",
+    "powershell": "7.7.0",
+    "elapsedSeconds": 0.0653799
+  },
+  "review": {
+    "runnerSourceVerified": true,
+    "scope": "First actual cross-machine read-only diagnostic and automatic result return",
+    "interventionAccepted": false,
+    "signedOutOperationAccepted": false,
+    "existingPaytmCatalogueIntegrated": false
+  }
+}

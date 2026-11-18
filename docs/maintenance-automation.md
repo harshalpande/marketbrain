@@ -2,6 +2,10 @@
 
 Priority authorized 2026-11-18. Purpose: remove manual script/report transfer between the development laptop and the spare Windows laptop. This is independent of the MarketBrain application and Paytm transport. Existing trading gates remain unchanged.
 
+## Actual acceptance on 2026-11-18
+
+Diagnostic job `0d38eb91-3c98-4e28-923e-b991f1281a13` passed across the real laptops and VPS; report was read directly from the development laptop. Reviewed runner hash matches, execution 0.065 seconds, approximately 5.59 seconds from queue creation to completion. The interactive user could observe W32Time Running; this does not establish that the separate health account can query synchronization. Intervention remains pending.
+
 ## Delivered scope and remaining work
 
 This first release supports two fixed jobs: `diagnostic` (Windows time-service status and runner identity; read-only) and `intervention-test` (local confirmation popup with a five-minute timeout). It does not yet execute the existing Paytm installer catalogue, accept arbitrary PowerShell, update itself, collect passwords, run elevated jobs, or run while the Windows user is signed out. Do not describe this as full maintenance automation acceptance.

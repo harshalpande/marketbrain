@@ -69,5 +69,5 @@
   <rect x="30" y="1060" width="1140" height="96" rx="9" class="planned"/>
   <text x="48" y="1087" class="label">Maintenance automation: separate from trading application</text>
   <text x="48" y="1115" class="body">Development controller &lt;-&gt; VPS HTTPS queue &lt;-&gt; spare Windows runner + local user prompt</text>
-  <text x="48" y="1141" class="small">Initial fixed diagnostic / intervention jobs; source implemented, cross-machine acceptance pending</text>
+  <text x="48" y="1141" class="small">Cross-machine diagnostic and report return accepted; local intervention acceptance pending</text>
 </svg>
