@@ -1,0 +1,917 @@
+{
+  "version": 1,
+  "runId": "63fbd61a1619419cae809063f6b9c29e",
+  "status": "REVIEW_REQUIRED",
+  "stage": "OBSERVING 374/1800 seconds; heartbeat 240",
+  "failure": "TRANSPORT_REQUESTED_STATE_TIMEOUT",
+  "cleanupFailure": null,
+  "elapsedSeconds": 470.977,
+  "sourceHashes": {
+    "RunPaytmGatewaySupervisor.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+    "PaytmSupervisorNative.cs": "6E24ADB25A7486256D1090F38E11E24DAEE627A94CEA27104ABF8AFCC40F610B",
+    "PaytmGatewayRestart.ps1": "AA9E39DCE308D5AE73CC005242EF8F0986C77E675F3A26AE43CC28D9922DC2EE",
+    "PaytmNativeRecovery.ps1": "97D2AB445E5FA68824A4A3EA48B3D8E2073585C3941A9841EA30CB46BA2F8671",
+    "RepairPaytmNativeProcess.ps1": "73BA3D0CB6BCF9FAF4C90178BEAA120A5F0149C294EECFFFB66E059C781BCD45",
+    "PaytmTransportHealthResume.ps1": "FC11FD314766F8D6CC1B1C323D46B1511D6FF61595B55A905EBA41938D36E668",
+    "PaytmGatewayFailureEvidence.ps1": "639E9FB0E24A6FA96AAB6767C0BBB01C1FFBE88DE2F5161CA5F0250663BF73E2",
+    "PaytmReviewedSshRecovery.ps1": "A23E346D38D68136855CEB0016756DF8DA7EAFB3563F6EBE64AFBDBDA56ABC1C"
+  },
+  "nativeRecoveryAttempted": true,
+  "failureStopVerified": true,
+  "soakPassed": false,
+  "accountPreserved": true,
+  "finalApplicationLockVerified": true,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false,
+  "originalRootCauseProven": false,
+  "applicationCommands": [
+    {
+      "phase": "CONTEXT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1163003
+    },
+    {
+      "phase": "ENDPOINT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1048316
+    },
+    {
+      "phase": "LOCATE",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1303671
+    },
+    {
+      "phase": "PRIVATE_INSPECT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1047519
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.862363
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.4292398
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.3575479
+    },
+    {
+      "phase": "LOCATE",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1305428
+    },
+    {
+      "phase": "PRIVATE_INSPECT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1048823
+    }
+  ],
+  "applicationObservations": [
+    {
+      "command": "status",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "STATUS",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "NO_HEALTH_EVIDENCE",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "head",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "NO_HEALTH_EVIDENCE",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "status",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "STATUS",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "NO_HEALTH_EVIDENCE",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "head",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "NO_HEALTH_EVIDENCE",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "lock",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "NONE",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    }
+  ],
+  "applicationRouteChecks": [
+    {
+      "expectedTls": false,
+      "label": "Application remains locked during transport verification",
+      "passed": true
+    }
+  ],
+  "recoveryMode": "REVIEWED_SSH_EXIT_TRANSPORT_ONLY",
+  "applicationDiscovery": {
+    "candidateCount": 1,
+    "workspaceMatchCount": 1,
+    "selectedId": "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+    "result": "VERIFIED",
+    "candidates": [
+      {
+        "id": "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+        "workspaceMatches": true,
+        "running": true,
+        "paused": false,
+        "restarting": false,
+        "exitCode": 0,
+        "oomKilled": false
+      }
+    ]
+  },
+  "accountBefore": {
+    "account": {
+      "id": "1",
+      "name": "Default Paper Portfolio",
+      "executionMode": "PAPER",
+      "startingCash": "100000.00",
+      "currentCash": "100000.00"
+    },
+    "ledger": {
+      "status": "ATTACHED_READ_ONLY",
+      "cash": "100000.00",
+      "reservedCash": "0.00",
+      "unreservedCash": "100000.00",
+      "revision": "0"
+    },
+    "legacyOrders": false,
+    "legacyFills": false
+  },
+  "containerId": "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+  "imageId": "sha256:8d4eeaf60e56060f948571981797c5777f41795ee139fecce1815f7352c7f7fe",
+  "nativeRecovery": {
+    "backupPath": "C:\\ProgramData\\MarketBrainPaytmGateway\\supervisor-v1\\current-agent-recovery-63fbd61a1619419cae809063f6b9c29e",
+    "backupHashes": {
+      "control.json": "4845BF49E8685598D788C898C5881E51CA8392E738F6252E0042CFAE49DB17C8",
+      "session-checkpoint.json": "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+      "status.json": "A7AED88542A8F18559585CF4D08F7099FC9CF27DE8932F51B50203E627030ABA",
+      "manifest.json": "343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98",
+      "startup-failure.json": "D70375DB530D146B34E7D2FB079A2F7819D5AA04E9251BA97F098F866EEFCFDB",
+      "blocked.json": "A63B723AFEB50F34579C5FAC644EF9E7C353D1EAD040BFA8899288228492CEF0",
+      "transport-control.json": "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B"
+    },
+    "backupVerified": true,
+    "markersArchived": true,
+    "checkpointPreserved": true,
+    "startAttempts": 1,
+    "healthy": true,
+    "installedCodeChanged": false,
+    "keyImported": false,
+    "first": {
+      "version": 1,
+      "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+      "instanceId": "7df0565758b84e3194d9d0f6fe302307",
+      "processId": 9148,
+      "sessionId": 0,
+      "sequence": 4,
+      "elapsedSeconds": 6.232,
+      "observedUtc": "2026-11-19T09:07:44.9223961Z",
+      "phase": "TRANSPORT_READY",
+      "failure": null,
+      "identityVerified": true,
+      "jobContained": true,
+      "agentIdentityVerified": true,
+      "signingVerified": true,
+      "privateCopyAbsent": true,
+      "executionPolicies": [
+        {
+          "scope": "MachinePolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "UserPolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "Process",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "CurrentUser",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "LocalMachine",
+          "policy": "Undefined"
+        }
+      ],
+      "networkContacted": true,
+      "transportEnabled": true,
+      "brokerReady": false,
+      "ordersEnabled": false,
+      "transportVersion": 1,
+      "childProcessId": 9788,
+      "childStartTicks": 639306760598158137,
+      "httpStatus": 503,
+      "denialsVerified": true,
+      "transportState": {
+        "phase": "TRANSPORT_READY",
+        "lastSeconds": 6,
+        "attempts": 1,
+        "failures": 0,
+        "retryAtSeconds": 0,
+        "connectingSinceSeconds": 0,
+        "readySinceSeconds": 4,
+        "lastHealthSeconds": 4,
+        "firstReadySeconds": 4,
+        "outageSinceSeconds": null,
+        "closedOutageSeconds": 4,
+        "reason": "TRANSPORT_ONLY_NOT_BROKER_READY",
+        "action": "NONE",
+        "brokerReady": false,
+        "ordersEnabled": false
+      },
+      "lastTlsObservation": {
+        "version": 1,
+        "observedUtc": "2026-11-19T09:07:41.1959415Z",
+        "elapsedMilliseconds": 615,
+        "exitCode": 0,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "exceptionType": null,
+        "StartMilliseconds": 25,
+        "WaitMilliseconds": 579,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 604,
+        "tcpConnectMilliseconds": 2,
+        "tlsHandshakeCompletedMilliseconds": 419,
+        "firstByteMilliseconds": 513,
+        "curlTotalMilliseconds": 513,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "HTTP_RESPONSE_STARTED",
+        "nativeErrorCategory": "UNCLASSIFIED"
+      }
+    }
+  },
+  "applicationHealthPending": true,
+  "soak": {
+    "requiredSeconds": 1800,
+    "elapsedSeconds": 402.427,
+    "observations": 29,
+    "first": {
+      "version": 1,
+      "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+      "instanceId": "7df0565758b84e3194d9d0f6fe302307",
+      "processId": 9148,
+      "sessionId": 0,
+      "sequence": 8,
+      "elapsedSeconds": 10.66,
+      "observedUtc": "2026-11-19T09:07:49.3502689Z",
+      "phase": "TRANSPORT_READY",
+      "failure": null,
+      "identityVerified": true,
+      "jobContained": true,
+      "agentIdentityVerified": true,
+      "signingVerified": true,
+      "privateCopyAbsent": true,
+      "executionPolicies": [
+        {
+          "scope": "MachinePolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "UserPolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "Process",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "CurrentUser",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "LocalMachine",
+          "policy": "Undefined"
+        }
+      ],
+      "networkContacted": true,
+      "transportEnabled": true,
+      "brokerReady": false,
+      "ordersEnabled": false,
+      "transportVersion": 1,
+      "childProcessId": 9788,
+      "childStartTicks": 639306760598158137,
+      "httpStatus": 503,
+      "denialsVerified": true,
+      "transportState": {
+        "phase": "TRANSPORT_READY",
+        "lastSeconds": 10,
+        "attempts": 1,
+        "failures": 0,
+        "retryAtSeconds": 0,
+        "connectingSinceSeconds": 0,
+        "readySinceSeconds": 4,
+        "lastHealthSeconds": 4,
+        "firstReadySeconds": 4,
+        "outageSinceSeconds": null,
+        "closedOutageSeconds": 4,
+        "reason": "TRANSPORT_ONLY_NOT_BROKER_READY",
+        "action": "NONE",
+        "brokerReady": false,
+        "ordersEnabled": false
+      },
+      "lastTlsObservation": {
+        "version": 1,
+        "observedUtc": "2026-11-19T09:07:41.1959415Z",
+        "elapsedMilliseconds": 615,
+        "exitCode": 0,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "exceptionType": null,
+        "StartMilliseconds": 25,
+        "WaitMilliseconds": 579,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 604,
+        "tcpConnectMilliseconds": 2,
+        "tlsHandshakeCompletedMilliseconds": 419,
+        "firstByteMilliseconds": 513,
+        "curlTotalMilliseconds": 513,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "HTTP_RESPONSE_STARTED",
+        "nativeErrorCategory": "UNCLASSIFIED"
+      }
+    },
+    "last": {
+      "version": 1,
+      "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+      "instanceId": "7df0565758b84e3194d9d0f6fe302307",
+      "processId": 9148,
+      "sessionId": 0,
+      "sequence": 255,
+      "elapsedSeconds": 411.916,
+      "observedUtc": "2026-11-19T09:14:30.612419Z",
+      "phase": "TRANSPORT_READY",
+      "failure": null,
+      "identityVerified": true,
+      "jobContained": true,
+      "agentIdentityVerified": true,
+      "signingVerified": true,
+      "privateCopyAbsent": true,
+      "executionPolicies": [
+        {
+          "scope": "MachinePolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "UserPolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "Process",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "CurrentUser",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "LocalMachine",
+          "policy": "Undefined"
+        }
+      ],
+      "networkContacted": true,
+      "transportEnabled": true,
+      "brokerReady": false,
+      "ordersEnabled": false,
+      "transportVersion": 1,
+      "childProcessId": 4324,
+      "childStartTicks": 639306762985373151,
+      "httpStatus": 503,
+      "denialsVerified": true,
+      "transportState": {
+        "phase": "TRANSPORT_READY",
+        "lastSeconds": 411,
+        "attempts": 2,
+        "failures": 0,
+        "retryAtSeconds": 239,
+        "connectingSinceSeconds": 239,
+        "readySinceSeconds": 242,
+        "lastHealthSeconds": 407,
+        "firstReadySeconds": 4,
+        "outageSinceSeconds": null,
+        "closedOutageSeconds": 12,
+        "reason": "TRANSPORT_ONLY_NOT_BROKER_READY",
+        "action": "NONE",
+        "brokerReady": false,
+        "ordersEnabled": false
+      },
+      "lastTlsObservation": {
+        "version": 1,
+        "observedUtc": "2026-11-19T09:14:23.9336465Z",
+        "elapsedMilliseconds": 2518,
+        "exitCode": 0,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "exceptionType": null,
+        "StartMilliseconds": 4,
+        "WaitMilliseconds": 2514,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 2518,
+        "tcpConnectMilliseconds": 2,
+        "tlsHandshakeCompletedMilliseconds": 1626,
+        "firstByteMilliseconds": 2444,
+        "curlTotalMilliseconds": 2444,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "HTTP_RESPONSE_STARTED",
+        "nativeErrorCategory": "UNCLASSIFIED"
+      },
+      "firstTlsFailure": {
+        "version": 1,
+        "observedUtc": "2026-11-19T09:11:29.0382818Z",
+        "elapsedMilliseconds": 4119,
+        "exitCode": 28,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 0,
+        "exceptionType": null,
+        "StartMilliseconds": 6,
+        "WaitMilliseconds": 4111,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 4118,
+        "tcpConnectMilliseconds": 0,
+        "tlsHandshakeCompletedMilliseconds": 0,
+        "firstByteMilliseconds": 0,
+        "curlTotalMilliseconds": 4012,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+        "nativeErrorCategory": "TIMEOUT"
+      },
+      "lastTlsFailure": {
+        "version": 1,
+        "observedUtc": "2026-11-19T09:11:29.0382818Z",
+        "elapsedMilliseconds": 4119,
+        "exitCode": 28,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 0,
+        "exceptionType": null,
+        "StartMilliseconds": 6,
+        "WaitMilliseconds": 4111,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 4118,
+        "tcpConnectMilliseconds": 0,
+        "tlsHandshakeCompletedMilliseconds": 0,
+        "firstByteMilliseconds": 0,
+        "curlTotalMilliseconds": 4012,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+        "nativeErrorCategory": "TIMEOUT"
+      },
+      "tlsFailureCount": 1
+    },
+    "healthSamples": [
+      {
+        "healthSeconds": 4,
+        "seconds": 3.787,
+        "sequence": 11,
+        "workerSeconds": 13.988,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 48,
+        "seconds": 45.568,
+        "sequence": 45,
+        "workerSeconds": 57.084,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 90,
+        "seconds": 86.734,
+        "sequence": 79,
+        "workerSeconds": 97.685,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 134,
+        "seconds": 129.352,
+        "sequence": 107,
+        "workerSeconds": 140.502,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 181,
+        "seconds": 170.88,
+        "sequence": 128,
+        "workerSeconds": 181.516,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 220,
+        "seconds": 212.466,
+        "sequence": 149,
+        "workerSeconds": 222.057,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 252,
+        "seconds": 248.966,
+        "sequence": 168,
+        "workerSeconds": 259.891,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 293,
+        "seconds": 290.646,
+        "sequence": 195,
+        "workerSeconds": 302.155,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 337,
+        "seconds": 332.299,
+        "sequence": 216,
+        "workerSeconds": 340.452,
+        "httpStatus": 503
+      },
+      {
+        "healthSeconds": 384,
+        "seconds": 374.456,
+        "sequence": 240,
+        "workerSeconds": 384.604,
+        "httpStatus": 503
+      }
+    ]
+  },
+  "failureDetails": {
+    "line": 55,
+    "type": "RuntimeException",
+    "script": "PaytmManagedTransport.ps1"
+  },
+  "workerDiagnostics": {
+    "observedUtc": "2026-11-19T09:15:06.3595431Z",
+    "readOnly": true,
+    "files": {
+      "blocked.json": {
+        "present": false,
+        "readSucceeded": false,
+        "errorType": null,
+        "value": null
+      },
+      "startup-failure.json": {
+        "present": false,
+        "readSucceeded": false,
+        "errorType": null,
+        "value": null
+      },
+      "status.json": {
+        "present": true,
+        "readSucceeded": true,
+        "errorType": null,
+        "value": {
+          "version": 1,
+          "transportVersion": 1,
+          "processId": 9148,
+          "sessionId": 0,
+          "sequence": 271,
+          "elapsedSeconds": 445.088,
+          "childProcessId": 11584,
+          "childStartTicks": 639306765037847199,
+          "httpStatus": 0,
+          "identityVerified": true,
+          "jobContained": true,
+          "agentIdentityVerified": true,
+          "signingVerified": true,
+          "privateCopyAbsent": true,
+          "networkContacted": true,
+          "transportEnabled": true,
+          "brokerReady": false,
+          "ordersEnabled": false,
+          "denialsVerified": false,
+          "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+          "instanceId": "7df0565758b84e3194d9d0f6fe302307",
+          "phase": "CONNECTING",
+          "stage": null,
+          "failure": null,
+          "mode": null,
+          "observedUtc": "2026-11-19T09:15:03.7897983Z",
+          "transportState": {
+            "attempts": 4,
+            "failures": 2,
+            "closedOutageSeconds": 12,
+            "firstReadySeconds": 4,
+            "lastSeconds": 444,
+            "retryAtSeconds": 444,
+            "phase": "CONNECTING",
+            "reason": "CONNECTING",
+            "action": "NONE"
+          },
+          "lastTlsObservation": {
+            "version": 1,
+            "elapsedMilliseconds": 4119,
+            "exitCode": 28,
+            "connectStatus": 200,
+            "tlsVerifyCode": 0,
+            "httpStatus": 0,
+            "StartMilliseconds": 9,
+            "WaitMilliseconds": 4107,
+            "StopMilliseconds": 0,
+            "DrainMilliseconds": 0,
+            "TotalMilliseconds": 4117,
+            "tcpConnectMilliseconds": 0,
+            "tlsHandshakeCompletedMilliseconds": 0,
+            "firstByteMilliseconds": 0,
+            "curlTotalMilliseconds": 4018,
+            "timedOut": false,
+            "metricsParsed": true,
+            "phaseMetricsParsed": true,
+            "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+            "nativeErrorCategory": "TIMEOUT",
+            "observedUtc": "2026-11-19T09:14:48.9296935Z"
+          },
+          "firstTlsFailure": {
+            "version": 1,
+            "elapsedMilliseconds": 4119,
+            "exitCode": 28,
+            "connectStatus": 200,
+            "tlsVerifyCode": 0,
+            "httpStatus": 0,
+            "StartMilliseconds": 6,
+            "WaitMilliseconds": 4111,
+            "StopMilliseconds": 0,
+            "DrainMilliseconds": 0,
+            "TotalMilliseconds": 4118,
+            "tcpConnectMilliseconds": 0,
+            "tlsHandshakeCompletedMilliseconds": 0,
+            "firstByteMilliseconds": 0,
+            "curlTotalMilliseconds": 4012,
+            "timedOut": false,
+            "metricsParsed": true,
+            "phaseMetricsParsed": true,
+            "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+            "nativeErrorCategory": "TIMEOUT",
+            "observedUtc": "2026-11-19T09:11:29.0382818Z"
+          },
+          "lastTlsFailure": {
+            "version": 1,
+            "elapsedMilliseconds": 4119,
+            "exitCode": 28,
+            "connectStatus": 200,
+            "tlsVerifyCode": 0,
+            "httpStatus": 0,
+            "StartMilliseconds": 9,
+            "WaitMilliseconds": 4107,
+            "StopMilliseconds": 0,
+            "DrainMilliseconds": 0,
+            "TotalMilliseconds": 4117,
+            "tcpConnectMilliseconds": 0,
+            "tlsHandshakeCompletedMilliseconds": 0,
+            "firstByteMilliseconds": 0,
+            "curlTotalMilliseconds": 4018,
+            "timedOut": false,
+            "metricsParsed": true,
+            "phaseMetricsParsed": true,
+            "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+            "nativeErrorCategory": "TIMEOUT",
+            "observedUtc": "2026-11-19T09:14:48.9296935Z"
+          },
+          "tlsFailureCount": 3
+        },
+        "length": 2903,
+        "lastWriteUtc": "2026-11-19T09:15:03.7950474Z"
+      }
+    },
+    "controls": {
+      "control.json": {
+        "present": true,
+        "readSucceeded": true,
+        "errorType": null,
+        "value": {
+          "version": 1,
+          "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+          "phase": null,
+          "stage": null,
+          "failure": null,
+          "mode": "LOCKED"
+        },
+        "length": 81,
+        "lastWriteUtc": "2026-11-19T09:07:35.1533679Z"
+      },
+      "transport-control.json": {
+        "present": true,
+        "readSucceeded": true,
+        "errorType": null,
+        "value": {
+          "version": 1,
+          "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+          "phase": null,
+          "stage": null,
+          "failure": null,
+          "mode": "ENABLED"
+        },
+        "length": 82,
+        "lastWriteUtc": "2026-11-14T19:17:04.3618648Z"
+      }
+    },
+    "task": {
+      "definitionVerified": true,
+      "state": "Running",
+      "lastRunUtc": "2026-11-19T09:07:07.0000000Z",
+      "lastResult": 267009,
+      "enabled": true
+    },
+    "process": {
+      "sessionId": 0,
+      "pid": 9148,
+      "exists": true,
+      "expectedExecutable": true,
+      "startUtc": "2026-11-19T09:07:36.8235528Z"
+    },
+    "heartbeatAdvanced": false,
+    "currentHealthEstablished": false,
+    "statusAfter": {
+      "present": true,
+      "readSucceeded": true,
+      "errorType": null,
+      "value": {
+        "version": 1,
+        "transportVersion": 1,
+        "processId": 9148,
+        "sessionId": 0,
+        "sequence": 271,
+        "elapsedSeconds": 445.088,
+        "childProcessId": 11584,
+        "childStartTicks": 639306765037847199,
+        "httpStatus": 0,
+        "identityVerified": true,
+        "jobContained": true,
+        "agentIdentityVerified": true,
+        "signingVerified": true,
+        "privateCopyAbsent": true,
+        "networkContacted": true,
+        "transportEnabled": true,
+        "brokerReady": false,
+        "ordersEnabled": false,
+        "denialsVerified": false,
+        "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+        "instanceId": "7df0565758b84e3194d9d0f6fe302307",
+        "phase": "CONNECTING",
+        "stage": null,
+        "failure": null,
+        "mode": null,
+        "observedUtc": "2026-11-19T09:15:03.7897983Z",
+        "transportState": {
+          "attempts": 4,
+          "failures": 2,
+          "closedOutageSeconds": 12,
+          "firstReadySeconds": 4,
+          "lastSeconds": 444,
+          "retryAtSeconds": 444,
+          "phase": "CONNECTING",
+          "reason": "CONNECTING",
+          "action": "NONE"
+        },
+        "lastTlsObservation": {
+          "version": 1,
+          "elapsedMilliseconds": 4119,
+          "exitCode": 28,
+          "connectStatus": 200,
+          "tlsVerifyCode": 0,
+          "httpStatus": 0,
+          "StartMilliseconds": 9,
+          "WaitMilliseconds": 4107,
+          "StopMilliseconds": 0,
+          "DrainMilliseconds": 0,
+          "TotalMilliseconds": 4117,
+          "tcpConnectMilliseconds": 0,
+          "tlsHandshakeCompletedMilliseconds": 0,
+          "firstByteMilliseconds": 0,
+          "curlTotalMilliseconds": 4018,
+          "timedOut": false,
+          "metricsParsed": true,
+          "phaseMetricsParsed": true,
+          "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+          "nativeErrorCategory": "TIMEOUT",
+          "observedUtc": "2026-11-19T09:14:48.9296935Z"
+        },
+        "firstTlsFailure": {
+          "version": 1,
+          "elapsedMilliseconds": 4119,
+          "exitCode": 28,
+          "connectStatus": 200,
+          "tlsVerifyCode": 0,
+          "httpStatus": 0,
+          "StartMilliseconds": 6,
+          "WaitMilliseconds": 4111,
+          "StopMilliseconds": 0,
+          "DrainMilliseconds": 0,
+          "TotalMilliseconds": 4118,
+          "tcpConnectMilliseconds": 0,
+          "tlsHandshakeCompletedMilliseconds": 0,
+          "firstByteMilliseconds": 0,
+          "curlTotalMilliseconds": 4012,
+          "timedOut": false,
+          "metricsParsed": true,
+          "phaseMetricsParsed": true,
+          "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+          "nativeErrorCategory": "TIMEOUT",
+          "observedUtc": "2026-11-19T09:11:29.0382818Z"
+        },
+        "lastTlsFailure": {
+          "version": 1,
+          "elapsedMilliseconds": 4119,
+          "exitCode": 28,
+          "connectStatus": 200,
+          "tlsVerifyCode": 0,
+          "httpStatus": 0,
+          "StartMilliseconds": 9,
+          "WaitMilliseconds": 4107,
+          "StopMilliseconds": 0,
+          "DrainMilliseconds": 0,
+          "TotalMilliseconds": 4117,
+          "tcpConnectMilliseconds": 0,
+          "tlsHandshakeCompletedMilliseconds": 0,
+          "firstByteMilliseconds": 0,
+          "curlTotalMilliseconds": 4018,
+          "timedOut": false,
+          "metricsParsed": true,
+          "phaseMetricsParsed": true,
+          "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+          "nativeErrorCategory": "TIMEOUT",
+          "observedUtc": "2026-11-19T09:14:48.9296935Z"
+        },
+        "tlsFailureCount": 3
+      },
+      "length": 2903,
+      "lastWriteUtc": "2026-11-19T09:15:03.7950474Z"
+    }
+  }
+}
