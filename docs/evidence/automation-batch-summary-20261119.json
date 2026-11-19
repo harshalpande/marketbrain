@@ -1,0 +1,93 @@
+{
+  "batch": {
+    "lastErrorType": "TaskCanceledException",
+    "intervalSeconds": 120,
+    "connectionErrors": 25,
+    "runId": "9819f6dd2b2a449f86213222992b04e2",
+    "pendingJobId": "fa32edd8-dcfb-4d72-8c94-a404157f042d",
+    "startedUtc": "2026-11-19T06:59:49.0049690+00:00",
+    "status": "WINDOW_ENDED_JOB_PENDING",
+    "elapsedSeconds": 1802.056753,
+    "ordersEnabled": false,
+    "jobs": [
+      {
+        "id": "8e8995d0-8127-4769-ae16-23811cd9e1ff",
+        "seconds": 41.3901591,
+        "assessment": {
+          "elevated": false,
+          "collectionPassed": true,
+          "windowsSyncError": 2,
+          "findings": [
+            "TRANSPORT_FAILED",
+            "RUNNER_NOT_ELEVATED",
+            "WINDOWS_TIME_QUERY_FAILED",
+            "WINDOWS_SYNC_NOT_CONFIRMED",
+            "SUPERVISOR_STATUS_UNAVAILABLE"
+          ],
+          "brokerReadinessAccepted": false,
+          "transportPassed": false,
+          "applicationHealthAccepted": false
+        }
+      },
+      {
+        "id": "2e8c45d9-f526-4059-af5a-44200af803b8",
+        "seconds": 1394.9239401,
+        "assessment": {
+          "elevated": true,
+          "collectionPassed": true,
+          "windowsSyncError": 0,
+          "findings": [
+            "TRANSPORT_FAILED",
+            "SUPERVISOR_NOT_READY"
+          ],
+          "brokerReadinessAccepted": false,
+          "transportPassed": false,
+          "applicationHealthAccepted": false
+        }
+      },
+      {
+        "id": "022be748-1bdb-4a1e-aada-9910fafb4bb0",
+        "seconds": 1532.6504054,
+        "assessment": {
+          "elevated": true,
+          "collectionPassed": true,
+          "windowsSyncError": 0,
+          "findings": [
+            "TRANSPORT_FAILED",
+            "SUPERVISOR_NOT_READY"
+          ],
+          "brokerReadinessAccepted": false,
+          "transportPassed": false,
+          "applicationHealthAccepted": false
+        }
+      },
+      {
+        "id": "2ffe1174-ce0f-4b0d-890d-19ac861c8cfc",
+        "seconds": 1674.3978352,
+        "assessment": {
+          "elevated": true,
+          "collectionPassed": true,
+          "windowsSyncError": 0,
+          "findings": [
+            "TRANSPORT_FAILED",
+            "SUPERVISOR_NOT_READY"
+          ],
+          "brokerReadinessAccepted": false,
+          "transportPassed": false,
+          "applicationHealthAccepted": false
+        }
+      }
+    ],
+    "durationMinutes": 30
+  },
+  "finalPendingJobResolution": {
+    "id": "fa32edd8-dcfb-4d72-8c94-a404157f042d",
+    "state": "SUCCEEDED",
+    "transportPassed": false,
+    "gatewayFailure": "TRANSPORT_UNKNOWN"
+  },
+  "completedJobsTotal": 5,
+  "pendingJobsRemaining": 0,
+  "ordersEnabled": false,
+  "readinessCreditAdded": 0
+}

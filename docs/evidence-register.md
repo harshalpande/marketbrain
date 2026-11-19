@@ -1,5 +1,7 @@
 # Evidence register and verification procedure
 
+**Automated delivery restored, 2026-11-19:** User confirmed RUNNER_UPDATE_VERIFIED; queued diagnostic returned with updated runner, elevation and Windows sync error 0. Subsequent diagnostics also returned automatically. [Evidence](evidence/automation-delivery-restored-20261119.json) shows gateway task Ready/exit 1, unchanged BLOCKED worker 75ecfd57f6874744a83611a856a8b161, TRANSPORT_UNKNOWN at observation-loop line 190 and no local listener. Delivery recovery does not establish the exact original pending-result cause. Sanitized SSH observation was omitted by the diagnostic allowlist; collection correction and redaction regression prepared. No gateway reset or readiness credit; G3 80%, total 14/30 (46.7%).
+
 **Completed-result retry correction prepared, 2026-11-19:** Updater refused pending work without changing files. A local regression proves default JSON timestamp parsing can change saved results and break immutable terminal retries after a lost response. Parser now preserves strings; updater may preserve completed pending results while RUNNING remains blocked. Requires PowerShell 7.5+; runtime confirmation pending. No queue reset, gateway restart or readiness credit.
 
 

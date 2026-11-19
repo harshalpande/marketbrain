@@ -49,8 +49,8 @@ function Get-AutomationPaytmObservation {
 function Select-AutomationGatewayFields($Value,[int]$Depth=0) {
     $selected=@{}
     # Never return raw logs, command lines, keys or unknown JSON fields.
-    $numbers=@('version','transportVersion','processId','sessionId','sequence','elapsedSeconds','lastSeconds','attempts','failures','retryAtSeconds','hresult','line','nativeErrorCode','nativePhaseMilliseconds','nativeTotalMilliseconds','signingChecks','lastTaskResult','exitCode','limitSeconds','stdoutCharacters','stderrCharacters','startAttempts','requiredSeconds','observations')
-    $booleans=@('identityVerified','agentIdentityVerified','signingVerified','privateCopyAbsent','networkContacted','transportEnabled','brokerReady','ordersEnabled','nonAdmin','nonInteractiveSession','taskRegistered','taskStarted','taskDisabled','taskRemoved','keyImported','agentChanged','productionStateUnchanged','timedOut','nativeRecoveryAttempted','failureStopVerified','soakPassed','accountPreserved','finalApplicationLockVerified','brokerCredentialsUsed','backupVerified','markersArchived','checkpointPreserved','applicationHealthPending','healthy','installedCodeChanged')
+    $numbers=@('version','transportVersion','processId','sessionId','sequence','elapsedSeconds','lastSeconds','attempts','failures','retryAtSeconds','hresult','line','nativeErrorCode','nativePhaseMilliseconds','nativeTotalMilliseconds','lastSshAttempt','lastSshElapsedSeconds','signingChecks','lastTaskResult','exitCode','limitSeconds','stdoutCharacters','stderrCharacters','startAttempts','requiredSeconds','observations')
+    $booleans=@('identityVerified','agentIdentityVerified','signingVerified','privateCopyAbsent','networkContacted','transportEnabled','brokerReady','ordersEnabled','nonAdmin','nonInteractiveSession','taskRegistered','taskStarted','taskDisabled','taskRemoved','keyImported','agentChanged','productionStateUnchanged','timedOut','nativeRecoveryAttempted','failureStopVerified','soakPassed','accountPreserved','finalApplicationLockVerified','brokerCredentialsUsed','backupVerified','markersArchived','checkpointPreserved','applicationHealthPending','healthy','installedCodeChanged','exited','stderrDrained','authenticated')
     $codes=@('phase','mode','stage','failure','reason','action','type','outerType','nativeOperation','cleanupOperation','cleanupType','status','cleanupFailure','taskState','operation','classification','errorType','recoveryMode')
     foreach($property in $Value.PSObject.Properties) {
         $name=$property.Name; $item=$property.Value
@@ -59,6 +59,8 @@ function Select-AutomationGatewayFields($Value,[int]$Depth=0) {
         elseif ($name -in $codes -and ($null -eq $item -or ($item -is [string] -and $item -cmatch '^[A-Za-z][A-Za-z0-9_]{0,119}$'))) { $selected[$name]=$item }
         elseif ($name -in @('installationId','instanceId','runId') -and $item -is [string] -and $item -cmatch '^[a-f0-9]{32}$') { $selected[$name]=$item }
         elseif ($name -eq 'nativeObservations' -and $Depth -lt 2) { $selected[$name]=@( @($item) | Select-Object -First 8 | ForEach-Object { Select-AutomationGatewayFields $_ ($Depth+1) }) }
+        elseif ($name -eq 'stderrSha256' -and $item -is [string] -and $item -cmatch '^[A-Fa-f0-9]{64}$') { $selected[$name]=$item }
+        elseif ($name -eq 'tags') { $selected[$name]=@(@($item) | Where-Object { $_ -is [string] -and $_ -cin @('TCP_CONNECT_UNKNOWN','TCP_CONNECT_DENIED','TCP_CONNECT_TIMEOUT','TCP_CONNECT_REFUSED','NETWORK_UNREACHABLE','CONNECTION_RESET','BROKEN_PIPE','KEX_CLOSED','SSH_TIMEOUT','HOST_KEY_FAILURE','PERMISSION_DENIED','SIGNING_FAILURE','LISTENER_FAILURE','DESTINATION_DENIED') } | Select-Object -First 14) }
         elseif ($name -eq 'sourceHashes' -and $null -ne $item) {
             $hashes=@{}
             foreach($hash in $item.PSObject.Properties) { if($hash.Name -cmatch '^[A-Za-z0-9-]+\.ps1$' -and $hash.Value -is [string] -and $hash.Value -cmatch '^[A-Fa-f0-9]{64}$'){$hashes[$hash.Name]=$hash.Value} }
@@ -69,7 +71,7 @@ function Select-AutomationGatewayFields($Value,[int]$Depth=0) {
             if ([DateTimeOffset]::TryParse($item,[ref]$parsed)) { $selected[$name]=$parsed.ToString('o') }
         }
         elseif ($name -eq 'observedUtc' -and ($item -is [DateTime] -or $item -is [DateTimeOffset])) { $selected[$name]=$item.ToString('o') }
-        elseif ($name -in @('transportState','details','worker','failureDetails','nativeRecovery','soak') -and $Depth -lt 2 -and $null -ne $item) { $selected[$name]=Select-AutomationGatewayFields $item ($Depth+1) }
+        elseif ($name -in @('transportState','details','worker','failureDetails','nativeRecovery','soak','lastSshObservation') -and $Depth -lt 2 -and $null -ne $item) { $selected[$name]=Select-AutomationGatewayFields $item ($Depth+1) }
     }
     return $selected
 }
