@@ -1,13 +1,21 @@
-#requires -Version 7.2
+#requires -Version 7.5
+param([switch]$PreserveCompletedPendingResult)
 $ErrorActionPreference='Stop'
 $root=Join-Path $env:LOCALAPPDATA 'MarketBrainAutomation'
 $installed=Join-Path $root 'runner\Start-AutomationWorker.ps1'
 $source=Join-Path $PSScriptRoot 'Start-AutomationWorker.ps1'
 if (-not (Test-Path -LiteralPath $installed)) { throw 'Existing runner not found. Do not initialize another account.' }
-if (Test-Path -LiteralPath (Join-Path $root 'pending.json')) { throw 'Runner has pending work. Preserve it and finish that job before updating.' }
+$pendingPath=Join-Path $root 'pending.json'
+if (Test-Path -LiteralPath $pendingPath) {
+    if(-not $PreserveCompletedPendingResult){throw 'Runner has pending work. Preserve it and finish that job before updating.'}
+    if((Get-Item -LiteralPath $pendingPath).Length -gt 262144){throw 'Pending result too large; preserve for review.'}
+    $pendingValue=Get-Content -LiteralPath $pendingPath -Raw|ConvertFrom-Json -DateKind String
+    if($pendingValue.state -notin @('SUCCEEDED','FAILED','INTERRUPTED') -or $pendingValue.id -cnotmatch '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'){throw 'Only a completed pending result may be preserved during this update. Running work remains blocked.'}
+    Write-Host 'Completed pending result will be retained and redelivered without rerunning its job.'
+}
 $oldHash=(Get-FileHash -LiteralPath $installed).Hash
 $newHash=(Get-FileHash -LiteralPath $source).Hash
-if ($oldHash -notin @('C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783','DCF48A29C29D2CFC2849B0226FBB8A1ABB72F3AA505FEB0A291AAB4F12F4A662',$newHash)) { throw 'Installed runner differs from reviewed baseline. Stop for review.' }
+if ($oldHash -notin @('C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783','DCF48A29C29D2CFC2849B0226FBB8A1ABB72F3AA505FEB0A291AAB4F12F4A662','14BA08C60CB47EEED0B9B667B825FD7A398C66034FAA20B0D65018C8DDAD2235',$newHash)) { throw 'Installed runner differs from reviewed baseline. Stop for review.' }
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent().Name
 $pattern='(?i)(?:^|\s)-File\s+(?:"'+[regex]::Escape($installed)+'"|'+[regex]::Escape($installed)+')(?:\s|$)'
 $targets=@(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine -match $pattern })
@@ -33,11 +41,11 @@ try {
 # interrupted, rather than repeating the job. No credentials or state reset.
 $backup=Join-Path $root ('runner-backup-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $backup | Out-Null
-foreach($name in @('Start-AutomationWorker.ps1','Automation.Diagnostics.ps1')) {
+foreach($name in @('Start-AutomationWorker.ps1','Automation.Diagnostics.ps1','Automation.Common.ps1')) {
     $previous=Join-Path (Split-Path $installed) $name
     if (Test-Path -LiteralPath $previous) { Copy-Item -LiteralPath $previous -Destination $backup }
 }
-foreach($name in @('Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) {
+foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) {
     $destination=Join-Path (Split-Path $installed) $name
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination ($destination+'.new')
     [IO.File]::Move(($destination+'.new'),$destination,$true)

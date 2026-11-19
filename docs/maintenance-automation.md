@@ -26,7 +26,7 @@ On the spare laptop in PowerShell 7, fast-forward the clean main checkout, then 
 & .\ops\automation\Update-AutomationDiagnostics.ps1
 ```
 
-The update validates the old runner hash, refuses pending work, stops only the identified same-user installed runner, preserves a backup and pairing, installs the diagnostic helper and new runner, and starts it again. Any claim racing with the stop remains preserved and is marked interrupted rather than repeated. No VPS change. Tell the agent when the update completes; it can submit `Send-AutomationJob.ps1 -Kind diagnostic` from the development laptop and read the returned report directly.
+The update validates the old runner hash, refuses pending work by default (completed-result preservation option below), stops only the identified same-user installed runner, preserves a backup and pairing, installs the diagnostic helper and new runner, and starts it again. Any claim racing with the stop remains preserved and is marked interrupted rather than repeated. No VPS change. Tell the agent when the update completes; it can submit `Send-AutomationJob.ps1 -Kind diagnostic` from the development laptop and read the returned report directly.
 
 The existing administrator-only scheduled health test still requires a local password. It is not launched by this job. We will use the new evidence to choose the narrow correction before adapting that privileged test; blindly rerunning the known failing collector would not resolve the cause.
 
@@ -180,3 +180,11 @@ The active agent reviews results and chooses any subsequent authorized implement
 Post-restart observation on 2026-11-19: initial runner was non-elevated. Operator status query returned sync error 2; source query was access denied. The first TCP/TLS probes passed, the next found port 18889 unavailable. Protected gateway files were unreadable, so cause could not be established from that context. Microsoft documents local administrator membership for w32tm: https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings . The dedicated non-admin collector must not assume those queries are available. Elevating an operator diagnostic does not prove collector readiness.
 
 Tests cover eight semantic assessment cases and simulated lost-reply/idempotent submission, sequential continuation after failure, bounded window and retained raw results. Simulated timing is not a runtime stability acceptance.
+
+## Preserve completed delivery during a runner update
+
+2026-11-19 local regression reproduced ISO timestamp conversion when a saved result is reloaded with default `ConvertFrom-Json`. If the first delivery was accepted but its response lost, converting `+00:00` strings to local DateTime strings changes the terminal JSON and the relay correctly rejects the retry as immutable. This is a confirmed retry defect; the spare laptop's exact pending body/delivery failure still requires runtime confirmation.
+
+Common API parsing and worker pending reads now use `-DateKind String`; PowerShell 7.5+ is required (both machines run 7.7). `Update-AutomationDiagnostics.ps1 -PreserveCompletedPendingResult` permits only SUCCEEDED, FAILED or INTERRUPTED pending states with a valid job ID. RUNNING stays blocked. The updater retains pending bytes, updates Common alongside runner/helper and starts the worker so it can redeliver, not re-execute, the completed job. Do not delete pending.json or change terminal server records.
+
+Run the corrected updater locally in elevated PowerShell 7 after pulling. It does not change gateway state or Windows time. Local TLS integration tests simulate an accepted result with lost reply, verify exact UTC and offset string replay, running-state rejection, completed-pending upgrade and result drain. If the original pending result was already changed or the network remains unavailable, preserve evidence and review instead of forcing acceptance.

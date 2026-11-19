@@ -1,4 +1,4 @@
-#requires -Version 7.2
+#requires -Version 7.5
 [CmdletBinding()]
 param([switch]$Once,[ValidatePattern('^$|^[a-f0-9]{32}$')][string]$StartupNonce='')
 . (Join-Path $PSScriptRoot 'Automation.Common.ps1')
@@ -19,7 +19,7 @@ try {
         try {
             # Persist before execution; an interrupted job is reported, never replayed.
             if (Test-Path -LiteralPath $pending) {
-                $update = Get-Content -LiteralPath $pending -Raw | ConvertFrom-Json
+                $update = Get-Content -LiteralPath $pending -Raw | ConvertFrom-Json -DateKind String
                 if ($update.state -eq 'RUNNING') {
                     $update.state = 'INTERRUPTED'
                     $update.result = @{ reason='Worker exited before saving completion'; ordersEnabled=$false }

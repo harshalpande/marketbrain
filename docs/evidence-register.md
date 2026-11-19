@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+**Completed-result retry correction prepared, 2026-11-19:** Updater refused pending work without changing files. A local regression proves default JSON timestamp parsing can change saved results and break immutable terminal retries after a lost response. Parser now preserves strings; updater may preserve completed pending results while RUNNING remains blocked. Requires PowerShell 7.5+; runtime confirmation pending. No queue reset, gateway restart or readiness credit.
+
+
 **Post-restart automated session, 2026-11-19:** Initial job returned automatically with gateway TCP/TLS success but non-elevated runner, time-source access denied and Windows sync error 2. Next job found local transport unavailable; protected supervisor state could not be read. Both runner/helper hashes verified. Bounded controller batch implemented and tested; no autonomous repair privileges implied. Elevated updater failed according to user; exact local error requested. G3 stays 80%, total 14/30 (46.7%); current readiness not accepted.
 
 

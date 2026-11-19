@@ -1,4 +1,4 @@
-#requires -Version 7.2
+#requires -Version 7.5
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 if (-not ('MarketBrainRelayClient' -as [type])) {
@@ -22,7 +22,7 @@ function Get-AutomationConfig([string]$Path) {
     $cipher = Get-Content -LiteralPath $Path -Raw
     $secure = ConvertTo-SecureString $cipher
     $plain = [System.Net.NetworkCredential]::new('', $secure).Password
-    $config = $plain | ConvertFrom-Json
+    $config = $plain | ConvertFrom-Json -DateKind String
     $plain = $null
     if ($config.url -notmatch '^https://[a-zA-Z0-9.-]+:18443$' -or $config.pin -notmatch '^[A-F0-9]{64}$' -or $config.token -notmatch '^[a-f0-9]{64}$' -or $config.role -notin @('controller','worker')) { throw 'Invalid pairing configuration' }
     return $config
@@ -36,7 +36,7 @@ function Invoke-AutomationApi($Config,[string]$Route,$Body) {
             $response = $client.PostAsync($Config.url + $Route,$content).GetAwaiter().GetResult()
             try {
                 if (-not $response.IsSuccessStatusCode) { throw "Relay returned HTTP $([int]$response.StatusCode)" }
-                return ($response.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json)
+                return ($response.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json -DateKind String)
             } finally { $response.Dispose() }
         } finally { $content.Dispose() }
     } finally { $client.Dispose() }

@@ -25,6 +25,18 @@ $null=Invoke-AutomationApi $worker '/claim' @{}
 Write-AutomationState (Join-Path $root 'pending.json') @{id=$id2;state='RUNNING';result=$null}
 & (Join-Path $PSScriptRoot 'Start-AutomationWorker.ps1') -Once
 if ((Invoke-AutomationApi $controller '/result' @{id=$id2}).job.state -ne 'INTERRUPTED') { throw 'Interrupted work was not preserved' }
+$id3=[guid]::NewGuid().ToString()
+$null=Invoke-AutomationApi $controller '/submit' @{id=$id3;kind='diagnostic'}
+$null=Invoke-AutomationApi $worker '/claim' @{}
+$terminal=@{id=$id3;state='SUCCEEDED';result=@{observedUtc='2026-11-19T06:59:50.1234567+00:00';nested=@{observedUtc='2026-11-19T12:29:50.1234567+05:30'};ordersEnabled=$false}}
+# Simulate accepted result with lost response: identical saved result must replay
+# without PowerShell converting ISO strings into local DateTime formatting.
+$null=Invoke-AutomationApi $worker '/update' $terminal
+Write-AutomationState (Join-Path $root 'pending.json') $terminal
+& (Join-Path $PSScriptRoot 'Start-AutomationWorker.ps1') -Once
+if(Test-Path (Join-Path $root 'pending.json')){throw 'Timestamp-bearing result did not drain'}
+$replayed=(Invoke-AutomationApi $controller '/result' @{id=$id3}).job
+if($replayed.result.observedUtc -cne $terminal.result.observedUtc -or $replayed.result.nested.observedUtc -cne $terminal.result.nested.observedUtc){throw 'Timestamp strings changed during replay'}
 $controller.pin='0'*64
 $rejected=$false
 try { $null=Invoke-AutomationApi $controller '/result' @{id=$id} } catch { $rejected=$true }
@@ -60,9 +72,21 @@ try {
     $oldProcess.Refresh()
     if(-not $oldProcess.HasExited){throw 'Old worker survived replacement'}
     if($s.diagnosticsSha256 -ne (Get-FileHash (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash){throw 'Wrong helper loaded'}
+    Stop-Process -Id $s.processId -ErrorAction Stop
+    Wait-Process -Id $s.processId -Timeout 5 -ErrorAction SilentlyContinue
+    Write-AutomationState (Join-Path $root 'pending.json') @{id=$id3;state='RUNNING';result=$null}
+    $blocked=$false
+    try { & (Join-Path $PSScriptRoot 'Update-AutomationDiagnostics.ps1') -PreserveCompletedPendingResult } catch { $blocked=$true }
+    if(-not $blocked -or -not (Test-Path (Join-Path $root 'pending.json'))){throw 'Running result was not preserved/blocked'}
+    Write-AutomationState (Join-Path $root 'pending.json') $terminal
+    & (Join-Path $PSScriptRoot 'Update-AutomationDiagnostics.ps1') -PreserveCompletedPendingResult
+    $drain=[Diagnostics.Stopwatch]::StartNew()
+    while((Test-Path (Join-Path $root 'pending.json')) -and $drain.Elapsed.TotalSeconds -lt 15){Start-Sleep -Milliseconds 250}
+    if(Test-Path (Join-Path $root 'pending.json')){throw 'Completed pending result failed to drain after updater'}
 } finally {
     # Only processes whose exact fixture path is present; no broad process kill.
     Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($installedWorker) } | ForEach-Object { Stop-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; Wait-Process -Id $_.ProcessId -Timeout 5 -ErrorAction SilentlyContinue }
 }
 Write-Host 'PASS: real runner replacement, unquoted command-line discovery, nonce/PID/hash startup acknowledgment and original process exit.'
 Write-Host 'PASS: real TLS, DPAPI pairing, HTTP authentication, worker execution, report return, restart interruption, wrong certificate, wrong token and role isolation.'
+Write-Host 'PASS: accepted-result replay preserves UTC/offset strings; pending-result updater blocks RUNNING and drains completed evidence without job rerun.'
