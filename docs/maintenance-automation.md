@@ -1,5 +1,7 @@
 # Maintenance automation: initial installation
 
+**2026-11-19: remote execution and version update accepted; transport remains blocked.** Runtime evidence: [queued-test-runtime-20261119.json](evidence/queued-test-runtime-20261119.json). Three real queued jobs executed and returned evidence, including a deliberate failure and a newly committed test version, with no manual spare commands. Current gateway failure is TRANSPORT_DENIAL_FAILED; application remains locked. The denial response itself was not captured, so do not infer policy bypass or reset the failure marker. Password-dependent and VPS jobs are still outside this catalogue. G3 80%, total 14/30; no new readiness checkpoint.
+
 Priority authorized 2026-11-18. Purpose: remove manual script/report transfer between the development laptop and the spare Windows laptop. This is independent of the MarketBrain application and Paytm transport. Existing trading gates remain unchanged.
 
 ## Actual acceptance on 2026-11-18
