@@ -1,0 +1,186 @@
+{
+  "status": "VERSIONED_TEST_EXECUTION_AND_UPDATE_VERIFIED_GATEWAY_BLOCKED",
+  "diagnostic": {
+    "id": "81c14841-1359-458c-b027-9d994f26aa7e",
+    "state": "SUCCEEDED",
+    "supportedJobs": [
+      "diagnostic",
+      "intervention-test",
+      "paytm-transport-test"
+    ],
+    "runnerSha256": "51D0D42D43E90B539058F70999BB81A246CA9DABB0DE1F8D147CBD4EE54B23AF",
+    "executionSha256": "F7BB7195D308C12F6A2F38DC1BD530FD60F4EE1FB9C4BD7F26F8283A5EED1696",
+    "gatewayStatus": {
+      "fields": {
+        "transportState": {
+          "brokerReady": false,
+          "failures": 3,
+          "retryAtSeconds": 7196,
+          "phase": "CONNECTING",
+          "reason": "CONNECTING",
+          "ordersEnabled": false,
+          "attempts": 26,
+          "action": "NONE",
+          "lastSeconds": 7201
+        },
+        "agentIdentityVerified": true,
+        "sessionId": 0,
+        "transportVersion": 1,
+        "privateCopyAbsent": true,
+        "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+        "failure": "TRANSPORT_DENIAL_FAILED",
+        "phase": "BLOCKED",
+        "networkContacted": true,
+        "lastSshObservation": {
+          "exited": true,
+          "stderrSha256": "3D2A7CF267DC6C7AF2F9A08E1030C605A8AE0533C375460DCC3D2FDE50BC1A03",
+          "stderrCharacters": 524,
+          "reason": "NETWORK_UNAVAILABLE",
+          "tags": [
+            "TCP_CONNECT_TIMEOUT"
+          ],
+          "authenticated": false,
+          "version": 1,
+          "stderrDrained": true
+        },
+        "brokerReady": false,
+        "lastSshAttempt": 8,
+        "elapsedSeconds": 7201.275,
+        "observedUtc": "2026-11-19T16:40:28.3139792Z",
+        "identityVerified": true,
+        "signingVerified": true,
+        "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+        "transportEnabled": true,
+        "ordersEnabled": false,
+        "sequence": 3860,
+        "processId": 19100,
+        "lastSshElapsedSeconds": 3821,
+        "version": 1
+      },
+      "state": "READ"
+    }
+  },
+  "tests": [
+    {
+      "id": "494186ea-c856-4006-a05f-0fbd98f9ffd0",
+      "kind": "paytm-transport-test",
+      "state": "FAILED",
+      "created": 1795112287.1796248,
+      "updated": 1795112299.474369,
+      "result": {
+        "stderrCharacters": 0,
+        "sourceSha256": "E5CEF4467BA8721DCE5A77A1510B8EC85AF7346E29905A000052532B212022C6",
+        "revision": "ec1f5434ff2ad38cdbd933a927f30ae081d6c2d0",
+        "elapsedSeconds": 2.1861856,
+        "timedOut": false,
+        "ordersEnabled": false,
+        "evidence": {
+          "elapsedSeconds": 0.8870045,
+          "gatewayChanged": false,
+          "failure": "No matching MSFT_NetTCPConnection objects found by CIM query for instances of the ROOT/StandardCimv2/MSFT_NetTCPConnection class on the  CIM server: SELECT * FROM MSFT_NetTCPConnection  WHERE ((LocalP",
+          "scope": "OPERATOR_TRANSPORT_NOT_BROKER_READINESS",
+          "brokerCredentialsUsed": false,
+          "ordersEnabled": false,
+          "test": "PAYTM_TRANSPORT_OBSERVATION",
+          "samples": [],
+          "passed": false,
+          "version": 1
+        },
+        "exitCode": 1,
+        "stdoutCharacters": 0,
+        "passed": false
+      },
+      "spec": {
+        "mode": "Observe",
+        "sha256": "E5CEF4467BA8721DCE5A77A1510B8EC85AF7346E29905A000052532B212022C6",
+        "revision": "ec1f5434ff2ad38cdbd933a927f30ae081d6c2d0"
+      }
+    },
+    {
+      "id": "44798f23-6e32-469a-b0b1-ef436ad9f0b2",
+      "kind": "paytm-transport-test",
+      "state": "FAILED",
+      "created": 1795112370.2185674,
+      "updated": 1795112374.325527,
+      "result": {
+        "stderrCharacters": 0,
+        "sourceSha256": "E5CEF4467BA8721DCE5A77A1510B8EC85AF7346E29905A000052532B212022C6",
+        "revision": "ec1f5434ff2ad38cdbd933a927f30ae081d6c2d0",
+        "elapsedSeconds": 2.1968263,
+        "timedOut": false,
+        "ordersEnabled": false,
+        "evidence": {
+          "brokerCredentialsUsed": false,
+          "elapsedSeconds": 0.0219525,
+          "ordersEnabled": false,
+          "test": "PAYTM_TRANSPORT_OBSERVATION",
+          "scope": "OPERATOR_TRANSPORT_NOT_BROKER_READINESS",
+          "version": 1,
+          "failure": "DELIBERATE_FAILURE_FIXTURE_NO_GATEWAY_ACCESS",
+          "passed": false,
+          "samples": [],
+          "gatewayChanged": false
+        },
+        "exitCode": 1,
+        "stdoutCharacters": 0,
+        "passed": false
+      },
+      "spec": {
+        "sha256": "E5CEF4467BA8721DCE5A77A1510B8EC85AF7346E29905A000052532B212022C6",
+        "revision": "ec1f5434ff2ad38cdbd933a927f30ae081d6c2d0",
+        "mode": "FailureFixture"
+      }
+    },
+    {
+      "id": "52b48f3c-92b6-4086-a546-fed80aa0bf26",
+      "kind": "paytm-transport-test",
+      "state": "FAILED",
+      "created": 1795112446.9056304,
+      "updated": 1795112459.4736094,
+      "result": {
+        "stderrCharacters": 0,
+        "sourceSha256": "E17CB4514EE97057C8F6B697E3FDCDE90228851546A301ACC66923E713625F30",
+        "revision": "a910684a984ccf7980bca146180c8d68e417721a",
+        "elapsedSeconds": 2.2111813,
+        "timedOut": false,
+        "ordersEnabled": false,
+        "evidence": {
+          "samples": [],
+          "passed": false,
+          "elapsedSeconds": 0.1214266,
+          "test": "PAYTM_TRANSPORT_OBSERVATION",
+          "gatewayChanged": false,
+          "version": 2,
+          "preflight": {
+            "sequence": 3860,
+            "phase": "BLOCKED",
+            "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+            "applicationLocked": true,
+            "failure": "TRANSPORT_DENIAL_FAILED"
+          },
+          "failure": "GATEWAY_BLOCKED:TRANSPORT_DENIAL_FAILED",
+          "brokerCredentialsUsed": false,
+          "ordersEnabled": false,
+          "scope": "OPERATOR_TRANSPORT_NOT_BROKER_READINESS"
+        },
+        "exitCode": 1,
+        "stdoutCharacters": 0,
+        "passed": false
+      },
+      "spec": {
+        "mode": "Observe",
+        "revision": "a910684a984ccf7980bca146180c8d68e417721a",
+        "sha256": "E17CB4514EE97057C8F6B697E3FDCDE90228851546A301ACC66923E713625F30"
+      }
+    }
+  ],
+  "runtimeSourceHashesVerified": true,
+  "productionGatewayChanged": false,
+  "ordersEnabled": false,
+  "limitations": [
+    "Transport tests failed because gateway was already blocked",
+    "Failure fixture intentionally failed without gateway access",
+    "No network interruption or secret prompt test performed this turn",
+    "Original denial failure response not captured; root cause remains unknown"
+  ]
+}
