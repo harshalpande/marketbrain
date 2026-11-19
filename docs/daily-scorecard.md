@@ -1,5 +1,8 @@
 # Daily delivery scorecard
 
+**Post-restart automated session, 2026-11-19:** Initial job returned automatically with gateway TCP/TLS success but non-elevated runner, time-source access denied and Windows sync error 2. Next job found local transport unavailable; protected supervisor state could not be read. Both runner/helper hashes verified. Bounded controller batch implemented and tested; no autonomous repair privileges implied. Elevated updater failed according to user; exact local error requested. G3 stays 80%, total 14/30 (46.7%); current readiness not accepted.
+
+
 **Transport stability accepted, 2026-11-18:** [Recovery](evidence/gateway-transport-stability-accepted-20261118.json) passed 149 observations over 1811.422 seconds, same worker, zero reported transport failures, account preserved and application locked. Seven source hashes verified. [Automatic recheck](evidence/automation-transport-recheck-20261118.json) confirms running task, advancing heartbeat, TCP and both TLS probes; two runner/helper hashes verified. Root HTTP 503 remains broker-readiness warning. Health-account Windows time access and collector acceptance remain open; G3 80%, total 14/30 (46.7%).
 
 
