@@ -1,13 +1,13 @@
 #requires -Version 7.2
-param([switch]$ResumeAfterHealthBlock,[switch]$ReviewedSshExit)
-if($ResumeAfterHealthBlock -and $ReviewedSshExit){throw 'Select one recovery mode only.'}
+param([switch]$ResumeAfterHealthBlock,[switch]$ReviewedSshExit,[switch]$AfterPairedCapture)
+if(([int][bool]$ResumeAfterHealthBlock+[int][bool]$ReviewedSshExit+[int][bool]$AfterPairedCapture) -gt 1){throw 'Select one recovery mode only.'}
 $ErrorActionPreference='Stop'
 $directory=Join-Path 'C:\MarketBrainData\Review' ('automation-recovery-'+[guid]::NewGuid().ToString('N'))
 $latest='C:\MarketBrainData\Review\automation-gateway-recovery-latest.json'
 $script=Join-Path $PSScriptRoot '..\windows\RepairPaytmNativeProcess.ps1'
 Write-Host 'Starting one reviewed recovery and 30-minute stability observation. Leave this window open.'
 try {
- $mode=if($ReviewedSshExit){'-ReviewedSshRecovery'}elseif($ResumeAfterHealthBlock){'-HealthBlockedTransportResume'}else{'-CurrentSigningRecovery'}
+ $mode=if($AfterPairedCapture){'-PairedCaptureResume'}elseif($ReviewedSshExit){'-ReviewedSshRecovery'}elseif($ResumeAfterHealthBlock){'-HealthBlockedTransportResume'}else{'-CurrentSigningRecovery'}
  & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File $script $mode -OutputDirectory $directory
  $exit=$LASTEXITCODE
 } finally {

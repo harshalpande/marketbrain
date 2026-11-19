@@ -1,5 +1,6 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture,[switch]$ReviewedSshFixture,[switch]$ConcurrentTlsFixture)
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture,[switch]$ReviewedSshFixture,[switch]$ConcurrentTlsFixture,[switch]$PairedCaptureFixture)
+if($PairedCaptureFixture){$HealthResumeFixture=$true}
 if($ConcurrentTlsFixture){$TlsPhaseFixture=$true}
 if($ReviewedSshFixture){$HealthResumeFixture=$true}
 if($TlsResumeFixture){$TlsPhaseFixture=$true}
@@ -68,6 +69,7 @@ try{
   $file=Join-Path $ops 'RepairPaytmNativeProcess.ps1';Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RepairPaytmNativeProcess.ps1') -Destination $file
   $extra=@{}
   if($HealthResumeFixture){$extra.HealthBlockedTransportResume=$true;[IO.File]::WriteAllText((Join-Path $ops 'PaytmTransportHealthResume.ps1'),'# adapter mocked separately')}
+  if($PairedCaptureFixture){$extra.Remove('HealthBlockedTransportResume');$extra.PairedCaptureResume=$true;[IO.File]::WriteAllText((Join-Path $ops 'PaytmPairedCaptureResume.ps1'),'# adapter mocked separately')}
   if($ReviewedSshFixture){$extra.Remove('HealthBlockedTransportResume');$extra.ReviewedSshRecovery=$true;[IO.File]::WriteAllText((Join-Path $ops 'PaytmReviewedSshRecovery.ps1'),'# adapter mocked separately')}
   if($IncidentRecoveryFixture){
    [IO.File]::WriteAllText((Join-Path $ops 'PaytmIncidentRecovery.ps1'),'# adapter mocked separately')
