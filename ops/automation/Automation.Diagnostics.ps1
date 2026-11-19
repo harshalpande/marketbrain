@@ -43,6 +43,7 @@ function Get-AutomationPaytmObservation {
         $arguments=@('-q','--proxy','http://127.0.0.1:18889','--noproxy','','--head','--proto','=https','--connect-timeout',"$seconds",'--max-time',"$($seconds+2)",'--silent','--show-error','--output','NUL','--write-out','%{http_code}|%{http_connect}|%{remote_ip}|%{time_connect}|%{time_appconnect}|%{time_total}','https://developer.paytmmoney.com/')
         @{connectTimeoutSeconds=$seconds;observation=(Invoke-AutomationNativeObservation $curl $arguments ($seconds+4))}
     })
+    $report.sshReachability=@(1..2 | ForEach-Object { Invoke-AutomationSshIdentification })
     return $report
 }
 
@@ -113,5 +114,56 @@ try {
     catch { $result.sshAgentService=@{errorType=$_.Exception.GetType().Name} }
     Start-Sleep -Seconds 2
     $result.secondStatus=Read-AutomationGatewaySnapshot (Join-Path $work 'status.json')
+    return $result
+}
+
+# Current operator-context connectivity only. No client identification, key,
+# authentication, shell command or forwarding request is sent.
+function Invoke-AutomationSshIdentification {
+    param([ValidateSet('130.250.191.137','127.0.0.1')][string]$Address='130.250.191.137',
+          [ValidateRange(1,65535)][int]$Port=22,
+          [ValidateRange(100,6000)][int]$DeadlineMilliseconds=6000)
+    $watch=[Diagnostics.Stopwatch]::StartNew()
+    $result=@{observedUtc=[DateTimeOffset]::UtcNow.ToString('o');scope='OPERATOR_NOT_GATEWAY_IDENTITY';
+        address=$Address;port=$Port;tcpConnected=$false;sshIdentificationReceived=$false;
+        hostIdentityVerified=$false;authenticationAttempted=$false;gatewayChanged=$false;ordersEnabled=$false;
+        outcome='NOT_STARTED';receivedBytes=0}
+    $client=[Net.Sockets.TcpClient]::new()
+    try {
+        $connect=$client.ConnectAsync($Address,$Port)
+        if(-not $connect.Wait([Math]::Min(3000,$DeadlineMilliseconds))){$result.outcome='CONNECT_TIMEOUT';return $result}
+        $result.tcpConnected=$client.Connected
+        $stream=$client.GetStream()
+        $bytes=[byte[]]::new(1024)
+        $line=[Collections.Generic.List[byte]]::new()
+        while($result.receivedBytes -lt 1024) {
+            $remaining=$DeadlineMilliseconds-[int]$watch.ElapsedMilliseconds
+            if($remaining -le 0){$result.outcome='IDENTIFICATION_TIMEOUT';return $result}
+            $read=$stream.ReadAsync($bytes,0,[Math]::Min($bytes.Length,1024-$result.receivedBytes))
+            if(-not $read.Wait($remaining)){$result.outcome='IDENTIFICATION_TIMEOUT';return $result}
+            $count=$read.GetAwaiter().GetResult()
+            if($count -eq 0){$result.outcome='CLOSED_BEFORE_IDENTIFICATION';return $result}
+            $result.receivedBytes+=$count
+            for($i=0;$i -lt $count;$i++) {
+                if($bytes[$i] -eq 10) {
+                    $text=[Text.Encoding]::ASCII.GetString($line.ToArray()).TrimEnd([char]13)
+                    if($text -cmatch '^SSH-(2\.0|1\.99)-[!-~]+(?: [ -~]*)?$' -and $line.Count -le 254){
+                        $result.sshIdentificationReceived=$true;$result.outcome='SSH_IDENTIFICATION_RECEIVED';return $result
+                    }
+                    if($text.StartsWith('SSH-')){$result.outcome='INVALID_OR_UNSUPPORTED_IDENTIFICATION';return $result}
+                    $line.Clear()
+                }else{$line.Add($bytes[$i])}
+            }
+        }
+        $result.outcome='IDENTIFICATION_BYTE_LIMIT'
+    } catch {
+        $cause=$_.Exception.GetBaseException()
+        $result.outcome='CONNECTION_ERROR'
+        $result.errorType=$cause.GetType().Name
+        if($cause -is [Net.Sockets.SocketException]){$result.socketError=$cause.SocketErrorCode.ToString()}
+    } finally {
+        $client.Dispose()
+        $result.elapsedMilliseconds=$watch.ElapsedMilliseconds
+    }
     return $result
 }
