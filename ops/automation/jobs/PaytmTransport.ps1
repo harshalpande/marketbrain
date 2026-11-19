@@ -1,17 +1,33 @@
 #requires -Version 7.5
 param([Parameter(Mandatory)][string]$ResultPath,[ValidateSet('Observe','FailureFixture')][string]$Mode='Observe')
 $ErrorActionPreference='Stop'
-$report=@{version=1;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
+$report=@{version=2;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
 $watch=[Diagnostics.Stopwatch]::StartNew()
 function Read-BoundedJson([string]$Path) {
     if ((Get-Item -LiteralPath $Path).Length -gt 65536) { throw 'STATE_TOO_LARGE' }
     Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -DateKind String
+}
+function Get-TransportPreflightEvidence($State,$Control) {
+    $e=@{applicationLocked=($Control.mode -ceq 'LOCKED' -and $State.ordersEnabled -eq $false -and $State.brokerReady -eq $false)}
+    foreach($name in @('phase','failure')) {
+        $value=$State.$name
+        if($value -is [string] -and $value -cmatch '^[A-Z][A-Z0-9_]{0,119}$'){$e[$name]=$value}
+    }
+    if($State.instanceId -cmatch '^[a-f0-9]{32}$'){$e.instanceId=$State.instanceId}
+    if($State.sequence -is [long] -or $State.sequence -is [int]){$e.sequence=$State.sequence}
+    return $e
 }
 try {
     if ($Mode -eq 'FailureFixture') { throw 'DELIBERATE_FAILURE_FIXTURE_NO_GATEWAY_ACCESS' }
     $control='C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1\control.json'
     $status='C:\ProgramData\MarketBrainPaytmGateway\supervisor-work-v1\status.json'
     $initial=Read-BoundedJson $status
+    $report.preflight=Get-TransportPreflightEvidence $initial (Read-BoundedJson $control)
+    if(-not $report.preflight.applicationLocked){throw 'APPLICATION_NOT_LOCKED'}
+    if($initial.phase -cne 'TRANSPORT_READY'){
+        if($report.preflight.phase -ceq 'BLOCKED' -and $report.preflight.failure){throw ('GATEWAY_BLOCKED:'+$report.preflight.failure)}
+        throw 'GATEWAY_NOT_READY'
+    }
     for($i=0;$i -lt 6;$i++) {
         $state=Read-BoundedJson $status
         $lock=Read-BoundedJson $control
