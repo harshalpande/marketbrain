@@ -413,3 +413,5 @@ Latest handoff gains: preflight 60% to 100% (+40 pp), plus a separately scoped N
 5. Prospective paper pilot: at least 30 elapsed calendar days and 20 trading sessions, with longer-horizon outcomes allowed to mature. Live release and numerical-model promotion remain independent gates.
 
 Policy decisions and portal contracts can be prepared alongside backend work. Do not bypass the sequential permission, integration, execution and pilot gates or repeat accepted tests without a relevant change.
+
+2026-11-19 automation implementation: versioned real transport test delivery/execution is locally verified; spare runtime acceptance pending. This is implementation progress, not an earned Paytm readiness checkpoint. G3 remains 80%; total Paytm readiness remains 14/30 (46.7%).

@@ -3,8 +3,10 @@
 param([switch]$Once,[ValidatePattern('^$|^[a-f0-9]{32}$')][string]$StartupNonce='')
 . (Join-Path $PSScriptRoot 'Automation.Common.ps1')
 . (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')
+. (Join-Path $PSScriptRoot 'Automation.TestExecution.ps1')
 $loadedRunnerHash=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
 $loadedDiagnosticsHash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash
+$loadedExecutionHash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.TestExecution.ps1')).Hash
 $root = Join-Path $env:LOCALAPPDATA 'MarketBrainAutomation'
 $config = Get-AutomationConfig (Join-Path $root 'worker.dpapi')
 if ($config.role -ne 'worker') { throw 'Worker pairing required' }
@@ -14,7 +16,7 @@ $pending = Join-Path $root 'pending.json'
 $history = Join-Path $root 'reports'
 New-Item -ItemType Directory -Path $history -Force | Out-Null
 try {
-    Write-AutomationState (Join-Path $root 'worker-status.json') @{state='STARTED';processId=$PID;startupNonce=$StartupNonce;runnerSha256=$loadedRunnerHash;diagnosticsSha256=$loadedDiagnosticsHash;observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
+    Write-AutomationState (Join-Path $root 'worker-status.json') @{state='STARTED';processId=$PID;startupNonce=$StartupNonce;runnerSha256=$loadedRunnerHash;diagnosticsSha256=$loadedDiagnosticsHash;executionSha256=$loadedExecutionHash;observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
     do {
         try {
             # Persist before execution; an interrupted job is reported, never replayed.
@@ -38,6 +40,9 @@ try {
                 Write-Host "Running $($job.kind): $($job.id)"
                 try {
                     switch ($job.kind) {
+                        'paytm-transport-test' {
+                            $report=Invoke-AutomationReviewedTest $job $root { param($progress) $null=Invoke-AutomationApi $config '/update' @{id=$job.id;state='RUNNING';result=$progress} }
+                        }
                         'diagnostic' {
                             # Fixed, read-only, bounded catalogue. No credentials,
                             # arbitrary commands, application changes or order calls.
@@ -50,6 +55,8 @@ try {
                                 sessionId=(Get-Process -Id $PID).SessionId
                                 runnerSha256=$loadedRunnerHash
                                 diagnosticsSha256=$loadedDiagnosticsHash
+                                executionSha256=$loadedExecutionHash
+                                supportedJobs=@('diagnostic','intervention-test','paytm-transport-test')
                                 ordersEnabled=$false
                                 paytmObservation=(Get-AutomationPaytmObservation)
                             }
@@ -67,7 +74,8 @@ try {
                         }
                         default { throw 'Unsupported job kind' }
                     }
-                    $update.state='SUCCEEDED'; $update.result=$report
+                    $update.state=if($job.kind -eq 'paytm-transport-test' -and -not $report.passed){'FAILED'}else{'SUCCEEDED'}
+                    $update.result=$report
                 } catch {
                     $update.state='FAILED'
                     $update.result=@{reason=$_.Exception.Message.Substring(0,[Math]::Min(300,$_.Exception.Message.Length));ordersEnabled=$false}

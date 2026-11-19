@@ -14,6 +14,7 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument("--pwsh", required=True)
 parser.add_argument("--openssl", required=True)
+parser.add_argument("--test-script", choices=["Test-AutomationClient.ps1", "Test-AutomationQueuedExecution.ps1"], default="Test-AutomationClient.ps1")
 args = parser.parse_args()
 source = Path(__file__).parent.resolve()
 with tempfile.TemporaryDirectory(prefix="marketbrain-automation-test-") as name:
@@ -31,7 +32,7 @@ with tempfile.TemporaryDirectory(prefix="marketbrain-automation-test-") as name:
         time.sleep(1)
         if process.poll() is not None:
             raise RuntimeError("Fixture relay did not start")
-        subprocess.run([args.pwsh, "-NoProfile", "-File", str(source / "Test-AutomationClient.ps1"), "-FixtureDirectory", str(folder)], check=True, timeout=90)
+        subprocess.run([args.pwsh, "-NoProfile", "-File", str(source / args.test_script), "-FixtureDirectory", str(folder)], check=True, timeout=90)
     finally:
         process.terminate()
         process.wait(timeout=10)

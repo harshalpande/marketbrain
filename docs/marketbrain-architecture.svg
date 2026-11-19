@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1180" viewBox="0 0 1200 1180" role="img" aria-labelledby="title desc">
 
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">Thirty-minute transport check passed with recovered TLS timeouts; application remains locked. Current automation supports diagnostics and intervention demonstration only. Priority target is versioned real-test delivery, execution, progress and automatic results with local secret prompts. This target is not implemented yet; G3 remains 80 percent.</desc>
+  <desc id="desc">Versioned queued transport test: exact revision/hash delivery, bounded execution, durable results and progress. Local tests pass; spare bootstrap and runtime acceptance pending. G3 remains 80 percent.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -26,7 +26,7 @@
   <rect x="425" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="443" y="121" class="label">Upstox + Paytm live feeds</text>
   <text x="443" y="148" class="body">Paytm synthetic rehearsal accepted</text>
-  <text x="443" y="173" class="body">G3 40%: agent diagnostics; boot paused</text>
+  <text x="443" y="173" class="body">G3 80%: health acceptance pending</text>
   <rect x="820" y="94" width="350" height="110" rx="9" class="planned"/>
   <text x="838" y="121" class="label">Marketaux / news events</text>
   <text x="838" y="148" class="body">Connector exists; entity/event work pending</text>
@@ -69,5 +69,5 @@
   <rect x="30" y="1060" width="1140" height="96" rx="9" class="planned"/>
   <text x="48" y="1087" class="label">Maintenance automation: separate from trading application</text>
   <text x="48" y="1115" class="body">Development controller &lt;-&gt; VPS HTTPS queue &lt;-&gt; spare Windows runner + local user prompt</text>
-  <text x="48" y="1141" class="small">Bounded automatic diagnostic batches; post-restart permissions and clock / collector gates remain</text>
+  <text x="48" y="1141" class="small">Versioned transport test queue: local tests passed; spare bootstrap and runtime acceptance pending</text>
 </svg>

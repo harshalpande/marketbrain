@@ -19,7 +19,7 @@ Write-Host "Paired as $Role using Windows user encryption. Configuration: $confi
 if ($Role -eq 'worker') {
     $install = Join-Path $root 'runner'
     New-Item -ItemType Directory -Path $install -Force | Out-Null
-    foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) {
+    foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Automation.TestExecution.ps1','Start-AutomationWorker.ps1')) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $install $name)
     }
     Write-Host 'Next run Install-AutomationStartup.ps1 to start the runner and restore it at sign-in.'

@@ -7,10 +7,11 @@ import sqlite3
 import ssl
 import time
 import uuid
+import re
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-JOBS = {"diagnostic", "intervention-test"}
+JOBS = {"diagnostic", "intervention-test", "paytm-transport-test"}
 TERMINAL = {"SUCCEEDED", "FAILED", "INTERRUPTED", "CANCELLED"}
 MAX_BODY = 262144
 
@@ -19,16 +20,25 @@ class Queue:
     def __init__(self, path):
         self.db = sqlite3.connect(path)
         self.db.execute("CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, kind TEXT, state TEXT, created REAL, updated REAL, result TEXT)")
+        self.db.execute("CREATE TABLE IF NOT EXISTS job_specs (id TEXT PRIMARY KEY, spec TEXT NOT NULL)")
         self.db.commit()
 
     def submit(self, body):
-        if set(body) != {"id", "kind"} or body["kind"] not in JOBS:
+        expected = {"id", "kind", "spec"} if body.get("kind") == "paytm-transport-test" else {"id", "kind"}
+        if set(body) != expected or body["kind"] not in JOBS:
             raise ValueError("Unsupported job")
+        spec = body.get("spec")
+        if body["kind"] == "paytm-transport-test":
+            if (not isinstance(spec, dict) or set(spec) != {"revision", "sha256", "mode"}
+                or not re.fullmatch(r"[a-f0-9]{40}", spec.get("revision", ""))
+                or not re.fullmatch(r"[A-F0-9]{64}", spec.get("sha256", ""))
+                or spec.get("mode") not in {"Observe", "FailureFixture"}):
+                raise ValueError("Invalid test specification")
         if str(uuid.UUID(body["id"])) != body["id"]:
             raise ValueError("Invalid job ID")
         old = self.get(body["id"])
         if old:
-            if old["kind"] != body["kind"]:
+            if old["kind"] != body["kind"] or old.get("spec") != spec:
                 raise ValueError("ID already belongs to another job")
             return old
         if self.db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] >= 10000:
@@ -38,13 +48,16 @@ class Queue:
         now = time.time()
         with self.db:
             self.db.execute("INSERT INTO jobs VALUES (?,?,?,?,?,NULL)", (body["id"], body["kind"], "QUEUED", now, now))
+            if spec:
+                self.db.execute("INSERT INTO job_specs VALUES (?,?)", (body["id"], json.dumps(spec)))
         return self.get(body["id"])
 
     def get(self, job_id):
         row = self.db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
         if not row:
             return None
-        return dict(zip(("id", "kind", "state", "created", "updated", "result"), row)) | {"result": json.loads(row[5]) if row[5] else None}
+        spec = self.db.execute("SELECT spec FROM job_specs WHERE id=?", (job_id,)).fetchone()
+        return dict(zip(("id", "kind", "state", "created", "updated", "result"), row)) | {"result": json.loads(row[5]) if row[5] else None, "spec": json.loads(spec[0]) if spec else None}
 
     def claim(self):
         # Single worker; lost claim responses return the same active job. Never
@@ -60,7 +73,7 @@ class Queue:
         return None
 
     def update(self, body):
-        if set(body) != {"id", "state", "result"} or body["state"] not in TERMINAL | {"WAITING_FOR_USER"}:
+        if set(body) != {"id", "state", "result"} or body["state"] not in TERMINAL | {"WAITING_FOR_USER", "RUNNING"}:
             raise ValueError("Invalid update")
         old = self.get(body["id"])
         if not old or old["state"] == "QUEUED":

@@ -1302,3 +1302,6 @@ Owner acceptance, if any:
 - A blocked provider goal can remain pending while independent fixture/portal work progresses. Do not claim parallel staffing or run concurrent model jobs to meet a schedule.
 - Update relevant design sections and the one active diagram when authorized architecture changes; old archived docs stay superseded.
 - Commit/push only verified scoped changes; provide a spare-machine script only appropriate to the change. Documentation-only updates need no Docker rebuild or model rerun.
+
+### 2026-11-19: queued real transport test prepared
+Exact-revision/hash delivery, bounded execution, structured evidence and progress implemented. Local queue/executor/TLS integration tests pass; one attended bootstrap and spare runtime acceptance remain. G3 80%, Paytm readiness 14/30. See maintenance-automation.md.

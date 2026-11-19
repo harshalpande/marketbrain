@@ -62,6 +62,33 @@ class QueueTests(unittest.TestCase):
         self.q.cancel(self.job)
         self.assertIsNone(self.q.claim())
 
+    def test_reviewed_job_round_trip_and_retry_binding(self):
+        job = self.job | {"kind": "paytm-transport-test", "spec": {"revision": "a"*40, "sha256": "B"*64, "mode": "Observe"}}
+        self.q.submit(job)
+        self.assertEqual(self.q.claim()["spec"], job["spec"])
+        self.q.submit(job)  # lost ACK: same ID does not enqueue twice
+        with self.assertRaises(ValueError):
+            self.q.submit(job | {"spec": job["spec"] | {"mode": "FailureFixture"}})
+        self.q.update(dict(id=job["id"], state="FAILED", result={"evidence": {"failure": "TEST"}}))
+        self.q.db.close()
+        self.q = Queue(self.path)
+        self.assertEqual(self.q.get(job["id"])["spec"], job["spec"])
+        self.assertIsNone(self.q.claim())
+
+    def test_invalid_reviewed_specs(self):
+        spec = {"revision": "a"*40, "sha256": "B"*64, "mode": "Observe"}
+        for bad in (None, spec | {"revision": "main"}, spec | {"sha256": "no"}, spec | {"mode": "Shell"}, spec | {"url": "evil"}):
+            with self.assertRaises(ValueError):
+                self.q.submit(self.job | {"kind": "paytm-transport-test", "spec": bad})
+
+    def test_old_database_migration_preserves_jobs(self):
+        self.q.submit(self.job)
+        self.q.db.execute('DROP TABLE job_specs')
+        self.q.db.commit()
+        self.q.db.close()
+        self.q = Queue(self.path)
+        self.assertEqual(self.q.claim()['id'], self.job['id'])
+
 
 if __name__ == "__main__":
     unittest.main()

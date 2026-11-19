@@ -15,7 +15,13 @@ if (Test-Path -LiteralPath $pendingPath) {
 }
 $oldHash=(Get-FileHash -LiteralPath $installed).Hash
 $newHash=(Get-FileHash -LiteralPath $source).Hash
-if ($oldHash -notin @('C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783','DCF48A29C29D2CFC2849B0226FBB8A1ABB72F3AA505FEB0A291AAB4F12F4A662','14BA08C60CB47EEED0B9B667B825FD7A398C66034FAA20B0D65018C8DDAD2235',$newHash)) { throw 'Installed runner differs from reviewed baseline. Stop for review.' }
+if ($oldHash -notin @('A631EE9B1C675AA392C740C104D5E7F0E7797B16DE227C7A215E6C4B0EE3C391','C6FFB38A54DFC1A8BC7A0ED685F3F2C7EF68F24900CA4AEA027C2FF2D7A55783','DCF48A29C29D2CFC2849B0226FBB8A1ABB72F3AA505FEB0A291AAB4F12F4A662','14BA08C60CB47EEED0B9B667B825FD7A398C66034FAA20B0D65018C8DDAD2235',$newHash)) { throw 'Installed runner differs from reviewed baseline. Stop for review.' }
+# Parse every source before stopping the working runner.
+foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Automation.TestExecution.ps1','Start-AutomationWorker.ps1')) {
+    $tokens=$null; $parseErrors=$null
+    $null=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $name),[ref]$tokens,[ref]$parseErrors)
+    if($parseErrors.Count){throw "Source parse failed: $name"}
+}
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent().Name
 $pattern='(?i)(?:^|\s)-File\s+(?:"'+[regex]::Escape($installed)+'"|'+[regex]::Escape($installed)+')(?:\s|$)'
 $targets=@(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine -match $pattern })
@@ -41,11 +47,11 @@ try {
 # interrupted, rather than repeating the job. No credentials or state reset.
 $backup=Join-Path $root ('runner-backup-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $backup | Out-Null
-foreach($name in @('Start-AutomationWorker.ps1','Automation.Diagnostics.ps1','Automation.Common.ps1')) {
+foreach($name in @('Start-AutomationWorker.ps1','Automation.Diagnostics.ps1','Automation.Common.ps1','Automation.TestExecution.ps1')) {
     $previous=Join-Path (Split-Path $installed) $name
     if (Test-Path -LiteralPath $previous) { Copy-Item -LiteralPath $previous -Destination $backup }
 }
-foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) {
+foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Automation.TestExecution.ps1','Start-AutomationWorker.ps1')) {
     $destination=Join-Path (Split-Path $installed) $name
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination ($destination+'.new')
     [IO.File]::Move(($destination+'.new'),$destination,$true)
@@ -54,6 +60,7 @@ foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Start-A
 $exe=(Get-Process -Id $PID).Path
 $nonce=[guid]::NewGuid().ToString('N')
 $expectedHelper=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')).Hash
+$expectedExecution=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'Automation.TestExecution.ps1')).Hash
 $process=Start-Process -FilePath $exe -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-File',('"'+$installed+'"'),'-StartupNonce',$nonce) -WindowStyle Hidden -PassThru
 $watch=[Diagnostics.Stopwatch]::StartNew()
 $verified=$false
@@ -63,7 +70,7 @@ do {
     $statusPath=Join-Path $root 'worker-status.json'
     if (Test-Path -LiteralPath $statusPath) {
         $status=Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json
-        if ($status.startupNonce -ceq $nonce -and $status.processId -eq $process.Id -and $status.runnerSha256 -ceq $newHash -and $status.diagnosticsSha256 -ceq $expectedHelper) { $verified=$true;break }
+        if ($status.startupNonce -ceq $nonce -and $status.processId -eq $process.Id -and $status.runnerSha256 -ceq $newHash -and $status.diagnosticsSha256 -ceq $expectedHelper -and $status.executionSha256 -ceq $expectedExecution) { $verified=$true;break }
     }
     Start-Sleep -Milliseconds 500
 } while ($watch.Elapsed.TotalSeconds -lt 30)
