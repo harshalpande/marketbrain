@@ -1,0 +1,881 @@
+{
+  "version": 1,
+  "runId": "4560308b0f274b87b48d4eff857e2b2e",
+  "status": "TRANSPORT_STABILITY_PASSED_APPLICATION_HEALTH_PENDING",
+  "stage": "COMPLETE",
+  "failure": null,
+  "cleanupFailure": null,
+  "elapsedSeconds": 1835.634,
+  "sourceHashes": {
+    "PaytmNativeRecovery.ps1": "97D2AB445E5FA68824A4A3EA48B3D8E2073585C3941A9841EA30CB46BA2F8671",
+    "PaytmSupervisorNative.cs": "6E24ADB25A7486256D1090F38E11E24DAEE627A94CEA27104ABF8AFCC40F610B",
+    "PaytmGatewayFailureEvidence.ps1": "639E9FB0E24A6FA96AAB6767C0BBB01C1FFBE88DE2F5161CA5F0250663BF73E2",
+    "RepairPaytmNativeProcess.ps1": "331D517256A00F1529D463D4842770805E596A2C9C21C36989BC710D3D39572B",
+    "PaytmGatewayRestart.ps1": "AA9E39DCE308D5AE73CC005242EF8F0986C77E675F3A26AE43CC28D9922DC2EE",
+    "PaytmPairedCaptureResume.ps1": "A94A91558620DE2116EBB0B1CA40E169F4C2BAF795EFBC03A7B748CFEE9D4404",
+    "RunPaytmGatewaySupervisor.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC"
+  },
+  "nativeRecoveryAttempted": true,
+  "failureStopVerified": false,
+  "soakPassed": true,
+  "accountPreserved": true,
+  "finalApplicationLockVerified": true,
+  "brokerCredentialsUsed": false,
+  "ordersEnabled": false,
+  "originalRootCauseProven": false,
+  "applicationCommands": [
+    {
+      "phase": "CONTEXT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1194447
+    },
+    {
+      "phase": "ENDPOINT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1104227
+    },
+    {
+      "phase": "LOCATE",
+      "exitCode": 0,
+      "elapsedSeconds": 0.2611339
+    },
+    {
+      "phase": "PRIVATE_INSPECT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.0956709
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.6202001
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.3766425
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.3463763
+    },
+    {
+      "phase": "PAPER_WRITER_STATUS",
+      "exitCode": 0,
+      "elapsedSeconds": 0.3554312
+    },
+    {
+      "phase": "LOCATE",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1076236
+    },
+    {
+      "phase": "PRIVATE_INSPECT",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1133467
+    }
+  ],
+  "applicationObservations": [
+    {
+      "command": "status",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "STATUS",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "EXPLICIT_LOCK",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "head",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "EXPLICIT_LOCK",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "status",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "STATUS",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "EXPLICIT_LOCK",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "head",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "EXPLICIT_LOCK",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "status",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "STATUS",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "EXPLICIT_LOCK",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "head",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "EXPLICIT_LOCK",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    },
+    {
+      "command": "lock",
+      "receipt": {
+        "version": "PAYTM_APPLICATION_ROUTE_V1",
+        "bootId": "c49d7fc3-37a4-4452-8b79-31c5aa5e83a3",
+        "state": "LOCKED",
+        "status": "LOCKED",
+        "remainingRequests": 0,
+        "httpStatus": 0,
+        "tlsVerified": false,
+        "failureType": "NONE",
+        "applicationProcessVerified": true,
+        "credentialsUsed": false,
+        "ordersEnabled": false
+      }
+    }
+  ],
+  "applicationRouteChecks": [
+    {
+      "label": "Application remains locked during transport verification",
+      "passed": true,
+      "expectedTls": false
+    },
+    {
+      "label": "Application remains locked during transport verification",
+      "passed": true,
+      "expectedTls": false
+    }
+  ],
+  "recoveryMode": "PAIRED_CAPTURE_RESUME_APPLICATION_LOCKED",
+  "applicationDiscovery": {
+    "candidateCount": 1,
+    "workspaceMatchCount": 1,
+    "selectedId": "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+    "result": "VERIFIED",
+    "candidates": [
+      {
+        "id": "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+        "workspaceMatches": true,
+        "running": true,
+        "paused": false,
+        "restarting": false,
+        "exitCode": 0,
+        "oomKilled": false
+      }
+    ]
+  },
+  "accountBefore": {
+    "account": {
+      "id": "1",
+      "name": "Default Paper Portfolio",
+      "executionMode": "PAPER",
+      "startingCash": "100000.00",
+      "currentCash": "100000.00"
+    },
+    "ledger": {
+      "status": "ATTACHED_READ_ONLY",
+      "cash": "100000.00",
+      "reservedCash": "0.00",
+      "unreservedCash": "100000.00",
+      "revision": "0"
+    },
+    "legacyOrders": false,
+    "legacyFills": false
+  },
+  "containerId": "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+  "imageId": "sha256:8d4eeaf60e56060f948571981797c5777f41795ee139fecce1815f7352c7f7fe",
+  "nativeRecovery": {
+    "backupVerified": true,
+    "backupHashes": {
+      "status.json": "B5AF15542F47BA56E7A212087F30C360BDC5276CD682886201EF615C49217B27",
+      "control.json": "0A3E390657026F783DCE35F13598B751554290113B854234F6FBF52782452C46",
+      "manifest.json": "343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98",
+      "transport-control.json": "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B"
+    },
+    "backupPath": "C:\\ProgramData\\MarketBrainPaytmGateway\\supervisor-v1\\health-resume-4560308b0f274b87b48d4eff857e2b2e",
+    "startAttempts": 1,
+    "healthy": true,
+    "installedCodeChanged": false,
+    "keyImported": false,
+    "first": {
+      "version": 1,
+      "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+      "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+      "processId": 19100,
+      "sessionId": 0,
+      "sequence": 3,
+      "elapsedSeconds": 5.812,
+      "observedUtc": "2026-11-19T14:40:32.7535449Z",
+      "phase": "TRANSPORT_READY",
+      "failure": null,
+      "identityVerified": true,
+      "jobContained": true,
+      "agentIdentityVerified": true,
+      "signingVerified": true,
+      "privateCopyAbsent": true,
+      "executionPolicies": [
+        {
+          "scope": "MachinePolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "UserPolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "Process",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "CurrentUser",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "LocalMachine",
+          "policy": "Undefined"
+        }
+      ],
+      "networkContacted": true,
+      "transportEnabled": true,
+      "brokerReady": false,
+      "ordersEnabled": false,
+      "transportVersion": 1,
+      "childProcessId": 14992,
+      "childStartTicks": 639306960285258660,
+      "httpStatus": 503,
+      "denialsVerified": true,
+      "transportState": {
+        "phase": "TRANSPORT_READY",
+        "lastSeconds": 5,
+        "attempts": 1,
+        "failures": 0,
+        "retryAtSeconds": 0,
+        "connectingSinceSeconds": 0,
+        "readySinceSeconds": 4,
+        "lastHealthSeconds": 4,
+        "firstReadySeconds": 4,
+        "outageSinceSeconds": null,
+        "closedOutageSeconds": 4,
+        "reason": "TRANSPORT_ONLY_NOT_BROKER_READY",
+        "action": "NONE",
+        "brokerReady": false,
+        "ordersEnabled": false
+      },
+      "lastTlsObservation": {
+        "version": 1,
+        "observedUtc": "2026-11-19T14:40:29.9762447Z",
+        "elapsedMilliseconds": 566,
+        "exitCode": 0,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "exceptionType": null,
+        "StartMilliseconds": 18,
+        "WaitMilliseconds": 541,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 559,
+        "tcpConnectMilliseconds": 2,
+        "tlsHandshakeCompletedMilliseconds": 385,
+        "firstByteMilliseconds": 463,
+        "curlTotalMilliseconds": 463,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "HTTP_RESPONSE_STARTED",
+        "nativeErrorCategory": "UNCLASSIFIED"
+      }
+    }
+  },
+  "applicationHealthPending": true,
+  "soak": {
+    "requiredSeconds": 1800,
+    "elapsedSeconds": 1810.146,
+    "observations": 127,
+    "first": {
+      "version": 1,
+      "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+      "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+      "processId": 19100,
+      "sessionId": 0,
+      "sequence": 7,
+      "elapsedSeconds": 10.326,
+      "observedUtc": "2026-11-19T14:40:37.2667834Z",
+      "phase": "TRANSPORT_READY",
+      "failure": null,
+      "identityVerified": true,
+      "jobContained": true,
+      "agentIdentityVerified": true,
+      "signingVerified": true,
+      "privateCopyAbsent": true,
+      "executionPolicies": [
+        {
+          "scope": "MachinePolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "UserPolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "Process",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "CurrentUser",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "LocalMachine",
+          "policy": "Undefined"
+        }
+      ],
+      "networkContacted": true,
+      "transportEnabled": true,
+      "brokerReady": false,
+      "ordersEnabled": false,
+      "transportVersion": 1,
+      "childProcessId": 14992,
+      "childStartTicks": 639306960285258660,
+      "httpStatus": 503,
+      "denialsVerified": true,
+      "transportState": {
+        "phase": "TRANSPORT_READY",
+        "lastSeconds": 10,
+        "attempts": 1,
+        "failures": 0,
+        "retryAtSeconds": 0,
+        "connectingSinceSeconds": 0,
+        "readySinceSeconds": 4,
+        "lastHealthSeconds": 4,
+        "firstReadySeconds": 4,
+        "outageSinceSeconds": null,
+        "closedOutageSeconds": 4,
+        "reason": "TRANSPORT_ONLY_NOT_BROKER_READY",
+        "action": "NONE",
+        "brokerReady": false,
+        "ordersEnabled": false
+      },
+      "lastTlsObservation": {
+        "version": 1,
+        "observedUtc": "2026-11-19T14:40:29.9762447Z",
+        "elapsedMilliseconds": 566,
+        "exitCode": 0,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "exceptionType": null,
+        "StartMilliseconds": 18,
+        "WaitMilliseconds": 541,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 559,
+        "tcpConnectMilliseconds": 2,
+        "tlsHandshakeCompletedMilliseconds": 385,
+        "firstByteMilliseconds": 463,
+        "curlTotalMilliseconds": 463,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "HTTP_RESPONSE_STARTED",
+        "nativeErrorCategory": "UNCLASSIFIED"
+      }
+    },
+    "last": {
+      "version": 1,
+      "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+      "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+      "processId": 19100,
+      "sessionId": 0,
+      "sequence": 1049,
+      "elapsedSeconds": 1820.731,
+      "observedUtc": "2026-11-19T15:10:47.6951596Z",
+      "phase": "TRANSPORT_READY",
+      "failure": null,
+      "identityVerified": true,
+      "jobContained": true,
+      "agentIdentityVerified": true,
+      "signingVerified": true,
+      "privateCopyAbsent": true,
+      "executionPolicies": [
+        {
+          "scope": "MachinePolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "UserPolicy",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "Process",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "CurrentUser",
+          "policy": "Undefined"
+        },
+        {
+          "scope": "LocalMachine",
+          "policy": "Undefined"
+        }
+      ],
+      "networkContacted": true,
+      "transportEnabled": true,
+      "brokerReady": false,
+      "ordersEnabled": false,
+      "transportVersion": 1,
+      "childProcessId": 288,
+      "childStartTicks": 639306977222488759,
+      "httpStatus": 503,
+      "denialsVerified": true,
+      "transportState": {
+        "phase": "TRANSPORT_READY",
+        "lastSeconds": 1820,
+        "attempts": 3,
+        "failures": 0,
+        "retryAtSeconds": 1694,
+        "connectingSinceSeconds": 1694,
+        "readySinceSeconds": 1702,
+        "lastHealthSeconds": 1815,
+        "firstReadySeconds": 4,
+        "outageSinceSeconds": null,
+        "closedOutageSeconds": 32,
+        "reason": "TRANSPORT_ONLY_NOT_BROKER_READY",
+        "action": "NONE",
+        "brokerReady": false,
+        "ordersEnabled": false
+      },
+      "lastTlsObservation": {
+        "version": 1,
+        "observedUtc": "2026-11-19T15:10:42.1640502Z",
+        "elapsedMilliseconds": 627,
+        "exitCode": 0,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "exceptionType": null,
+        "StartMilliseconds": 4,
+        "WaitMilliseconds": 622,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 626,
+        "tcpConnectMilliseconds": 2,
+        "tlsHandshakeCompletedMilliseconds": 471,
+        "firstByteMilliseconds": 559,
+        "curlTotalMilliseconds": 560,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "HTTP_RESPONSE_STARTED",
+        "nativeErrorCategory": "UNCLASSIFIED"
+      },
+      "firstTlsFailure": {
+        "version": 1,
+        "observedUtc": "2026-11-19T14:47:18.7620042Z",
+        "elapsedMilliseconds": 4094,
+        "exitCode": 28,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 0,
+        "exceptionType": null,
+        "StartMilliseconds": 4,
+        "WaitMilliseconds": 4089,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 4094,
+        "tcpConnectMilliseconds": 0,
+        "tlsHandshakeCompletedMilliseconds": 0,
+        "firstByteMilliseconds": 0,
+        "curlTotalMilliseconds": 4017,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "NO_CONNECT_TIMING",
+        "nativeErrorCategory": "TIMEOUT"
+      },
+      "lastTlsFailure": {
+        "version": 1,
+        "observedUtc": "2026-11-19T15:08:32.7541216Z",
+        "elapsedMilliseconds": 4077,
+        "exitCode": 28,
+        "timedOut": false,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 0,
+        "exceptionType": null,
+        "StartMilliseconds": 5,
+        "WaitMilliseconds": 4070,
+        "StopMilliseconds": 0,
+        "DrainMilliseconds": 0,
+        "TotalMilliseconds": 4076,
+        "tcpConnectMilliseconds": 0,
+        "tlsHandshakeCompletedMilliseconds": 0,
+        "firstByteMilliseconds": 0,
+        "curlTotalMilliseconds": 4002,
+        "phaseMetricsParsed": true,
+        "lastCompletedStage": "PROXY_CONNECT_ACCEPTED",
+        "nativeErrorCategory": "TIMEOUT"
+      },
+      "tlsFailureCount": 2
+    },
+    "healthSamples": [
+      {
+        "sequence": 10,
+        "httpStatus": 503,
+        "healthSeconds": 4,
+        "seconds": 3.339,
+        "workerSeconds": 13.627
+      },
+      {
+        "sequence": 40,
+        "httpStatus": 503,
+        "healthSeconds": 49,
+        "seconds": 45.768,
+        "workerSeconds": 55.157
+      },
+      {
+        "sequence": 64,
+        "httpStatus": 503,
+        "healthSeconds": 95,
+        "seconds": 87.169,
+        "workerSeconds": 97.065
+      },
+      {
+        "sequence": 87,
+        "httpStatus": 503,
+        "healthSeconds": 139,
+        "seconds": 130.173,
+        "workerSeconds": 140.977
+      },
+      {
+        "sequence": 119,
+        "httpStatus": 503,
+        "healthSeconds": 174,
+        "seconds": 171.1,
+        "workerSeconds": 181.755
+      },
+      {
+        "sequence": 153,
+        "httpStatus": 503,
+        "healthSeconds": 217,
+        "seconds": 212.66,
+        "workerSeconds": 223.269
+      },
+      {
+        "sequence": 187,
+        "httpStatus": 503,
+        "healthSeconds": 261,
+        "seconds": 253.823,
+        "workerSeconds": 264.345
+      },
+      {
+        "sequence": 221,
+        "httpStatus": 503,
+        "healthSeconds": 304,
+        "seconds": 295.187,
+        "workerSeconds": 305.416
+      },
+      {
+        "sequence": 255,
+        "httpStatus": 503,
+        "healthSeconds": 336,
+        "seconds": 336.269,
+        "workerSeconds": 345.671
+      },
+      {
+        "sequence": 290,
+        "httpStatus": 503,
+        "healthSeconds": 379,
+        "seconds": 377.43,
+        "workerSeconds": 387.757
+      },
+      {
+        "sequence": 322,
+        "httpStatus": 503,
+        "healthSeconds": 430,
+        "seconds": 420.855,
+        "workerSeconds": 431.248
+      },
+      {
+        "sequence": 355,
+        "httpStatus": 503,
+        "healthSeconds": 472,
+        "seconds": 463.019,
+        "workerSeconds": 472.706
+      },
+      {
+        "sequence": 383,
+        "httpStatus": 503,
+        "healthSeconds": 506,
+        "seconds": 505.153,
+        "workerSeconds": 514.669
+      },
+      {
+        "sequence": 406,
+        "httpStatus": 503,
+        "healthSeconds": 551,
+        "seconds": 547.236,
+        "workerSeconds": 557
+      },
+      {
+        "sequence": 428,
+        "httpStatus": 503,
+        "healthSeconds": 596,
+        "seconds": 588.959,
+        "workerSeconds": 598.223
+      },
+      {
+        "sequence": 453,
+        "httpStatus": 503,
+        "healthSeconds": 640,
+        "seconds": 631.316,
+        "workerSeconds": 642.019
+      },
+      {
+        "sequence": 477,
+        "httpStatus": 503,
+        "healthSeconds": 674,
+        "seconds": 673.733,
+        "workerSeconds": 682.243
+      },
+      {
+        "sequence": 493,
+        "httpStatus": 503,
+        "healthSeconds": 708,
+        "seconds": 704.813,
+        "workerSeconds": 712.566
+      },
+      {
+        "sequence": 514,
+        "httpStatus": 503,
+        "healthSeconds": 753,
+        "seconds": 746.645,
+        "workerSeconds": 755.425
+      },
+      {
+        "sequence": 537,
+        "httpStatus": 503,
+        "healthSeconds": 798,
+        "seconds": 788.24,
+        "workerSeconds": 798.337
+      },
+      {
+        "sequence": 558,
+        "httpStatus": 503,
+        "healthSeconds": 833,
+        "seconds": 829.921,
+        "workerSeconds": 839.052
+      },
+      {
+        "sequence": 580,
+        "httpStatus": 503,
+        "healthSeconds": 876,
+        "seconds": 872.646,
+        "workerSeconds": 882.82
+      },
+      {
+        "sequence": 604,
+        "httpStatus": 503,
+        "healthSeconds": 918,
+        "seconds": 914.005,
+        "workerSeconds": 922.811
+      },
+      {
+        "sequence": 626,
+        "httpStatus": 503,
+        "healthSeconds": 964,
+        "seconds": 957.838,
+        "workerSeconds": 966.591
+      },
+      {
+        "sequence": 646,
+        "httpStatus": 503,
+        "healthSeconds": 1002,
+        "seconds": 1000.834,
+        "workerSeconds": 1010.144
+      },
+      {
+        "sequence": 665,
+        "httpStatus": 503,
+        "healthSeconds": 1048,
+        "seconds": 1042.8,
+        "workerSeconds": 1051.292
+      },
+      {
+        "sequence": 686,
+        "httpStatus": 503,
+        "healthSeconds": 1094,
+        "seconds": 1085.296,
+        "workerSeconds": 1094.739
+      },
+      {
+        "sequence": 709,
+        "httpStatus": 503,
+        "healthSeconds": 1131,
+        "seconds": 1127.373,
+        "workerSeconds": 1136.643
+      },
+      {
+        "sequence": 729,
+        "httpStatus": 503,
+        "healthSeconds": 1168,
+        "seconds": 1168.898,
+        "workerSeconds": 1177.126
+      },
+      {
+        "sequence": 750,
+        "httpStatus": 503,
+        "healthSeconds": 1214,
+        "seconds": 1213.811,
+        "workerSeconds": 1221.461
+      },
+      {
+        "sequence": 772,
+        "httpStatus": 503,
+        "healthSeconds": 1258,
+        "seconds": 1255.893,
+        "workerSeconds": 1263.592
+      },
+      {
+        "sequence": 793,
+        "httpStatus": 503,
+        "healthSeconds": 1303,
+        "seconds": 1298.468,
+        "workerSeconds": 1307.29
+      },
+      {
+        "sequence": 816,
+        "httpStatus": 503,
+        "healthSeconds": 1349,
+        "seconds": 1342.24,
+        "workerSeconds": 1352.91
+      },
+      {
+        "sequence": 835,
+        "httpStatus": 503,
+        "healthSeconds": 1384,
+        "seconds": 1384.262,
+        "workerSeconds": 1392.463
+      },
+      {
+        "sequence": 855,
+        "httpStatus": 503,
+        "healthSeconds": 1432,
+        "seconds": 1426.635,
+        "workerSeconds": 1436.214
+      },
+      {
+        "sequence": 873,
+        "httpStatus": 503,
+        "healthSeconds": 1477,
+        "seconds": 1468.596,
+        "workerSeconds": 1477.972
+      },
+      {
+        "sequence": 894,
+        "httpStatus": 503,
+        "healthSeconds": 1522,
+        "seconds": 1514.539,
+        "workerSeconds": 1522.828
+      },
+      {
+        "sequence": 915,
+        "httpStatus": 503,
+        "healthSeconds": 1556,
+        "seconds": 1556.429,
+        "workerSeconds": 1565.212
+      },
+      {
+        "sequence": 936,
+        "httpStatus": 503,
+        "healthSeconds": 1601,
+        "seconds": 1599.007,
+        "workerSeconds": 1606.446
+      },
+      {
+        "sequence": 957,
+        "httpStatus": 503,
+        "healthSeconds": 1650,
+        "seconds": 1640.851,
+        "workerSeconds": 1650.322
+      },
+      {
+        "sequence": 981,
+        "httpStatus": 503,
+        "healthSeconds": 1702,
+        "seconds": 1695.419,
+        "workerSeconds": 1704.41
+      },
+      {
+        "sequence": 1007,
+        "httpStatus": 503,
+        "healthSeconds": 1747,
+        "seconds": 1737.437,
+        "workerSeconds": 1747.09
+      },
+      {
+        "sequence": 1031,
+        "httpStatus": 503,
+        "healthSeconds": 1780,
+        "seconds": 1779.191,
+        "workerSeconds": 1788.655
+      }
+    ]
+  }
+}
