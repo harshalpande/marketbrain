@@ -1,5 +1,6 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture,[switch]$ReviewedSshFixture)
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture,[switch]$ReviewedSshFixture,[switch]$ConcurrentTlsFixture)
+if($ConcurrentTlsFixture){$TlsPhaseFixture=$true}
 if($ReviewedSshFixture){$HealthResumeFixture=$true}
 if($TlsResumeFixture){$TlsPhaseFixture=$true}
 $ErrorActionPreference='Stop'
@@ -37,7 +38,7 @@ function Invoke-PaytmNativeRecovery {
  if($global:mbNativeControllerFixture.case -eq 'start_failed'){throw 'HOST_NATIVE_START_FAILED'}
  $report.nativeRecovery=@{first=@{installationId=('a'*32);sequence=1;processId=1;instanceId=('b'*32)}}
 }
-function Invoke-PaytmApplicationHead {if($HealthResumeFixture){throw 'Unexpected route arming in transport-only test'};Save-Report}
+function Invoke-PaytmApplicationHead {if($HealthResumeFixture -or $ConcurrentTlsFixture){throw 'Unexpected route arming in transport-only test'};Save-Report}
 function Wait-PaytmManagedHost {
  if($global:mbNativeControllerFixture.case -ne 'pass'){throw 'TRANSPORT_WORKER_BLOCKED'}
  $global:mbNativeControllerFixture.sequence++
@@ -85,6 +86,7 @@ try{
    $extra.TlsStabilityRecovery=$true
    [IO.File]::WriteAllText((Join-Path $ops 'PaytmTlsStabilityRecovery.ps1'),'# mocked adapter')
   }
+  if($ConcurrentTlsFixture){$extra.Remove('TlsPhaseDiagnostic');$extra.ConcurrentTlsCapture=$true;$extra.ComparisonId=('c'*32);[IO.File]::WriteAllText((Join-Path $ops 'PaytmConcurrentTlsRecovery.ps1'),'# adapter mocked separately')}
   if($case -eq 'pass'){
    # Test controller completion only with a shortened local copy; production has
    # no duration switch. The 30-minute spare observation is explicitly pending.
@@ -103,6 +105,7 @@ try{
   }
   if($files.Count -ne 1){throw $caught};Check ($files.Count -eq 1) 'ONE_REPORT'
   $v=Read-PaytmHostJson $files[0].FullName 65536
+  if($ConcurrentTlsFixture){Check ($v.comparisonId -ceq ('c'*32) -and $v.recoveryMode -ceq 'CONCURRENT_TLS_CAPTURE_NO_CONFIGURATION_CHANGE') 'COMPARISON_WIRED'}
   if($TlsResumeFixture){Check ($v.recoveryMode -ceq 'TLS_CAPTURE_RESUME_NO_CODE_REPLACEMENT') 'RESUME_MODE_WIRED'}
   if($TlsStabilityFixture){Check ($v.recoveryMode -ceq 'TLS_STABILITY_AFTER_ACCEPTED_CAPTURE_NO_CODE_REPLACEMENT') 'STABILITY_MODE_WIRED'}
   if($TlsPhaseFixture -and $case -eq 'pass'){

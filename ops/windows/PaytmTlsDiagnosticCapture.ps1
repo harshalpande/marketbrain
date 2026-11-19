@@ -5,12 +5,13 @@ function Add-PaytmTlsDiagnosticSample($Diagnostic,$Value){
  if(-not $Diagnostic.Contains('firstObservation')){$Diagnostic.firstObservation=$full}
  $Diagnostic.lastObservation=$full
  $sample=[ordered]@{}
- foreach($n in @('sequence','elapsedSeconds','phase','httpStatus')){
+ foreach($n in @('observedUtc','sequence','elapsedSeconds','phase','httpStatus')){
   $sample[$n]=Get-PaytmEvidenceProperty $full $n
  }
  $state=Get-PaytmEvidenceProperty $full transportState
  foreach($n in @('attempts','failures')){$sample[$n]=Get-PaytmEvidenceProperty $state $n}
  $tls=Get-PaytmEvidenceProperty $full lastTlsObservation
+ foreach($n in @('observedUtc','connectStatus','tlsHandshakeCompletedMilliseconds','firstByteMilliseconds','curlTotalMilliseconds')){$sample['tls_'+$n]=Get-PaytmEvidenceProperty $tls $n}
  $sample.tlsElapsedMs=Get-PaytmEvidenceProperty $tls elapsedMilliseconds
  $sample.tlsExitCode=Get-PaytmEvidenceProperty $tls exitCode
  $sample.tlsStage=Get-PaytmEvidenceProperty $tls lastCompletedStage

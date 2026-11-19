@@ -27,6 +27,7 @@ check '[[ "$row" == *'\''"curlExit":124'\''* && "$row" == *'\''"tlsResponse":fal
 if mb_upstream_sample OTHER >/dev/null; then exit 1; else checks=$((checks+1)); fi
 systemctl() { printf '%s' "$fixture_service"; }
 sleep() { :; }
+date() { printf '2026-11-19T10:00:00Z'; }
 fixture_service=active; fixture_output='200|0|503|0.123456'; fixture_exit=0
 log=$(mb_upstream_main)
 file=$(printf '%s\n' "$log" | sed -n 's/^Share this ONE file: //p')
@@ -34,6 +35,14 @@ file=$(printf '%s\n' "$log" | sed -n 's/^Share this ONE file: //p')
 check '[[ $(grep -o pair "$file" | wc -l) -eq 30 ]]' THIRTY_PAIRS
 check 'grep -q UPSTREAM_EVIDENCE_CAPTURED_REVIEW_REQUIRED "$file"' CAPTURE_NOT_ACCEPTANCE
 rm -- "$file"
+log=$(mb_upstream_main aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 60)
+file=$(printf '%s\n' "$log" | sed -n 's/^Share this ONE file: //p')
+[[ "$file" =~ ^/tmp/paytm-upstream-[A-Za-z0-9]{8}\.json$ ]]
+check '[[ $(grep -o pair "$file" | wc -l) -eq 60 ]]' SIXTY_PAIRS
+check 'grep -q aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "$file"' COMPARISON_RETAINED
+rm -- "$file"
+if mb_upstream_main invalid 60 >/dev/null; then exit 1; else checks=$((checks+1)); fi
+if mb_upstream_main aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 1000 >/dev/null; then exit 1; else checks=$((checks+1)); fi
 fixture_service=inactive
 if log=$(mb_upstream_main); then exit 1; fi
 file=$(printf '%s\n' "$log" | sed -n 's/^Share this ONE file: //p')

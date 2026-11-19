@@ -34,11 +34,14 @@ mb_upstream_main() (
     export PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C
     umask 077
     for tool in curl timeout mktemp date sleep systemctl; do command -v "$tool" >/dev/null || { printf 'Missing required tool: %s\n' "$tool" >&2; exit 1; }; done
+    local correlation="${1:-}" pairs="${2:-30}"
+    [[ "$correlation" =~ ^[a-f0-9]{32}$ || -z "$correlation" ]] || return 2
+    [[ "$pairs" = 30 || "$pairs" = 60 ]] || return 2
     local file start service i proxy direct observed comma='' finished=false
     file=$(mktemp /tmp/paytm-upstream-XXXXXXXX.json)
     start=$SECONDS
     service=$(mb_upstream_service)
-    printf '{"version":1,"readOnly":true,"credentialsUsed":false,"ordersEnabled":false,"serviceBefore":"%s","startedUtc":"%s","historicalCauseEstablished":false,"samples":[' "$service" "$(date -u +%FT%TZ)" > "$file"
+    printf '{"version":1,"comparisonId":"%s","readOnly":true,"credentialsUsed":false,"ordersEnabled":false,"serviceBefore":"%s","startedUtc":"%s","historicalCauseEstablished":false,"samples":[' "$correlation" "$service" "$(date -u +%FT%TZ)" > "$file"
     # Complete JSON on ordinary interruption between samples. SIGKILL/power loss
     # can still leave a partial file; never label that as a complete collection.
     trap 'if [ "$finished" != true ]; then printf "],\"status\":\"INTERRUPTED_REVIEW_REQUIRED\"}\n" >> "$file"; printf "\nPartial report: %s\n" "$file"; fi' EXIT
@@ -49,16 +52,17 @@ mb_upstream_main() (
         printf '],"status":"PROXY_NOT_ACTIVE_REVIEW_REQUIRED"}\n' >> "$file"; finished=true
         printf 'Share this ONE file: %s\n' "$file"; return 1
     fi
-    for ((i=1; i<=30; i++)); do
+    printf 'VPS_CAPTURE_STARTED=%s\n' "$correlation"
+    for ((i=1; i<=pairs; i++)); do
         observed=$(date -u +%FT%TZ)
         proxy=$(mb_upstream_sample PROXY)
         direct=$(mb_upstream_sample DIRECT)
         printf '%s\n{"pair":%s,"utc":"%s","proxy":%s,"direct":%s}' "$comma" "$i" "$observed" "$proxy" "$direct" >> "$file"; comma=','
-        printf '[%s%%] Pair %s/30 captured; elapsed %ss.\n' "$((i*100/30))" "$i" "$((SECONDS-start))"
-        if [ "$i" -lt 30 ]; then sleep 10; fi
+        printf '[%s%%] Pair %s/%s captured; elapsed %ss.\n' "$((i*100/pairs))" "$i" "$pairs" "$((SECONDS-start))"
+        if [ "$i" -lt "$pairs" ]; then sleep 10; fi
     done
     printf '],"serviceAfter":"%s","elapsedSeconds":%s,"status":"UPSTREAM_EVIDENCE_CAPTURED_REVIEW_REQUIRED"}\n' "$(mb_upstream_service)" "$((SECONDS-start))" >> "$file"
     finished=true
     printf 'Share this ONE file: %s\n' "$file"
-    printf 'Capture is not gateway or broker acceptance. Keep Windows gateway stopped.\n'
+    if [ -z "$correlation" ]; then printf 'Capture is not gateway or broker acceptance. Keep Windows gateway stopped.\n'; else printf 'Comparison captured, not readiness acceptance. Windows collector controls its own shutdown.\n'; fi
 )

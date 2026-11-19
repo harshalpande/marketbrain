@@ -3,6 +3,8 @@
  [switch]$AgentSigningRecovery,
  [switch]$CurrentSigningRecovery,
  [switch]$ReviewedSshRecovery,
+ [switch]$ConcurrentTlsCapture,
+ [ValidatePattern('^$|^[a-f0-9]{32}$')][string]$ComparisonId='',
  [switch]$HealthBlockedTransportResume,
  [switch]$TlsDiagnosticRecovery,
  [switch]$AgentProbeRecovery,
@@ -14,7 +16,7 @@
  [string]$TransportReportPath='C:\MarketBrainData\Review\paytm-managed-transport-20261103-171133-8ac7cdda3ca7475eb001df485797cb70.json',
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
-if(([int][bool]$ReviewedSshRecovery+[int][bool]$HealthBlockedTransportResume+[int][bool]$CurrentSigningRecovery+[int][bool]$AgentSigningRecovery+[int][bool]$TlsDiagnosticRecovery+[int][bool]$AgentProbeRecovery+[int][bool]$IncidentRecovery+[int][bool]$TlsPhaseDiagnostic+[int][bool]$TlsCaptureResume+[int][bool]$TlsStabilityRecovery) -gt 1){throw 'Select one recovery mode only.'}
+if(([int][bool]$ConcurrentTlsCapture+[int][bool]$ReviewedSshRecovery+[int][bool]$HealthBlockedTransportResume+[int][bool]$CurrentSigningRecovery+[int][bool]$AgentSigningRecovery+[int][bool]$TlsDiagnosticRecovery+[int][bool]$AgentProbeRecovery+[int][bool]$IncidentRecovery+[int][bool]$TlsPhaseDiagnostic+[int][bool]$TlsCaptureResume+[int][bool]$TlsStabilityRecovery) -gt 1){throw 'Select one recovery mode only.'}
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmGatewayScheduledProbe.ps1','PaytmSupervisorHost.ps1','PaytmSupervisorInstallation.ps1','PaytmSupervisorTransport.ps1','PaytmApplicationRoute.ps1','PaytmManagedTransport.ps1','PaytmGatewayRestart.ps1','PaytmGatewaySession.ps1','PaytmGatewayFailureEvidence.ps1','PaytmNativeRecovery.ps1')){. (Join-Path $PSScriptRoot $n)}
 if($IncidentRecovery){
  . (Join-Path $PSScriptRoot 'PaytmIncidentRecovery.ps1')
@@ -62,6 +64,13 @@ if($ReviewedSshRecovery){
  . (Join-Path $PSScriptRoot 'PaytmReviewedSshRecovery.ps1')
  if(-not $PSBoundParameters.ContainsKey('DiagnosticReportPath')){$DiagnosticReportPath='C:\MarketBrainData\Review\automation-gateway-signing-latest.json'}
 }
+if($ConcurrentTlsCapture){
+ if(-not $ComparisonId){throw 'HOST_COMPARISON_ID_REQUIRED'}
+ . (Join-Path $PSScriptRoot 'PaytmConcurrentTlsRecovery.ps1')
+ . (Join-Path $PSScriptRoot 'PaytmTlsDiagnosticCapture.ps1')
+ if(-not $PSBoundParameters.ContainsKey('DiagnosticReportPath')){$DiagnosticReportPath='C:\MarketBrainData\Review\automation-gateway-recovery-latest.json'}
+ $TlsPhaseDiagnostic=$true # bounded capture, always stop/disable on exit
+}
 $c=Get-PaytmHostContract;$lease=$null;$manifest=$null;$finished=$false
 $route=@{Root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path};$application=@{Ready=$false;Token=$null}
 $script:nativeRecoveryWatch=[Diagnostics.Stopwatch]::StartNew()
@@ -92,6 +101,7 @@ try{
  if($TlsPhaseDiagnostic){foreach($n in @('PaytmTlsPhaseRecovery.ps1','PaytmTlsDiagnosticCapture.ps1','PaytmSupervisorTransport.ps1')){$report.sourceHashes[$n]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $n)).Hash};$report.recoveryMode='TLS_PHASE_DIAGNOSTIC_STOP_AFTER_CAPTURE'}
  if($TlsCaptureResume){$report.sourceHashes['PaytmTlsCaptureResume.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmTlsCaptureResume.ps1')).Hash;$report.recoveryMode='TLS_CAPTURE_RESUME_NO_CODE_REPLACEMENT'}
  if($TlsStabilityRecovery){$report.sourceHashes['PaytmTlsStabilityRecovery.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmTlsStabilityRecovery.ps1')).Hash;$report.recoveryMode='TLS_STABILITY_AFTER_ACCEPTED_CAPTURE_NO_CODE_REPLACEMENT'}
+ if($ConcurrentTlsCapture){$report.comparisonId=$ComparisonId;$report.sourceHashes['PaytmConcurrentTlsRecovery.ps1']=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'PaytmConcurrentTlsRecovery.ps1')).Hash;$report.recoveryMode='CONCURRENT_TLS_CAPTURE_NO_CONFIGURATION_CHANGE'}
  $null=Assert-PaytmNativeReceipt $DiagnosticReportPath
  $null=Assert-PaytmAccountPath $TransportReportPath
  if((Get-FileHash -LiteralPath $TransportReportPath).Hash -cne '078A34DB0A46951EB98C5A08063F9FC76DB6EC75C175A3572CEE3D65DA4FAB4B'){throw 'HOST_NATIVE_TRANSPORT_RECEIPT_MISMATCH'}
@@ -99,10 +109,12 @@ try{
  Native-Step 'VERIFY_INSTALLATION_AND_LOCKED_APPLICATION' 10
  $manifest=Assert-PaytmTransportInstallationSources $receipt
  Initialize-PaytmManagedApplication
- Native-Step $(if($ReviewedSshRecovery){'ARCHIVE_REVIEWED_SSH_EXIT_START_ONCE_APPLICATION_LOCKED'}elseif($HealthBlockedTransportResume){'RESUME_CLEAN_STOP_TRANSPORT_ONLY_APPLICATION_LOCKED'}elseif($CurrentSigningRecovery){'ARCHIVE_CURRENT_AGENT_FAILURE_START_ONCE_NO_CODE_CHANGE'}elseif($TlsStabilityRecovery){'ARCHIVE_ACCEPTED_CAPTURE_START_STABILITY_CHECK_NO_CODE_CHANGE'}elseif($TlsCaptureResume){'ARCHIVE_STOPPED_CAPTURE_STATE_START_ONCE_NO_CODE_CHANGE'}elseif($TlsPhaseDiagnostic){'ARCHIVE_INSTALL_TLS_PHASE_DIAGNOSTICS_START_ONCE'}elseif($IncidentRecovery){'ARCHIVE_REVIEWED_INCIDENT_ENABLE_AND_START_ONCE'}elseif($AgentProbeRecovery){'ARCHIVE_FAILURE_AND_CHECKPOINT_INSTALL_AGENT_DIAGNOSTICS_START_ONCE'}elseif($TlsDiagnosticRecovery){'ARCHIVE_STATE_UPDATE_TLS_DIAGNOSTICS_START_ONCE'}elseif($AgentSigningRecovery){'ARCHIVE_FAILURE_AND_OLD_CHECKPOINT_START_ONCE'}else{'ARCHIVE_FAILURE_BUILD_PATCH_AND_START_ONCE'}) 20
+ Native-Step $(if($ConcurrentTlsCapture){'START_BOUNDED_CAPTURE_APPLICATION_LOCKED'}elseif($ReviewedSshRecovery){'ARCHIVE_REVIEWED_SSH_EXIT_START_ONCE_APPLICATION_LOCKED'}elseif($HealthBlockedTransportResume){'RESUME_CLEAN_STOP_TRANSPORT_ONLY_APPLICATION_LOCKED'}elseif($CurrentSigningRecovery){'ARCHIVE_CURRENT_AGENT_FAILURE_START_ONCE_NO_CODE_CHANGE'}elseif($TlsStabilityRecovery){'ARCHIVE_ACCEPTED_CAPTURE_START_STABILITY_CHECK_NO_CODE_CHANGE'}elseif($TlsCaptureResume){'ARCHIVE_STOPPED_CAPTURE_STATE_START_ONCE_NO_CODE_CHANGE'}elseif($TlsPhaseDiagnostic){'ARCHIVE_INSTALL_TLS_PHASE_DIAGNOSTICS_START_ONCE'}elseif($IncidentRecovery){'ARCHIVE_REVIEWED_INCIDENT_ENABLE_AND_START_ONCE'}elseif($AgentProbeRecovery){'ARCHIVE_FAILURE_AND_CHECKPOINT_INSTALL_AGENT_DIAGNOSTICS_START_ONCE'}elseif($TlsDiagnosticRecovery){'ARCHIVE_STATE_UPDATE_TLS_DIAGNOSTICS_START_ONCE'}elseif($AgentSigningRecovery){'ARCHIVE_FAILURE_AND_OLD_CHECKPOINT_START_ONCE'}else{'ARCHIVE_FAILURE_BUILD_PATCH_AND_START_ONCE'}) 20
  Invoke-PaytmNativeRecovery $receipt $DiagnosticReportPath $PSScriptRoot
  if($TlsPhaseDiagnostic){
+  if($ConcurrentTlsCapture){Assert-PaytmRecoveryApplicationLocked}
   Invoke-PaytmTlsDiagnosticCapture $manifest.installationId
+  if($ConcurrentTlsCapture){Assert-PaytmRecoveryApplicationLocked}
   $finished=$true
  }else{
  if($HealthBlockedTransportResume -or $ReviewedSshRecovery){Assert-PaytmRecoveryApplicationLocked}else{Invoke-PaytmApplicationHead 'Native recovery initial diagnostic route' $true}
