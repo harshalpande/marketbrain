@@ -1,0 +1,734 @@
+{
+  "version": 1,
+  "readOnly": true,
+  "credentialsUsed": false,
+  "ordersEnabled": false,
+  "serviceBefore": "active",
+  "startedUtc": "2026-11-19T10:02:14Z",
+  "historicalCauseEstablished": false,
+  "samples": [
+    {
+      "pair": 1,
+      "utc": "2026-11-19T10:02:14Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.084379,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.068344,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 2,
+      "utc": "2026-11-19T10:02:24Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.191748,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.065719,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 3,
+      "utc": "2026-11-19T10:02:34Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.073501,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.051975,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 4,
+      "utc": "2026-11-19T10:02:44Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.106581,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.088256,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 5,
+      "utc": "2026-11-19T10:02:55Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.115362,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.137676,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 6,
+      "utc": "2026-11-19T10:03:05Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.115897,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.096516,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 7,
+      "utc": "2026-11-19T10:03:15Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.183623,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.080133,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 8,
+      "utc": "2026-11-19T10:03:26Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.130841,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.053606,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 9,
+      "utc": "2026-11-19T10:03:36Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.111814,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.073014,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 10,
+      "utc": "2026-11-19T10:03:46Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.112762,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.049647,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 11,
+      "utc": "2026-11-19T10:03:56Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.126607,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.057063,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 12,
+      "utc": "2026-11-19T10:04:07Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.154085,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.060249,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 13,
+      "utc": "2026-11-19T10:04:17Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.121163,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.048071,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 14,
+      "utc": "2026-11-19T10:04:27Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.156372,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.064204,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 15,
+      "utc": "2026-11-19T10:04:38Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.182425,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.052396,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 16,
+      "utc": "2026-11-19T10:04:48Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.174673,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.103155,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 17,
+      "utc": "2026-11-19T10:04:58Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.147518,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.193153,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 18,
+      "utc": "2026-11-19T10:05:09Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.108213,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.081993,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 19,
+      "utc": "2026-11-19T10:05:19Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.154747,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.563997,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 20,
+      "utc": "2026-11-19T10:05:30Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.113979,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.112208,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 21,
+      "utc": "2026-11-19T10:05:40Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.120862,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.068118,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 22,
+      "utc": "2026-11-19T10:05:50Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.170674,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.061043,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 23,
+      "utc": "2026-11-19T10:06:01Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.198314,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.055584,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 24,
+      "utc": "2026-11-19T10:06:11Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.130192,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.153167,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 25,
+      "utc": "2026-11-19T10:06:22Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.120838,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.115559,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 26,
+      "utc": "2026-11-19T10:06:32Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.126217,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.160519,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 27,
+      "utc": "2026-11-19T10:06:42Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.122821,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.043889,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 28,
+      "utc": "2026-11-19T10:06:53Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.10309,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.116606,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 29,
+      "utc": "2026-11-19T10:07:03Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.162174,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.041869,
+        "tlsResponse": true
+      }
+    },
+    {
+      "pair": 30,
+      "utc": "2026-11-19T10:07:13Z",
+      "proxy": {
+        "route": "PROXY",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 200,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.21863,
+        "tlsResponse": true
+      },
+      "direct": {
+        "route": "DIRECT",
+        "curlExit": 0,
+        "metricsParsed": true,
+        "connectStatus": 0,
+        "tlsVerifyCode": 0,
+        "httpStatus": 503,
+        "seconds": 0.069576,
+        "tlsResponse": true
+      }
+    }
+  ],
+  "serviceAfter": "active",
+  "elapsedSeconds": 300,
+  "status": "UPSTREAM_EVIDENCE_CAPTURED_REVIEW_REQUIRED"
+}
