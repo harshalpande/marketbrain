@@ -1,7 +1,7 @@
 #requires -Version 7.5
 param([Parameter(Mandatory)][string]$ResultPath,[ValidateSet('Observe','FailureFixture')][string]$Mode='Observe')
 $ErrorActionPreference='Stop'
-$report=@{version=2;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
+$report=@{version=3;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
 $watch=[Diagnostics.Stopwatch]::StartNew()
 function Read-BoundedJson([string]$Path) {
     if ((Get-Item -LiteralPath $Path).Length -gt 65536) { throw 'STATE_TOO_LARGE' }
@@ -17,6 +17,82 @@ function Get-TransportPreflightEvidence($State,$Control) {
     if($State.sequence -is [long] -or $State.sequence -is [int]){$e.sequence=$State.sequence}
     return $e
 }
+function Get-DenialIncidentEvidence($State) {
+    $e=@{historicalDenialResponsePresent=($null -ne $State.PSObject.Properties['lastDenialObservation']);files=@{}}
+    foreach($name in @('transport.ps1','manifest.json')) {
+        $path=Join-Path 'C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1' $name
+        $e.files[$name]=(Get-FileHash -LiteralPath $path).Hash
+    }
+    $manifest=Read-BoundedJson 'C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1\manifest.json'
+    $e.installedTransportMatchesManifest=($e.files['transport.ps1'] -ceq $manifest.hashes.'transport.ps1')
+    foreach($name in @('lastTlsObservation','lastTlsFailure','firstTlsFailure')) {
+        if($State.PSObject.Properties[$name]){
+            $selected=@{}
+            foreach($field in @('exitCode','elapsedMilliseconds','connectStatus','tlsVerifyCode','httpStatus','tcpConnectMilliseconds','tlsHandshakeCompletedMilliseconds','curlTotalMilliseconds')) {
+                $v=$State.$name.$field
+                if($v -is [long] -or $v -is [int] -or $v -is [double]){$selected[$field]=$v}
+            }
+            foreach($field in @('timedOut','metricsParsed','phaseMetricsParsed')) {
+                if($State.$name.$field -is [bool]){$selected[$field]=$State.$name.$field}
+            }
+            $e[$name]=$selected
+        }
+    }
+    return $e
+}
+function Test-LocalDenialFormatting {
+    # Ephemeral loopback server never forwards a request or contacts the broker/VPS.
+    Add-Type -TypeDefinition @'
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+public sealed class QueueDenialFixture : IDisposable {
+ readonly TcpListener listener=new TcpListener(IPAddress.Loopback,0);
+ readonly Task task;
+ public int Port { get { return ((IPEndPoint)listener.LocalEndpoint).Port; } }
+ public QueueDenialFixture() {
+  listener.Start(); task=Task.Run(async () => {
+   for(int i=0;i<3;i++) {
+    var accept=listener.AcceptTcpClientAsync();
+    if(await Task.WhenAny(accept,Task.Delay(10000))!=accept) throw new TimeoutException();
+    using(var client=await accept) {
+     client.ReceiveTimeout=5000;client.SendTimeout=5000;
+     var stream=client.GetStream();var bytes=new byte[8192];int n=0;
+     while(n<bytes.Length) { int k=stream.Read(bytes,n,bytes.Length-n);if(k==0)break;n+=k;
+      if(Encoding.ASCII.GetString(bytes,0,n).Contains("\r\n\r\n"))break; }
+     var response=Encoding.ASCII.GetBytes("HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+     stream.Write(response,0,response.Length);
+    }
+   }
+  });
+ }
+ public void Dispose() { listener.Stop();try{task.Wait(6000);}catch{} }
+}
+'@
+    $fixture=[QueueDenialFixture]::new()
+    $results=@()
+    try {
+        foreach($url in @('https://example.com/','https://developer.paytmmoney.com:444/','http://developer.paytmmoney.com/')) {
+            $p=[Diagnostics.Process]::new()
+            try {
+                $s=[Diagnostics.ProcessStartInfo]::new((Join-Path $env:WINDIR 'System32/curl.exe'))
+                $s.UseShellExecute=$false;$s.CreateNoWindow=$true;$s.RedirectStandardOutput=$true;$s.RedirectStandardError=$true
+                foreach($a in @('-q','--silent','--show-error','--connect-timeout','4','--max-time','6','--max-redirs','0','--proxy',('http://127.0.0.1:'+$fixture.Port),'--noproxy','','--head','--output','NUL','--write-out','%{http_connect}|%{ssl_verify_result}|%{http_code}',$url)){$s.ArgumentList.Add($a)}
+                $p.StartInfo=$s;[void]$p.Start()
+                $o=$p.StandardOutput.ReadToEndAsync();$err=$p.StandardError.ReadToEndAsync()
+                $timeout=-not $p.WaitForExit(8000)
+                if($timeout){$p.Kill($true);$p.WaitForExit()}
+                $raw=$o.GetAwaiter().GetResult();$null=$err.GetAwaiter().GetResult()
+                $http=$url.StartsWith('http:')
+                $expected=if($http){$p.ExitCode -eq 0 -and $raw -ceq '000|0|403'}else{$p.ExitCode -in @(7,56) -and $raw -ceq '403|0|000'}
+                $results+=@{case=if($http){'PLAIN_HTTP'}elseif($url.Contains(':444')){'WRONG_PORT'}else{'WRONG_HOST'};timedOut=$timeout;exitCode=$p.ExitCode;metrics=if($raw -cmatch '^\d{3}\|\d{1,9}\|\d{3}$'){$raw}else{'UNPARSEABLE'};matchesInstalledRule=($expected -and -not $timeout)}
+            } finally {$p.Dispose()}
+        }
+    } finally {$fixture.Dispose()}
+    return @{scope='LOCAL_SYNTHETIC_403_NOT_VPS_POLICY_PROOF';externalNetworkContacted=$false;checks=$results;passed=(@($results|Where-Object {-not $_.matchesInstalledRule}).Count -eq 0 -and $results.Count -eq 3)}
+}
 try {
     if ($Mode -eq 'FailureFixture') { throw 'DELIBERATE_FAILURE_FIXTURE_NO_GATEWAY_ACCESS' }
     $control='C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1\control.json'
@@ -25,7 +101,11 @@ try {
     $report.preflight=Get-TransportPreflightEvidence $initial (Read-BoundedJson $control)
     if(-not $report.preflight.applicationLocked){throw 'APPLICATION_NOT_LOCKED'}
     if($initial.phase -cne 'TRANSPORT_READY'){
-        if($report.preflight.phase -ceq 'BLOCKED' -and $report.preflight.failure){throw ('GATEWAY_BLOCKED:'+$report.preflight.failure)}
+        if($report.preflight.phase -ceq 'BLOCKED' -and $report.preflight.failure){
+            $report.incident=Get-DenialIncidentEvidence $initial
+            if($report.preflight.failure -ceq 'TRANSPORT_DENIAL_FAILED'){$report.localDenialFormatting=Test-LocalDenialFormatting}
+            throw ('GATEWAY_BLOCKED:'+$report.preflight.failure)
+        }
         throw 'GATEWAY_NOT_READY'
     }
     for($i=0;$i -lt 6;$i++) {

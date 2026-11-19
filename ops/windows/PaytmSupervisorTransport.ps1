@@ -120,15 +120,31 @@ function Save-PaytmTlsObservation($Report,$Observation,[bool]$Failed){
         $Report.tlsFailureCount=$count+1
     }
 }
-function Assert-PaytmTransportDenials {
+function Save-PaytmDenialObservation($Report,[string]$Case,$Result,[bool]$Passed) {
+    if($null -eq $Report){return}
+    $o=[ordered]@{version=1;observedUtc=[DateTime]::UtcNow.ToString('o');case=$Case;passed=$Passed;
+        timedOut=[bool]$Result.TimedOut;exitCode=$Result.ExitCode;metricsParsed=$false;
+        connectStatus=$null;tlsVerifyCode=$null;httpStatus=$null;classification='UNEXPECTED_RESPONSE'}
+    if($Result.Output -cmatch '^([0-9]{3})\|([0-9]{1,9})\|([0-9]{3})$'){
+        $o.metricsParsed=$true;$o.connectStatus=[int]$Matches[1];$o.tlsVerifyCode=[int]$Matches[2];$o.httpStatus=[int]$Matches[3]
+    }
+    $o.classification=if($Passed){'EXPECTED_DENIAL'}elseif($Result.TimedOut -or $Result.ExitCode -eq 28){'TIMEOUT_NOT_VERIFIED'}elseif($o.connectStatus -eq 200 -or ($o.httpStatus -ge 200 -and $o.httpStatus -lt 400)){'UNEXPECTED_ALLOWED_RESPONSE'}elseif(-not $o.metricsParsed){'UNPARSEABLE_RESPONSE'}else{'UNEXPECTED_RESPONSE'}
+    $Report.lastDenialObservation=[pscustomobject]$o
+    if(-not $Passed -and -not $Report.Contains('firstDenialFailure')){$Report.firstDenialFailure=[pscustomobject]$o}
+}
+function Assert-PaytmTransportDenials($Report=$null) {
     foreach($url in @('https://example.com/','https://developer.paytmmoney.com:444/')){
         $r=Invoke-PaytmTransportCurl $url
         # Windows curl versions report refused CONNECT as 7 or 56. Require the
         # actual proxy 403 and no destination response; a connection error alone is not proof.
-        if($r.TimedOut -or $r.ExitCode -cnotin @(7,56) -or $r.Output -cnotmatch '^403\|0\|000$'){throw 'TRANSPORT_DENIAL_FAILED'}
+        $passed=-not $r.TimedOut -and $r.ExitCode -cin @(7,56) -and $r.Output -cmatch '^403\|0\|000$'
+        Save-PaytmDenialObservation $Report $(if($url -ceq 'https://example.com/'){'WRONG_HOST'}else{'WRONG_PORT'}) $r $passed
+        if(-not $passed){throw 'TRANSPORT_DENIAL_FAILED'}
     }
     $r=Invoke-PaytmTransportCurl 'http://developer.paytmmoney.com/'
-    if($r.TimedOut -or $r.ExitCode -ne 0 -or $r.Output -cne '000|0|403'){throw 'TRANSPORT_DENIAL_FAILED'}
+    $passed=-not $r.TimedOut -and $r.ExitCode -eq 0 -and $r.Output -ceq '000|0|403'
+    Save-PaytmDenialObservation $Report 'PLAIN_HTTP' $r $passed
+    if(-not $passed){throw 'TRANSPORT_DENIAL_FAILED'}
 }
 function Invoke-PaytmTransportLoop([string]$Root,[string]$Work,[string]$Custody,$Report,$Clock) {
     $child=$null;$state=$null;$lastHealth=-100L;$denials=$false;$authenticated=$false
@@ -180,7 +196,7 @@ function Invoke-PaytmTransportLoop([string]$Root,[string]$Work,[string]$Custody,
                         if(@($rows).Count){Assert-PaytmTransportListener $rows $child.Id}
                         if(@($rows).Count -eq 1 -and $authenticated -and ($seconds-$lastHealth) -ge 10){
                             $probe=Test-PaytmTransportTls $Report
-                            if($probe.ok -and -not $denials){Assert-PaytmTransportDenials;$denials=$true;$Report.denialsVerified=$true}
+                            if($probe.ok -and -not $denials){Assert-PaytmTransportDenials $Report;$denials=$true;$Report.denialsVerified=$true}
                             $seconds=[long][math]::Floor($Clock.Elapsed.TotalSeconds);$lastHealth=$seconds
                             if($probe.ok){$Report.httpStatus=$probe.httpStatus;$state=Step-PaytmGatewayState $state HEALTH_OK $seconds -OwnedLoopbackListener $true -PinnedSshAuthenticated $true -ProxyTlsVerified $true}
                             else{$state=Step-PaytmGatewayState $state TRANSIENT_FAILURE $seconds PROXY_UNAVAILABLE}
