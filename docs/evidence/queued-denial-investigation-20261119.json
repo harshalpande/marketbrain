@@ -1,0 +1,117 @@
+{
+  "id": "4db3a60c-c6da-411f-8d8c-054485eeb075",
+  "kind": "paytm-transport-test",
+  "state": "FAILED",
+  "created": 1795112936.5270693,
+  "updated": 1795112941.1215076,
+  "result": {
+    "stderrCharacters": 0,
+    "sourceSha256": "DCDFB5CCA43577BCCB6E85B17783D6F025F268AD8F7410016236954766755FCD",
+    "revision": "c738a2abdfd941a2939911e0d904b8e28bd9c57a",
+    "elapsedSeconds": 3.9186859,
+    "timedOut": false,
+    "ordersEnabled": false,
+    "evidence": {
+      "scope": "OPERATOR_TRANSPORT_NOT_BROKER_READINESS",
+      "localDenialFormatting": {
+        "externalNetworkContacted": false,
+        "passed": true,
+        "scope": "LOCAL_SYNTHETIC_403_NOT_VPS_POLICY_PROOF",
+        "checks": [
+          {
+            "metrics": "403|0|000",
+            "timedOut": false,
+            "case": "WRONG_HOST",
+            "exitCode": 56,
+            "matchesInstalledRule": true
+          },
+          {
+            "metrics": "403|0|000",
+            "timedOut": false,
+            "case": "WRONG_PORT",
+            "exitCode": 56,
+            "matchesInstalledRule": true
+          },
+          {
+            "metrics": "000|0|403",
+            "timedOut": false,
+            "case": "PLAIN_HTTP",
+            "exitCode": 0,
+            "matchesInstalledRule": true
+          }
+        ]
+      },
+      "gatewayChanged": false,
+      "incident": {
+        "lastTlsFailure": {
+          "tlsHandshakeCompletedMilliseconds": 0,
+          "tcpConnectMilliseconds": 0,
+          "connectStatus": 0,
+          "elapsedMilliseconds": 4123,
+          "curlTotalMilliseconds": 4011,
+          "httpStatus": 0,
+          "timedOut": false,
+          "exitCode": 28,
+          "phaseMetricsParsed": true,
+          "tlsVerifyCode": 0,
+          "metricsParsed": true
+        },
+        "files": {
+          "manifest.json": "343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98",
+          "transport.ps1": "AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1"
+        },
+        "historicalDenialResponsePresent": false,
+        "firstTlsFailure": {
+          "tlsHandshakeCompletedMilliseconds": 0,
+          "tcpConnectMilliseconds": 0,
+          "connectStatus": 0,
+          "elapsedMilliseconds": 4094,
+          "curlTotalMilliseconds": 4017,
+          "httpStatus": 0,
+          "timedOut": false,
+          "exitCode": 28,
+          "phaseMetricsParsed": true,
+          "tlsVerifyCode": 0,
+          "metricsParsed": true
+        },
+        "lastTlsObservation": {
+          "tlsHandshakeCompletedMilliseconds": 712,
+          "tcpConnectMilliseconds": 2,
+          "connectStatus": 200,
+          "elapsedMilliseconds": 1155,
+          "curlTotalMilliseconds": 1100,
+          "httpStatus": 503,
+          "timedOut": false,
+          "exitCode": 0,
+          "phaseMetricsParsed": true,
+          "tlsVerifyCode": 0,
+          "metricsParsed": true
+        },
+        "installedTransportMatchesManifest": true
+      },
+      "preflight": {
+        "sequence": 3860,
+        "failure": "TRANSPORT_DENIAL_FAILED",
+        "phase": "BLOCKED",
+        "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+        "applicationLocked": true
+      },
+      "ordersEnabled": false,
+      "samples": [],
+      "passed": false,
+      "failure": "GATEWAY_BLOCKED:TRANSPORT_DENIAL_FAILED",
+      "version": 3,
+      "test": "PAYTM_TRANSPORT_OBSERVATION",
+      "brokerCredentialsUsed": false,
+      "elapsedSeconds": 2.9185692
+    },
+    "exitCode": 1,
+    "stdoutCharacters": 0,
+    "passed": false
+  },
+  "spec": {
+    "mode": "Observe",
+    "sha256": "DCDFB5CCA43577BCCB6E85B17783D6F025F268AD8F7410016236954766755FCD",
+    "revision": "c738a2abdfd941a2939911e0d904b8e28bd9c57a"
+  }
+}
