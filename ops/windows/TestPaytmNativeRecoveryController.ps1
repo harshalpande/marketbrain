@@ -1,5 +1,6 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture)
+[CmdletBinding()]param([switch]$IncidentRecoveryFixture,[switch]$TlsPhaseFixture,[switch]$TlsResumeFixture,[switch]$TlsStabilityFixture,[switch]$HealthResumeFixture,[switch]$ReviewedSshFixture)
+if($ReviewedSshFixture){$HealthResumeFixture=$true}
 if($TlsResumeFixture){$TlsPhaseFixture=$true}
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmSupervisorHost.ps1')
@@ -66,6 +67,7 @@ try{
   $file=Join-Path $ops 'RepairPaytmNativeProcess.ps1';Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RepairPaytmNativeProcess.ps1') -Destination $file
   $extra=@{}
   if($HealthResumeFixture){$extra.HealthBlockedTransportResume=$true;[IO.File]::WriteAllText((Join-Path $ops 'PaytmTransportHealthResume.ps1'),'# adapter mocked separately')}
+  if($ReviewedSshFixture){$extra.Remove('HealthBlockedTransportResume');$extra.ReviewedSshRecovery=$true;[IO.File]::WriteAllText((Join-Path $ops 'PaytmReviewedSshRecovery.ps1'),'# adapter mocked separately')}
   if($IncidentRecoveryFixture){
    [IO.File]::WriteAllText((Join-Path $ops 'PaytmIncidentRecovery.ps1'),'# adapter mocked separately')
    $extra.IncidentRecovery=$true
