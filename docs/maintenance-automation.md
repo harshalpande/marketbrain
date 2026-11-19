@@ -202,3 +202,9 @@ The next diagnostic includes two observations to the fixed VPS address, port 22.
 This is current operator-context evidence, not gateway-account authentication or verified server identity. It cannot reconstruct the discarded historical SSH stderr. Local tests cover identification, fragmented input, immediate close, silence/deadline, byte limit and invalid protocol. A passed probe does not unlock the gateway or establish broker readiness.
 
 Deploy with the existing elevated runner updater after pulling; confirm RUNNER_UPDATE_VERIFIED. The controller then submits a normal diagnostic and retrieves the result automatically. No manual JSON transfer, credentials, or gateway restart is required.
+
+### Reachability result and next identity check
+
+**SSH reachability accepted, 2026-11-19:** [Automatic diagnostic](evidence/automation-ssh-reachability-20261119.json) has verified runner/helper hashes. Both operator-context TCP/SSH identification samples passed (198 ms, 515 ms); no authentication attempted or host identity established. Gateway remains BLOCKED with the same UNKNOWN incident and closed local listener. Next: existing isolated scheduled signing test under the gateway account, with local Windows password input and automatic report collection. This is a fresh prerequisite check, not proof of the original cause or permission to clear markers. G3 remains 80%, total 14/30 (46.7%).
+
+Run `ops/automation/Invoke-LocalGatewaySigning.ps1` once in elevated PowerShell 7. Enter TEST-SCHEDULED-KEY and the existing Windows marketbrain-gateway account password when requested, not the VPS password or SSH key passphrase. The temporary scheduled probe checks signing in session 0, verifies its task definition and cleanup, and saves a bounded latest result for automatic retrieval. The wrapper compares production gateway hashes before/after. Preserve any failure report; do not rerun recovery scripts against older incident receipts.
