@@ -7,6 +7,7 @@ function Set-CollectorActivationControl($Definition,[bool]$Enabled) {
 function Test-CollectorActivationSample($Value,$State) {
  if($Value.version -ne 1 -or $Value.instanceId -cnotmatch '^[a-f0-9]{32}$' -or $Value.processId -le 0 -or $Value.ordersEnabled -ne $false){throw 'COLLECTOR_SAMPLE_IDENTITY'}
  if($State.instance -and $Value.instanceId -cne $State.instance){throw 'COLLECTOR_INSTANCE_CHANGED'}
+ if($State.processId -and $Value.processId -ne $State.processId){throw 'COLLECTOR_PROCESS_CHANGED'}
  if($Value.failure -or $Value.phase -ne 'HEALTH_RECORDED' -or $Value.consecutiveFailures -ne 0){throw 'COLLECTOR_SAMPLE_UNHEALTHY'}
  if($Value.sequence -lt $State.sequence -or $Value.acceptedCount -gt $Value.sequence){throw 'COLLECTOR_SAMPLE_SEQUENCE'}
  if($Value.sequence -gt $State.sequence){$State.advances++;$State.sequence=$Value.sequence}
@@ -79,6 +80,12 @@ finally{
  if($ctx -and $ctx.startAttempted){try{Stop-DenialRecoveryTask $ctx;$ctx.stopped=$true;$r.gatewayStopped=$true}catch{$r.cleanupFailure='GATEWAY_STOP_REVIEW_REQUIRED'}}
  if($ctx -and $ctx.guardXmlHash -and (-not $attempted -or $r.collectorStopped) -and (-not $ctx.startAttempted -or $ctx.stopped)){try{Remove-DenialRecoveryGuard $ctx;$r.guardRemoved=$true}catch{$r.cleanupFailure='COLLECTOR_GUARD_REVIEW_REQUIRED'}}
  if($ctx -and $ctx.guardAttempted -and -not $ctx.guardXmlHash){$r.cleanupFailure='COLLECTOR_GUARD_REVIEW_REQUIRED'}
+ if($attempted -and $d -and -not $r.worker){
+  try{
+   $finalPath=Join-Path $d.work 'final.json'
+   if(Test-Path -LiteralPath $finalPath){$v=Read-BoundedJson $finalPath;if($v.runId -ceq 'ab47639ee8d74da69a9466c0f59e601e'){$r.worker=@{stage=$v.stage;failure=$v.failure;sessionId=$v.sessionId;nonAdmin=$v.nonAdmin;tokenAuthenticated=$v.tokenAuthenticated;collector=$v.collector}}}
+  }catch{$r.workerEvidenceFailure='COLLECTOR_FINAL_EVIDENCE_UNAVAILABLE'}
+ }
  if($r.cleanupFailure -or $r.failure){$r.passed=$false;$r.status='REVIEW_REQUIRED'}
  $r.elapsedSeconds=$watch.Elapsed.TotalSeconds
  [IO.File]::WriteAllText($ResultPath,($r|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
