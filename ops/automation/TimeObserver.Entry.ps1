@@ -12,6 +12,7 @@ try{
  $existing=@(Get-ScheduledTask|Where-Object {$_.TaskPath -ceq '\' -and $_.TaskName -ceq $task})
  if($Mode -ceq 'Observe'){
   $r.directoryPresent=Test-Path -LiteralPath $root;$r.taskPresent=($existing.Count -gt 0)
+  if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){Assert-TimeObservationAcl $snapshot;$raw=[IO.File]::ReadAllText($snapshot);if($raw.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=ConvertFrom-Json -InputObject $raw -DateKind String;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
  if((Test-Path -LiteralPath $root) -or $existing.Count){throw 'TIME_OBSERVER_EXISTING_INSTALL_REVIEW_REQUIRED'}

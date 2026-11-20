@@ -26,3 +26,9 @@ foreach($untrusted in @($false,$true)){
  if($rejected -ne $untrusted){throw 'ACL write boundary failed'}
 }
 Write-Host 'TIME_OBSERVATION_ACL_PASSED: read allowed; non-admin write rejected.'
+
+$v=New-Fixture;$v.bootId='2026-11-20T01:02:03.1234567Z'
+$parsed=ConvertFrom-TimeObservationJson ($v|ConvertTo-Json -Depth 5)
+if($parsed.bootId -isnot [string] -or $parsed.bootId -cne $v.bootId){throw 'ISO boot identity changed during JSON parsing'}
+$null=ConvertFrom-TimeObservation $parsed $v.bootId 10020000000L 10000000L
+Write-Host 'TIME_OBSERVATION_JSON_PASSED: ISO boot identity preserved.'

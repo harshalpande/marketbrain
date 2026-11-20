@@ -30,11 +30,15 @@ function ConvertFrom-TimeObservation($Value,[string]$BootId,[long]$NowTicks,[lon
     $output=$Value.status.output.Remove($m.Groups[2].Index,$m.Groups[2].Length).Insert($m.Groups[2].Index,$seconds.ToString('F6',[Globalization.CultureInfo]::InvariantCulture))
     [pscustomobject]@{status=@{exitCode=0;output=$output};source=$Value.source;service=$Value.service;ageSeconds=$age;sequence=$Value.sequence}
 }
+function ConvertFrom-TimeObservationJson([string]$Json) {
+    # PS7 otherwise coerces ISO boot IDs into DateTime, unlike the PS5 producer.
+    if($PSVersionTable.PSVersion -ge [version]'7.5'){ConvertFrom-Json -InputObject $Json -DateKind String}else{ConvertFrom-Json -InputObject $Json}
+}
 function Read-TimeObservation {
     $root='C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1';$path=Join-Path $root 'snapshot.json'
     foreach($p in @('C:\ProgramData\MarketBrainPaytmHealth',$root,$path)){Assert-TimeObservationAcl $p}
     $stream=[IO.File]::Open($path,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
-    try{if($stream.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$reader=[IO.StreamReader]::new($stream);try{$buffer=[char[]]::new(16385);$n=$reader.ReadBlock($buffer,0,16385);if($n -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=[string]::new($buffer,0,$n)|ConvertFrom-Json}finally{$reader.Dispose()}}finally{$stream.Dispose()}
+    try{if($stream.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$reader=[IO.StreamReader]::new($stream);try{$buffer=[char[]]::new(16385);$n=$reader.ReadBlock($buffer,0,16385);if($n -gt 16384){throw 'TIME_OBSERVER_SIZE'};$json=[string]::new($buffer,0,$n);$v=ConvertFrom-TimeObservationJson $json}finally{$reader.Dispose()}}finally{$stream.Dispose()}
     ConvertFrom-TimeObservation $v (Get-TimeObservationBootId) ([Diagnostics.Stopwatch]::GetTimestamp()) ([Diagnostics.Stopwatch]::Frequency)
 }
 
@@ -53,6 +57,7 @@ try{
  $existing=@(Get-ScheduledTask|Where-Object {$_.TaskPath -ceq '\' -and $_.TaskName -ceq $task})
  if($Mode -ceq 'Observe'){
   $r.directoryPresent=Test-Path -LiteralPath $root;$r.taskPresent=($existing.Count -gt 0)
+  if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){Assert-TimeObservationAcl $snapshot;$raw=[IO.File]::ReadAllText($snapshot);if($raw.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=ConvertFrom-Json -InputObject $raw -DateKind String;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
  if((Test-Path -LiteralPath $root) -or $existing.Count){throw 'TIME_OBSERVER_EXISTING_INSTALL_REVIEW_REQUIRED'}
