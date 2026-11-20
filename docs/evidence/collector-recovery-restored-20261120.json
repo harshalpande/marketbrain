@@ -1,0 +1,59 @@
+{
+    "jobId":  "b4815a46-e645-4e78-a53d-7a0978c9b5a3",
+    "elapsedSeconds":  12.6421974,
+    "evidence":  {
+                     "runId":  "c95f3b6d8de24a12b62f597a6f390f16",
+                     "timeObserver":  {
+                                          "lastSequence":  73,
+                                          "verified":  true,
+                                          "started":  false,
+                                          "firstSequence":  72,
+                                          "lastResult":  267009,
+                                          "beforeState":  "Running"
+                                      },
+                     "mode":  "Observe",
+                     "rollbackFailure":  null,
+                     "files":  {
+                                   "collector-v1\\known_hosts":  true,
+                                   "collector-v1\\control.json":  true,
+                                   "collector-v1\\worker.ps1":  true,
+                                   "time-observer-v1\\collector-install-result.json":  true,
+                                   "time-observer-v1\\snapshot.json":  true
+                               },
+                     "status":  "COLLECTOR_RECOVERY_UPGRADE_PREFLIGHT_PASSED",
+                     "ordersEnabled":  false,
+                     "failure":  null,
+                     "credentialsUsed":  false,
+                     "workerStarted":  false,
+                     "passed":  true,
+                     "applicationRestarted":  false,
+                     "stage":  "APPLICATION_PREFLIGHT",
+                     "workerSha256":  "F4C496DBBBB1CF55A1A3FA8E2BAD29AE832166E97A5A633F10A3C2C313CCFF4B",
+                     "version":  1,
+                     "containerBefore":  {
+                                             "readOnly":  true,
+                                             "restartCount":  0,
+                                             "containerId":  "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+                                             "restartPolicy":  "no",
+                                             "finishedAt":  "2026-11-20T15:29:02.541090458Z",
+                                             "startedAt":  "2026-11-20T15:29:46.631659063Z",
+                                             "state":  "running"
+                                         },
+                     "preflight":  {
+                                       "runtimeStarted":  false,
+                                       "taskDisabled":  true,
+                                       "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING",
+                                       "hostHashVerified":  true,
+                                       "observedUtc":  "2026-11-20T15:53:31.9456002Z",
+                                       "taskXmlVerified":  true,
+                                       "installationId":  "ab47639ee8d74da69a9466c0f59e601e",
+                                       "controlDisabled":  true,
+                                       "ordersEnabled":  false,
+                                       "timeSnapshotAgeSeconds":  1.2881094,
+                                       "workerHashVerified":  true
+                                   }
+                 },
+    "revision":  "687bbb5e8e5c6e5bc0cb2bdd3568b52ea4f3eb61",
+    "date":  "2026-11-20",
+    "state":  "SUCCEEDED"
+}
