@@ -1,5 +1,6 @@
 services:
   marketbrain-service:
+    restart: unless-stopped
     build:
       context: ./marketbrain-service
     environment:

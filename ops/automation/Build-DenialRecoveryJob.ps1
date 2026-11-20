@@ -1,6 +1,7 @@
 #requires -Version 7.5
-param([switch]$Check,[ValidateSet('Activation','Lifecycle')][string]$Stage='Lifecycle')
+param([switch]$Check,[ValidateSet('Activation','Lifecycle','RecoveryUpgrade')][string]$Stage='RecoveryUpgrade')
 $ErrorActionPreference='Stop'
+if($Stage -eq 'RecoveryUpgrade'){& (Join-Path $PSScriptRoot 'Build-CollectorRecoveryJob.ps1') -Check:$Check;return}
 $parts=@'
 #requires -Version 7.5
 # Generated bounded activation. Historical recovery revisions remain immutable.
