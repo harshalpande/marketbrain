@@ -57,7 +57,18 @@ public final class PaytmSupervisedSession implements AutoCloseable {
     public synchronized void callback(String query, String binding) {
         alive();
         if (!"AWAITING_CALLBACK".equals(state)) throw new IllegalArgumentException("SUPERVISED_CALLBACK_REJECTED");
-        String requestToken = preparation.consume(query, binding);
+        String requestToken;
+        try {
+            requestToken = preparation.consume(query, binding);
+        } catch (IllegalArgumentException e) {
+            // End the failing owner's attempt promptly; unrelated browser cookies cannot cancel it.
+            if (binding != null && challenge != null && MessageDigest.isEqual(
+                    challenge.browserBinding().getBytes(StandardCharsets.UTF_8), binding.getBytes(StandardCharsets.UTF_8))) {
+                failure = "PAYTM_CALLBACK_REJECTED";
+                close();
+            }
+            throw e;
+        }
         try {
             readToken = broker.exchange(key, secret, requestToken);
             alive();

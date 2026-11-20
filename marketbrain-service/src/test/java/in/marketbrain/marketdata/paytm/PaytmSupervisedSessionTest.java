@@ -39,6 +39,39 @@ class PaytmSupervisedSessionTest {
         assertThatThrownBy(()->session.callback("state="+state+"&requestToken=test",browser.binding())).isInstanceOf(IllegalArgumentException.class);
         assertThat(exchanges).isZero();
     }
+    @Test void observedProviderSuccessFlagAcceptedOnce() {
+        var session=create();
+        var url=session.start("key","secret",vps.toEpochMilli());
+        var browser=session.browser(URI.create(url).getQuery().substring(5));
+        var state=browser.location().getQuery().split("state=")[1];
+        var query="success=true&requestToken=fixture-token&state="+state;
+        session.callback(query,browser.binding());
+        assertThat(session.status().get("readAccessVerified")).isEqualTo(true);
+        assertThat(exchanges).isEqualTo(1); assertThat(reads).isEqualTo(1);
+        assertThatThrownBy(()->session.callback(query,browser.binding())).isInstanceOf(IllegalArgumentException.class);
+        assertThat(exchanges).isEqualTo(1);
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"success=false", "success=TRUE", "success=", "success=true&success=false", "success=true&%73uccess=true", "other=true"})
+    void malformedOrUnsuccessfulOwnerCallbackStopsWithoutBrokerCall(String prefix) {
+        var session=create();
+        var url=session.start("key","secret",vps.toEpochMilli());
+        var browser=session.browser(URI.create(url).getQuery().substring(5));
+        var state=browser.location().getQuery().split("state=")[1];
+        assertThatThrownBy(()->session.callback(prefix+"&requestToken=fixture&state="+state,browser.binding())).isInstanceOf(IllegalArgumentException.class);
+        assertThat(exchanges).isZero(); assertThat(reads).isZero();
+        assertThat(session.status().get("status")).isEqualTo("LOCKED");
+        assertThat(session.status().get("failure")).isEqualTo("PAYTM_CALLBACK_REJECTED");
+        // Retry creates a fresh state/cookie and clears the previous failed attempt.
+        var next=session.start("key","secret",vps.toEpochMilli());
+        var fresh=session.browser(URI.create(next).getQuery().substring(5));
+        assertThat(session.status().get("failure")).isEqualTo("NONE");
+        assertThat(fresh.binding()).isNotEqualTo(browser.binding());
+        var newState=fresh.location().getQuery().split("state=")[1];
+        assertThat(newState).isNotEqualTo(state);
+        session.callback("state="+newState+"&success=true&requestToken=fixture",fresh.binding());
+        assertThat(session.status().get("readAccessVerified")).isEqualTo(true);
+    }
     @Test void providerFailureClearsCredentialsAndDoesNotRetry() {
         var session=create(); fail=true;
         String url=session.start("key","secret",vps.toEpochMilli());

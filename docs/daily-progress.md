@@ -1,5 +1,7 @@
 # Daily progress and decision log
 
+**21 November 2026 - supervised callback fix:** Provider redirect observed with success=true, requestToken and state; the prior two-field parser rejected it before exchange. Accept the exact optional success=true flag, retain binding/expiry/replay checks, promptly close rejected owner callbacks, and checkpoint current launcher state atomically for queue collection. Thirty Java tests passed (including the existing 38-check verifier); real login/read acceptance remains pending.
+
 **20 November 2026 - supervised deployment correction:** Reuse existing container environment and approval-key/review-directory mounts; resolve image and database identity before building. Validate resolved Compose privately, preserve the previous image, restore process variables, and save deployment failures for automatic queue collection. Fifteen local regression checks passed, including real Compose interpolation with fixture values. Spare deployment/login acceptance remains pending; readiness percentages unchanged.
 
 **20 November 2026 - supervised paper priority:** [Supervised login path](paytm-supervised-paper.md) implements VPS-anchored elapsed time, local owner login and a protected read-only check. Windows clock screens and unfinished unattended G3 lifecycle do not gate this path. Local verification is separate from spare acceptance; G1/G2 100%, G3 80%, G4-G6 0% remain unchanged. Next: deploy and perform the first owner login, then quotes and combined Telegram/paper integration.

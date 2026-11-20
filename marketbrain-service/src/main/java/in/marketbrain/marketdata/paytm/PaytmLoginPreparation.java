@@ -73,17 +73,19 @@ public final class PaytmLoginPreparation {
         if (query == null || query.length() > 8192) throw rejected();
         Map<String, String> fields = new HashMap<>();
         String[] parts = query.split("&", -1);
-        if (parts.length != 2) throw rejected();
+        if (parts.length < 2 || parts.length > 3) throw rejected();
         try {
             for (String part : parts) {
                 int separator = part.indexOf('=');
                 if (separator <= 0) throw rejected();
                 String key = URLDecoder.decode(part.substring(0, separator), StandardCharsets.UTF_8);
                 String value = URLDecoder.decode(part.substring(separator + 1), StandardCharsets.UTF_8);
-                if (!(key.equals("state") || key.equals("requestToken")) || fields.putIfAbsent(key, value) != null)
+                if (!(key.equals("state") || key.equals("requestToken") || key.equals("success")) || fields.putIfAbsent(key, value) != null)
                     throw rejected();
             }
         } catch (IllegalArgumentException e) { throw rejected(); }
+        // Real Paytm callbacks include success=true. It never substitutes for state/token validation.
+        if (fields.containsKey("success") && !"true".equals(fields.get("success"))) throw rejected();
         return fields;
     }
 

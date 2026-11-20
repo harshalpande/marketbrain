@@ -11,7 +11,11 @@ $null=New-Item -ItemType Directory -Force -Path $OutputDirectory
 $path=Join-Path $OutputDirectory "paytm-supervised-login-$id.json"
 $report=[ordered]@{version=1;runId=$id;status='REVIEW_REQUIRED';stage='PREPARATION';failure=$null;cleanup=@();elapsedSeconds=0;clockSource='VPS_ANCHORED_MONOTONIC';vpsAccuracyAssumed=$true;windowsClockGate=$false;readAccessVerified=$false;quotesTested=$false;ordersEnabled=$false}
 $taskName='MarketBrain-Gateway-Supervisor-v1';$gatewayStarted=$false;$headers=$null;$loginStarted=$false
-function Save-SupervisedReport {$report.elapsedSeconds=$timer.Elapsed.TotalSeconds;[IO.File]::WriteAllText($path,($report|ConvertTo-Json -Depth 6))}
+function Save-SupervisedReport {
+ $report.elapsedSeconds=$timer.Elapsed.TotalSeconds
+ [IO.File]::WriteAllText(($path+'.tmp'),($report|ConvertTo-Json -Depth 6))
+ [IO.File]::Move(($path+'.tmp'),$path,$true)
+}
 function Read-LocalSecret([string]$Prompt) { $s=Read-Host $Prompt -AsSecureString;try{[Net.NetworkCredential]::new('',$s).Password}finally{$s.Dispose()} }
 function Invoke-LocalSupervised([string]$Command,$Body=$null) {
  $p=@{Uri="http://127.0.0.1:8080/api/v1/paytm/supervised/$Command";Method='Post';Headers=$headers;NoProxy=$true;TimeoutSec=40}
@@ -21,11 +25,11 @@ function Invoke-LocalSupervised([string]$Command,$Body=$null) {
 try {
  Save-SupervisedReport
  Write-Host '[10%] Supervised PAPER login. App credentials stay on this laptop; no order operations.'
- $report.stage='APPLICATION'
+ $report.stage='APPLICATION';Save-SupervisedReport
  $headers=@{'X-MarketBrain-Paper-Read-Token'=(Read-LocalSecret 'Existing private paper read token');'X-MarketBrain-Paytm-Supervised'='supervised-paper'}
  $initial=Invoke-LocalSupervised 'status'
  if($initial.ordersEnabled -ne $false -or $initial.status -ne 'LOCKED'){throw 'SUPERVISED_EXISTING_SESSION_OR_SCOPE'}
- $report.stage='GATEWAY'
+ $report.stage='GATEWAY';Save-SupervisedReport
  $collector=Get-ScheduledTask -TaskName 'MarketBrain-Health-Collector-v1' -ErrorAction SilentlyContinue
  if($collector -and ($collector.State -ne 'Disabled')){throw 'SUPERVISED_COLLECTOR_MUST_BE_DISABLED'}
  $task=Get-ScheduledTask -TaskName $taskName
@@ -55,7 +59,7 @@ try {
  $pins=ConvertFrom-PaytmHostPublicKey ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'paytm-vps-host-rsa.pub')).Trim())
  $known=Join-Path $OutputDirectory "supervised-known-host-$id.txt"
  [IO.File]::WriteAllText($known,$pins.knownHost)
- $report.stage='VPS_TIME'
+ $report.stage='VPS_TIME';Save-SupervisedReport
  $nonce=[guid]::NewGuid().ToString('N')
  $args=Get-ClockLoginSshArguments $known $ClockKeyPath
  Write-Host 'Enter the CLOCK KEY passphrase if SSH requests it. No Windows time comparison is performed.'
@@ -63,7 +67,7 @@ try {
  $clock=Assert-ClockLoginReply $reply $nonce $true
  $report.vpsNtpReported=$clock.ntpSynchronized
  # User accepts VPS accuracy for this supervised prototype. NTP flag is recorded, not a gate.
- $report.stage='LOGIN'
+ $report.stage='LOGIN';Save-SupervisedReport
  $loginStarted=$true
  $start=Invoke-LocalSupervised 'start' @{apiKey=$apiKey;apiSecret=$apiSecret;vpsEpochMilliseconds=$clock.epochMilliseconds}
  $apiKey=$null;$apiSecret=$null
@@ -74,6 +78,9 @@ try {
  do {
   Start-Sleep -Seconds 2
   $state=Invoke-LocalSupervised 'status'
+  $report.applicationState=[string]$state.status
+  $report.providerFailure=[string]$state.failure
+  Save-SupervisedReport
   Write-Progress -Activity 'Supervised Paytm login' -PercentComplete 60 -Status "$($state.status): $([int]$wait.Elapsed.TotalSeconds)/600 seconds"
   if($state.readAccessVerified -eq $true){$report.readAccessVerified=$true;break}
   if($state.status -eq 'LOCKED'){$report.providerFailure=[string]$state.failure;throw 'SUPERVISED_PROVIDER_OR_SESSION_FAILURE'}

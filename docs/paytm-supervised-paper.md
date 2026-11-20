@@ -106,3 +106,21 @@ Checked 20 November 2026 against Paytm's official SDK:
 [fixed route definitions](https://github.com/paytmmoney/pyPMClient/blob/master/pmClient/constants.py),
 [read-token header](https://github.com/paytmmoney/pyPMClient/blob/master/pmClient/apiService.py).
 Runtime provider acceptance remains pending.
+
+## Callback correction, 21 November 2026
+
+The owner's actual redirect contained `success=true`, `requestToken` and `state`.
+The original parser only accepted two fields, so it rejected this callback
+before token exchange. It now accepts the optional exact `success=true` value;
+false/empty/other values, unknown fields and duplicate (including encoded)
+names remain rejected. Matching browser binding, state, expiry and one-use
+consumption are still mandatory. A rejected callback carrying the current
+owner's cookie closes the attempt and exposes a sanitized failure to polling.
+Unrelated cookie values cannot cancel the active attempt. Starting again clears
+the prior failure and creates new state/binding values.
+
+The launcher now saves stage and application-state checkpoints during the run
+with atomic replacement; the queue reader permits replacement while reading.
+This avoids returning only the initial PREPARATION checkpoint while the browser
+and terminal are already at LOGIN. No callback query/token is saved in reports.
+Close old callback tabs and use the new browser launch on retry.

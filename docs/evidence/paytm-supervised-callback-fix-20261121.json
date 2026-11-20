@@ -1,0 +1,18 @@
+{
+    "date":  "2026-11-21",
+    "status":  "LOCAL_CALLBACK_FIX_PASSED_RUNTIME_PENDING",
+    "observedCallbackFieldNames":  [
+                                       "success",
+                                       "requestToken",
+                                       "state"
+                                   ],
+    "observedSuccessFlag":  "true",
+    "cause":  "Two-field parser rejected three-field provider callback before token exchange",
+    "queueJob":  "64b413d9-9ff8-490b-bd94-7f20b8feef76",
+    "collectedCheckpointOnly":  true,
+    "javaTests":  30,
+    "failures":  0,
+    "embeddedLegacyChecks":  38,
+    "actualTokenExchangeProven":  false,
+    "ordersEnabled":  false
+}

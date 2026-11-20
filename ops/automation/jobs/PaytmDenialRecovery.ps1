@@ -9,10 +9,16 @@ try{
  if($files.Count -ne 1){throw 'SUPERVISED_REPORT_NOT_CREATED_YET'}
  $file=$files[0]
  if($file.Length -gt 16384 -or $file.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'REPORT_FILE_REJECTED'}
- $v=Get-Content -LiteralPath $file.FullName -Raw|ConvertFrom-Json
+ $stream=$null;$reader=$null
+ try{
+  $stream=[IO.File]::Open($file.FullName,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+  if($stream.Length -gt 16384){throw 'REPORT_FILE_REJECTED'}
+  $reader=[IO.StreamReader]::new($stream)
+  $v=$reader.ReadToEnd()|ConvertFrom-Json
+ }finally{if($reader){$reader.Dispose()};if($stream){$stream.Dispose()}}
  if($v.version -ne 1 -or $v.runId -cnotmatch '^[a-f0-9]{32}$' -or $v.ordersEnabled -ne $false){throw 'REPORT_SCOPE_REJECTED'}
  $safe=[ordered]@{runId=$v.runId;ordersEnabled=$false}
- foreach($name in @('status','stage','failure','providerFailure','clockSource')){
+ foreach($name in @('status','stage','failure','providerFailure','clockSource','applicationState')){
   $text=[string]$v.$name
   if($text -and $text -cnotmatch '^[A-Z0-9_]{1,100}$'){throw 'REPORT_FIELD_REJECTED'}
   $safe[$name]=$text
