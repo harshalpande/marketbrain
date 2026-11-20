@@ -1,0 +1,224 @@
+{
+  "date": "2026-11-20",
+  "scope": "SYSTEM observer acceptance only; non-admin health collector pending",
+  "diagnostic": {
+    "id": "deda23b3-9319-4c93-9b91-357226a8b7d8",
+    "state": "SUCCEEDED",
+    "elevated": true
+  },
+  "jobs": [
+    {
+      "id": "40063b9c-e3dd-4ed3-95ac-d439bcdd37df",
+      "kind": "paytm-time-observer",
+      "state": "SUCCEEDED",
+      "created": 1795158907.2321177,
+      "updated": 1795158913.013904,
+      "result": {
+        "evidence": {
+          "healthAccountAcceptance": false,
+          "elapsedSeconds": 2.4607637,
+          "ordersEnabled": false,
+          "credentialsUsed": false,
+          "version": 1,
+          "directoryPresent": false,
+          "taskCreated": false,
+          "taskPresent": false,
+          "failure": null,
+          "mode": "Observe",
+          "status": "TIME_OBSERVER_INVENTORY_ONLY",
+          "passed": true
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 4.335747,
+        "exitCode": 0,
+        "stderrCharacters": 0,
+        "passed": true,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "5773413c69131688d8558e61e40bad51c4666b33",
+        "sourceSha256": "4BF089C4E65A3AD00E9362C145AAA00D18A92E044FB4722736677DE90488FE65"
+      },
+      "spec": {
+        "mode": "Observe",
+        "revision": "5773413c69131688d8558e61e40bad51c4666b33",
+        "sha256": "4BF089C4E65A3AD00E9362C145AAA00D18A92E044FB4722736677DE90488FE65"
+      }
+    },
+    {
+      "id": "d216be06-5d99-4352-85c1-ef5106e2132b",
+      "kind": "paytm-time-observer",
+      "state": "FAILED",
+      "created": 1795158928.7916782,
+      "updated": 1795158944.7014167,
+      "result": {
+        "evidence": {
+          "mode": "Apply",
+          "version": 1,
+          "failureLine": 19,
+          "workerSha256": "7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0",
+          "elapsedSeconds": 9.7512801,
+          "healthAccountAcceptance": false,
+          "ordersEnabled": false,
+          "failureStopRequested": true,
+          "failure": "TIME_OBSERVER_IDENTITY",
+          "credentialsUsed": false,
+          "passed": false,
+          "taskCreated": true
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 10.8284473,
+        "exitCode": 1,
+        "stderrCharacters": 0,
+        "passed": false,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "5773413c69131688d8558e61e40bad51c4666b33",
+        "sourceSha256": "4BF089C4E65A3AD00E9362C145AAA00D18A92E044FB4722736677DE90488FE65"
+      },
+      "spec": {
+        "sha256": "4BF089C4E65A3AD00E9362C145AAA00D18A92E044FB4722736677DE90488FE65",
+        "mode": "Apply",
+        "revision": "5773413c69131688d8558e61e40bad51c4666b33"
+      }
+    },
+    {
+      "id": "ad06a62d-d941-446b-9a98-6b17a7cd691d",
+      "kind": "paytm-time-observer",
+      "state": "SUCCEEDED",
+      "created": 1795159023.9352186,
+      "updated": 1795159034.6105957,
+      "result": {
+        "evidence": {
+          "snapshotIdentity": {
+            "version": 1,
+            "expectedBootId": "2026-11-14T17:37:14.8719400Z",
+            "expectedFrequency": 10000000,
+            "frequency": 10000000,
+            "sequence": 3,
+            "bootId": "2026-11-14T17:37:14.8719400Z"
+          },
+          "workerSha256": "7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0",
+          "directoryPresent": true,
+          "healthAccountAcceptance": false,
+          "passed": true,
+          "failure": null,
+          "mode": "Observe",
+          "elapsedSeconds": 2.5525275,
+          "status": "TIME_OBSERVER_INVENTORY_ONLY",
+          "credentialsUsed": false,
+          "taskCreated": false,
+          "taskState": "Disabled",
+          "taskPresent": true,
+          "ordersEnabled": false,
+          "version": 1
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 6.4273736,
+        "exitCode": 0,
+        "stderrCharacters": 0,
+        "passed": true,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "4080c40479545e6ad46ccd092a07a1f2716b5e45",
+        "sourceSha256": "85E57810F9E22786B5E43B3889BF61A25752942AC66F34BE2569EDF6A5B4F9A8"
+      },
+      "spec": {
+        "sha256": "85E57810F9E22786B5E43B3889BF61A25752942AC66F34BE2569EDF6A5B4F9A8",
+        "mode": "Observe",
+        "revision": "4080c40479545e6ad46ccd092a07a1f2716b5e45"
+      }
+    },
+    {
+      "id": "0a5d1c49-ca5c-4d28-9eaf-b7d87aaf3c95",
+      "kind": "paytm-time-observer",
+      "state": "SUCCEEDED",
+      "created": 1795159105.9446802,
+      "updated": 1795159121.0796163,
+      "result": {
+        "evidence": {
+          "ordersEnabled": false,
+          "credentialsUsed": false,
+          "recoveryStartAttempted": true,
+          "firstSequence": 1,
+          "lastSequence": 2,
+          "ageSeconds": 1.2947508,
+          "recovery": true,
+          "elapsedSeconds": 7.3648339,
+          "status": "TIME_OBSERVER_SYSTEM_PASSED_HEALTH_ACCOUNT_PENDING",
+          "version": 1,
+          "taskCreated": false,
+          "workerSha256": "7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0",
+          "failure": null,
+          "passed": true,
+          "mode": "Apply",
+          "healthAccountAcceptance": false
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 9.4877974,
+        "exitCode": 0,
+        "stderrCharacters": 0,
+        "passed": true,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "fd8bf0b7bb36a0bf6eba7aedff0db49a92da462f",
+        "sourceSha256": "F021BAD958593522ED4AE8BBD7439288866FD32B482BAA334AC3E9CCB15BF045"
+      },
+      "spec": {
+        "mode": "Apply",
+        "revision": "fd8bf0b7bb36a0bf6eba7aedff0db49a92da462f",
+        "sha256": "F021BAD958593522ED4AE8BBD7439288866FD32B482BAA334AC3E9CCB15BF045"
+      }
+    }
+  ],
+  "sourceHashVerified": true,
+  "g3Percent": 80,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30,
+  "followup": {
+    "id": "f5093d00-b0f0-414f-9640-ac55740466cd",
+    "kind": "paytm-time-observer",
+    "state": "SUCCEEDED",
+    "created": 1795159148.209228,
+    "updated": 1795159158.404607,
+    "result": {
+      "evidence": {
+        "workerSha256": "7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0",
+        "directoryPresent": true,
+        "failure": null,
+        "status": "TIME_OBSERVER_INVENTORY_ONLY",
+        "snapshotIdentity": {
+          "sequence": 34,
+          "frequency": 10000000,
+          "bootId": "2026-11-14T17:37:14.8719400Z",
+          "expectedBootId": "2026-11-14T17:37:14.8719400Z",
+          "expectedFrequency": 10000000,
+          "version": 1
+        },
+        "mode": "Observe",
+        "version": 1,
+        "taskState": "Running",
+        "taskPresent": true,
+        "credentialsUsed": false,
+        "elapsedSeconds": 2.2075276,
+        "healthAccountAcceptance": false,
+        "taskCreated": false,
+        "passed": true,
+        "ordersEnabled": false
+      },
+      "ordersEnabled": false,
+      "elapsedSeconds": 4.0276492,
+      "exitCode": 0,
+      "stderrCharacters": 0,
+      "passed": true,
+      "timedOut": false,
+      "stdoutCharacters": 0,
+      "revision": "fd8bf0b7bb36a0bf6eba7aedff0db49a92da462f",
+      "sourceSha256": "F021BAD958593522ED4AE8BBD7439288866FD32B482BAA334AC3E9CCB15BF045"
+    },
+    "spec": {
+      "sha256": "F021BAD958593522ED4AE8BBD7439288866FD32B482BAA334AC3E9CCB15BF045",
+      "revision": "fd8bf0b7bb36a0bf6eba7aedff0db49a92da462f",
+      "mode": "Observe"
+    }
+  }
+}

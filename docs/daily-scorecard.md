@@ -1,5 +1,8 @@
 # Daily delivery scorecard
 
+**2026-11-20: SYSTEM time observer accepted through automation.** [Runtime evidence](evidence/time-observer-runtime-20261120.json). Diagnostic and catalogue verified; Observe found no installation. First Apply stopped on PowerShell 7 JSON conversion of the ISO boot identifier to DateTime. PS5/PS7 regression now preserves the exact string. Read-only inspection confirmed matching boot/frequency, expected worker hash and disabled task. Guarded recovery verified the existing worker/task before one start; job0a5d1c49-ca5c-4d28-9eaf-b7d87aaf3c95 passed in9.488s with sequences1->2 and snapshot age1.295s. SYSTEM observer remains running; no account elevation, broker credentials or orders. No manual script/result transfer after bootstrap. Next: actual non-admin scheduled collector access, health publication/revocation and observer lifecycle acceptance. G3 remains80%; Paytm readiness14/30 (46.7%), not whole-project completion.
+
+
 **2026-11-20: Windows time observer implementation prepared.** [Design and activation](paytm-time-observer.md). Scheduled collector cannot call administrator-only w32tm; keep its non-admin identity and use a separate fixed SYSTEM read-only observer. Protected snapshots have monotonic freshness, boot identity, bounded size and write-ACL checks. Collector retains clock/TLS/deadline/revocation rules. New queued capability paytm-time-observer requires one relay/runner catalogue update; no installation or account permission change has occurred remotely. System snapshot acceptance and actual health-account acceptance are separate. Local protocol/ACL/install/collector tests passed; runtime and G3.5 remain pending. G3 80%, total14/30 (46.7%).
 
 
