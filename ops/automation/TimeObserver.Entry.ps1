@@ -12,9 +12,9 @@ try{
  $existing=@(Get-ScheduledTask|Where-Object {$_.TaskPath -ceq '\' -and $_.TaskName -ceq $task})
  if($Mode -ceq 'Observe'){
   $r.directoryPresent=Test-Path -LiteralPath $root;$r.taskPresent=($existing.Count -gt 0)
-  if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){Assert-TimeObservationAcl $snapshot;$raw=[IO.File]::ReadAllText($snapshot);if($raw.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=ConvertFrom-Json -InputObject $raw -DateKind String;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
+  if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){$v=Read-TimeObservationFile $snapshot;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
   $localResult=Join-Path $root 'account-probe-result.json'
-  if(Test-Path -LiteralPath $localResult){Assert-TimeObservationAcl $localResult;if((Get-Item -LiteralPath $localResult).Length -gt 16384){throw 'TIME_ACCOUNT_REPORT_SIZE'};$r.localAccountProbe=Get-Content -LiteralPath $localResult -Raw|ConvertFrom-Json}
+  if(Test-Path -LiteralPath $localResult){$r.localAccountProbe=Read-TimeObservationFile $localResult}
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
  if($existing.Count -eq 1 -and [string]$existing[0].State -ceq 'Running'){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}

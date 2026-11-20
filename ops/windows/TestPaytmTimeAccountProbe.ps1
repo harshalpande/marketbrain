@@ -45,7 +45,7 @@ function New-ScheduledTaskAction {param($Execute,$Argument) @{Execute=$Execute;A
 function New-ScheduledTaskPrincipal {param($UserId,$LogonType,$RunLevel) @{UserId=$UserId;LogonType=$LogonType;RunLevel=$RunLevel}}
 function New-ScheduledTaskSettingsSet {}
 function New-ScheduledTask {param($Action,$Principal,$Settings) @{Action=$Action;Principal=$Principal}}
-function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) $Action=$InputObject.Action;$Principal=$InputObject.Principal; $Principal.UserId='SPARE\marketbrain-health';$script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=$null;State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
+function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) if($script:case -eq 'registerFailure'){throw [Runtime.InteropServices.COMException]::new('fixture secret must not escape',[Convert]::ToInt32('8007052e',16))};$Action=$InputObject.Action;$Principal=$InputObject.Principal; $Principal.UserId='SPARE\marketbrain-health';$script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=$null;State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
 function Get-ScheduledTask {if($script:task){return [pscustomobject]$script:task}}
 function Start-ScheduledTask {
  $script:started++
@@ -59,7 +59,7 @@ function Disable-ScheduledTask {}
 function Stop-ScheduledTask {}
 function Unregister-ScheduledTask {param($TaskName,$TaskPath,[switch]$Confirm) if($script:case -eq 'cleanup'){throw 'fixture cleanup failure'};$script:task=$null}
 $original=(Get-Command Invoke-TimeAccountProbe).ScriptBlock.ToString()
-foreach($script:case in @('valid','drift','badWorker','cleanup')){
+foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure')){
  $root=Join-Path ([IO.Path]::GetTempPath()) ('mb-time-account-fixture-'+[guid]::NewGuid().ToString('N'))
  $null=New-Item -ItemType Directory -Path $root
  $script:task=$null;$script:started=0
@@ -67,9 +67,23 @@ foreach($script:case in @('valid','drift','badWorker','cleanup')){
  if($result.passed -ne ($case -eq 'valid')){throw "Workflow result incorrect: $case $($result.failure)"}
  if($case -eq 'drift' -and $started){throw 'Drifted task started'}
  if($case -eq 'drift' -and ($result.stage -ne 'VERIFY_REGISTERED_TASK' -or 'RUN_LEVEL' -notin $result.taskValidation.reasons -or $result.failureDetail -like 'Scheduler registration failed*')){throw 'Incorrect task drift evidence'}
- if($case -ne 'cleanup' -and -not $result.taskRemoved){throw 'Temporary task not removed'}
+ if($case -notin @('cleanup','registerFailure') -and -not $result.taskRemoved){throw 'Temporary task not removed'}
+ if($case -eq 'registerFailure' -and ($result.taskCreated -or $started -or 1326 -notin $result.nativeFailure.win32Codes -or ($result|ConvertTo-Json -Depth 10) -match 'fixture secret')){throw 'Registration diagnostics leaked or missing'}
  if($case -eq 'cleanup' -and -not $result.cleanupFailure){throw 'Cleanup failure not retained'}
 }
-Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 4 isolated workflows.'
+Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 5 isolated workflows.'
 
 $blocked=$false;try{Invoke-TimeAccountProbe 'fixture'}catch{$blocked=$_.Exception.Message -eq 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'};if(-not $blocked){throw 'Missing credential not blocked'}
+
+foreach($code in @(5,1326,1330,1331,1385,1909,87)){
+ $hresult=[int](-2147024896+$code)
+ $e=[Runtime.InteropServices.COMException]::new('SECRET_FIXTURE',$hresult)
+ $d=Get-TimeAccountNativeFailure ([pscustomobject]@{Exception=$e})
+ if($code -notin $d.win32Codes -or ($d|ConvertTo-Json -Depth 8) -match 'SECRET_FIXTURE'){throw 'Unsafe or missing HRESULT capture'}
+}
+$fake=[pscustomobject]@{HResult=-2146233088;NativeErrorCode=2;Message='SECRET_FIXTURE HRESULT 0x8007052E';InnerException=$null;ErrorData=[pscustomobject]@{CimInstanceProperties=@{Error_Code=[pscustomobject]@{Value=2147942405L}}}}
+$d=Get-TimeAccountNativeFailure ([pscustomobject]@{Exception=$fake})
+if(1326 -notin $d.win32Codes -or 5 -notin $d.win32Codes -or 2 -in $d.win32Codes -or ($d|ConvertTo-Json -Depth 8) -match 'SECRET_FIXTURE'){throw 'CIM status namespace or redaction failed'}
+$d=Get-TimeAccountNativeFailure ([pscustomobject]@{Exception=[Exception]::new('opaque')})
+if($d.win32Codes.Count -or $d.passwordCorrectness -ne 'NOT_ESTABLISHED'){throw 'Unknown failure inferred credentials'}
+Write-Host 'TIME_ACCOUNT_NATIVE_ERRORS_PASSED: 9 HRESULT/CIM/unknown cases; secrets excluded.'

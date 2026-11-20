@@ -45,3 +45,9 @@ Local G4/G6 regression suites (25 JUnit tests) passed on2026-11-20, including lo
 ### Registered-task validation correction
 
 The local credential run created its task but stopped before execution on TASK_DRIFT; cleanup succeeded. The prior report cannot identify which field differed. The validator now compares the resolved Windows SID, accepts null as an absent trigger collection, and retains mismatch reasons/counts without recording command contents. Foreign identities, wrong logon type/run level, additional actions/triggers and altered commands still fail. Fifteen new cases run on PS5.1 and PS7. Rerun the same `TestPaytmTimeAccountAccess.ps1` after updating; the password remains local and the result is collected by queued Observe. No G3 checkpoint is closed by this code-only correction.
+
+### Credential error reporting
+
+The next local run retains only bounded numeric exception HRESULTs, selected numeric CIM fields and HRESULT tokens; it does not serialize error records, command lines or password parameters. WIN32-facility codes are distinguished from CIM status codes. Code1326 means username or password rejected, not proof of which input was wrong. Generic CLR/CIM errors cannot confirm password correctness. Known account-disabled/locked/expired, logon-right and access-denied codes are reported separately. No automatic credential retries or resets occur. Nine diagnostic fixtures and registration-failure workflow coverage passed in PS5.1/PS7.
+
+Queued Observe reads the changing snapshot and protected report through the same 16KiB bounded, delete-sharing JSON reader. File lookup/I/O retries are limited to three; ACL policy, malformed JSON and size violations remain failures. The initial report-fetch IOException is not a credential error. Real file replacement and invalid-file tests passed locally.

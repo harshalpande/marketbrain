@@ -25,5 +25,5 @@ $path=Join-Path $root 'account-probe-result.json';$temp=Join-Path $root ('result
 if(Test-Path -LiteralPath $path){Assert-TimeObservationAcl $path}
 [IO.File]::WriteAllText($temp,($r|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $temp
 if(Test-Path -LiteralPath $path){[IO.File]::Replace($temp,$path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temp,$path)}
-if(-not $r.passed){Write-Host '[100%] Report saved for automatic collection.';throw "TIME_ACCOUNT_REVIEW_REQUIRED: $($r.failure)"}
+if(-not $r.passed){Write-Host '[100%] Report saved for automatic collection.';if($r.nativeFailure){Write-Host ('Windows codes: '+(@($r.nativeFailure.win32Codes) -join ', '));Write-Host ('Findings: '+(@($r.nativeFailure.findings) -join ', '));Write-Host 'Password correctness is not established by a generic failure.'};throw "TIME_ACCOUNT_REVIEW_REQUIRED: $($r.failure)"}
 Write-Host '[100%] TIME_ACCOUNT_READ_VERIFIED. Report ready for automatic collection; no file upload needed.'

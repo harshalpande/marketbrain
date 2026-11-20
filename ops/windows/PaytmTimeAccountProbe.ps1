@@ -58,6 +58,38 @@ function Test-TimeAccountTask($Task,[string]$Executable,[string]$Arguments) {
  if($triggers.Count -ne 0){$reasons+='UNEXPECTED_TRIGGER'}
  return @{valid=($reasons.Count -eq 0);reasons=$reasons;principalSid=$sid;logonType=[string]$Task.Principal.LogonType;runLevel=[string]$Task.Principal.RunLevel;actionCount=$actions.Count;triggerCount=$triggers.Count;argumentsMatch=$argumentsMatch;executableMatch=$executableMatch}
 }
+function Get-TimeAccountNativeFailure($ErrorRecord) {
+ # Retain numeric diagnostics only: never serialize the ErrorRecord, command,
+ # exception message, bound parameters, or CIM message text containing arguments.
+ $items=@();$exception=$ErrorRecord.Exception
+ for($depth=0;$null -ne $exception -and $depth -lt 4;$depth++){
+  foreach($name in @('HResult','NativeErrorCode')){
+   $property=$exception.PSObject.Properties[$name]
+   if($property -and $null -ne $property.Value){$number=0L;if([long]::TryParse([string]$property.Value,[ref]$number)){$items+=@{source="exception.$depth.$name";value=$number}}}
+  }
+  $data=$exception.PSObject.Properties['ErrorData']
+  if($data -and $data.Value){
+   foreach($name in @('Error_Code','ErrorCode','CIMStatusCode','MessageID')){
+    $property=$data.Value.CimInstanceProperties[$name]
+    if($property -and $null -ne $property.Value){$number=0L;if([long]::TryParse([string]$property.Value,[ref]$number)){$items+=@{source="cim.$depth.$name";value=$number}}}
+   }
+  }
+  # CIM often embeds HRESULT in its message while HResult is generic CLR.
+  foreach($match in @([regex]::Matches([string]$exception.Message,'(?i)\b0x[89a-f][0-9a-f]{7}\b') | Select-Object -First 4)){
+   $items+=@{source="messageHResult.$depth";value=[Convert]::ToInt64($match.Value.Substring(2),16)}
+  }
+  $exception=$exception.InnerException
+ }
+ $win32=@()
+ foreach($item in $items){
+  $unsigned=$item.value -band 4294967295L
+  if(($unsigned -band 4294901760L) -eq 2147942400L){$win32+=($unsigned -band 65535L)}
+ }
+ $win32=@($win32|Sort-Object -Unique)
+ $findings=@()
+ foreach($code in $win32){$findings+=switch($code){5{'ACCESS_DENIED'}1326{'USERNAME_OR_PASSWORD_REJECTED'}1330{'PASSWORD_EXPIRED'}1331{'ACCOUNT_DISABLED'}1385{'LOGON_TYPE_NOT_GRANTED'}1909{'ACCOUNT_LOCKED'}default{'UNCLASSIFIED_WIN32_ERROR'}}}
+ return @{numericDiagnostics=$items;win32Codes=$win32;findings=$findings;passwordCorrectness='NOT_ESTABLISHED'}
+}
 function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]$Password) {
  if(-not $Password -or $Password.Length -eq 0){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}
  $run=[guid]::NewGuid().ToString('N');$task='MarketBrain-Time-Read-Probe-'+$run
@@ -101,7 +133,7 @@ function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]
   Assert-TimeAccountProbeResult $r.worker $run
   if((Get-ScheduledTaskInfo -TaskName $task -TaskPath '\').LastTaskResult -ne 0){throw 'TIME_ACCOUNT_EXIT'}
   $r.passed=$true
- }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.nativeHResult=$_.Exception.HResult;$message=$_.Exception.Message;$r.failureDetail=if($r.stage -eq 'REGISTER'){'Scheduler registration failed; password omitted'}else{$message.Substring(0,[Math]::Min(512,$message.Length))};$target=[string]$_.TargetObject;if($target.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase)){$r.failureTarget=$target.Substring($parent.Length)}}
+ }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.nativeHResult=$_.Exception.HResult;$r.nativeFailure=Get-TimeAccountNativeFailure $_;$message=$_.Exception.Message;$r.failureDetail=if($r.stage -eq 'REGISTER'){'Scheduler registration failed; password omitted'}else{$message.Substring(0,[Math]::Min(512,$message.Length))};$target=[string]$_.TargetObject;if($target.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase)){$r.failureTarget=$target.Substring($parent.Length)}}
  finally{
   if($r.taskCreated){try{
    $null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\'

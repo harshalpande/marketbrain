@@ -48,3 +48,24 @@ foreach($script:mode in @('race','missing','policy')){
  if($mode -eq 'policy' -and (-not $failed -or $reads -ne 1)){throw 'Policy failure retried'}
 }
 Write-Host 'TIME_OBSERVATION_RETRY_PASSED: replacement, bounded absence, immediate policy rejection.'
+
+# Real file I/O; ACL policy has its own tests above. No production paths.
+function Assert-TimeObservationAcl {}
+$fixtureDirectory=Join-Path ([IO.Path]::GetTempPath()) ('mb-snapshot-read-'+[guid]::NewGuid().ToString('N'))
+$null=New-Item -ItemType Directory -Path $fixtureDirectory
+$file=Join-Path $fixtureDirectory 'snapshot.json';$next=Join-Path $fixtureDirectory 'next.json'
+[IO.File]::WriteAllText($file,'{"sequence":1}')
+$held=[IO.File]::Open($file,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+try{
+ [IO.File]::WriteAllText($next,'{"sequence":2}')
+ [IO.File]::Replace($next,$file,[Management.Automation.Language.NullString]::Value)
+ if((Read-TimeObservationFile $file).sequence -ne 2){throw 'Replacement not read'}
+}finally{$held.Dispose()}
+foreach($invalid in @('oversize','malformed','missing')){
+ if($invalid -eq 'oversize'){[IO.File]::WriteAllText($file,('x'*16385))}
+ if($invalid -eq 'malformed'){[IO.File]::WriteAllText($file,'{')}
+ if($invalid -eq 'missing'){[IO.File]::Delete($file)}
+ $failed=$false;try{$null=Read-TimeObservationFile $file}catch{$failed=$true}
+ if(-not $failed){throw "Invalid file accepted: $invalid"}
+}
+Write-Host 'TIME_OBSERVATION_FILE_PASSED: atomic replacement, size, malformed JSON and missing file.'
