@@ -51,5 +51,12 @@
       "passwordCorrectness": "NOT_ESTABLISHED"
     }
   },
-  "conclusion": "Windows credential accepted; task definition valid; execution report missing. Task removed. Root cause not yet established."
+  "conclusion": "Windows credential accepted; task definition valid; execution report missing. Task removed. Root cause not yet established.",
+  "followup": {
+    "jobId": "f31d16fe-2a3e-4c3f-a01e-c44b9bb4f928",
+    "state": "SUCCEEDED",
+    "taskEventQuery": "UNAVAILABLE_OR_NO_EVENTS",
+    "events": [],
+    "next": "One local credential probe with scheduler status captured before cleanup; no unattended authentication replay"
+  }
 }
