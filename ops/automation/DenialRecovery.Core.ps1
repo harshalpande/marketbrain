@@ -36,8 +36,26 @@ function Stop-DenialRecoveryTask($Context) {
 function Register-DenialRecoveryGuard($Context,$ManifestHash) {
     # Independent stop survives termination of the controller/worker process.
     $guardPath=Join-Path $Context.archive 'guard.ps1'
+    $collectorStop=''
+    if($Context.collectorInstallation){
+        if($Context.collectorInstallation -cne 'ab47639ee8d74da69a9466c0f59e601e'){throw 'COLLECTOR_GUARD_IDENTITY'}
+        $collectorStop=@'
+$ct=Get-ScheduledTask -TaskName 'MarketBrain-Health-Collector-v1' -TaskPath '\'
+if($ct.Description -cne 'MarketBrain diagnostic collector ab47639ee8d74da69a9466c0f59e601e'){exit 6}
+$cp='C:\ProgramData\MarketBrainPaytmHealth\collector-v1\control.json'
+$cv=Get-Content -LiteralPath $cp -Raw|ConvertFrom-Json
+if($cv.installationId -cne 'ab47639ee8d74da69a9466c0f59e601e'){exit 7}
+$cv.enabled=$false
+$tmp=$cp+'.guard.new'
+[IO.File]::WriteAllText($tmp,($cv|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
+[IO.File]::Replace($tmp,$cp,[Management.Automation.Language.NullString]::Value)
+Disable-ScheduledTask -TaskName 'MarketBrain-Health-Collector-v1' -TaskPath '\' | Out-Null
+if([string](Get-ScheduledTask -TaskName 'MarketBrain-Health-Collector-v1' -TaskPath '\').State -in @('Running','Queued')){Stop-ScheduledTask -TaskName 'MarketBrain-Health-Collector-v1' -TaskPath '\'}
+'@
+    }
     $text=@"
 `$ErrorActionPreference='Stop'
+$collectorStop
 if((Get-FileHash -LiteralPath '$($Context.root)\manifest.json').Hash -cne '$ManifestHash'){exit 2}
 `$t=Get-ScheduledTask -TaskName '$($Context.taskName)' -TaskPath '\'
 if(`$t.Description -cne 'MarketBrain locked supervisor ea8b91471cf048aa97a0f6b939b355c7'){exit 3}
