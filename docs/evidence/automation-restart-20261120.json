@@ -1,0 +1,57 @@
+{
+  "jobId": "1d6a993f-7370-4fcb-a4e7-4b9962547a8b",
+  "state": "SUCCEEDED",
+  "observedUtc": "2026-11-20T05:12:36.0831541+00:00",
+  "runtimeHashesVerified": true,
+  "sessionId": 5,
+  "supportedJobs": [
+    "diagnostic",
+    "intervention-test",
+    "paytm-transport-test"
+  ],
+  "elevated": false,
+  "loopbackTcpConnected": false,
+  "gatewayFiles": {
+    "blocked.json": {
+      "errorType": "UnauthorizedAccessException",
+      "state": "UNAVAILABLE"
+    },
+    "transport-control.json": {
+      "errorType": "UnauthorizedAccessException",
+      "state": "UNAVAILABLE"
+    },
+    "status.json": {
+      "errorType": "UnauthorizedAccessException",
+      "state": "UNAVAILABLE"
+    },
+    "startup-failure.json": {
+      "errorType": "UnauthorizedAccessException",
+      "state": "UNAVAILABLE"
+    },
+    "control.json": {
+      "errorType": "UnauthorizedAccessException",
+      "state": "UNAVAILABLE"
+    },
+    "manifest.json": {
+      "errorType": "UnauthorizedAccessException",
+      "state": "UNAVAILABLE"
+    }
+  },
+  "clockStatus": {
+    "timedOut": false,
+    "exitCode": 0,
+    "stderr": "",
+    "elapsedSeconds": 0.0797828,
+    "stdout": "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.0612207s\nRoot Dispersion: 8.1414677s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/20/2026 10:26:48 AM\nSource: time.windows.com,0x8 \nPoll Interval: 10 (1024s)\n\nPhase Offset: 0.3496528s\nClockRate: 0.0156249s\nState Machine: 1 (Hold)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 2 (The computer did not resync because only stale time data was available.)\nTime since Last Good Sync Time: 956.4378624s\n\n"
+  },
+  "clockSource": {
+    "timedOut": false,
+    "exitCode": -2147024891,
+    "stderr": "",
+    "elapsedSeconds": 0.0398667,
+    "stdout": "The following error occurred: Access is denied. (0x80070005)\n"
+  },
+  "ordersEnabled": false,
+  "conclusion": "AUTOMATION_RECONNECTED_PROTECTED_STATE_REQUIRES_ELEVATED_SESSION",
+  "currentGatewayLockVerified": false
+}
