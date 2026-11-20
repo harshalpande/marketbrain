@@ -32,10 +32,23 @@ function ConvertFrom-TimeObservationJson([string]$Json) {
     # PS7 otherwise coerces ISO boot IDs into DateTime, unlike the PS5 producer.
     if($PSVersionTable.PSVersion -ge [version]'7.5'){ConvertFrom-Json -InputObject $Json -DateKind String}else{ConvertFrom-Json -InputObject $Json}
 }
-function Read-TimeObservation {
+function Read-TimeObservationOnce {
     $root='C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1';$path=Join-Path $root 'snapshot.json'
     foreach($p in @('C:\ProgramData\MarketBrainPaytmHealth',$root,$path)){Assert-TimeObservationAcl $p}
     $stream=[IO.File]::Open($path,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
     try{if($stream.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$reader=[IO.StreamReader]::new($stream);try{$buffer=[char[]]::new(16385);$n=$reader.ReadBlock($buffer,0,16385);if($n -gt 16384){throw 'TIME_OBSERVER_SIZE'};$json=[string]::new($buffer,0,$n);$v=ConvertFrom-TimeObservationJson $json}finally{$reader.Dispose()}}finally{$stream.Dispose()}
     ConvertFrom-TimeObservation $v (Get-TimeObservationBootId) ([Diagnostics.Stopwatch]::GetTimestamp()) ([Diagnostics.Stopwatch]::Frequency)
+}
+
+function Read-TimeObservation {
+    # Snapshot replacement can briefly invalidate a path lookup. Retry only I/O
+    # lookup failures, never ACL policy, identity, age or malformed-data failures.
+    for($attempt=0;$attempt -lt 3;$attempt++){
+        try{return Read-TimeObservationOnce}catch{
+            $cause=$_.Exception.GetBaseException()
+            $transient=$cause -is [IO.IOException] -or $cause -is [Management.Automation.ItemNotFoundException]
+            if(-not $transient -or $attempt -eq 2){throw}
+            Start-Sleep -Milliseconds 25
+        }
+    }
 }

@@ -1,5 +1,8 @@
 # Paytm readiness: evidence-based group percentages
 
+**2026-11-20: automated health-account probe prepared; local credential step required.** [Evidence](evidence/time-account-probe-preparation-20261120.json). Queue submitted diagnostics, captured failures and retrieved reports without manual transfer. Password-free cross-account S4U registration was rejected with Access denied; Microsoft requires the target password. That approach is withdrawn. `TestPaytmTimeAccountAccess.ps1` now accepts the existing health password locally, creates one limited Password-logon task, checks three fresh reads and write denials, removes its task and saves a protected report for automatic Observe collection. No account elevation or credential transport. A possible snapshot replacement lookup race has bounded I/O retries; policy/identity/stale failures never retry. Tests: ten result cases, four isolated workflows, three retry cases, generated PS5 worker, PS5/PS7 parity; 25 existing Java login/callback/Telegram tests passed. Actual health-account access/publication/lifecycle remain pending. G1/G2 100%, G3 80%, G4/G5/G6 0%;14/30 (46.7%).
+
+
 **Post-restart automated session, 2026-11-19:** Initial job returned automatically with gateway TCP/TLS success but non-elevated runner, time-source access denied and Windows sync error 2. Next job found local transport unavailable; protected supervisor state could not be read. Both runner/helper hashes verified. Bounded controller batch implemented and tested; no autonomous repair privileges implied. Elevated updater failed according to user; exact local error requested. G3 stays 80%, total 14/30 (46.7%); current readiness not accepted.
 
 

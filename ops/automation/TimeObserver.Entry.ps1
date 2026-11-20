@@ -13,14 +13,11 @@ try{
  if($Mode -ceq 'Observe'){
   $r.directoryPresent=Test-Path -LiteralPath $root;$r.taskPresent=($existing.Count -gt 0)
   if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){Assert-TimeObservationAcl $snapshot;$raw=[IO.File]::ReadAllText($snapshot);if($raw.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=ConvertFrom-Json -InputObject $raw -DateKind String;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
+  $localResult=Join-Path $root 'account-probe-result.json'
+  if(Test-Path -LiteralPath $localResult){Assert-TimeObservationAcl $localResult;if((Get-Item -LiteralPath $localResult).Length -gt 16384){throw 'TIME_ACCOUNT_REPORT_SIZE'};$r.localAccountProbe=Get-Content -LiteralPath $localResult -Raw|ConvertFrom-Json}
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
- # An already-running observer needs the local non-admin read boundary checked.
- if($existing.Count -eq 1 -and [string]$existing[0].State -ceq 'Running'){
-  $r.accountProbe=Invoke-TimeAccountProbe ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($timeAccountContract)))
-  if(-not $r.accountProbe.passed){throw 'TIME_ACCOUNT_PROBE_FAILED'}
-  $r.status='TIME_OBSERVER_NONADMIN_READ_PASSED_COLLECTOR_PENDING';$r.passed=$true;return
- }
+ if($existing.Count -eq 1 -and [string]$existing[0].State -ceq 'Running'){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}
  $recover=(Test-Path -LiteralPath $root) -or $existing.Count
  if($recover){
   if(-not (Test-Path -LiteralPath $root) -or $existing.Count -ne 1 -or [string]$existing[0].State -cne 'Disabled'){throw 'TIME_OBSERVER_EXISTING_INSTALL_REVIEW_REQUIRED'}

@@ -40,9 +40,9 @@ foreach($script:scenario in @('success','collision','startFailure')){
   foreach($script:probePass in @($true,$false)){
    & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
    $p=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
-   if($p.passed -ne $probePass -or $starts -ne 2 -or $p.healthAccountAcceptance){throw 'Running observer dispatch failed'}
+   if($p.passed -or $p.failure -cne 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED' -or $starts -ne 2 -or $p.healthAccountAcceptance){throw 'Running observer dispatch failed'}
   }
-  if($probeCalls -ne 2){throw 'Probe dispatch count failed'}
+  if($probeCalls -ne 0){throw 'Probe dispatch count failed'}
   $script:taskValue.State='Disabled'
   $script:taskValue.Actions[0].Arguments='drift';$script:enabled=0
   & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))

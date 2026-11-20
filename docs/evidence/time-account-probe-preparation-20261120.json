@@ -1,0 +1,221 @@
+{
+  "date": "2026-11-20",
+  "scope": "Health account probe preparation; runtime acceptance pending",
+  "diagnostic": {
+    "id": "32f84bf4-0296-4d22-805a-0d993ac3fc0b",
+    "state": "SUCCEEDED",
+    "elevated": true
+  },
+  "jobs": [
+    {
+      "id": "d03ecdcf-21ad-415f-962c-7a0c8ef178da",
+      "kind": "paytm-time-observer",
+      "state": "FAILED",
+      "created": 1795166989.8325865,
+      "updated": 1795166999.8572783,
+      "result": {
+        "evidence": {
+          "passed": false,
+          "failure": "TIME_OBSERVER_RuntimeException",
+          "mode": "Apply",
+          "ordersEnabled": false,
+          "credentialsUsed": false,
+          "failureLine": 152,
+          "taskCreated": false,
+          "elapsedSeconds": 3.2536809,
+          "healthAccountAcceptance": false,
+          "version": 1,
+          "accountProbe": {
+            "failureLine": 96,
+            "failure": "TIME_ACCOUNT_ItemNotFoundException",
+            "authenticationTested": false,
+            "taskRemoved": false,
+            "taskName": "MarketBrain-Time-Read-Probe-b14343d549e44250b2b3e1d3e2d269f2",
+            "runId": "b14343d549e44250b2b3e1d3e2d269f2",
+            "cleanupFailure": null,
+            "taskCreated": false,
+            "passed": false,
+            "healthPublicationTested": false
+          }
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 7.2138734,
+        "exitCode": 1,
+        "stderrCharacters": 0,
+        "passed": false,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "b9908cf28395b56cf26db4c2be091e775d2a9892",
+        "sourceSha256": "84F727CA7DFC105B9F1BF41AF3F47A594D6C6EC9AFA6E257A0D0326246658821"
+      },
+      "spec": {
+        "revision": "b9908cf28395b56cf26db4c2be091e775d2a9892",
+        "sha256": "84F727CA7DFC105B9F1BF41AF3F47A594D6C6EC9AFA6E257A0D0326246658821",
+        "mode": "Apply"
+      }
+    },
+    {
+      "id": "3a15bfbd-e437-418e-aa82-128fe631d55c",
+      "kind": "paytm-time-observer",
+      "state": "SUCCEEDED",
+      "created": 1795167026.8686917,
+      "updated": 1795167035.8053803,
+      "result": {
+        "evidence": {
+          "snapshotIdentity": {
+            "expectedBootId": "2026-11-14T17:37:14.8719400Z",
+            "bootId": "2026-11-14T17:37:14.8719400Z",
+            "sequence": 3813,
+            "version": 1,
+            "expectedFrequency": 10000000,
+            "frequency": 10000000
+          },
+          "mode": "Observe",
+          "status": "TIME_OBSERVER_INVENTORY_ONLY",
+          "version": 1,
+          "elapsedSeconds": 2.2647664,
+          "ordersEnabled": false,
+          "credentialsUsed": false,
+          "taskPresent": true,
+          "directoryPresent": true,
+          "workerSha256": "7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0",
+          "passed": true,
+          "healthAccountAcceptance": false,
+          "taskState": "Running",
+          "taskCreated": false,
+          "failure": null
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 4.6642348,
+        "exitCode": 0,
+        "stderrCharacters": 0,
+        "passed": true,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "b9908cf28395b56cf26db4c2be091e775d2a9892",
+        "sourceSha256": "84F727CA7DFC105B9F1BF41AF3F47A594D6C6EC9AFA6E257A0D0326246658821"
+      },
+      "spec": {
+        "revision": "b9908cf28395b56cf26db4c2be091e775d2a9892",
+        "sha256": "84F727CA7DFC105B9F1BF41AF3F47A594D6C6EC9AFA6E257A0D0326246658821",
+        "mode": "Observe"
+      }
+    },
+    {
+      "id": "6b48c7a6-05de-4425-b56d-547add50b722",
+      "kind": "paytm-time-observer",
+      "state": "FAILED",
+      "created": 1795167097.9967191,
+      "updated": 1795167108.3133101,
+      "result": {
+        "evidence": {
+          "elapsedSeconds": 5.1461816,
+          "failureLine": 152,
+          "credentialsUsed": false,
+          "taskCreated": false,
+          "ordersEnabled": false,
+          "healthAccountAcceptance": false,
+          "passed": false,
+          "accountProbe": {
+            "cleanupFailure": null,
+            "failure": "TIME_ACCOUNT_CimException",
+            "passed": false,
+            "authenticationTested": false,
+            "runId": "91bd6c5b3ec94bdb9fdff57709145a18",
+            "healthPublicationTested": false,
+            "taskCreated": false,
+            "failureLine": 62,
+            "stage": "REGISTER",
+            "taskName": "MarketBrain-Time-Read-Probe-91bd6c5b3ec94bdb9fdff57709145a18",
+            "taskRemoved": false
+          },
+          "mode": "Apply",
+          "failure": "TIME_ACCOUNT_PROBE_FAILED",
+          "version": 1
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 7.9004125,
+        "exitCode": 1,
+        "stderrCharacters": 0,
+        "passed": false,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "df470d02ed793459ae5ca0bb8a3bccf4cc729d23",
+        "sourceSha256": "067DC80E1DD643E1A6A772196CE6C7A44096D6B67AD8C251F2F30D15EB61BB9A"
+      },
+      "spec": {
+        "mode": "Apply",
+        "revision": "df470d02ed793459ae5ca0bb8a3bccf4cc729d23",
+        "sha256": "067DC80E1DD643E1A6A772196CE6C7A44096D6B67AD8C251F2F30D15EB61BB9A"
+      }
+    },
+    {
+      "id": "f339a220-9c11-4d59-bf3c-6bcca3875857",
+      "kind": "paytm-time-observer",
+      "state": "FAILED",
+      "created": 1795167156.4085376,
+      "updated": 1795167169.1603925,
+      "result": {
+        "evidence": {
+          "ordersEnabled": false,
+          "failure": "TIME_ACCOUNT_PROBE_FAILED",
+          "accountProbe": {
+            "authenticationTested": false,
+            "passed": false,
+            "runId": "60f6886d10ba4486824cf21abdeceae7",
+            "taskRemoved": false,
+            "failureLine": 62,
+            "taskCreated": false,
+            "cleanupFailure": null,
+            "failure": "TIME_ACCOUNT_CimException",
+            "nativeHResult": -2146233088,
+            "stage": "REGISTER",
+            "taskName": "MarketBrain-Time-Read-Probe-60f6886d10ba4486824cf21abdeceae7",
+            "failureDetail": "Access is denied.\r\n",
+            "healthPublicationTested": false
+          },
+          "failureLine": 152,
+          "passed": false,
+          "version": 1,
+          "taskCreated": false,
+          "mode": "Apply",
+          "credentialsUsed": false,
+          "healthAccountAcceptance": false,
+          "elapsedSeconds": 4.5300106
+        },
+        "ordersEnabled": false,
+        "elapsedSeconds": 7.4600408,
+        "exitCode": 1,
+        "stderrCharacters": 0,
+        "passed": false,
+        "timedOut": false,
+        "stdoutCharacters": 0,
+        "revision": "9459645314779b017dd2d8d64cf64173eb0bae68",
+        "sourceSha256": "AFDD9A3BACF9201A1A08C92450C6F29F1D48C6979C14FA65B3EEC00A816A27AE"
+      },
+      "spec": {
+        "revision": "9459645314779b017dd2d8d64cf64173eb0bae68",
+        "sha256": "AFDD9A3BACF9201A1A08C92450C6F29F1D48C6979C14FA65B3EEC00A816A27AE",
+        "mode": "Apply"
+      }
+    }
+  ],
+  "finding": "Cross-account S4U registration requires target password. Password-free approach withdrawn; no local test task registered. Initial ItemNotFound ACL lookup remains a possible replacement race, not proven root cause. Observer follow-up running at sequence3813.",
+  "reference": "https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks",
+  "localTests": {
+    "accountResultCases": 10,
+    "accountWorkflowCases": 4,
+    "timeRetryCases": 3,
+    "javaJUnitTests": 25,
+    "javaFailures": 0,
+    "javaScope": [
+      "PaytmLoginPreparationTest",
+      "PaytmCallbackRehearsalControllerTest",
+      "PaperTelegramVerificationTest",
+      "TelegramUpdateHandlerTest"
+    ]
+  },
+  "g3Percent": 80,
+  "acceptedCheckpoints": 14,
+  "totalCheckpoints": 30
+}

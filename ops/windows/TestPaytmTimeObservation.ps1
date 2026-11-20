@@ -32,3 +32,19 @@ $parsed=ConvertFrom-TimeObservationJson ($v|ConvertTo-Json -Depth 5)
 if($parsed.bootId -isnot [string] -or $parsed.bootId -cne $v.bootId){throw 'ISO boot identity changed during JSON parsing'}
 $null=ConvertFrom-TimeObservation $parsed $v.bootId 10020000000L 10000000L
 Write-Host 'TIME_OBSERVATION_JSON_PASSED: ISO boot identity preserved.'
+
+function Read-TimeObservationOnce {
+ $script:reads++
+ if($script:mode -eq 'race' -and $reads -eq 1){throw [Management.Automation.ItemNotFoundException]::new('fixture replacement')}
+ if($script:mode -eq 'missing'){throw [IO.FileNotFoundException]::new('fixture missing')}
+ if($script:mode -eq 'policy'){throw 'TIME_OBSERVER_WRITABLE'}
+ return @{sequence=9}
+}
+foreach($script:mode in @('race','missing','policy')){
+ $script:reads=0;$failed=$false
+ try{$value=Read-TimeObservation}catch{$failed=$true}
+ if($mode -eq 'race' -and ($failed -or $reads -ne 2 -or $value.sequence -ne 9)){throw 'Replacement retry failed'}
+ if($mode -eq 'missing' -and (-not $failed -or $reads -ne 3)){throw 'Missing-file retry unbounded'}
+ if($mode -eq 'policy' -and (-not $failed -or $reads -ne 1)){throw 'Policy failure retried'}
+}
+Write-Host 'TIME_OBSERVATION_RETRY_PASSED: replacement, bounded absence, immediate policy rejection.'

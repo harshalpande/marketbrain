@@ -21,7 +21,8 @@ function Set-Acl {}
 function New-ScheduledTaskAction {param($Execute,$Argument) @{Execute=$Execute;Arguments=$Argument}}
 function New-ScheduledTaskPrincipal {param($UserId,$LogonType,$RunLevel) @{UserId=$UserId;LogonType=$LogonType;RunLevel=$RunLevel}}
 function New-ScheduledTaskSettingsSet {}
-function Register-ScheduledTask {param($TaskName,$TaskPath,$Action,$Principal,$Settings) $script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=@();State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
+function New-ScheduledTask {param($Action,$Principal,$Settings) @{Action=$Action;Principal=$Principal}}
+function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) $Action=$InputObject.Action;$Principal=$InputObject.Principal; $script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=@();State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
 function Get-ScheduledTask {if($script:task){return [pscustomobject]$script:task}}
 function Start-ScheduledTask {
  $script:started++
@@ -39,10 +40,12 @@ foreach($script:case in @('valid','drift','badWorker','cleanup')){
  $root=Join-Path ([IO.Path]::GetTempPath()) ('mb-time-account-fixture-'+[guid]::NewGuid().ToString('N'))
  $null=New-Item -ItemType Directory -Path $root
  $script:task=$null;$script:started=0
- $result=& ([scriptblock]::Create($original.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root))) 'fixture'
+ $result=& ([scriptblock]::Create($original.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root))) 'fixture' (ConvertTo-SecureString 'fixture-only-not-a-real-password' -AsPlainText -Force)
  if($result.passed -ne ($case -eq 'valid')){throw "Workflow result incorrect: $case $($result.failure)"}
  if($case -eq 'drift' -and $started){throw 'Drifted task started'}
  if($case -ne 'cleanup' -and -not $result.taskRemoved){throw 'Temporary task not removed'}
  if($case -eq 'cleanup' -and -not $result.cleanupFailure){throw 'Cleanup failure not retained'}
 }
 Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, generated PS5 worker and 4 isolated workflows.'
+
+$blocked=$false;try{Invoke-TimeAccountProbe 'fixture'}catch{$blocked=$_.Exception.Message -eq 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'};if(-not $blocked){throw 'Missing credential not blocked'}

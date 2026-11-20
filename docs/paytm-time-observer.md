@@ -22,3 +22,22 @@ After capability verification, the controller can send Observe and Apply through
 ## Runtime acceptance, 2026-11-20
 
 [Queued evidence](evidence/time-observer-runtime-20261120.json) records the initial JSON identity conversion failure, disabled-task inspection, correction and successful recovery. The recovery accepts only a disabled task with the pinned worker hash, exact action and SYSTEM/startup identity; it does not overwrite the worker. Boot identifiers remain JSON strings across PS5/PS7. Two fresh advancing snapshots passed; the observer stays running. The actual non-admin collector still needs separate acceptance.
+
+## Health-account probe and remaining groups
+
+The attempted cross-account S4U registration failed before task creation. Microsoft requires the target password even for this S4U registration case: [official security contexts](https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks). The queued Apply now stops on an already-running observer with LOCAL_PASSWORD_REQUIRED instead of repeating registration. No permission policy is weakened.
+
+Run `ops/windows/TestPaytmTimeAccountAccess.ps1` in elevated PowerShell7 on the spare laptop after a fast-forward pull. Enter the existing Windows marketbrain-health password locally. It registers one limited Password-logon task, verifies session0/exact SID/non-admin status, three advancing snapshots and actual write-access denial on worker/snapshot files. It never writes through the denial-test handles. The task has a one-minute limit; the controller waits at most40 seconds and removes only its own task. Windows temporarily retains the task's logon credential until task removal; no password is written to project files or transported by the queue. Cleanup failure is retained as failed evidence.
+
+The protected `time-observer-v1/account-probe-result.json` is automatically available to the next queued Observe. No report upload is needed. Successful local reads do not prove DPAPI, network authentication, health publication or lifecycle. Those require the subsequent full collector batch.
+
+| Group | Baseline accepted | Next work |
+|---|---:|---|
+| G1 VPS maintenance | 5/5 | Preserve accepted baseline; targeted health checks when infrastructure changes |
+| G2 Gateway | 5/5 | Preserve identity/custody/startup guarantees during collector integration |
+| G3 Recovery/health | 4/5 | Non-admin access, full collector publication/revocation, durable lifecycle and no fallback |
+| G4 Login | 0/5 | Verify current provider contract/app; owner login, callback rejection, token custody/expiry |
+| G5 Quotes | 0/5 | Entitlements/mapping, actual timestamped quotes, stale/error/rate-limit handling |
+| G6 Telegram | 0/5 | Real ACCEPT/REJECT/expiry/replay/unauthorized batch with fresh quotes |
+
+Local G4/G6 regression suites (25 JUnit tests) passed on2026-11-20, including login preparation's38 internal checks. They are engineering evidence, not runtime checkpoint credit. G4 login needs owner interaction; G5 market freshness needs market-hours data; G6 requires the configured Telegram user. Report these dependencies separately from automated work rather than rerunning unrelated accepted G1/G2 milestones.

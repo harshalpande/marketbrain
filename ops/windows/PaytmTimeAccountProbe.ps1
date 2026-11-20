@@ -1,4 +1,4 @@
-# Local-only probe; no password, network access or token decryption.
+# Local-only probe; registration password stays local. No network or token decryption.
 function Get-TimeAccountProbeSource([string]$RunId,[string]$OutputPath,[string]$ContractSource) {
  if($RunId -cnotmatch '^[a-f0-9]{32}$' -or $OutputPath.Contains("'")){throw 'TIME_ACCOUNT_ARGUMENT'}
  $body=@'
@@ -32,7 +32,8 @@ function Assert-TimeAccountProbeResult($Value,[string]$RunId) {
  $previous=0L
  foreach($sample in $Value.samples){if($null -eq $sample.sequence -or $null -eq $sample.ageSeconds -or [double]::IsNaN([double]$sample.ageSeconds) -or $sample.sequence -le $previous -or $sample.ageSeconds -lt 0 -or $sample.ageSeconds -gt 8){throw 'TIME_ACCOUNT_SAMPLE_INVALID'};$previous=$sample.sequence}
 }
-function Invoke-TimeAccountProbe([string]$ContractSource) {
+function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]$Password) {
+ if(-not $Password -or $Password.Length -eq 0){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}
  $run=[guid]::NewGuid().ToString('N');$task='MarketBrain-Time-Read-Probe-'+$run
  $parent='C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1'
  $dir=Join-Path $parent ('probe-'+$run);$outputDir=Join-Path $dir 'result';$output=Join-Path $outputDir 'report.json'
@@ -54,12 +55,14 @@ function Invoke-TimeAccountProbe([string]$ContractSource) {
   $arguments='-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
   $exe=Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
   $action=New-ScheduledTaskAction -Execute $exe -Argument $arguments
-  $principal=New-ScheduledTaskPrincipal -UserId 'S-1-5-21-3041730714-102984520-3202743044-1011' -LogonType S4U -RunLevel Limited
+  $principal=New-ScheduledTaskPrincipal -UserId 'S-1-5-21-3041730714-102984520-3202743044-1011' -LogonType Password -RunLevel Limited
   $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::FromMinutes(1)) -MultipleInstances IgnoreNew
-  $r.stage='REGISTER';$null=Register-ScheduledTask -TaskName $task -TaskPath '\' -Action $action -Principal $principal -Settings $settings
+  $definition=New-ScheduledTask -Action $action -Principal $principal -Settings $settings
+  $r.stage='REGISTER';$plain=$null
+  try{$plain=[Net.NetworkCredential]::new('', $Password).Password;$null=Register-ScheduledTask -TaskName $task -TaskPath '\' -InputObject $definition -User ($env:COMPUTERNAME+'\marketbrain-health') -Password $plain}finally{$plain=$null}
   $r.taskCreated=$true
   $t=Get-ScheduledTask -TaskName $task -TaskPath '\'
-  if($t.Principal.UserId -notin @('marketbrain-health','S-1-5-21-3041730714-102984520-3202743044-1011') -or [string]$t.Principal.LogonType -cne 'S4U' -or [string]$t.Principal.RunLevel -cne 'Limited' -or @($t.Actions).Count -ne 1 -or $t.Actions[0].Arguments -cne $arguments -or $t.Actions[0].Execute -ine $exe -or @($t.Triggers).Count -ne 0){throw 'TIME_ACCOUNT_TASK_DRIFT'}
+  if($t.Principal.UserId -notin @('marketbrain-health','S-1-5-21-3041730714-102984520-3202743044-1011') -or [string]$t.Principal.LogonType -cne 'Password' -or [string]$t.Principal.RunLevel -cne 'Limited' -or @($t.Actions).Count -ne 1 -or $t.Actions[0].Arguments -cne $arguments -or $t.Actions[0].Execute -ine $exe -or @($t.Triggers).Count -ne 0){throw 'TIME_ACCOUNT_TASK_DRIFT'}
   $r.stage='START';Start-ScheduledTask -TaskName $task -TaskPath '\'
   $timer=[Diagnostics.Stopwatch]::StartNew()
   do{Start-Sleep -Seconds 1;$t=Get-ScheduledTask -TaskName $task -TaskPath '\'}while($timer.Elapsed.TotalSeconds -lt 40 -and (-not (Test-Path -LiteralPath $output) -or [string]$t.State -eq 'Running'))
@@ -70,7 +73,7 @@ function Invoke-TimeAccountProbe([string]$ContractSource) {
   Assert-TimeAccountProbeResult $r.worker $run
   if((Get-ScheduledTaskInfo -TaskName $task -TaskPath '\').LastTaskResult -ne 0){throw 'TIME_ACCOUNT_EXIT'}
   $r.passed=$true
- }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.nativeHResult=$_.Exception.HResult;$message=$_.Exception.Message;$r.failureDetail=$message.Substring(0,[Math]::Min(512,$message.Length));$target=[string]$_.TargetObject;if($target.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase)){$r.failureTarget=$target.Substring($parent.Length)}}
+ }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.nativeHResult=$_.Exception.HResult;$message=$_.Exception.Message;$r.failureDetail=if($r.stage -eq 'REGISTER'){'Scheduler registration failed; password omitted'}else{$message.Substring(0,[Math]::Min(512,$message.Length))};$target=[string]$_.TargetObject;if($target.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase)){$r.failureTarget=$target.Substring($parent.Length)}}
  finally{
   if($r.taskCreated){try{
    $null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\'
