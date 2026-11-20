@@ -495,6 +495,8 @@ try{
   $r.runId=[guid]::NewGuid().ToString('N');$ctx=New-CollectorGatewayContext $r.runId;$ctx.collectorInstallation=$receipt.runId;$ctx.lifecycleWindow=$true
   $null=Get-CollectorGatewayPreflight $ctx;$null=Get-CollectorLogonIdentity
   if($Mode -eq 'Observe'){$r.status='COLLECTOR_SIGNOUT_PREFLIGHT_PASSED';$r.passed=$true;return}
+  foreach($itemPath in @($d.work,(Join-Path $d.work 'instance.lock'))){if((Get-Item -LiteralPath $itemPath).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_WORK_REPARSE'}}
+  $lease=[IO.File]::Open((Join-Path $d.work 'instance.lock'),'Open','ReadWrite','None');$lease.Dispose()
   Preserve-CollectorAcceptedActivation $d
   Start-CollectorGatewayWindow $ctx
   $null=Get-DurableCollectorStagingPreflight $receipt

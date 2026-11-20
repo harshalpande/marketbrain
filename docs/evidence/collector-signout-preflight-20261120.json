@@ -1,0 +1,49 @@
+{
+    "id":  "d3ebe6e1-a74d-4e2d-88c8-d75c9a3cb2f1",
+    "kind":  "paytm-denial-recovery",
+    "state":  "SUCCEEDED",
+    "created":  1795187981.5838592,
+    "updated":  1795187998.6095634,
+    "result":  {
+                   "exitCode":  0,
+                   "stderrCharacters":  0,
+                   "sourceSha256":  "29D17731CB0A4D15D33FFA35D84343C0EDC09100DE80C7347BFF3CA66A4EE8DA",
+                   "elapsedSeconds":  15.7364623,
+                   "revision":  "9f81694b13c683c2ec1742268bea74e2150bf4a9",
+                   "ordersEnabled":  false,
+                   "passed":  true,
+                   "timedOut":  false,
+                   "stdoutCharacters":  0,
+                   "evidence":  {
+                                    "cleanupFailure":  null,
+                                    "mode":  "Observe",
+                                    "elapsedSeconds":  12.8462151,
+                                    "collectorStopped":  false,
+                                    "passed":  true,
+                                    "runId":  "532c84e05f1649ecaf1da41cc214996f",
+                                    "status":  "COLLECTOR_SIGNOUT_PREFLIGHT_PASSED",
+                                    "preflight":  {
+                                                      "controlDisabled":  true,
+                                                      "runtimeStarted":  false,
+                                                      "ordersEnabled":  false,
+                                                      "taskXmlVerified":  true,
+                                                      "timeSnapshotAgeSeconds":  1.7634609,
+                                                      "workerHashVerified":  true,
+                                                      "hostHashVerified":  true,
+                                                      "taskDisabled":  true,
+                                                      "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING",
+                                                      "observedUtc":  "2026-11-20T15:19:49.1155371Z",
+                                                      "installationId":  "ab47639ee8d74da69a9466c0f59e601e"
+                                                  },
+                                    "failure":  null,
+                                    "version":  1,
+                                    "ordersEnabled":  false,
+                                    "forcedStop":  false
+                                }
+               },
+    "spec":  {
+                 "revision":  "9f81694b13c683c2ec1742268bea74e2150bf4a9",
+                 "mode":  "Observe",
+                 "sha256":  "29D17731CB0A4D15D33FFA35D84343C0EDC09100DE80C7347BFF3CA66A4EE8DA"
+             }
+}

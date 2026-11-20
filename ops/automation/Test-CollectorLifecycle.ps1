@@ -40,6 +40,7 @@ function Test-CollectorActivationSample {return $true}
 function Start-Sleep {}
 foreach($script:case in @('valid','waiting','observe','expired','workerChanged','revocation','stopFailure','alreadyComplete','alreadyFailed','prepValid','prepSaveFail','prepStartFail')){
  $script:temp=Join-Path ([IO.Path]::GetTempPath()) ('mb-lifecycle-fixture-'+[guid]::NewGuid().ToString('N'));$null=[IO.Directory]::CreateDirectory($temp)
+ [IO.File]::WriteAllText((Join-Path $temp 'instance.lock'),'')
  $before=New-FixtureSnapshot;$before.ticks=[Diagnostics.Stopwatch]::GetTimestamp();$before.frequency=[Diagnostics.Stopwatch]::Frequency
  $script:after=New-FixtureSnapshot;$after.ticks=$before.ticks+1;$after.frequency=$before.frequency;$after.interactive.authenticationId='2'*16;$after.worker.sequence=4;$after.worker.acceptedCount=4
  $script:checkpoint=@{phase='WAITING_FOR_SIGNOUT';runId=('a'*32);before=$before;context=@{startAttempted=$true;guardAttempted=$true;guardXmlHash='fixed'}}
