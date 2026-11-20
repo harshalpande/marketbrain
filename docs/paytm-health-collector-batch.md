@@ -52,3 +52,5 @@ Local coverage: 16 collector orchestration/assessment checks, 26 scheduled-task/
 | G6 Telegram review | 0/5 | 0% | Combined authorized ACCEPT/REJECT/expiry/replay tests |
 
 Paytm readiness remains 14/30 (46.7%). This counts accepted baseline checkpoints, not effort or whole-project completion. After this batch: durable collector installation and combined startup/logoff, stale-clock, outage/recovery, revocation and no-direct-fallback acceptance. G3 reaches 100% only when the remaining checkpoint is evidenced.
+
+Accepted queued collector stopped-baseline preflight: 808e1f33-df04-49ad-9f3f-6f8e6c57f42e. Application UP, gateway Disabled, pinned sources and task identity intact, no active listener or incident. This is not live transport proof. Inventory checked key-custody/manifest.json (absent); actual custody validation uses custody-state.json and remains part of the full collector preflight. Do not recreate key custody based on that inventory field. Next is a bounded gateway/collector integration window with the local password gate.

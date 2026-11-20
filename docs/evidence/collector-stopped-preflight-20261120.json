@@ -1,0 +1,85 @@
+{
+  "jobId": "808e1f33-df04-49ad-9f3f-6f8e6c57f42e",
+  "revision": "d8b421779884cdbf7d7a3a8e9c0e00b5fda02def",
+  "evidence": {
+    "passed": true,
+    "backupVerified": false,
+    "ordersEnabled": false,
+    "preflight": {
+      "hashes": {
+        "runner.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+        "gateway.ps1": "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453",
+        "native.dll": "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+        "manifest.json": "7DEBDC0E181DF0484E74F5FF4A2AD24D1034A8464A12DD72684A5D3EFFFAAD55",
+        "transport.dll": "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6",
+        "host.ps1": "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+        "session-checkpoint.json": "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+        "transport.ps1": "40343DDDBF1063ACE422922D5D4DAD98B126B04C53ECA40790B174ECA8C9CBCD",
+        "status.json": "A2F2886C646FF8224ABBA05246F5B5050488471A522FC9D38CE696FE567D330F",
+        "control.json": "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39",
+        "transport-control.json": "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B"
+      },
+      "currentTask": {
+        "enabled": false,
+        "state": "Disabled"
+      },
+      "failure": null,
+      "passed": true,
+      "currentStatus": {
+        "sequence": 81,
+        "phase": "TRANSPORT_READY",
+        "brokerReady": false,
+        "ordersEnabled": false,
+        "instanceId": "2ec76bc0e4564822957e2488c103e38d",
+        "failure": null
+      }
+    },
+    "mode": "Observe",
+    "guardRemoved": false,
+    "transportObserved": false,
+    "guardRegistered": false,
+    "startAttempts": 0,
+    "test": "POST_RECOVERY_BOUNDED_OBSERVATION",
+    "finalStoppedAndDisabled": false,
+    "instrumentationInstalled": false,
+    "cleanupFailure": null,
+    "applicationInventory": {
+      "files": {
+        "token-custody\\health-token.dpapi": true,
+        "key-custody\\manifest.json": false,
+        "installation.json": true
+      },
+      "readOnly": true,
+      "credentialsRead": false,
+      "applicationHttpStatus": 200,
+      "applicationUp": true,
+      "healthTasks": [
+        {
+          "name": "MarketBrain-Health-Clock-Probe-3f20293aade542e7985c9055f2c2a79a",
+          "enabled": false,
+          "logonType": "Password",
+          "state": "Disabled"
+        },
+        {
+          "name": "MarketBrain-Health-Clock-Probe-5320e935c0034206bc0aed37383d20d4",
+          "enabled": false,
+          "logonType": "Password",
+          "state": "Disabled"
+        },
+        {
+          "name": "MarketBrain-HealthCheck",
+          "enabled": true,
+          "logonType": "Interactive",
+          "state": "Ready"
+        }
+      ]
+    },
+    "brokerCredentialsUsed": false,
+    "status": "POST_RECOVERY_PREFLIGHT_PASSED",
+    "archivedMarkersCleared": false,
+    "failure": null,
+    "version": 1,
+    "elapsedSeconds": 3.1616435
+  },
+  "scope": "Stopped gateway baseline, not live transport or collector publication"
+}
