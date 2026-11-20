@@ -12,7 +12,7 @@ foreach($name in @('Read-BoundedJson','Get-DenialRecoveryPreflight')){
 $receipt=Get-Content (Join-Path $PSScriptRoot '../../docs/evidence/queued-recovery-preflight-20261120.json') -Raw|ConvertFrom-Json -AsHashtable -DateKind String
 $text=$receipt.result.evidence.recoveryPreflight|ConvertTo-Json -Depth 8 -Compress
 $parts+=('$acceptedRecoveryReceipt = @'+"'`n"+$text+"`n'@ | ConvertFrom-Json -AsHashtable -DateKind String")
-foreach($name in @('DenialRecovery.Core.ps1','DenialRecovery.Entry.ps1')){$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot $name))}
+foreach($name in @('DenialRecovery.Core.ps1','PostRecovery.Core.ps1','DenialRecovery.Entry.ps1')){$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot $name))}
 $built=(($parts -join "`n`n").Replace("`r`n","`n")).TrimEnd()+"`n"
 $path=Join-Path $PSScriptRoot 'jobs/PaytmDenialRecovery.ps1'
 if($Check){if([IO.File]::ReadAllText($path).Replace("`r`n","`n") -cne $built){throw 'Generated recovery job out of date'}}

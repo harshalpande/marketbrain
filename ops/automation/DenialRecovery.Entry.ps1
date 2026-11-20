@@ -10,6 +10,21 @@ try {
     if($ctx.runId -cnotmatch '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'){throw 'RECOVERY_JOB_ID_REQUIRED'}
     $ctx.archive=Join-Path $ctx.root ('denial-recovery-'+$ctx.runId)
     $ctx.guardName='MarketBrain-Denial-Guard-'+$ctx.runId
+    if(Test-Path -LiteralPath (Join-Path $ctx.root 'denial-recovery-ea723866-1fa0-45e9-a0e4-586d61d5c267')){
+        $report.test='POST_RECOVERY_BOUNDED_OBSERVATION'
+        $report.preflight=Get-PostRecoveryPreflight $ctx $acceptedRecoveryReceipt
+        if(-not $report.preflight.passed){throw $report.preflight.failure}
+        if($Mode -ceq 'Observe'){
+            $report.applicationInventory=Get-ApplicationHealthInventory
+            $report.status='POST_RECOVERY_PREFLIGHT_PASSED';$report.passed=$true
+        }else{
+            Invoke-PostRecoveryObservation $ctx $acceptedRecoveryReceipt $report
+            $report.passed=$report.transportObserved -and $report.finalStoppedAndDisabled -and $report.guardRemoved -and -not $report.cleanupFailure
+            $report.status=if($report.passed){'POST_RECOVERY_90_SECONDS_PASSED_GATEWAY_STOPPED'}else{'POST_RECOVERY_REVIEW_REQUIRED'}
+            if(-not $report.passed){throw 'RECOVERY_POST_INCOMPLETE'}
+        }
+        return
+    }
     $prior='649710f6-e95b-4ebc-831b-60a99d22ac69'
     $priorArchive=Join-Path $ctx.root ('denial-recovery-'+$prior)
     if($Mode -ceq 'Observe' -and (Test-Path -LiteralPath $priorArchive)){
