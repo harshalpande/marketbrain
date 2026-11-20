@@ -68,7 +68,12 @@ if([string](Get-ScheduledTask -TaskName '$($Context.taskName)' -TaskPath '\').St
     $command="if((Get-FileHash -LiteralPath '$guardPath').Hash -cne '$hash'){exit 4};&([scriptblock]::Create([IO.File]::ReadAllText('$guardPath')))"
     $args='-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
     $action=New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument $args
-    $trigger=New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(3))
+    $minutes=3
+    if($Context.lifecycleWindow -eq $true){
+        if($Context.collectorInstallation -cne 'ab47639ee8d74da69a9466c0f59e601e'){throw 'COLLECTOR_GUARD_IDENTITY'}
+        $minutes=10
+    }
+    $trigger=New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes($minutes))
     $principal=New-ScheduledTaskPrincipal -UserId 'S-1-5-18' -LogonType ServiceAccount -RunLevel Highest
     $settings=New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::FromMinutes(1))
     if(Get-ScheduledTask -TaskName $Context.guardName -TaskPath '\' -ErrorAction SilentlyContinue){throw 'RECOVERY_GUARD_ALREADY_EXISTS'}

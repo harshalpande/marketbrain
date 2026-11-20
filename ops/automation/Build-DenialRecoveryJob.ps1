@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([switch]$Check)
+param([switch]$Check,[ValidateSet('Activation','Lifecycle')][string]$Stage='Lifecycle')
 $ErrorActionPreference='Stop'
 $parts=@'
 #requires -Version 7.5
@@ -22,7 +22,13 @@ Add-Functions '../windows/PaytmCollectorGatewayWindow.ps1' @('Read-BoundedJson',
 $receipt=Get-Content (Join-Path $PSScriptRoot '../../docs/evidence/queued-recovery-preflight-20261120.json') -Raw|ConvertFrom-Json -AsHashtable -DateKind String
 $json=$receipt|ConvertTo-Json -Depth 12 -Compress
 $parts+=('$acceptedGatewayReceipt = @'+"'`n"+$json+"`n'@ | ConvertFrom-Json -AsHashtable -DateKind String")
-$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1'))
+if($Stage -eq 'Activation'){$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1'))}
+else{
+ Add-Functions 'DurableActivation.Entry.ps1' @('Set-CollectorActivationControl','Test-CollectorActivationSample','Stop-CollectorActivation')
+ $native=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/ReadPaytmInteractiveSession.ps1'))
+ $parts+=('$interactiveSessionCode = '+"'"+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($native))+"'")
+ $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CollectorLifecycle.Entry.ps1'))
+}
 $built=($parts -join "`n`n").Replace("`r`n","`n")
 $old='$receipt=Get-Content -LiteralPath (Join-Path $PSScriptRoot ''../../docs/evidence/queued-recovery-preflight-20261120.json'') -Raw|ConvertFrom-Json -AsHashtable'
 if(-not $built.Contains($old)){throw 'RECEIPT_TEMPLATE_CHANGED'}
