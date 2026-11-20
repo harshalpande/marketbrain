@@ -1,0 +1,120 @@
+{
+    "id":  "fb6820e0-3911-46df-90ae-777a97fcfa92",
+    "kind":  "paytm-denial-recovery",
+    "state":  "SUCCEEDED",
+    "created":  1795193832.3604698,
+    "updated":  1795193844.8279052,
+    "result":  {
+                   "elapsedSeconds":  5.2655573,
+                   "revision":  "603b78b5aa92c697a83632cabd69a18d22c50ca6",
+                   "exitCode":  0,
+                   "ordersEnabled":  false,
+                   "evidence":  {
+                                    "ordersEnabled":  false,
+                                    "credentialsUsed":  false,
+                                    "localUpgrade":  {
+                                                         "preflight":  {
+                                                                           "observedUtc":  "2026-11-20T16:55:53.1684887Z",
+                                                                           "ordersEnabled":  false,
+                                                                           "timeSnapshotAgeSeconds":  0.2798469,
+                                                                           "controlDisabled":  true,
+                                                                           "installationId":  "ab47639ee8d74da69a9466c0f59e601e",
+                                                                           "runtimeStarted":  false,
+                                                                           "taskDisabled":  true,
+                                                                           "workerHashVerified":  true,
+                                                                           "taskXmlVerified":  true,
+                                                                           "hostHashVerified":  true,
+                                                                           "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING"
+                                                                       },
+                                                         "ordersEnabled":  false,
+                                                         "workerSha256":  "F4C496DBBBB1CF55A1A3FA8E2BAD29AE832166E97A5A633F10A3C2C313CCFF4B",
+                                                         "runId":  "444dcaf7d25241c5a6e391d243f7eebe",
+                                                         "timeObserver":  {
+                                                                              "verified":  true,
+                                                                              "beforeState":  "Running",
+                                                                              "lastSequence":  1822,
+                                                                              "lastResult":  267009,
+                                                                              "started":  false,
+                                                                              "firstSequence":  1821
+                                                                          },
+                                                         "containerAfter":  {
+                                                                                "readOnly":  true,
+                                                                                "finishedAt":  "2026-11-20T15:29:02.541090458Z",
+                                                                                "startedAt":  "2026-11-20T15:29:46.631659063Z",
+                                                                                "restartCount":  0,
+                                                                                "restartPolicy":  "unless-stopped",
+                                                                                "containerId":  "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+                                                                                "state":  "running"
+                                                                            },
+                                                         "backup":  "C:\\ProgramData\\MarketBrainPaytmHealth\\collector-v1\\recovery-backup-444dcaf7d25241c5a6e391d243f7eebe",
+                                                         "workerStarted":  false,
+                                                         "controlDisabled":  true,
+                                                         "status":  "COLLECTOR_RECOVERY_UPGRADED_DISABLED_RUNTIME_PENDING",
+                                                         "applicationRestarted":  false,
+                                                         "version":  1,
+                                                         "passed":  true,
+                                                         "files":  {
+                                                                       "time-observer-v1\\collector-install-result.json":  true,
+                                                                       "collector-v1\\worker.ps1":  true,
+                                                                       "collector-v1\\known_hosts":  true,
+                                                                       "collector-v1\\control.json":  true,
+                                                                       "time-observer-v1\\snapshot.json":  true
+                                                                   },
+                                                         "taskDisabled":  true,
+                                                         "failure":  null,
+                                                         "taskXmlSha256":  "968E8E23E13263CC89A026084E0534A9692DB31FD0D60091870C817824674F11",
+                                                         "stage":  "UPGRADE",
+                                                         "mode":  "Apply",
+                                                         "containerBefore":  {
+                                                                                 "readOnly":  true,
+                                                                                 "finishedAt":  "2026-11-20T15:29:02.541090458Z",
+                                                                                 "startedAt":  "2026-11-20T15:29:46.631659063Z",
+                                                                                 "restartCount":  0,
+                                                                                 "restartPolicy":  "no",
+                                                                                 "containerId":  "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+                                                                                 "state":  "running"
+                                                                             },
+                                                         "rollbackFailure":  null,
+                                                         "credentialCheck":  {
+                                                                                 "resolvedSid":  "S-1-5-21-3041730714-102984520-3202743044-1011",
+                                                                                 "accepted":  true,
+                                                                                 "win32Code":  0,
+                                                                                 "attempts":  1,
+                                                                                 "logonType":  "BATCH"
+                                                                             },
+                                                         "installationId":  "ab47639ee8d74da69a9466c0f59e601e",
+                                                         "credentialsUsed":  true
+                                                     },
+                                    "runId":  "85cc362418f449faad6065ba31a97a18",
+                                    "failure":  null,
+                                    "mode":  "Observe",
+                                    "workerSha256":  "F4C496DBBBB1CF55A1A3FA8E2BAD29AE832166E97A5A633F10A3C2C313CCFF4B",
+                                    "status":  "COLLECTOR_RECOVERY_UPGRADE_VERIFIED_RUNTIME_PENDING",
+                                    "applicationRestarted":  false,
+                                    "containerAfter":  {
+                                                           "finishedAt":  "2026-11-20T15:29:02.541090458Z",
+                                                           "readOnly":  true,
+                                                           "state":  "running",
+                                                           "startedAt":  "2026-11-20T15:29:46.631659063Z",
+                                                           "restartPolicy":  "unless-stopped",
+                                                           "restartCount":  0,
+                                                           "containerId":  "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad"
+                                                       },
+                                    "rollbackFailure":  null,
+                                    "workerStarted":  false,
+                                    "stage":  "LOCAL_UPGRADE_REVIEW",
+                                    "version":  1,
+                                    "passed":  true
+                                },
+                   "stderrCharacters":  0,
+                   "timedOut":  false,
+                   "passed":  true,
+                   "sourceSha256":  "B73A3F17C4981EA8D69AF80726D96DB95FE99BA2F7E8D1C1DDF833359C8AB0CF",
+                   "stdoutCharacters":  60
+               },
+    "spec":  {
+                 "mode":  "Observe",
+                 "sha256":  "B73A3F17C4981EA8D69AF80726D96DB95FE99BA2F7E8D1C1DDF833359C8AB0CF",
+                 "revision":  "603b78b5aa92c697a83632cabd69a18d22c50ca6"
+             }
+}

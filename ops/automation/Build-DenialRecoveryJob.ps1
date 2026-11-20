@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([switch]$Check,[ValidateSet('Activation','Lifecycle','RecoveryUpgrade')][string]$Stage='RecoveryUpgrade')
+param([switch]$Check,[ValidateSet('Activation','Lifecycle','RecoveryUpgrade','RecoveryActivation')][string]$Stage='RecoveryActivation')
 $ErrorActionPreference='Stop'
 if($Stage -eq 'RecoveryUpgrade'){& (Join-Path $PSScriptRoot 'Build-CollectorRecoveryJob.ps1') -Check:$Check;return}
 $parts=@'
@@ -23,7 +23,12 @@ Add-Functions '../windows/PaytmCollectorGatewayWindow.ps1' @('Read-BoundedJson',
 $receipt=Get-Content (Join-Path $PSScriptRoot '../../docs/evidence/queued-recovery-preflight-20261120.json') -Raw|ConvertFrom-Json -AsHashtable -DateKind String
 $json=$receipt|ConvertTo-Json -Depth 12 -Compress
 $parts+=('$acceptedGatewayReceipt = @'+"'`n"+$json+"`n'@ | ConvertFrom-Json -AsHashtable -DateKind String")
-if($Stage -eq 'Activation'){$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1'))}
+if($Stage -eq 'RecoveryActivation'){
+ . (Join-Path $PSScriptRoot 'CollectorRecoveryActivation.ps1')
+ $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CollectorRecoveryActivation.ps1'))
+ $parts+=ConvertTo-RecoveryActivationSource ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1')))
+}
+elseif($Stage -eq 'Activation'){$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1'))}
 else{
  Add-Functions 'DurableActivation.Entry.ps1' @('Set-CollectorActivationControl','Test-CollectorActivationSample','Stop-CollectorActivation')
  $native=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/ReadPaytmInteractiveSession.ps1'))
