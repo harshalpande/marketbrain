@@ -1,0 +1,217 @@
+{
+    "scope":  "Bounded activation only; no restart or signout acceptance",
+    "clockRefresh":  {
+                         "id":  "af1141be-9e77-46f7-9719-1c637ee23a40",
+                         "kind":  "paytm-denial-recovery",
+                         "state":  "SUCCEEDED",
+                         "created":  1795194686.4649038,
+                         "updated":  1795194707.0861056,
+                         "result":  {
+                                        "elapsedSeconds":  16.3476721,
+                                        "revision":  "2707f52c90f93b82fe787218ffe1636556a2e858",
+                                        "exitCode":  0,
+                                        "ordersEnabled":  false,
+                                        "evidence":  {
+                                                         "failure":  null,
+                                                         "resyncRequested":  true,
+                                                         "before":  {
+                                                                        "status":  {
+                                                                                       "exitCode":  0,
+                                                                                       "tool":  "w32tm.exe",
+                                                                                       "output":  "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.0658689s\nRoot Dispersion: 7.8108816s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/20/2026 10:37:55 PM\nSource: time.windows.com,0x8 \nPoll Interval: 10 (1024s)\n\nPhase Offset: 0.0407798s\nClockRate: 0.0156250s\nState Machine: 1 (Hold)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 0 (The command completed successfully.)\nTime since Last Good Sync Time: 220.3635392s\n\n",
+                                                                                       "arguments":  "/query /status /verbose",
+                                                                                       "elapsedSeconds":  0.0725753
+                                                                                   },
+                                                                        "sequence":  0,
+                                                                        "source":  {
+                                                                                       "exitCode":  0,
+                                                                                       "tool":  "w32tm.exe",
+                                                                                       "output":  "time.windows.com,0x8 \n",
+                                                                                       "arguments":  "/query /source",
+                                                                                       "elapsedSeconds":  0.0582559
+                                                                                   }
+                                                                    },
+                                                         "policyChanged":  false,
+                                                         "commands":  [
+                                                                          {
+                                                                              "exitCode":  0,
+                                                                              "tool":  "w32tm.exe",
+                                                                              "output":  "Sending resync command to local computer\nThe command completed successfully.\r\n",
+                                                                              "arguments":  "/resync /rediscover",
+                                                                              "elapsedSeconds":  0.1858094
+                                                                          }
+                                                                      ],
+                                                         "passed":  true,
+                                                         "status":  "CLOCK_REFRESH_VERIFIED_POLLING_POLICY_REVIEW_PENDING",
+                                                         "ordersEnabled":  false,
+                                                         "observer":  {
+                                                                          "beforeState":  "Running",
+                                                                          "lastResult":  267009,
+                                                                          "restarted":  true,
+                                                                          "started":  true,
+                                                                          "verified":  true,
+                                                                          "lastSequence":  2,
+                                                                          "firstSequence":  1
+                                                                      },
+                                                         "after":  {
+                                                                       "status":  {
+                                                                                      "output":  "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.0732950s\nRoot Dispersion: 7.8234087s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/20/2026 10:41:36 PM\nSource: time.windows.com,0x8 \nPoll Interval: 10 (1024s)\n\nPhase Offset: 0.0533524s\nClockRate: 0.0156250s\nState Machine: 1 (Hold)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 0 (The command completed successfully.)\nTime since Last Good Sync Time: 10.227925s\n\n",
+                                                                                      "exitCode":  0
+                                                                                  },
+                                                                       "sequence":  2,
+                                                                       "source":  {
+                                                                                      "exitCode":  0,
+                                                                                      "output":  "time.windows.com,0x8 \n"
+                                                                                  }
+                                                                   }
+                                                     },
+                                        "stderrCharacters":  0,
+                                        "timedOut":  false,
+                                        "passed":  true,
+                                        "sourceSha256":  "4F1FBC66DE038C931ADC966A3AE68CE8E98E8973042A3A01199E8D0577B093AA",
+                                        "stdoutCharacters":  0
+                                    },
+                         "spec":  {
+                                      "sha256":  "4F1FBC66DE038C931ADC966A3AE68CE8E98E8973042A3A01199E8D0577B093AA",
+                                      "mode":  "Apply",
+                                      "revision":  "2707f52c90f93b82fe787218ffe1636556a2e858"
+                                  }
+                     },
+    "g3Percent":  80,
+    "activation":  {
+                       "id":  "0613680b-8a63-4be6-bf3a-2bf9bdd432d7",
+                       "kind":  "paytm-denial-recovery",
+                       "state":  "SUCCEEDED",
+                       "created":  1795194728.1123013,
+                       "updated":  1795194835.0981379,
+                       "result":  {
+                                      "elapsedSeconds":  96.8925782,
+                                      "revision":  "ac2ea33ad4f0492d09440df1ffa04ba59f92df8e",
+                                      "exitCode":  0,
+                                      "ordersEnabled":  false,
+                                      "evidence":  {
+                                                       "stage":  "COMPLETE",
+                                                       "cleanupFailure":  null,
+                                                       "ordersEnabled":  false,
+                                                       "guardRemoved":  true,
+                                                       "publicationsVerified":  true,
+                                                       "elapsedSeconds":  95.5829021,
+                                                       "forcedStop":  false,
+                                                       "failure":  null,
+                                                       "mode":  "Apply",
+                                                       "status":  "RECOVERY_COLLECTOR_ACTIVATION_PASSED_LIFECYCLE_PENDING",
+                                                       "worker":  {
+                                                                      "nonAdmin":  true,
+                                                                      "stage":  "COMPLETE",
+                                                                      "tokenAuthenticated":  true,
+                                                                      "sessionId":  0,
+                                                                      "applicationLocked":  true,
+                                                                      "failure":  null,
+                                                                      "collector":  {
+                                                                                        "version":  2,
+                                                                                        "consecutiveFailures":  0,
+                                                                                        "applicationBootId":  "f3bed26d-8d83-4db9-89cd-a03e63f00a23",
+                                                                                        "instanceId":  "b574e3c66b684f15ba12bed490338dd1",
+                                                                                        "lastFailure":  {
+                                                                                                            "findings":  [
+                                                                                                                             "CLOCK_BOUNDS_OUTSIDE_SCREEN"
+                                                                                                                         ],
+                                                                                                            "phase":  null,
+                                                                                                            "sequence":  5,
+                                                                                                            "code":  "COLLECTOR_SAMPLE_REJECTED",
+                                                                                                            "windowExceeded":  false
+                                                                                                        },
+                                                                                        "acceptedCount":  3,
+                                                                                        "sequence":  6,
+                                                                                        "observedUtc":  "2026-11-20T22:43:42.9394974+05:30",
+                                                                                        "ordersEnabled":  false,
+                                                                                        "phase":  "STOPPED",
+                                                                                        "finalHealthRevoked":  true,
+                                                                                        "recoveryCount":  0,
+                                                                                        "processId":  6520,
+                                                                                        "failure":  null
+                                                                                    }
+                                                                  },
+                                                       "observation":  {
+                                                                           "version":  2,
+                                                                           "consecutiveFailures":  0,
+                                                                           "applicationBootId":  "f3bed26d-8d83-4db9-89cd-a03e63f00a23",
+                                                                           "instanceId":  "b574e3c66b684f15ba12bed490338dd1",
+                                                                           "lastFailure":  {
+                                                                                               "findings":  [
+                                                                                                                "CLOCK_BOUNDS_OUTSIDE_SCREEN"
+                                                                                                            ],
+                                                                                               "phase":  null,
+                                                                                               "sequence":  5,
+                                                                                               "code":  "COLLECTOR_SAMPLE_REJECTED",
+                                                                                               "windowExceeded":  false
+                                                                                           },
+                                                                           "acceptedCount":  3,
+                                                                           "sequence":  6,
+                                                                           "observedUtc":  "2026-11-20T22:43:38.2557269+05:30",
+                                                                           "ordersEnabled":  false,
+                                                                           "phase":  "HEALTH_RECORDED",
+                                                                           "finalHealthRevoked":  false,
+                                                                           "recoveryCount":  0,
+                                                                           "processId":  6520,
+                                                                           "failure":  null
+                                                                       },
+                                                       "version":  1,
+                                                       "runId":  "0c72a4ea66a7454389e89d0be25738e7",
+                                                       "gatewayPreflight":  {
+                                                                                "hashes":  {
+                                                                                               "status.json":  "B5894EE5CB32814EE3F05299C15B05E56A979C0B6C357098C17B4FEF098CAD82",
+                                                                                               "runner.ps1":  "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+                                                                                               "transport-control.json":  "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B",
+                                                                                               "gateway.ps1":  "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453",
+                                                                                               "session-checkpoint.json":  "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+                                                                                               "transport.dll":  "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6",
+                                                                                               "host.ps1":  "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+                                                                                               "native.dll":  "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+                                                                                               "manifest.json":  "7DEBDC0E181DF0484E74F5FF4A2AD24D1034A8464A12DD72684A5D3EFFFAAD55",
+                                                                                               "control.json":  "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39",
+                                                                                               "transport.ps1":  "40343DDDBF1063ACE422922D5D4DAD98B126B04C53ECA40790B174ECA8C9CBCD"
+                                                                                           },
+                                                                                "currentStatus":  {
+                                                                                                      "instanceId":  "de6538c7e18f45fba2ff49babf9ca34a",
+                                                                                                      "phase":  "TRANSPORT_READY",
+                                                                                                      "sequence":  29,
+                                                                                                      "ordersEnabled":  false,
+                                                                                                      "failure":  null,
+                                                                                                      "brokerReady":  false
+                                                                                                  },
+                                                                                "failure":  null,
+                                                                                "passed":  true,
+                                                                                "currentTask":  {
+                                                                                                    "enabled":  false,
+                                                                                                    "state":  "Disabled"
+                                                                                                }
+                                                                            },
+                                                       "passed":  true,
+                                                       "collectorStarted":  true,
+                                                       "lastTaskResult":  0,
+                                                       "finalHealthRevoked":  true,
+                                                       "collectorStopped":  true,
+                                                       "gatewayStopped":  true,
+                                                       "preflight":  {
+                                                                         "workerHashVerified":  true,
+                                                                         "disabledVerified":  true,
+                                                                         "taskXmlVerified":  true,
+                                                                         "ordersEnabled":  false,
+                                                                         "timeSnapshotAgeSeconds":  1.8075602,
+                                                                         "passed":  true
+                                                                     }
+                                                   },
+                                      "stderrCharacters":  0,
+                                      "timedOut":  false,
+                                      "passed":  true,
+                                      "sourceSha256":  "3E087D0DF2C3AA8DF80CF279EF99C5227CB393C8948AE4D65B15C3FB5AF3053D",
+                                      "stdoutCharacters":  0
+                                  },
+                       "spec":  {
+                                    "sha256":  "3E087D0DF2C3AA8DF80CF279EF99C5227CB393C8948AE4D65B15C3FB5AF3053D",
+                                    "mode":  "Apply",
+                                    "revision":  "ac2ea33ad4f0492d09440df1ffa04ba59f92df8e"
+                                }
+                   }
+}
