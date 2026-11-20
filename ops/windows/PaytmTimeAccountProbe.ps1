@@ -38,16 +38,16 @@ function Invoke-TimeAccountProbe([string]$ContractSource) {
  $dir=Join-Path $parent ('probe-'+$run);$outputDir=Join-Path $dir 'result';$output=Join-Path $outputDir 'report.json'
  $r=@{passed=$false;runId=$run;taskName=$task;taskCreated=$false;taskRemoved=$false;cleanupFailure=$null;failure=$null;authenticationTested=$false;healthPublicationTested=$false}
  try{
-  Assert-TimeObservationAcl $parent
-  $null=Read-TimeObservation
+  $r.stage='PARENT_ACL';Assert-TimeObservationAcl $parent
+  $r.stage='SNAPSHOT_READ';$null=Read-TimeObservation
   if((Test-Path -LiteralPath $dir) -or @(Get-ScheduledTask|Where-Object {$_.TaskName -ceq $task -and $_.TaskPath -ceq '\'}).Count){throw 'TIME_ACCOUNT_COLLISION'}
-  $null=New-Item -ItemType Directory -Path $dir
-  Assert-TimeObservationAcl $dir
+  $r.stage='CREATE_PROBE';$null=New-Item -ItemType Directory -Path $dir
+  $r.stage='PROBE_ACL';Assert-TimeObservationAcl $dir
   $null=New-Item -ItemType Directory -Path $outputDir
-  $acl=Get-Acl -LiteralPath $outputDir
+  $r.stage='RESULT_ACL';$acl=Get-Acl -LiteralPath $outputDir
   $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-21-3041730714-102984520-3202743044-1011'),'Modify','ContainerInherit,ObjectInherit','None','Allow'))
   Set-Acl -LiteralPath $outputDir -AclObject $acl
-  $worker=Join-Path $dir 'probe.ps1';$source=Get-TimeAccountProbeSource $run $output $ContractSource
+  $r.stage='WORKER';$worker=Join-Path $dir 'probe.ps1';$source=Get-TimeAccountProbeSource $run $output $ContractSource
   [IO.File]::WriteAllText($worker,$source,[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $worker
   $hash=(Get-FileHash -LiteralPath $worker).Hash
   $command="if((Get-FileHash -LiteralPath '$worker').Hash -cne '$hash'){exit 9};&([scriptblock]::Create([IO.File]::ReadAllText('$worker')))"
@@ -56,11 +56,11 @@ function Invoke-TimeAccountProbe([string]$ContractSource) {
   $action=New-ScheduledTaskAction -Execute $exe -Argument $arguments
   $principal=New-ScheduledTaskPrincipal -UserId 'S-1-5-21-3041730714-102984520-3202743044-1011' -LogonType S4U -RunLevel Limited
   $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::FromMinutes(1)) -MultipleInstances IgnoreNew
-  $null=Register-ScheduledTask -TaskName $task -TaskPath '\' -Action $action -Principal $principal -Settings $settings
+  $r.stage='REGISTER';$null=Register-ScheduledTask -TaskName $task -TaskPath '\' -Action $action -Principal $principal -Settings $settings
   $r.taskCreated=$true
   $t=Get-ScheduledTask -TaskName $task -TaskPath '\'
   if($t.Principal.UserId -notin @('marketbrain-health','S-1-5-21-3041730714-102984520-3202743044-1011') -or [string]$t.Principal.LogonType -cne 'S4U' -or [string]$t.Principal.RunLevel -cne 'Limited' -or @($t.Actions).Count -ne 1 -or $t.Actions[0].Arguments -cne $arguments -or $t.Actions[0].Execute -ine $exe -or @($t.Triggers).Count -ne 0){throw 'TIME_ACCOUNT_TASK_DRIFT'}
-  Start-ScheduledTask -TaskName $task -TaskPath '\'
+  $r.stage='START';Start-ScheduledTask -TaskName $task -TaskPath '\'
   $timer=[Diagnostics.Stopwatch]::StartNew()
   do{Start-Sleep -Seconds 1;$t=Get-ScheduledTask -TaskName $task -TaskPath '\'}while($timer.Elapsed.TotalSeconds -lt 40 -and (-not (Test-Path -LiteralPath $output) -or [string]$t.State -eq 'Running'))
   if([string]$t.State -eq 'Running'){throw 'TIME_ACCOUNT_TIMEOUT'}
@@ -70,7 +70,7 @@ function Invoke-TimeAccountProbe([string]$ContractSource) {
   Assert-TimeAccountProbeResult $r.worker $run
   if((Get-ScheduledTaskInfo -TaskName $task -TaskPath '\').LastTaskResult -ne 0){throw 'TIME_ACCOUNT_EXIT'}
   $r.passed=$true
- }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber}
+ }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$target=[string]$_.TargetObject;if($target.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase)){$r.failureTarget=$target.Substring($parent.Length)}}
  finally{
   if($r.taskCreated){try{
    $null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\'
