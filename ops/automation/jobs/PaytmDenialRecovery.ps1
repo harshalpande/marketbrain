@@ -308,7 +308,7 @@ function New-CollectorGatewayContext([string]$RunId) {
 function Get-CollectorGatewayPreflight($Context) {
  $receipt=$acceptedGatewayReceipt
  $r=Get-PostRecoveryPreflight $Context $receipt.result.evidence.recoveryPreflight -CollectorPreflight
- if(-not $r.passed){throw $r.failure}
+ if(-not $r.passed){$r=Get-CollectorReviewedGatewayPreflight $Context $r}
  if((Read-BoundedJson (Join-Path $Context.root 'control.json')).mode -cne 'LOCKED'){throw 'SCHEDULE_GATEWAY_SCOPE'}
  $task=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
  if($task.Description -cne 'MarketBrain locked supervisor ea8b91471cf048aa97a0f6b939b355c7'){throw 'SCHEDULE_GATEWAY_IDENTITY'}
@@ -336,6 +336,7 @@ function Start-CollectorGatewayWindow($Context) {
  Register-DenialRecoveryGuard $Context $before.hashes['manifest.json']
  $again=Get-CollectorGatewayPreflight $Context
  if($again.hashes['status.json'] -cne $before.hashes['status.json']){throw 'SCHEDULE_GATEWAY_CHANGED'}
+ Preserve-CollectorGatewayIncident $Context $again
  $Context.startAttempted=$true
  $null=Enable-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
  Start-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
@@ -360,58 +361,254 @@ $acceptedGatewayReceipt = @'
 {"id":"fac8bfd4-c743-4bd5-a65f-90b46ff6c91d","kind":"paytm-transport-test","state":"FAILED","created":1795152262.7403548,"updated":1795152268.4976327,"result":{"sourceSha256":"A4406D09EA13B766D61A7224688200FBB983C65EB8D8720DEC8CE075E01FA187","timedOut":false,"evidence":{"elapsedSeconds":2.9812462,"gatewayChanged":false,"passed":false,"version":4,"ordersEnabled":false,"preflight":{"applicationLocked":true,"phase":"BLOCKED","failure":"TRANSPORT_DENIAL_FAILED","sequence":3860,"instanceId":"1f2c636c108042898f3c58143e00d9c7"},"failure":"GATEWAY_BLOCKED:TRANSPORT_DENIAL_FAILED","brokerCredentialsUsed":false,"samples":[],"scope":"OPERATOR_TRANSPORT_NOT_BROKER_READINESS","recoveryPreflight":{"failure":null,"readyForReviewedRecovery":true,"readOnly":true,"task":{"enabled":true,"state":"Ready","lastRunUtc":"2026-11-19T14:40:40.0000000Z","lastTaskResult":1},"checks":{"incidentAndControlVerified":true,"noListenerAndStableFiles":true,"installedSourcesVerified":true,"exclusiveLeaseAvailable":true,"taskIdentityAndIdleVerified":true},"hashes":{"startup-failure.json":"CCFCCFCE7A1823FAE9C7904EC23C933C7B021B4604AE1CA552A18070D91751EB","transport.ps1":"AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1","gateway.ps1":"02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453","transport-control.json":"771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B","status.json":"D39BD1F0E645DE8FBB0E1C4E84F43030638AE35DC8020F8E0032FE6BEB4BFBF6","manifest.json":"343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98","host.ps1":"8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1","session-checkpoint.json":"353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5","transport.dll":"8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6","runner.ps1":"D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC","control.json":"0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39","native.dll":"3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C","blocked.json":"CE8ADFE890F9BD641B5AC010F97B9392F678F1D60E595233820B14841E4C090E"}},"test":"PAYTM_TRANSPORT_OBSERVATION","incident":{"firstTlsFailure":{"phaseMetricsParsed":true,"elapsedMilliseconds":4094,"curlTotalMilliseconds":4017,"exitCode":28,"tlsHandshakeCompletedMilliseconds":0,"metricsParsed":true,"tlsVerifyCode":0,"timedOut":false,"httpStatus":0,"connectStatus":0,"tcpConnectMilliseconds":0},"files":{"transport.ps1":"AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1","manifest.json":"343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98"},"installedTransportMatchesManifest":true,"historicalDenialResponsePresent":false,"lastTlsFailure":{"phaseMetricsParsed":true,"elapsedMilliseconds":4123,"curlTotalMilliseconds":4011,"exitCode":28,"tlsHandshakeCompletedMilliseconds":0,"metricsParsed":true,"tlsVerifyCode":0,"timedOut":false,"httpStatus":0,"connectStatus":0,"tcpConnectMilliseconds":0},"lastTlsObservation":{"phaseMetricsParsed":true,"elapsedMilliseconds":1155,"curlTotalMilliseconds":1100,"exitCode":0,"tlsHandshakeCompletedMilliseconds":712,"metricsParsed":true,"tlsVerifyCode":0,"timedOut":false,"httpStatus":503,"connectStatus":200,"tcpConnectMilliseconds":2}}},"exitCode":1,"stdoutCharacters":0,"elapsedSeconds":4.5993754,"stderrCharacters":0,"revision":"42625d48fd8e6733fd3797fe8d133edd3c67186d","passed":false,"ordersEnabled":false},"spec":{"revision":"42625d48fd8e6733fd3797fe8d133edd3c67186d","sha256":"A4406D09EA13B766D61A7224688200FBB983C65EB8D8720DEC8CE075E01FA187","mode":"Observe"}}
 '@ | ConvertFrom-Json -AsHashtable -DateKind String
 
-function Invoke-PaytmTimeRepairNative([string]$Tool,[string]$Arguments,[int]$Seconds=15) {
- if($Tool -cnotin @('sc.exe','w32tm.exe')){throw 'TIME_REPAIR_TOOL'}
- if($Arguments -cnotin @('/config /manualpeerlist:time.windows.com,0x8 /update','/config /manualpeerlist:time.windows.com,0x9 /update','sdshow W32Time','config W32Time start= auto','start W32Time','/resync /rediscover','/query /status /verbose','/query /source','/query /configuration /verbose','/query /peers /verbose','/stripchart /computer:time.windows.com /dataonly /samples:3 /period:2')){throw 'TIME_REPAIR_ARGUMENTS'}
- $p=[Diagnostics.Process]::new();$p.StartInfo.FileName=Join-Path $env:WINDIR ('System32\'+$Tool)
- $p.StartInfo.Arguments=$Arguments;$p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true
- $p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true;$started=$false
- $watch=[Diagnostics.Stopwatch]::StartNew()
- try{
-  $started=$p.Start();$o=$p.StandardOutput.ReadToEndAsync();$e=$p.StandardError.ReadToEndAsync()
-  if(-not $p.WaitForExit($Seconds*1000)){throw 'TIME_REPAIR_NATIVE_TIMEOUT'}
-  if(-not $o.Wait(3000) -or -not $e.Wait(3000)){throw 'TIME_REPAIR_DRAIN_TIMEOUT'}
-  $text=$o.Result+$e.Result;if($text.Length -gt 12000){throw 'TIME_REPAIR_OUTPUT_TOO_LARGE'}
-  @{tool=$Tool;arguments=$Arguments;exitCode=$p.ExitCode;output=$text;elapsedSeconds=$watch.Elapsed.TotalSeconds}
- }finally{if($started -and -not $p.HasExited){$p.Kill();[void]$p.WaitForExit(3000)};$p.Dispose()}
+# Fixed acceptance of the installed recovery worker; historical v1 receipts remain unchanged.
+function Get-RecoveryCollectorReceipt {
+ $v=Read-TimeObservationFile 'C:\ProgramData\MarketBrainPaytmHealth\collector-v1\recovery-upgrade.json'
+ if($v.runId -cne '444dcaf7d25241c5a6e391d243f7eebe' -or $v.installationId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $v.status -cne 'COLLECTOR_RECOVERY_UPGRADED_DISABLED_RUNTIME_PENDING' -or $v.passed -ne $true -or $v.failure -or $v.ordersEnabled -ne $false -or $v.workerStarted -ne $false){throw 'RECOVERY_INSTALL_RECEIPT'}
+ if($v.workerSha256 -cne 'F4C496DBBBB1CF55A1A3FA8E2BAD29AE832166E97A5A633F10A3C2C313CCFF4B' -or $v.taskXmlSha256 -cne '968E8E23E13263CC89A026084E0534A9692DB31FD0D60091870C817824674F11'){throw 'RECOVERY_INSTALL_PINS'}
+ # Activation expects runId to identify the installation, not the upgrade attempt.
+ @{runId=$v.installationId;workerSha256=$v.workerSha256;taskXmlSha256=$v.taskXmlSha256}
 }
-
-function Get-PaytmTimeSyncAssessment($StatusCommand,$SourceCommand) {
- $t=[string]$StatusCommand.output;$source=([string]$SourceCommand.output).Trim()
- $leap=[regex]::Match($t,'(?im)^Leap Indicator:\s*([0-3])\b')
- $stratum=[regex]::Match($t,'(?im)^Stratum:\s*(\d+)\b')
- $errorCode=[regex]::Match($t,'(?im)^Last Sync Error:\s*(\d+)\b')
- $known=$leap.Success -and $stratum.Success -and $errorCode.Success
- $ok=$known -and $StatusCommand.exitCode -eq 0 -and $SourceCommand.exitCode -eq 0 -and [int]$leap.Groups[1].Value -lt 3 -and [int]$stratum.Groups[1].Value -ge 1 -and [int]$stratum.Groups[1].Value -le 15 -and [int]$errorCode.Groups[1].Value -eq 0 -and $source -match '(?i)^time\.windows\.com(?:,0x[0-9a-f]+)?$'
- [pscustomobject]@{synchronizedReported=[bool]$ok;recognizedEnglishStatus=[bool]$known;source=$source;absoluteAccuracyProven=$false;alignmentVerified=$false}
+function Get-RecoveryCollectorPreflight($Receipt){
+ $accepted=Get-RecoveryCollectorReceipt
+ if($Receipt.runId -cne $accepted.runId -or $Receipt.workerSha256 -cne $accepted.workerSha256){throw 'RECOVERY_RECEIPT_CHANGED'}
+ $d=Get-DurableCollectorDefinition $accepted.workerSha256
+ foreach($name in @('worker.ps1','known_hosts','control.json')){Assert-TimeObservationAcl (Join-Path $d.root $name)}
+ if((Get-FileHash -LiteralPath (Join-Path $d.root 'worker.ps1')).Hash -cne $accepted.workerSha256 -or (Get-FileHash -LiteralPath (Join-Path $d.root 'known_hosts')).Hash -cne 'C8D0896753936BC7AB4B47E755516BF253A973F8E65CC8B8CF249B9476CC924D'){throw 'RECOVERY_FILES_CHANGED'}
+ Assert-DurableCollectorTask (Get-ScheduledTask -TaskName $d.name -TaskPath '\') $d
+ $xml=Export-ScheduledTask -TaskName $d.name -TaskPath '\'
+ $hash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($xml)))
+ if($hash -cne $accepted.taskXmlSha256){throw 'RECOVERY_TASK_XML_CHANGED'}
+ if(Read-DurableCollectorControl (Join-Path $d.root 'control.json') $accepted.runId){throw 'RECOVERY_CONTROL_ENABLED'}
+ $time=Read-TimeObservation
+ $syncAge=[regex]::Match($time.status.output,'(?im)^Time since Last Good Sync Time:\s*([0-9]+(?:\.[0-9]+)?)s\s*$')
+ if(-not $syncAge.Success -or [double]::Parse($syncAge.Groups[1].Value,[Globalization.CultureInfo]::InvariantCulture) -gt 300){throw 'RECOVERY_FRESH_WINDOWS_SYNC_REQUIRED'}
+ @{passed=$true;workerHashVerified=$true;taskXmlVerified=$true;disabledVerified=$true;timeSnapshotAgeSeconds=$time.ageSeconds;ordersEnabled=$false}
 }
-
-# One explicit resync of the existing provider; never changes time policy or starts trading tasks.
-$r=@{passed=$false;status='REVIEW_REQUIRED';failure=$null;ordersEnabled=$false;policyChanged=$false;resyncRequested=$false;commands=@()}
-try{
- foreach($name in @('MarketBrain-Health-Collector-v1','MarketBrain-Gateway-Supervisor-v1')){
-  $t=Get-ScheduledTask -TaskName $name -TaskPath '\'
-  if($t.Settings.Enabled -or [string]$t.State -cne 'Disabled'){throw 'CLOCK_REFRESH_TASK_ACTIVE'}
+function Assert-RecoveryPriorReports($Status,$Final){
+ if($Final.runId -cne 'ab47639ee8d74da69a9466c0f59e601e'){throw 'RECOVERY_PRIOR_INSTALLATION'}
+ foreach($v in @($Status,$Final.collector)){
+  if($v.version -ne 1 -or $v.instanceId -cne '9e0e85a010c2457887faa0fe8efdb6a1' -or $v.processId -ne 4400 -or $v.phase -cne 'FAILED' -or $v.failure -cne 'COLLECTOR_REVOCATION_UNCONFIRMED' -or $v.acceptedCount -ne 13 -or $v.sequence -ne 18 -or $v.ordersEnabled -ne $false){throw 'RECOVERY_PRIOR_REPORT_CHANGED'}
  }
- $before=Read-TimeObservation
- $r.before=@{status=$before.status;source=$before.source;sequence=$before.sequence}
- $a=Get-PaytmTimeSyncAssessment $before.status $before.source
- if(-not $a.synchronizedReported){throw 'CLOCK_REFRESH_SOURCE_UNCONFIRMED'}
- if($Mode -ceq 'Apply'){
-  $r.resyncRequested=$true
-  $c=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/resync /rediscover' 40;$r.commands+=,$c
-  if($c.exitCode -ne 0 -or $c.output -notmatch '(?im)^The command completed successfully\.\s*$'){throw 'CLOCK_REFRESH_NOT_ACCEPTED'}
- }elseif($Mode -cne 'Observe'){throw 'CLOCK_REFRESH_MODE'}
- $watch=[Diagnostics.Stopwatch]::StartNew()
+}
+function Preserve-RecoveryPriorReports($Definition){
+ if(Test-Path -LiteralPath (Join-Path $Definition.root 'recovery-activation-attempt.json')){Preserve-RecoveryClockAttempt $Definition;return}
+ $checkpoint=Read-TimeObservationFile (Join-Path $Definition.root 'signout-checkpoint.json')
+ if($checkpoint.runId -cne '73fc2f10891346768bdc0f88e978da75' -or $checkpoint.phase -cne 'REVIEW_REQUIRED'){throw 'RECOVERY_CHECKPOINT_CHANGED'}
+ $s=Read-BoundedJson (Join-Path $Definition.work 'status.json');$f=Read-BoundedJson (Join-Path $Definition.work 'final.json');Assert-RecoveryPriorReports $s $f
+ $archive=Join-Path $Definition.root 'prior-signout-9e0e85a010c2457887faa0fe8efdb6a1'
+ if(Test-Path -LiteralPath $archive){throw 'RECOVERY_ARCHIVE_EXISTS'}
+ $null=New-Item -ItemType Directory -Path $archive;Assert-TimeObservationAcl $archive
+ foreach($name in @('status.json','final.json')){
+  $path=Join-Path $Definition.work $name
+  if((Get-Item -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'RECOVERY_PRIOR_REPARSE'}
+  $hash=(Get-FileHash -LiteralPath $path).Hash;$target=Join-Path $archive $name
+  Copy-Item -LiteralPath $path -Destination $target -ErrorAction Stop
+  if((Get-FileHash -LiteralPath $target).Hash -cne $hash){throw 'RECOVERY_ARCHIVE_HASH'}
+ }
+ foreach($name in @('status.json','final.json')){
+  $path=Join-Path $Definition.work $name
+  if((Get-FileHash -LiteralPath $path).Hash -cne (Get-FileHash -LiteralPath (Join-Path $archive $name)).Hash){throw 'RECOVERY_PRIOR_RACE'}
+  Remove-Item -LiteralPath $path -ErrorAction Stop
+ }
+}
+function Assert-RecoveryClockAttempt($Claim,$Final,$Status){
+ if($Claim.runId -cne 'bf234f1d51e34c95859a2332e27aebe8' -or $Final.runId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $Final.ordersEnabled -ne $false){throw 'RECOVERY_CLOCK_ATTEMPT_CHANGED'}
+ foreach($s in @($Final.collector,$Status)){
+  if($s.version -ne 2 -or $s.instanceId -cne '2ed645783c084210ac6d6062cb53235a' -or $s.processId -ne 9768 -or $s.phase -cne 'FAILED' -or $s.failure -cne 'COLLECTOR_FAILURE_LIMIT' -or $s.sequence -ne 3 -or $s.acceptedCount -ne 0 -or $s.finalHealthRevoked -ne $true -or $s.ordersEnabled -ne $false -or @($s.lastFailure.findings).Count -ne 1 -or $s.lastFailure.findings[0] -cne 'WINDOWS_LAST_SYNC_TOO_OLD'){throw 'RECOVERY_CLOCK_FINAL_CHANGED'}
+ }
+}
+function Preserve-RecoveryClockAttempt($Definition){
+ $claim=Join-Path $Definition.root 'recovery-activation-attempt.json'
+ Assert-RecoveryClockAttempt (Read-TimeObservationFile $claim) (Read-BoundedJson (Join-Path $Definition.work 'final.json')) (Read-BoundedJson (Join-Path $Definition.work 'status.json'))
+ $archive=Join-Path $Definition.root 'clock-retry-bf234f1d51e34c95859a2332e27aebe8'
+ if(Test-Path -LiteralPath $archive){throw 'RECOVERY_CLOCK_RETRY_EXISTS'}
+ $null=New-Item -ItemType Directory -Path $archive;Assert-TimeObservationAcl $archive
+ $paths=@($claim,(Join-Path $Definition.work 'status.json'),(Join-Path $Definition.work 'final.json'))
+ foreach($p in $paths){
+  $item=Get-Item -LiteralPath $p;if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'RECOVERY_CLOCK_REPARSE'}
+  Copy-Item -LiteralPath $p -Destination (Join-Path $archive $item.Name) -ErrorAction Stop
+  if((Get-FileHash -LiteralPath $p).Hash -cne (Get-FileHash -LiteralPath (Join-Path $archive $item.Name)).Hash){throw 'RECOVERY_CLOCK_ARCHIVE_HASH'}
+ }
+ foreach($p in $paths){
+  if((Get-FileHash -LiteralPath $p).Hash -cne (Get-FileHash -LiteralPath (Join-Path $archive ([IO.Path]::GetFileName($p)))).Hash){throw 'RECOVERY_CLOCK_ARCHIVE_RACE'}
+  Remove-Item -LiteralPath $p -ErrorAction Stop
+ }
+}
+function ConvertTo-RecoveryActivationSource([string]$Source){
+ $pairs=@{
+  "`$receipt=Read-TimeObservationFile 'C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1\collector-install-result.json'"=' $receipt=Get-RecoveryCollectorReceipt';
+  'Get-DurableCollectorStagingPreflight $receipt'='Get-RecoveryCollectorPreflight $receipt';
+  ' Preserve-CollectorRejectedAttempt $d'=' Preserve-RecoveryPriorReports $d';
+  "`$claim=Join-Path `$d.root 'activation-attempt.json'"="`$claim=Join-Path `$d.root 'recovery-activation-attempt.json'";
+  '$Value.version -ne 1'='$Value.version -ne 2';
+  'DURABLE_COLLECTOR_ACTIVATION_PASSED_LIFECYCLE_PENDING'='RECOVERY_COLLECTOR_ACTIVATION_PASSED_LIFECYCLE_PENDING'
+ }
+ foreach($old in $pairs.Keys){if(-not $Source.Contains($old)){throw 'RECOVERY_ACTIVATION_TEMPLATE_DRIFT'};$Source=$Source.Replace($old,$pairs[$old])}
+ return $Source
+}
+
+
+# One reviewed retry of the retained sign-out incident, never a general latch bypass.
+function Assert-CollectorGatewayIncident($Status,$Blocked,$Startup){
+ foreach($v in @($Status,$Blocked,$Startup)){if($v.instanceId -cne 'c592dec90f904b9da35d7f9dbf1b4226' -or $v.failure -cne 'TRANSPORT_CONFIG_UNAVAILABLE'){throw 'COLLECTOR_GATEWAY_INCIDENT_CHANGED'}}
+ if($Status.installationId -cne 'ea8b91471cf048aa97a0f6b939b355c7' -or $Status.phase -cne 'BLOCKED' -or $Status.sequence -ne 157 -or $Status.processId -ne 8420 -or $Status.ordersEnabled -ne $false -or $Status.brokerReady -ne $false -or $Startup.stage -cne 'OBSERVATION_LOOP'){throw 'COLLECTOR_GATEWAY_INCIDENT_STATE'}
+}
+function Get-CollectorReviewedGatewayPreflight($Context,$Original){
+ if($Original.failure -cne 'RECOVERY_NEW_INCIDENT'){throw $Original.failure}
+ # Original preflight already verified all executable/configuration hashes before finding markers.
+ $values=@{};$hashes=@{}
+ foreach($name in @('status.json','blocked.json','startup-failure.json')){
+  $p=Join-Path $Context.work $name
+  if((Get-Item -LiteralPath $p).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_GATEWAY_REPARSE'}
+  $values[$name]=Read-BoundedJson $p;$hashes[$name]=(Get-FileHash -LiteralPath $p).Hash
+ }
+ Assert-CollectorGatewayIncident $values['status.json'] $values['blocked.json'] $values['startup-failure.json']
+ $task=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\';$info=Get-ScheduledTaskInfo -TaskName $Context.taskName -TaskPath '\'
+ if([string]$task.State -cne 'Disabled' -or $task.Settings.Enabled -or $info.LastTaskResult -ne 1){throw 'COLLECTOR_GATEWAY_INCIDENT_TASK'}
+ [xml]$saved=[IO.File]::ReadAllText((Join-Path $Context.root 'denial-recovery-649710f6-e95b-4ebc-831b-60a99d22ac69\task.xml'))
+ [xml]$current=Export-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
+ if($saved.Task.Actions.OuterXml -cne $current.Task.Actions.OuterXml -or $saved.Task.Principals.OuterXml -cne $current.Task.Principals.OuterXml){throw 'COLLECTOR_GATEWAY_TASK_DRIFT'}
+ if(@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()|Where-Object Port -eq 18889).Count){throw 'COLLECTOR_GATEWAY_LISTENER_PRESENT'}
+ $lease=[IO.File]::Open((Join-Path $Context.work 'instance.lock'),'Open','ReadWrite','None');$lease.Dispose()
+ $Original.hashes['status.json']=$hashes['status.json'];$Original.incidentHashes=$hashes
+ $Original.currentStatus=@{instanceId=$values['status.json'].instanceId;sequence=157;phase='BLOCKED';failure='TRANSPORT_CONFIG_UNAVAILABLE';ordersEnabled=$false;brokerReady=$false}
+ $Original.passed=$true;$Original.failure=$null;$Original.reviewedIncident=$true
+ return $Original
+}
+function Preserve-CollectorGatewayIncident($Context,$Before){
+ if(-not $Before.reviewedIncident){return}
+ if(-not $Context.guardXmlHash){throw 'COLLECTOR_GATEWAY_GUARD_REQUIRED'}
+ foreach($name in @('status.json','blocked.json','startup-failure.json')){
+  $src=Join-Path $Context.work $name;$dst=Join-Path $Context.archive $name
+  if((Get-FileHash -LiteralPath $src).Hash -cne $Before.incidentHashes[$name] -or (Test-Path -LiteralPath $dst)){throw 'COLLECTOR_GATEWAY_INCIDENT_RACE'}
+  Copy-Item -LiteralPath $src -Destination $dst -ErrorAction Stop
+  if((Get-FileHash -LiteralPath $dst).Hash -cne $Before.incidentHashes[$name]){throw 'COLLECTOR_GATEWAY_BACKUP_HASH'}
+ }
+ foreach($name in @('blocked.json','startup-failure.json')){
+  $p=Join-Path $Context.work $name
+  if((Get-FileHash -LiteralPath $p).Hash -cne $Before.incidentHashes[$name]){throw 'COLLECTOR_GATEWAY_INCIDENT_RACE'}
+  Remove-Item -LiteralPath $p -ErrorAction Stop
+ }
+ $Context.reviewedIncidentArchived=$true
+}
+
+
+# One bounded activation of the accepted disabled installation. No broker actions.
+function Set-CollectorActivationControl($Definition,[bool]$Enabled) {
+ $path=Join-Path $Definition.root 'control.json';$v=Read-TimeObservationFile $path
+ if($v.version -ne 1 -or $v.installationId -cne 'ab47639ee8d74da69a9466c0f59e601e'){throw 'COLLECTOR_CONTROL_DRIFT'}
+ $v.enabled=$Enabled;Write-DurableCollectorStatus $path $v;Assert-TimeObservationAcl $path
+}
+function Test-CollectorActivationSample($Value,$State) {
+ if($Value.version -ne 2 -or $Value.instanceId -cnotmatch '^[a-f0-9]{32}$' -or $Value.processId -le 0 -or $Value.ordersEnabled -ne $false){throw 'COLLECTOR_SAMPLE_IDENTITY'}
+ if($State.instance -and $Value.instanceId -cne $State.instance){throw 'COLLECTOR_INSTANCE_CHANGED'}
+ if($State.processId -and $Value.processId -ne $State.processId){throw 'COLLECTOR_PROCESS_CHANGED'}
+ if($Value.sequence -lt $State.sequence -or $Value.acceptedCount -gt $Value.sequence){throw 'COLLECTOR_SAMPLE_SEQUENCE'}
+ if($Value.phase -ceq 'BACKOFF' -and $Value.failure -ceq 'COLLECTOR_SAMPLE_FAILED' -and $Value.consecutiveFailures -in @(1,2)){
+  $State.instance=$Value.instanceId;$State.processId=$Value.processId;$State.sequence=$Value.sequence;return $false
+ }
+ if($Value.failure -or $Value.phase -ne 'HEALTH_RECORDED' -or $Value.consecutiveFailures -ne 0){throw 'COLLECTOR_SAMPLE_UNHEALTHY'}
+ if($Value.sequence -gt $State.sequence){$State.advances++;$State.sequence=$Value.sequence}
+ $State.instance=$Value.instanceId;$State.processId=$Value.processId
+ return ($Value.acceptedCount -ge 3 -and $State.advances -ge 2)
+}
+function Preserve-CollectorRejectedAttempt($Definition) {
+ $claim=Join-Path $Definition.root 'activation-attempt.json'
+ if(-not (Test-Path -LiteralPath $claim)){return}
+ $v=Read-TimeObservationFile $claim
+ if($v.runId -cne 'a46e0f93692c401ab3d0e52f9aaac5a2'){throw 'COLLECTOR_ATTEMPT_REVIEW_REQUIRED'}
+ $final=Read-BoundedJson (Join-Path $Definition.work 'final.json');$status=Read-BoundedJson (Join-Path $Definition.work 'status.json')
+ if($final.runId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $final.failure -or $final.stage -cne 'COMPLETE' -or $final.ordersEnabled -ne $false){throw 'COLLECTOR_RETRY_FINAL_DRIFT'}
+ foreach($sample in @($final.collector,$status)){
+  if($sample.instanceId -cne '46f6741158754a6294298a5b23117de3' -or $sample.phase -cne 'STOPPED' -or $sample.finalHealthRevoked -ne $true -or $sample.acceptedCount -ne 0 -or $sample.sequence -ne 1 -or $sample.ordersEnabled -ne $false){throw 'COLLECTOR_RETRY_STATUS_DRIFT'}
+ }
+ $archive=Join-Path $Definition.root 'retry-after-a46e0f93692c401ab3d0e52f9aaac5a2'
+ if(Test-Path -LiteralPath $archive){throw 'COLLECTOR_RETRY_ALREADY_PREPARED'}
+ $null=New-Item -ItemType Directory -Path $archive
+ foreach($path in @($claim,(Join-Path $Definition.work 'status.json'),(Join-Path $Definition.work 'final.json'))){
+  $item=Get-Item -LiteralPath $path
+  if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_RETRY_REPARSE'}
+  $hash=(Get-FileHash -LiteralPath $path).Hash;$target=Join-Path $archive $item.Name
+  Move-Item -LiteralPath $path -Destination $target -ErrorAction Stop
+  if((Get-FileHash -LiteralPath $target).Hash -cne $hash){throw 'COLLECTOR_RETRY_ARCHIVE_MISMATCH'}
+ }
+}
+function Stop-CollectorActivation($Definition,$Report) {
+ Set-CollectorActivationControl $Definition $false
+ $w=[Diagnostics.Stopwatch]::StartNew()
  do{
-  $v=Read-TimeObservation
-  $m=[regex]::Match($v.status.output,'(?im)^Time since Last Good Sync Time:\s*([0-9]+(?:\.[0-9]+)?)s\s*$')
-  $assessment=Get-PaytmTimeSyncAssessment $v.status $v.source
-  if($m.Success -and $assessment.synchronizedReported -and $v.sequence -gt $before.sequence -and [double]::Parse($m.Groups[1].Value,[Globalization.CultureInfo]::InvariantCulture) -le 60){$r.after=@{status=$v.status;source=$v.source;sequence=$v.sequence};$r.passed=$true;break}
+  $t=Get-ScheduledTask -TaskName $Definition.name -TaskPath '\'
+  if([string]$t.State -notin @('Running','Queued')){break}
+  Start-Sleep -Milliseconds 500
+ }while($w.Elapsed.TotalSeconds -lt 25)
+ $null=Disable-ScheduledTask -TaskName $Definition.name -TaskPath '\'
+ if([string](Get-ScheduledTask -TaskName $Definition.name -TaskPath '\').State -in @('Running','Queued')){
+  Stop-ScheduledTask -TaskName $Definition.name -TaskPath '\';$Report.forcedStop=$true
+ }
+ $w.Restart()
+ do{
+  $t=Get-ScheduledTask -TaskName $Definition.name -TaskPath '\'
+  if(-not $t.Settings.Enabled -and [string]$t.State -notin @('Running','Queued')){
+   $lease=$null;try{$lease=[IO.File]::Open((Join-Path $Definition.work 'instance.lock'),'Open','ReadWrite','None');$Report.collectorStopped=$true;return}catch{}finally{if($lease){$lease.Dispose()}}
+  }
+  Start-Sleep -Milliseconds 500
+ }while($w.Elapsed.TotalSeconds -lt 10)
+ throw 'COLLECTOR_STOP_UNCONFIRMED'
+}
+$r=@{version=1;runId=[guid]::NewGuid().ToString('N');passed=$false;status='REVIEW_REQUIRED';mode=$Mode;ordersEnabled=$false;failure=$null;cleanupFailure=$null;collectorStarted=$false;collectorStopped=$false;forcedStop=$false;guardRemoved=$false}
+$ctx=$null;$d=$null;$attempted=$false;$watch=[Diagnostics.Stopwatch]::StartNew()
+try{
+ if($Mode -eq 'FailureFixture'){throw 'COLLECTOR_DELIBERATE_FIXTURE'}
+ $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+ try{if(-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'COLLECTOR_ADMIN_REQUIRED'}}finally{$identity.Dispose()}
+  $receipt=Get-RecoveryCollectorReceipt
+ $r.preflight=Get-RecoveryCollectorPreflight $receipt
+ $d=Get-DurableCollectorDefinition $receipt.workerSha256
+ $ctx=New-CollectorGatewayContext $r.runId;$ctx.collectorInstallation=$receipt.runId
+ $r.gatewayPreflight=Get-CollectorGatewayPreflight $ctx
+ if($Mode -eq 'Observe'){$r.status='COLLECTOR_ACTIVATION_PREFLIGHT_PASSED';$r.passed=$true;return}
+ foreach($path in @($d.work,(Join-Path $d.work 'instance.lock'))){if((Get-Item -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_WORK_REPARSE'}}
+ $lease=[IO.File]::Open((Join-Path $d.work 'instance.lock'),'Open','ReadWrite','None');$lease.Dispose()
+ Preserve-RecoveryPriorReports $d
+ foreach($name in @('status.json','final.json')){if(Test-Path -LiteralPath (Join-Path $d.work $name)){throw 'COLLECTOR_PRIOR_RUN_REVIEW_REQUIRED'}}
+ # Durable one-shot receipt stops an automatic second activation after interruption.
+ $claim=Join-Path $d.root 'recovery-activation-attempt.json'
+ $f=[IO.File]::Open($claim,'CreateNew','Write','Read');try{$b=[Text.Encoding]::UTF8.GetBytes(($r|ConvertTo-Json -Depth 5));$f.Write($b,0,$b.Length);$f.Flush($true)}finally{$f.Dispose()}
+ $r.stage='GATEWAY_START';Start-CollectorGatewayWindow $ctx
+ $null=Get-RecoveryCollectorPreflight $receipt
+ $r.stage='COLLECTOR_START';$attempted=$true
+ Set-CollectorActivationControl $d $true
+ $null=Enable-ScheduledTask -TaskName $d.name -TaskPath '\'
+ Start-ScheduledTask -TaskName $d.name -TaskPath '\';$r.collectorStarted=$true
+ $state=@{instance=$null;sequence=0;advances=0;processId=0};$w=[Diagnostics.Stopwatch]::StartNew()
+ do{
   Start-Sleep -Seconds 1
- }while($watch.Elapsed.TotalSeconds -lt 20)
- if(-not $r.passed){throw 'CLOCK_REFRESH_FRESH_SYNC_UNCONFIRMED'}
- $r.status='CLOCK_REFRESH_VERIFIED_POLLING_POLICY_REVIEW_PENDING'
-}catch{$r.failure=if($_.Exception.Message -cmatch '^[A-Z_]+$'){$_.Exception.Message}else{'CLOCK_REFRESH_FAILED'}}
-[IO.File]::WriteAllText($ResultPath,($r|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
+  $path=Join-Path $d.work 'status.json'
+  if(Test-Path -LiteralPath $path){$sample=Read-BoundedJson $path;if(Test-CollectorActivationSample $sample $state){$r.publicationsVerified=$true;$r.observation=$sample;break}}
+  if([string](Get-ScheduledTask -TaskName $d.name -TaskPath '\').State -notin @('Running','Queued')){throw 'COLLECTOR_EXITED_BEFORE_PUBLICATION'}
+ }while($w.Elapsed.TotalSeconds -lt 65)
+ if(-not $r.publicationsVerified){throw 'COLLECTOR_PUBLICATION_TIMEOUT'}
+ $r.stage='GRACEFUL_STOP';Stop-CollectorActivation $d $r
+ $final=Read-BoundedJson (Join-Path $d.work 'final.json')
+ $r.worker=@{stage=$final.stage;failure=$final.failure;nonAdmin=$final.nonAdmin;sessionId=$final.sessionId;tokenAuthenticated=$final.tokenAuthenticated;applicationLocked=$final.applicationLocked;collector=$final.collector}
+ $r.lastTaskResult=(Get-ScheduledTaskInfo -TaskName $d.name -TaskPath '\').LastTaskResult
+ if($r.forcedStop -or $r.lastTaskResult -ne 0 -or $final.runId -cne $receipt.runId -or $final.failure -or $final.ordersEnabled -ne $false -or $final.nonAdmin -ne $true -or $final.sessionId -ne 0 -or $final.tokenAuthenticated -ne $true -or $final.applicationLocked -ne $true -or $final.collector.instanceId -cne $state.instance -or $final.collector.processId -ne $state.processId -or $final.collector.phase -cne 'STOPPED' -or $final.collector.finalHealthRevoked -ne $true){throw 'COLLECTOR_FINAL_PROOF_FAILED'}
+ $r.finalHealthRevoked=$true;$r.stage='COMPLETE';$r.passed=$true;$r.status='RECOVERY_COLLECTOR_ACTIVATION_PASSED_LIFECYCLE_PENDING'
+}catch{$r.failure=if($_.Exception.Message -cmatch '^[A-Z][A-Z0-9_]+$'){$_.Exception.Message}else{'COLLECTOR_ACTIVATION_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber}
+finally{
+ if($attempted -and -not $r.collectorStopped){try{Stop-CollectorActivation $d $r}catch{$r.cleanupFailure='COLLECTOR_STOP_REVIEW_REQUIRED'}}
+ if($ctx -and $ctx.startAttempted){try{Stop-DenialRecoveryTask $ctx;$ctx.stopped=$true;$r.gatewayStopped=$true}catch{$r.cleanupFailure='GATEWAY_STOP_REVIEW_REQUIRED'}}
+ if($ctx -and $ctx.guardXmlHash -and (-not $attempted -or $r.collectorStopped) -and (-not $ctx.startAttempted -or $ctx.stopped)){try{Remove-DenialRecoveryGuard $ctx;$r.guardRemoved=$true}catch{$r.cleanupFailure='COLLECTOR_GUARD_REVIEW_REQUIRED'}}
+ if($ctx -and $ctx.guardAttempted -and -not $ctx.guardXmlHash){$r.cleanupFailure='COLLECTOR_GUARD_REVIEW_REQUIRED'}
+ if($attempted -and $d -and -not $r.worker){
+  try{
+   $finalPath=Join-Path $d.work 'final.json'
+   if(Test-Path -LiteralPath $finalPath){$v=Read-BoundedJson $finalPath;if($v.runId -ceq 'ab47639ee8d74da69a9466c0f59e601e'){$r.worker=@{stage=$v.stage;failure=$v.failure;sessionId=$v.sessionId;nonAdmin=$v.nonAdmin;tokenAuthenticated=$v.tokenAuthenticated;collector=$v.collector}}}
+  }catch{$r.workerEvidenceFailure='COLLECTOR_FINAL_EVIDENCE_UNAVAILABLE'}
+ }
+ if($r.cleanupFailure -or $r.failure){$r.passed=$false;$r.status='REVIEW_REQUIRED'}
+ $r.elapsedSeconds=$watch.Elapsed.TotalSeconds
+ [IO.File]::WriteAllText($ResultPath,($r|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
+}
 if(-not $r.passed){exit 1}

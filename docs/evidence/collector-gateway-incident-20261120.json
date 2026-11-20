@@ -1,0 +1,67 @@
+{
+    "blocked":  {
+                    "instanceId":  "c592dec90f904b9da35d7f9dbf1b4226",
+                    "failure":  "TRANSPORT_CONFIG_UNAVAILABLE"
+                },
+    "diagnosticJobId":  "d88aeca9-ed3b-4df4-b658-3f9a642512e3",
+    "task":  {
+                 "runLevel":  "Limited",
+                 "lastRunTime":  "2026-11-20T20:54:24.0000000+05:30",
+                 "lastTaskResult":  1,
+                 "logonType":  "Password",
+                 "state":  "Disabled",
+                 "actionCount":  1,
+                 "enabled":  false
+             },
+    "status":  {
+                   "transportEnabled":  true,
+                   "failure":  "TRANSPORT_CONFIG_UNAVAILABLE",
+                   "observedUtc":  "2026-11-20T15:30:03.1001633Z",
+                   "processId":  8420,
+                   "transportVersion":  1,
+                   "sequence":  157,
+                   "transportState":  {
+                                          "brokerReady":  false,
+                                          "ordersEnabled":  false,
+                                          "phase":  "BACKOFF",
+                                          "failures":  1,
+                                          "lastSeconds":  304,
+                                          "reason":  "PROXY_UNAVAILABLE",
+                                          "action":  "NONE",
+                                          "attempts":  1,
+                                          "retryAtSeconds":  305
+                                      },
+                   "ordersEnabled":  false,
+                   "version":  1,
+                   "sessionId":  0,
+                   "brokerReady":  false,
+                   "instanceId":  "c592dec90f904b9da35d7f9dbf1b4226",
+                   "networkContacted":  true,
+                   "elapsedSeconds":  304.714,
+                   "signingVerified":  true,
+                   "identityVerified":  true,
+                   "installationId":  "ea8b91471cf048aa97a0f6b939b355c7",
+                   "privateCopyAbsent":  true,
+                   "phase":  "BLOCKED",
+                   "agentIdentityVerified":  true
+               },
+    "scope":  "Read-only retained gateway incident",
+    "startup":  {
+                    "version":  1,
+                    "ordersEnabled":  false,
+                    "instanceId":  "c592dec90f904b9da35d7f9dbf1b4226",
+                    "stage":  "OBSERVATION_LOOP",
+                    "failure":  "TRANSPORT_CONFIG_UNAVAILABLE",
+                    "networkContacted":  false,
+                    "installationId":  "ea8b91471cf048aa97a0f6b939b355c7",
+                    "details":  {
+                                    "outerType":  "RuntimeException",
+                                    "line":  71,
+                                    "hresult":  -2146233087,
+                                    "type":  "RuntimeException"
+                                },
+                    "processId":  8420
+                },
+    "interpretation":  "Local SSH configuration command timed out or returned nonzero. Exact distinction was not captured by installed gateway. No authentication denial established.",
+    "date":  "2026-11-20"
+}

@@ -18,6 +18,8 @@ function Get-RecoveryCollectorPreflight($Receipt){
  if($hash -cne $accepted.taskXmlSha256){throw 'RECOVERY_TASK_XML_CHANGED'}
  if(Read-DurableCollectorControl (Join-Path $d.root 'control.json') $accepted.runId){throw 'RECOVERY_CONTROL_ENABLED'}
  $time=Read-TimeObservation
+ $syncAge=[regex]::Match($time.status.output,'(?im)^Time since Last Good Sync Time:\s*([0-9]+(?:\.[0-9]+)?)s\s*$')
+ if(-not $syncAge.Success -or [double]::Parse($syncAge.Groups[1].Value,[Globalization.CultureInfo]::InvariantCulture) -gt 300){throw 'RECOVERY_FRESH_WINDOWS_SYNC_REQUIRED'}
  @{passed=$true;workerHashVerified=$true;taskXmlVerified=$true;disabledVerified=$true;timeSnapshotAgeSeconds=$time.ageSeconds;ordersEnabled=$false}
 }
 function Assert-RecoveryPriorReports($Status,$Final){
@@ -27,7 +29,7 @@ function Assert-RecoveryPriorReports($Status,$Final){
  }
 }
 function Preserve-RecoveryPriorReports($Definition){
- if(Test-Path -LiteralPath (Join-Path $Definition.root 'recovery-activation-attempt.json')){throw 'RECOVERY_ATTEMPT_ALREADY_EXISTS'}
+ if(Test-Path -LiteralPath (Join-Path $Definition.root 'recovery-activation-attempt.json')){Preserve-RecoveryClockAttempt $Definition;return}
  $checkpoint=Read-TimeObservationFile (Join-Path $Definition.root 'signout-checkpoint.json')
  if($checkpoint.runId -cne '73fc2f10891346768bdc0f88e978da75' -or $checkpoint.phase -cne 'REVIEW_REQUIRED'){throw 'RECOVERY_CHECKPOINT_CHANGED'}
  $s=Read-BoundedJson (Join-Path $Definition.work 'status.json');$f=Read-BoundedJson (Join-Path $Definition.work 'final.json');Assert-RecoveryPriorReports $s $f
@@ -45,6 +47,29 @@ function Preserve-RecoveryPriorReports($Definition){
   $path=Join-Path $Definition.work $name
   if((Get-FileHash -LiteralPath $path).Hash -cne (Get-FileHash -LiteralPath (Join-Path $archive $name)).Hash){throw 'RECOVERY_PRIOR_RACE'}
   Remove-Item -LiteralPath $path -ErrorAction Stop
+ }
+}
+function Assert-RecoveryClockAttempt($Claim,$Final,$Status){
+ if($Claim.runId -cne 'bf234f1d51e34c95859a2332e27aebe8' -or $Final.runId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $Final.ordersEnabled -ne $false){throw 'RECOVERY_CLOCK_ATTEMPT_CHANGED'}
+ foreach($s in @($Final.collector,$Status)){
+  if($s.version -ne 2 -or $s.instanceId -cne '2ed645783c084210ac6d6062cb53235a' -or $s.processId -ne 9768 -or $s.phase -cne 'FAILED' -or $s.failure -cne 'COLLECTOR_FAILURE_LIMIT' -or $s.sequence -ne 3 -or $s.acceptedCount -ne 0 -or $s.finalHealthRevoked -ne $true -or $s.ordersEnabled -ne $false -or @($s.lastFailure.findings).Count -ne 1 -or $s.lastFailure.findings[0] -cne 'WINDOWS_LAST_SYNC_TOO_OLD'){throw 'RECOVERY_CLOCK_FINAL_CHANGED'}
+ }
+}
+function Preserve-RecoveryClockAttempt($Definition){
+ $claim=Join-Path $Definition.root 'recovery-activation-attempt.json'
+ Assert-RecoveryClockAttempt (Read-TimeObservationFile $claim) (Read-BoundedJson (Join-Path $Definition.work 'final.json')) (Read-BoundedJson (Join-Path $Definition.work 'status.json'))
+ $archive=Join-Path $Definition.root 'clock-retry-bf234f1d51e34c95859a2332e27aebe8'
+ if(Test-Path -LiteralPath $archive){throw 'RECOVERY_CLOCK_RETRY_EXISTS'}
+ $null=New-Item -ItemType Directory -Path $archive;Assert-TimeObservationAcl $archive
+ $paths=@($claim,(Join-Path $Definition.work 'status.json'),(Join-Path $Definition.work 'final.json'))
+ foreach($p in $paths){
+  $item=Get-Item -LiteralPath $p;if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'RECOVERY_CLOCK_REPARSE'}
+  Copy-Item -LiteralPath $p -Destination (Join-Path $archive $item.Name) -ErrorAction Stop
+  if((Get-FileHash -LiteralPath $p).Hash -cne (Get-FileHash -LiteralPath (Join-Path $archive $item.Name)).Hash){throw 'RECOVERY_CLOCK_ARCHIVE_HASH'}
+ }
+ foreach($p in $paths){
+  if((Get-FileHash -LiteralPath $p).Hash -cne (Get-FileHash -LiteralPath (Join-Path $archive ([IO.Path]::GetFileName($p)))).Hash){throw 'RECOVERY_CLOCK_ARCHIVE_RACE'}
+  Remove-Item -LiteralPath $p -ErrorAction Stop
  }
 }
 function ConvertTo-RecoveryActivationSource([string]$Source){

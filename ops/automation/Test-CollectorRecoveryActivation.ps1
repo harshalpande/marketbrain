@@ -19,6 +19,13 @@ foreach($case in @('valid','instance','count','phase')){
  if($failed -ne ($case -ne 'valid')){throw ('RECOVERY_ARCHIVE_'+$case)}
 }
 # Run the established orchestration fixtures against the transformed entry as well.
+foreach($case in @('valid','unrevoked','wrongReason','wrongClaim')){
+ $s=@{version=2;instanceId='2ed645783c084210ac6d6062cb53235a';processId=9768;phase='FAILED';failure='COLLECTOR_FAILURE_LIMIT';sequence=3;acceptedCount=0;finalHealthRevoked=$true;ordersEnabled=$false;lastFailure=@{findings=@('WINDOWS_LAST_SYNC_TOO_OLD')}}
+ $c=@{runId='bf234f1d51e34c95859a2332e27aebe8'}
+ switch($case){unrevoked{$s.finalHealthRevoked=$false} wrongReason{$s.lastFailure.findings=@('OTHER')} wrongClaim{$c.runId='other'}}
+ $failed=$false;try{Assert-RecoveryClockAttempt $c @{runId='ab47639ee8d74da69a9466c0f59e601e';ordersEnabled=$false;collector=$s} $s}catch{$failed=$true}
+ if($failed -ne ($case -ne 'valid')){throw ('CLOCK_RETRY_CASE_'+$case)}
+}
 $test=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Test-DurableActivation.ps1'))
 $test=$test.Replace('$source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot ''DurableActivation.Entry.ps1''))',"`$source=ConvertTo-RecoveryActivationSource ([IO.File]::ReadAllText((Join-Path `$PSScriptRoot 'DurableActivation.Entry.ps1')))")
 $test=$test.Replace('version=1;instanceId','version=2;instanceId').Replace("' `$receipt=Read-TimeObservationFile'","'  `$receipt=Get-RecoveryCollectorReceipt'")
