@@ -1,0 +1,13 @@
+{
+  "scope": "Local engineering fixtures only; no runtime acceptance",
+  "tests": {
+    "readinessCases": 8,
+    "startupCleanupWorkflows": 7,
+    "summaryCreateReplaceCases": 2,
+    "scheduledWorkerChecks": 26,
+    "collectorChecks": 24
+  },
+  "runtimePending": true,
+  "G3Percent": 80,
+  "ordersEnabled": false
+}

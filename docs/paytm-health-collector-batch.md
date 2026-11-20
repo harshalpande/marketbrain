@@ -1,5 +1,7 @@
 # Scheduled collector integration batch
 
+2026-11-20: Combined collector window implemented with -ManagedGatewayWindow. It validates the stopped gateway and application before prompting, uses existing local Windows credential/signing and custody checks, registers the limited collector task, then starts the gateway under an independently verified three-minute stop guard. Two fresh advancing transport observations are required within 45 seconds. Three collector rounds and final health revocation follow; normal/error cleanup stops/disables the gateway and removes the guard only after confirmed stop. A partially verified guard is retained for review. No persistent collector or trading enablement. Protected collector-batch-result.json is retrieved by queued Observe. Runtime acceptance pending; G3 remains 80%, overall 14/30 (46.7%).
+
 2026-11-20: Background health-account snapshot access is accepted. Automatic inventory confirms application HTTP 200/UP and gateway Disabled, with a newer completed TRANSPORT_READY snapshot. Read-only Observe now checks a stopped collector baseline without requiring the old recovery instance/sequence/time; immutable sources, task identity, lock, no listener, no incident and trading-disabled checks remain. Apply still requires its historical exact recovery checkpoint and must not be used to restart this newer run. Full collector needs a separately reviewed bounded gateway start plus local health-account credential; no persistent collector is installed yet.
 
 ## Diagnostic rerun after E293
@@ -54,3 +56,20 @@ Local coverage: 16 collector orchestration/assessment checks, 26 scheduled-task/
 Paytm readiness remains 14/30 (46.7%). This counts accepted baseline checkpoints, not effort or whole-project completion. After this batch: durable collector installation and combined startup/logoff, stale-clock, outage/recovery, revocation and no-direct-fallback acceptance. G3 reaches 100% only when the remaining checkpoint is evidenced.
 
 Accepted queued collector stopped-baseline preflight: 808e1f33-df04-49ad-9f3f-6f8e6c57f42e. Application UP, gateway Disabled, pinned sources and task identity intact, no active listener or incident. This is not live transport proof. Inventory checked key-custody/manifest.json (absent); actual custody validation uses custody-state.json and remains part of the full collector preflight. Do not recreate key custody based on that inventory field. Next is a bounded gateway/collector integration window with the local password gate.
+
+## Combined local credential handoff
+
+Run elevated PowerShell 7 under the paired spare-laptop user. Keep Docker, MarketBrain and the automation runner running. The gateway must begin disabled; the new mode starts and stops it itself. Do not manually start it, rerun old recovery Apply, or reopen old failed tasks.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\TestPaytmHealthScheduledAccess.ps1 `
+    -ManagedGatewayWindow `
+    -TokenReportPath 'C:\MarketBrainData\Review\paytm-health-token-88ebf8fdc3de4c158351e86df95e7217.json' `
+    -CollectorDeploymentReport 'C:\MarketBrainData\Review\paytm-health-activation-a3419285c4d94d4dbbe1d30370cbe944.json'
+```
+
+Enter the existing Windows marketbrain-health password locally; no SSH passphrase or new credential is needed. Keep the window open until cleanup completes. Expected HEALTH_COLLECTOR_THREE_ROUNDS_PASSED_REVOKED_LIFECYCLE_PENDING. The protected summary retains stage, findings, task status and gateway cleanup; full diagnostic JSON remains locally at its recorded path/hash. An interrupted controller may leave no final summary; absence is not success. The independent guard requests gateway shutdown and Java health TTL bounds unrenewed health; neither establishes successful revocation without returned evidence.

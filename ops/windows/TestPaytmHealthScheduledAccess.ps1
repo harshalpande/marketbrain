@@ -1,8 +1,10 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='',[string]$CollectorDeploymentReport='')
+[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='',[string]$CollectorDeploymentReport='',[switch]$ManagedGatewayWindow)
 $ErrorActionPreference='Stop'
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmHealthAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthBatchLogon.ps1')){. (Join-Path $PSScriptRoot $n)}
 . (Join-Path $PSScriptRoot 'PaytmHealthScheduledToken.ps1')
+if($ManagedGatewayWindow){. (Join-Path $PSScriptRoot 'PaytmCollectorGatewayWindow.ps1')}
+$gatewayContext=$null
 $run=[guid]::NewGuid().ToString('N');$c=Get-HealthScheduledProbeContract $run;$watch=[Diagnostics.Stopwatch]::StartNew();$password=$null;$mayExist=$false
 $null=New-Item -ItemType Directory -Path $OutputDirectory -Force
 $path=Join-Path $OutputDirectory "paytm-health-scheduled-$run.json"
@@ -11,6 +13,13 @@ function Save-HealthScheduled {$r.elapsedSeconds=$watch.Elapsed.TotalSeconds;[IO
 function Health-Step([string]$Name,[int]$Percent){$r.stage=$Name;Save-HealthScheduled;Write-Progress -Activity 'Scheduled clock access' -Status $Name -PercentComplete $Percent;Write-Host "[$Percent%] $Name"}
 try{
  Save-HealthScheduled;Assert-PaytmCustodyController
+ if($ManagedGatewayWindow){
+  if(-not $CollectorDeploymentReport -or -not $TokenReportPath){throw 'SCHEDULE_COLLECTOR_ARGUMENTS'}
+  $gatewayContext=New-CollectorGatewayContext $run
+  $r['gatewayPreflight']=Get-CollectorGatewayPreflight $gatewayContext
+  $r.sourceHashes['PaytmCollectorGatewayWindow.ps1']=(Get-FileHash -LiteralPath "$PSScriptRoot/PaytmCollectorGatewayWindow.ps1").Hash
+  foreach($name in @('DenialRecovery.Core.ps1','PostRecovery.Core.ps1')){$r.sourceHashes[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot "../automation/$name")).Hash}
+ }
  Import-Module ScheduledTasks -ErrorAction Stop
  Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction Stop
  $null=Assert-HealthScheduledPrerequisites $CustodyReportPath
@@ -57,6 +66,7 @@ try{
  $tasks=@(Get-HealthProbeTask $c.name);if($tasks.Count -ne 1){throw 'SCHEDULE_TASK_MISSING'}
  Assert-HealthProbeTask $tasks[0] $run $false
  if((Get-FileHash -LiteralPath (Join-Path $c.directory 'worker.ps1')).Hash -cne $workerHash){throw 'SCHEDULE_WORKER_CHANGED'}
+ if($ManagedGatewayWindow){Health-Step 'START_BOUNDED_GATEWAY_WINDOW' 50;Start-CollectorGatewayWindow $gatewayContext}
  Health-Step 'RUN_BACKGROUND_SIGNING_AND_CLOCK' 60
  $null=Enable-ScheduledTask -TaskName $c.name -TaskPath $c.path -ErrorAction Stop
  $tasks=@(Get-HealthProbeTask $c.name);Assert-HealthProbeTask $tasks[0] $run $true
@@ -72,7 +82,7 @@ try{
  if($TokenReportPath){$r.status='HEALTH_SCHEDULED_CLOCK_AND_TOKEN_PASSED_COLLECTOR_PENDING'}
  if($CollectorDeploymentReport){$r.status='HEALTH_COLLECTOR_THREE_ROUNDS_PASSED_REVOKED_LIFECYCLE_PENDING'}
 }catch{
- $r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY|HEALTH_KEY|HEALTH_ACCOUNT)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_SETUP_FAILED'}
+ $r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY|HEALTH_KEY|HEALTH_ACCOUNT|RECOVERY|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_SETUP_FAILED'}
  $e=$_.Exception.GetBaseException();$r.failureDetails=@{type=$e.GetType().Name;hresult=$e.HResult;line=$_.InvocationInfo.ScriptLineNumber}
 }finally{
  if($mayExist){try{
@@ -92,8 +102,16 @@ try{
  }catch{$r.cleanupFailure='SCHEDULE_CLEANUP_REVIEW_REQUIRED'}}
  if($r.taskStarted -and $null -eq $r.worker -and (Test-Path -LiteralPath $c.result)){try{$limit=if($CollectorDeploymentReport){49152}else{8192};$partial=Read-PaytmRepairJson $c.result $limit;if($partial.runId -ceq $run){$r.worker=$partial}}catch{}}
  if($null -ne $password){$password.Dispose()}
+ if($gatewayContext){
+  try{Stop-CollectorGatewayWindow $gatewayContext}catch{$r['gatewayCleanupFailure']='SCHEDULE_GATEWAY_CLEANUP_REVIEW_REQUIRED';$r.cleanupFailure='SCHEDULE_GATEWAY_CLEANUP_REVIEW_REQUIRED'}
+  $r['gatewayWindow']=@{started=$gatewayContext.startAttempted;stopped=$gatewayContext.stopped;guardRemoved=$gatewayContext.guardRemoved;readyInstance=$gatewayContext.readyInstance}
+ }
  if($r.failure -or $r.cleanupFailure){$r.status='REVIEW_REQUIRED'}
  Save-HealthScheduled;Write-Progress -Activity 'Scheduled clock access' -Completed
+ if($ManagedGatewayWindow){
+  try{Save-CollectorAutomaticSummary $r $path $gatewayContext;Write-Host 'Report saved for automatic collection; no file transfer needed.'}
+  catch{$r['automaticCollectionFailure']='SCHEDULE_SUMMARY_SAVE_FAILED';$r.status='REVIEW_REQUIRED';Save-HealthScheduled;Write-Host 'Automatic summary unavailable; full local report preserved.'}
+ }
  Write-Host "[100%] $($r.status)";Write-Host "Share this ONE file: $path"
 }
 if($r.status -ceq 'REVIEW_REQUIRED'){throw 'Share the report. Do not rerun, delete tasks or reset account/key state.'}
