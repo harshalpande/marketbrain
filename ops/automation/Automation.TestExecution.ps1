@@ -1,12 +1,12 @@
 #requires -Version 7.5
 function Assert-AutomationTestSpec($Spec,[string]$Kind='paytm-transport-test') {
-    $modes=if($Kind -ceq 'paytm-denial-recovery'){@('Observe','Apply','FailureFixture')}else{@('Observe','FailureFixture')}
+    $modes=if($Kind -cin @('paytm-denial-recovery','paytm-time-observer')){@('Observe','Apply','FailureFixture')}else{@('Observe','FailureFixture')}
     if (@($Spec.PSObject.Properties.Name | Sort-Object) -join ',' -cne 'mode,revision,sha256' -or
         $Spec.revision -cnotmatch '^[a-f0-9]{40}$' -or $Spec.sha256 -cnotmatch '^[A-F0-9]{64}$' -or
         $Spec.mode -cnotin $modes) { throw 'INVALID_TEST_SPEC' }
 }
 function Get-AutomationReviewedSource([string]$Revision,[string]$Kind='paytm-transport-test') {
-    $name=switch -CaseSensitive ($Kind){'paytm-transport-test'{'PaytmTransport.ps1'} 'paytm-denial-recovery'{'PaytmDenialRecovery.ps1'} default{throw 'INVALID_TEST_IDENTITY'}}
+    $name=switch -CaseSensitive ($Kind){'paytm-transport-test'{'PaytmTransport.ps1'} 'paytm-denial-recovery'{'PaytmDenialRecovery.ps1'} 'paytm-time-observer'{'PaytmTimeObserver.ps1'} default{throw 'INVALID_TEST_IDENTITY'}}
     $client=[Net.Http.HttpClient]::new()
     $client.Timeout=[TimeSpan]::FromSeconds(30)
     $client.MaxResponseContentBufferSize=65536
@@ -17,7 +17,7 @@ function Get-AutomationReviewedSource([string]$Revision,[string]$Kind='paytm-tra
 }
 function Invoke-AutomationReviewedTest($Job,[string]$Root,[scriptblock]$ProgressCallback=$null) {
     Assert-AutomationTestSpec $Job.spec $Job.kind
-    if ($Job.id -cnotmatch '^[a-f0-9-]{36}$' -or $Job.kind -cnotin @('paytm-transport-test','paytm-denial-recovery')) { throw 'INVALID_TEST_IDENTITY' }
+    if ($Job.id -cnotmatch '^[a-f0-9-]{36}$' -or $Job.kind -cnotin @('paytm-transport-test','paytm-denial-recovery','paytm-time-observer')) { throw 'INVALID_TEST_IDENTITY' }
     $deadline=if($Job.kind -ceq 'paytm-denial-recovery'){240}else{120}
     $directory=Join-Path $Root ('executions/'+$Job.id)
     # A durable receipt means this identity is never executed a second time.

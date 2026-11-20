@@ -4,6 +4,10 @@ foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','Pay
 $script:case='good';$script:submits=@();$count=0;$boot='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 function Check([bool]$Ok){if(-not $Ok){throw ('COLLECTOR_FIXTURE_FAILED_'+$script:case)};$script:count++}
 function Get-CollectorWindowsService {@{state='Running';startType=2}}
+function Read-TimeObservation {
+ if($script:case -eq 'observerMissing'){throw 'TIME_OBSERVER_MISSING'}
+ @{status=(Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /status /verbose' 3);source=(Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /source' 3);service=(Get-CollectorWindowsService)}
+}
 function Invoke-PaytmTimeRepairNative($Tool,$Arguments,$Seconds){
  if($script:case -eq 'accessDenied'){return @{exitCode=5;output='Access denied (0x80070005).'}}
  if($Arguments -eq '/query /source'){return @{output='time.windows.com';exitCode=0}}

@@ -17,7 +17,7 @@ try{
  if($CollectorDeploymentReport){
   if(-not $TokenReportPath -or (Get-FileHash -LiteralPath $CollectorDeploymentReport).Hash -cne '97822DC022A95034613F3C0F3BFF06F6705B3054FEE7FC51CBE5CF79404B7F69'){throw 'SCHEDULE_COLLECTOR_DEPLOYMENT_RECEIPT'}
   $r['collectorMode']=$true
-  foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmHealthCollectorCore.ps1')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
+  foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmTimeObservation.ps1','PaytmHealthCollectorCore.ps1')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
  }
  if($TokenReportPath){Assert-HealthScheduledTokenPrerequisites $TokenReportPath;$r['tokenMode']=$true}
  $preparedSource=New-HealthScheduledWorkerSource $run -WithToken:([bool]$TokenReportPath) -WithCollector:([bool]$CollectorDeploymentReport)

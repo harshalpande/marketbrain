@@ -1,7 +1,7 @@
 #requires -Version 7.2
 [CmdletBinding()]
 param(
-    [ValidateSet('diagnostic','intervention-test','paytm-transport-test','paytm-denial-recovery')][string]$Kind='diagnostic',
+    [ValidateSet('diagnostic','intervention-test','paytm-transport-test','paytm-denial-recovery','paytm-time-observer')][string]$Kind='diagnostic',
     [ValidatePattern('^[a-f0-9]{40}$')][string]$Revision,
     [ValidateSet('Observe','Apply','FailureFixture')][string]$Mode='Observe',
     [string]$JobId,
@@ -25,12 +25,12 @@ Write-AutomationState (Join-Path $root 'last-request.json') @{id=$JobId;kind=$Ki
 if ($Cancel) { $null = Invoke-AutomationApi $config '/cancel' @{id=$JobId} }
 elseif (-not $ReadOnly) {
     $body=@{id=$JobId;kind=$Kind}
-    if($Kind -in @('paytm-transport-test','paytm-denial-recovery')) {
-        if($Mode -eq 'Apply' -and $Kind -ne 'paytm-denial-recovery'){throw 'Apply is not allowed for observation jobs.'}
+    if($Kind -in @('paytm-transport-test','paytm-denial-recovery','paytm-time-observer')) {
+        if($Mode -eq 'Apply' -and $Kind -notin @('paytm-denial-recovery','paytm-time-observer')){throw 'Apply is not allowed for observation jobs.'}
         if(-not $Revision){throw 'Supply the exact reviewed and pushed 40-character Revision.'}
         $client=[Net.Http.HttpClient]::new()
         $client.Timeout=[TimeSpan]::FromSeconds(30); $client.MaxResponseContentBufferSize=65536
-        $file=if($Kind -eq 'paytm-denial-recovery'){'PaytmDenialRecovery.ps1'}else{'PaytmTransport.ps1'}
+        $file=switch($Kind){'paytm-denial-recovery'{'PaytmDenialRecovery.ps1'} 'paytm-time-observer'{'PaytmTimeObserver.ps1'} default{'PaytmTransport.ps1'}}
         try { $bytes=$client.GetByteArrayAsync("https://raw.githubusercontent.com/harshalpande/marketbrain/$Revision/ops/automation/jobs/$file").GetAwaiter().GetResult() }
         finally { $client.Dispose() }
         $body.spec=@{revision=$Revision;sha256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes));mode=$Mode}

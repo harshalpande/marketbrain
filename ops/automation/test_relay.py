@@ -89,6 +89,14 @@ class QueueTests(unittest.TestCase):
         self.q = Queue(self.path)
         self.assertEqual(self.q.claim()['id'], self.job['id'])
 
+    def test_time_observer_is_reviewed_and_immutable(self):
+        spec = {"revision": "a"*40, "sha256": "B"*64, "mode": "Apply"}
+        job = self.job | {"kind": "paytm-time-observer", "spec": spec}
+        self.q.submit(job)
+        self.assertEqual(self.q.claim()['kind'], 'paytm-time-observer')
+        with self.assertRaises(ValueError):
+            self.q.submit(job | {"spec": spec | {"mode": "Observe"}})
+
     def test_recovery_apply_is_separate_from_observation(self):
         spec = {"revision": "a"*40, "sha256": "B"*64, "mode": "Apply"}
         with self.assertRaises(ValueError):

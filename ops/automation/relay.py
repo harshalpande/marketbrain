@@ -11,7 +11,7 @@ import re
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-JOBS = {"diagnostic", "intervention-test", "paytm-transport-test", "paytm-denial-recovery"}
+JOBS = {"diagnostic", "intervention-test", "paytm-transport-test", "paytm-denial-recovery", "paytm-time-observer"}
 TERMINAL = {"SUCCEEDED", "FAILED", "INTERRUPTED", "CANCELLED"}
 MAX_BODY = 262144
 
@@ -24,7 +24,7 @@ class Queue:
         self.db.commit()
 
     def submit(self, body):
-        reviewed = body.get("kind") in {"paytm-transport-test", "paytm-denial-recovery"}
+        reviewed = body.get("kind") in {"paytm-transport-test", "paytm-denial-recovery", "paytm-time-observer"}
         expected = {"id", "kind", "spec"} if reviewed else {"id", "kind"}
         if set(body) != expected or body["kind"] not in JOBS:
             raise ValueError("Unsupported job")
@@ -33,7 +33,7 @@ class Queue:
             if (not isinstance(spec, dict) or set(spec) != {"revision", "sha256", "mode"}
                 or not re.fullmatch(r"[a-f0-9]{40}", spec.get("revision", ""))
                 or not re.fullmatch(r"[A-F0-9]{64}", spec.get("sha256", ""))
-                or spec.get("mode") not in ({"Observe", "Apply", "FailureFixture"} if body["kind"] == "paytm-denial-recovery" else {"Observe", "FailureFixture"})):
+                or spec.get("mode") not in ({"Observe", "Apply", "FailureFixture"} if body["kind"] in {"paytm-denial-recovery", "paytm-time-observer"} else {"Observe", "FailureFixture"})):
                 raise ValueError("Invalid test specification")
         if str(uuid.UUID(body["id"])) != body["id"]:
             raise ValueError("Invalid job ID")

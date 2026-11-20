@@ -46,6 +46,9 @@ try {
                         'paytm-transport-test' {
                             $report=Invoke-AutomationReviewedTest $job $root { param($progress) $null=Invoke-AutomationApi $config '/update' @{id=$job.id;state='RUNNING';result=$progress} }
                         }
+                        'paytm-time-observer' {
+                            $report=Invoke-AutomationReviewedTest $job $root { param($progress) $null=Invoke-AutomationApi $config '/update' @{id=$job.id;state='RUNNING';result=$progress} }
+                        }
                         'diagnostic' {
                             # Fixed, read-only, bounded catalogue. No credentials,
                             # arbitrary commands, application changes or order calls.
@@ -59,7 +62,7 @@ try {
                                 runnerSha256=$loadedRunnerHash
                                 diagnosticsSha256=$loadedDiagnosticsHash
                                 executionSha256=$loadedExecutionHash
-                                supportedJobs=@('diagnostic','intervention-test','paytm-transport-test','paytm-denial-recovery')
+                                supportedJobs=@('diagnostic','intervention-test','paytm-transport-test','paytm-denial-recovery','paytm-time-observer')
                                 ordersEnabled=$false
                                 paytmObservation=(Get-AutomationPaytmObservation)
                             }
@@ -77,7 +80,7 @@ try {
                         }
                         default { throw 'Unsupported job kind' }
                     }
-                    $update.state=if($job.kind -in @('paytm-transport-test','paytm-denial-recovery') -and -not $report.passed){'FAILED'}else{'SUCCEEDED'}
+                    $update.state=if($job.kind -in @('paytm-transport-test','paytm-denial-recovery','paytm-time-observer') -and -not $report.passed){'FAILED'}else{'SUCCEEDED'}
                     $update.result=$report
                 } catch {
                     $update.state='FAILED'

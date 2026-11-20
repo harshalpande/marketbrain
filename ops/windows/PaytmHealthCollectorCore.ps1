@@ -44,11 +44,12 @@ function Invoke-CollectorRound([string]$Token,[string[]]$SshArguments,[string]$B
  $timer=[Diagnostics.Stopwatch]::StartNew();$wall=[DateTimeOffset]::UtcNow;$phase='WINDOWS_TIME'
  $diag=[ordered]@{windowsStatus=$null;windowsSource=$null;service=$null;vpsBounds=$null;javaBounds=$null;transport=$null;exceptionType=$null}
  try{
-  $status=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /status /verbose' 3
+  $time=Read-TimeObservation
+  $status=$time.status
   $diag.windowsStatus=@{exitCode=$status.exitCode;output=(Limit-CollectorDiagnostic $status.output)}
-  $source=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /source' 3
+  $source=$time.source
   $diag.windowsSource=@{exitCode=$source.exitCode;output=(Limit-CollectorDiagnostic $source.output)}
-  $service=Get-CollectorWindowsService $status
+  $service=$time.service
   $diag.service=$service
   $phase='VPS_CLOCK';$nonce=[guid]::NewGuid().ToString('N');$argsCopy=@($SshArguments|ForEach-Object {if($_ -ceq 'ConnectTimeout=15'){'ConnectTimeout=2'}else{$_}});$argsCopy[-1]='marketbrain-clock '+$nonce
   $start=[DateTimeOffset]::UtcNow;$watch=[Diagnostics.Stopwatch]::StartNew()

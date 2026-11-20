@@ -37,7 +37,7 @@ function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken,[swit
  $tokenCode=if($WithToken){Get-HealthScheduledTokenSource}else{''}
  if($WithCollector){
   if(-not $WithToken){throw 'SCHEDULE_COLLECTOR_TOKEN_REQUIRED'}
-  foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmHealthCollectorCore.ps1')){$tokenCode+="`r`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot $n))}
+  foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmTimeObservation.ps1','PaytmHealthCollectorCore.ps1')){$tokenCode+="`r`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot $n))}
   $tokenCode+=@'
 
  $r.stage='COLLECTOR';$r['collectorRounds']=@();$r['finalHealthRevoked']=$false;$r.applicationLocked=$false;$token=$null
