@@ -15,17 +15,21 @@ function Set-CollectorUpgradeAction($Definition){
  $null=Set-ScheduledTask -TaskName $Definition.name -TaskPath '\' -Action $action -ErrorAction Stop
 }
 function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
- $r=@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';mode=$RequestedMode;failure=$null;rollbackFailure=$null;ordersEnabled=$false;workerStarted=$false;applicationRestarted=$false;credentialsUsed=$false;workerSha256=$upgradeWorkerHash}
+ $r=@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';passed=$false;stage='IDENTITY';mode=$RequestedMode;failure=$null;rollbackFailure=$null;ordersEnabled=$false;workerStarted=$false;applicationRestarted=$false;credentialsUsed=$false;workerSha256=$upgradeWorkerHash}
  $lease=$null;$workerChanged=$false;$actionChanged=$false;$dockerChanged=$false;$backup=$null;$oldXml=$null;$before=$null;$exe=$null;$d=$null
  try{
   if($RequestedMode -notin @('Observe','Apply')){throw 'UPGRADE_MODE'}
   $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
   if(-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'UPGRADE_ADMIN_REQUIRED'}
+  $r.stage='STAGING_PREFLIGHT'
+  $r.files=@{}
+  foreach($relative in @('time-observer-v1\collector-install-result.json','time-observer-v1\snapshot.json','collector-v1\worker.ps1','collector-v1\known_hosts','collector-v1\control.json')){$r.files[$relative]=Test-Path -LiteralPath ('C:\ProgramData\MarketBrainPaytmHealth\'+$relative)}
   $receipt=Read-TimeObservationFile 'C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1\collector-install-result.json'
   $r.preflight=Get-DurableCollectorStagingPreflight $receipt
   $d=Get-DurableCollectorDefinition $receipt.workerSha256
   $destination=Join-Path $d.root 'recovery-upgrade.json'
   if(Test-Path -LiteralPath $destination){throw 'UPGRADE_ALREADY_RECORDED'}
+  $r.stage='INCIDENT_PREFLIGHT'
   $checkpointPath=Join-Path $d.root 'signout-checkpoint.json'
   Assert-TimeObservationAcl $checkpointPath
   $cp=Read-TimeObservationFile $checkpointPath
@@ -36,7 +40,7 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
   if((Get-Item -LiteralPath $lock).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'UPGRADE_LEASE_REPARSE'}
   $lease=[IO.File]::Open($lock,'Open','ReadWrite','None')
   $oldXml=Export-ScheduledTask -TaskName $d.name -TaskPath '\'
-  $before=Get-CollectorDockerState
+  $r.stage='APPLICATION_PREFLIGHT';$before=Get-CollectorDockerState
   if($before.containerId -cne '1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad' -or $before.state -cne 'running' -or $before.restartPolicy -cne 'no'){throw 'UPGRADE_CONTAINER_CHANGED'}
   if(-not (Test-CollectorApplicationReady)){throw 'UPGRADE_APPLICATION_NOT_READY'}
   $exe=@(Get-Command docker.exe -CommandType Application -ErrorAction Stop)[0].Source
@@ -45,7 +49,8 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
   try{$gz.CopyTo($out);$bytes=$out.ToArray()}finally{$gz.Dispose();$compressed.Dispose();$out.Dispose()}
   if($bytes.Length -gt 262144 -or (Get-CollectorUpgradeHash $bytes) -cne $upgradeWorkerHash){throw 'UPGRADE_PAYLOAD'}
   $t=$null;$e=$null;$null=[Management.Automation.Language.Parser]::ParseInput([Text.Encoding]::UTF8.GetString($bytes),[ref]$t,[ref]$e);if($e.Count){throw 'UPGRADE_PARSE'}
-  if($RequestedMode -ceq 'Observe'){$r.status='COLLECTOR_RECOVERY_UPGRADE_PREFLIGHT_PASSED';return $r}
+  if($RequestedMode -ceq 'Observe'){$r.status='COLLECTOR_RECOVERY_UPGRADE_PREFLIGHT_PASSED';$r.passed=$true;return $r}
+  $r.stage='UPGRADE'
   $backup=Join-Path $d.root ('recovery-backup-'+$r.runId)
   $null=New-Item -ItemType Directory -Path $backup -ErrorAction Stop;Assert-TimeObservationAcl $backup
   foreach($name in @('worker.ps1','known_hosts','control.json','signout-checkpoint.json')){
@@ -73,10 +78,10 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
   if($after.containerId -cne $before.containerId -or $after.state -cne 'running' -or $after.startedAt -cne $before.startedAt -or $after.restartPolicy -cne 'unless-stopped'){throw 'UPGRADE_CONTAINER_VERIFY'}
   if((Read-TimeObservationFile (Join-Path $d.root 'control.json')).enabled -ne $false){throw 'UPGRADE_CONTROL_CHANGED'}
   $r.containerAfter=$after;$r.taskXmlSha256=Get-CollectorUpgradeHash ([Text.Encoding]::UTF8.GetBytes($newXml))
-  $r.installationId=$receipt.runId;$r.taskDisabled=$true;$r.controlDisabled=$true;$r.status='COLLECTOR_RECOVERY_UPGRADED_DISABLED_RUNTIME_PENDING'
+  $r.installationId=$receipt.runId;$r.taskDisabled=$true;$r.controlDisabled=$true;$r.status='COLLECTOR_RECOVERY_UPGRADED_DISABLED_RUNTIME_PENDING';$r.passed=$true
   Write-CollectorUpgradeNew $destination ([Text.Encoding]::UTF8.GetBytes(($r|ConvertTo-Json -Depth 10)))
  }catch{
-  $r.status='REVIEW_REQUIRED';$r.failure=if($_.Exception.Message -cmatch '^[A-Z][A-Z0-9_]+$'){$_.Exception.Message}else{'UPGRADE_OPERATION_FAILED'}
+  $r.status='REVIEW_REQUIRED';$r.passed=$false;$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.failure=if($_.Exception.Message -cmatch '^[A-Z][A-Z0-9_]+$'){$_.Exception.Message}else{'UPGRADE_OPERATION_FAILED'}
   $r.failureType=$_.Exception.GetType().Name
   $rollbackErrors=@()
   try{if($actionChanged){Set-CollectorUpgradeAction $d}}catch{$rollbackErrors+='ACTION'}
