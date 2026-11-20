@@ -4,7 +4,7 @@ function Assert-CollectorObserverTask($Task,[string]$ExpectedArguments){
  if($Task.Actions.Count -ne 1 -or $Task.Actions[0].Execute -ine 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -or $Task.Actions[0].Arguments -cne $ExpectedArguments -or $Task.Actions[0].WorkingDirectory){throw 'UPGRADE_OBSERVER_ACTION'}
  if(-not $Task.Settings.Enabled -or [string]$Task.State -notin @('Ready','Running') -or $Task.Triggers.Count -ne 1 -or $Task.Triggers[0].CimClass.CimClassName -cne 'MSFT_TaskBootTrigger' -or -not $Task.Triggers[0].Enabled -or [string]$Task.Settings.MultipleInstances -cne 'IgnoreNew' -or [Xml.XmlConvert]::ToTimeSpan($Task.Settings.ExecutionTimeLimit).TotalSeconds -ne 0){throw 'UPGRADE_OBSERVER_SETTINGS'}
 }
-function Restore-CollectorTimeObserver([switch]$Start){
+function Restore-CollectorTimeObserver([switch]$Start,[switch]$Restart){
  $root='C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1';$path=Join-Path $root 'worker.ps1';$name='MarketBrain-Time-Observer-v1'
  Assert-TimeObservationAcl $root;Assert-TimeObservationAcl $path
  $hash='7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0'
@@ -14,6 +14,14 @@ function Restore-CollectorTimeObserver([switch]$Start){
  $task=Get-ScheduledTask -TaskName $name -TaskPath '\' -ErrorAction Stop
  Assert-CollectorObserverTask $task $arguments
  $r=@{beforeState=[string]$task.State;lastResult=(Get-ScheduledTaskInfo -TaskName $name -TaskPath '\').LastTaskResult;started=$false;verified=$false}
+ if($Restart){
+  if(-not $Start){throw 'UPGRADE_OBSERVER_RESTART_MODE'}
+  Stop-ScheduledTask -TaskName $name -TaskPath '\'
+  $watch=[Diagnostics.Stopwatch]::StartNew()
+  do{$task=Get-ScheduledTask -TaskName $name -TaskPath '\';if([string]$task.State -ceq 'Ready'){break};Start-Sleep -Milliseconds 250}while($watch.Elapsed.TotalSeconds -lt 10)
+  if([string]$task.State -cne 'Ready'){throw 'UPGRADE_OBSERVER_STOP_FAILED'}
+  $r.restarted=$true
+ }
  if([string]$task.State -ceq 'Ready'){
   if(-not $Start){return $r}
   Start-ScheduledTask -TaskName $name -TaskPath '\';$r.started=$true
@@ -21,7 +29,7 @@ function Restore-CollectorTimeObserver([switch]$Start){
  $first=$null
  for($i=0;$i -lt 15;$i++){
   if(Test-Path -LiteralPath (Join-Path $root 'snapshot.json')){
-   $v=Read-TimeObservation
+   try{$v=Read-TimeObservation}catch{if($r.started -and $_.Exception.Message -ceq 'TIME_OBSERVER_IDENTITY'){Start-Sleep -Seconds 1;continue};throw}
    if($first -and $v.sequence -gt $first){$r.firstSequence=$first;$r.lastSequence=$v.sequence;$r.verified=$true;return $r}
    $first=$v.sequence
   }

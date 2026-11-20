@@ -5,7 +5,7 @@ try{
   $t=Get-ScheduledTask -TaskName $name -TaskPath '\'
   if($t.Settings.Enabled -or [string]$t.State -cne 'Disabled'){throw 'CLOCK_REFRESH_TASK_ACTIVE'}
  }
- $before=Read-TimeObservation
+ $before=@{status=(Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /status /verbose' 15);source=(Invoke-PaytmTimeRepairNative 'w32tm.exe' '/query /source' 15);sequence=0}
  $r.before=@{status=$before.status;source=$before.source;sequence=$before.sequence}
  $a=Get-PaytmTimeSyncAssessment $before.status $before.source
  if(-not $a.synchronizedReported){throw 'CLOCK_REFRESH_SOURCE_UNCONFIRMED'}
@@ -13,6 +13,7 @@ try{
   $r.resyncRequested=$true
   $c=Invoke-PaytmTimeRepairNative 'w32tm.exe' '/resync /rediscover' 40;$r.commands+=,$c
   if($c.exitCode -ne 0 -or $c.output -notmatch '(?im)^The command completed successfully\.\s*$'){throw 'CLOCK_REFRESH_NOT_ACCEPTED'}
+  $r.observer=Restore-CollectorTimeObserver -Start -Restart
  }elseif($Mode -cne 'Observe'){throw 'CLOCK_REFRESH_MODE'}
  $watch=[Diagnostics.Stopwatch]::StartNew()
  do{

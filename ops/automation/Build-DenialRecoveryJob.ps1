@@ -24,6 +24,7 @@ $receipt=Get-Content (Join-Path $PSScriptRoot '../../docs/evidence/queued-recove
 $json=$receipt|ConvertTo-Json -Depth 12 -Compress
 $parts+=('$acceptedGatewayReceipt = @'+"'`n"+$json+"`n'@ | ConvertFrom-Json -AsHashtable -DateKind String")
 if($Stage -eq 'ClockRefresh'){
+ $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmCollectorObserverRecovery.ps1'))
  Add-Functions '../windows/PaytmTimeServiceRepair.ps1' @('Invoke-PaytmTimeRepairNative','Get-PaytmTimeSyncAssessment')
  $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CollectorClockRefresh.Entry.ps1'))
 }
