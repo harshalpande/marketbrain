@@ -40,6 +40,9 @@ try {
                 Write-Host "Running $($job.kind): $($job.id)"
                 try {
                     switch ($job.kind) {
+                        'paytm-denial-recovery' {
+                            $report=Invoke-AutomationReviewedTest $job $root { param($progress) $null=Invoke-AutomationApi $config '/update' @{id=$job.id;state='RUNNING';result=$progress} }
+                        }
                         'paytm-transport-test' {
                             $report=Invoke-AutomationReviewedTest $job $root { param($progress) $null=Invoke-AutomationApi $config '/update' @{id=$job.id;state='RUNNING';result=$progress} }
                         }
@@ -56,7 +59,7 @@ try {
                                 runnerSha256=$loadedRunnerHash
                                 diagnosticsSha256=$loadedDiagnosticsHash
                                 executionSha256=$loadedExecutionHash
-                                supportedJobs=@('diagnostic','intervention-test','paytm-transport-test')
+                                supportedJobs=@('diagnostic','intervention-test','paytm-transport-test','paytm-denial-recovery')
                                 ordersEnabled=$false
                                 paytmObservation=(Get-AutomationPaytmObservation)
                             }
@@ -74,7 +77,7 @@ try {
                         }
                         default { throw 'Unsupported job kind' }
                     }
-                    $update.state=if($job.kind -eq 'paytm-transport-test' -and -not $report.passed){'FAILED'}else{'SUCCEEDED'}
+                    $update.state=if($job.kind -in @('paytm-transport-test','paytm-denial-recovery') -and -not $report.passed){'FAILED'}else{'SUCCEEDED'}
                     $update.result=$report
                 } catch {
                     $update.state='FAILED'

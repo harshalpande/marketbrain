@@ -20,8 +20,8 @@ function Get-AutomationReviewedSource([string]$Revision) { return ,[IO.File]::Re
 Copy-Item (Join-Path $PSScriptRoot 'jobs/PaytmTransport.ps1') (Join-Path $runner 'fixture.ps1')
 $controller=Get-AutomationConfig (Join-Path $root 'controller.dpapi')
 $worker=Get-AutomationConfig (Join-Path $root 'worker.dpapi')
-function Invoke-FixtureJob([string]$Revision) {
-    $job=@{id=[guid]::NewGuid().ToString();kind='paytm-transport-test';spec=@{revision=$Revision;sha256=(Get-FileHash (Join-Path $runner 'fixture.ps1')).Hash;mode='FailureFixture'}}
+function Invoke-FixtureJob([string]$Revision,[string]$Kind='paytm-transport-test') {
+    $job=@{id=[guid]::NewGuid().ToString();kind=$Kind;spec=@{revision=$Revision;sha256=(Get-FileHash (Join-Path $runner 'fixture.ps1')).Hash;mode='FailureFixture'}}
     $null=Invoke-AutomationApi $controller '/submit' $job
     & (Join-Path $runner 'Start-AutomationWorker.ps1') -Once
     (Invoke-AutomationApi $controller '/result' @{id=$job.id}).job
@@ -36,4 +36,7 @@ if(Test-Path (Join-Path $root 'pending.json')){throw 'Lost ACK retry not cleared
 $second=Invoke-FixtureJob ('b'*40)
 if($second.state -ne 'SUCCEEDED' -or -not $second.result.evidence.fixture){throw 'Second reviewed version failed'}
 if(@(Get-ChildItem (Join-Path $root 'executions') -Directory).Count -ne 2){throw 'Execution replay detected'}
+Copy-Item (Join-Path $PSScriptRoot 'jobs/PaytmDenialRecovery.ps1') (Join-Path $runner 'fixture.ps1') -Force
+$recovery=Invoke-FixtureJob ('c'*40) 'paytm-denial-recovery'
+if($recovery.state -ne 'FAILED' -or $recovery.result.evidence.failure -ne 'RECOVERY_DELIBERATE_FAILURE_NO_GATEWAY_ACCESS' -or $recovery.result.evidence.startAttempts -ne 0){throw 'Recovery job boundary failed'}
 Write-Host 'QUEUED_EXECUTION_PASSED: real TLS relay, worker, returned failure, lost result ACK, second source version, no replay.'

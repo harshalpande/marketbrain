@@ -89,6 +89,16 @@ class QueueTests(unittest.TestCase):
         self.q = Queue(self.path)
         self.assertEqual(self.q.claim()['id'], self.job['id'])
 
+    def test_recovery_apply_is_separate_from_observation(self):
+        spec = {"revision": "a"*40, "sha256": "B"*64, "mode": "Apply"}
+        with self.assertRaises(ValueError):
+            self.q.submit(self.job | {"kind": "paytm-transport-test", "spec": spec})
+        job = self.job | {"kind": "paytm-denial-recovery", "spec": spec}
+        self.q.submit(job)
+        self.assertEqual(self.q.claim()['spec']['mode'], 'Apply')
+        with self.assertRaises(ValueError):
+            self.q.submit(job | {"spec": spec | {"mode": "Observe"}})
+
 
 if __name__ == "__main__":
     unittest.main()
