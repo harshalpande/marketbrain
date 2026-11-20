@@ -87,3 +87,9 @@ if(1326 -notin $d.win32Codes -or 5 -notin $d.win32Codes -or 2 -in $d.win32Codes 
 $d=Get-TimeAccountNativeFailure ([pscustomobject]@{Exception=[Exception]::new('opaque')})
 if($d.win32Codes.Count -or $d.passwordCorrectness -ne 'NOT_ESTABLISHED'){throw 'Unknown failure inferred credentials'}
 Write-Host 'TIME_ACCOUNT_NATIVE_ERRORS_PASSED: 9 HRESULT/CIM/unknown cases; secrets excluded.'
+
+$xml='<Event><EventData><Data Name="TargetUserName">marketbrain-health</Data><Data Name="TargetDomainName">SPARE</Data><Data Name="Status">0xc000006d</Data><Data Name="SubStatus">0xc000006a</Data><Data Name="LogonType">4</Data><Data Name="UnrelatedSecret">DO_NOT_EXPORT</Data></EventData></Event>'
+$v=ConvertFrom-TimeAccountLogonEvent $xml
+if($v.subStatus -cne '0xc000006a' -or ($v|ConvertTo-Json) -match 'DO_NOT_EXPORT'){throw 'Unsafe logon event extraction'}
+if($null -ne (ConvertFrom-TimeAccountLogonEvent $xml.Replace('marketbrain-health','other-user'))){throw 'Unrelated event exported'}
+Write-Host 'TIME_ACCOUNT_EVENT_FILTER_PASSED: expected account fields only; unrelated users excluded.'

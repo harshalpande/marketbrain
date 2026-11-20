@@ -39,6 +39,28 @@ function Resolve-TimeAccountTaskSid([string]$Identity) {
  }
  return ([Security.Principal.NTAccount]::new($Identity)).Translate([Security.Principal.SecurityIdentifier]).Value
 }
+function ConvertFrom-TimeAccountLogonEvent([string]$Xml) {
+ $document=[xml]$Xml;$data=@{}
+ foreach($item in $document.Event.EventData.Data){$data[[string]$item.Name]=[string]$item.'#text'}
+ if($data.TargetUserName -ine 'marketbrain-health'){return $null}
+ return @{targetUser=$data.TargetUserName;targetDomain=$data.TargetDomainName;status=$data.Status;subStatus=$data.SubStatus;logonType=$data.LogonType}
+}
+function Get-TimeAccountIdentityEvidence($Account,$LocalReport) {
+ $configured=$env:COMPUTERNAME+'\marketbrain-health'
+ $r=@{configuredUser=$configured;machineName=[Environment]::MachineName;accountSid=$Account.SID.Value;enabled=[bool]$Account.Enabled;identityMatches=$false;events=@();eventQuery='NOT_REQUESTED'}
+ try{$r.resolvedSid=Resolve-TimeAccountTaskSid $configured;$r.identityMatches=$r.resolvedSid -ceq $Account.SID.Value}catch{$r.identityFailure=$_.Exception.GetType().Name}
+ if($Account.PasswordLastSet){$r.passwordLastSetUtc=$Account.PasswordLastSet.ToUniversalTime().ToString('o')}
+ if($LocalReport -and $LocalReport.observedUtc){
+  try{
+   $end=[DateTimeOffset]::Parse([string]$LocalReport.observedUtc).UtcDateTime.AddSeconds(10)
+   $start=$end.AddMinutes(-3)
+   $events=@(Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625;StartTime=$start;EndTime=$end} -MaxEvents 50 -ErrorAction Stop)
+   foreach($event in $events){$value=ConvertFrom-TimeAccountLogonEvent $event.ToXml();if($value){$value.observedUtc=$event.TimeCreated.ToUniversalTime().ToString('o');$r.events+=$value}}
+   $r.eventQuery='COMPLETED_BOUNDED_50'
+  }catch{$r.eventQuery='UNAVAILABLE_OR_NO_EVENTS';$r.eventFailure=$_.Exception.GetType().Name}
+ }
+ return $r
+}
 function Test-TimeAccountTask($Task,[string]$Executable,[string]$Arguments) {
  $reasons=@();$sid=$null
  try{$sid=Resolve-TimeAccountTaskSid ([string]$Task.Principal.UserId)}catch{$reasons+='PRINCIPAL_UNRESOLVED'}
