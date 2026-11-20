@@ -15,6 +15,9 @@ function Stop-ScheduledTask {$script:stops++}
 function Disable-ScheduledTask {$script:disabled++}
 function Read-TimeObservation {$script:sequence++;return @{sequence=$script:sequence;ageSeconds=0.2}}
 function Start-Sleep {}
+function ConvertFrom-TimeObservationJson {return @{endTicks=[long]::MaxValue}}
+function Get-FileHash {return @{Hash='7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0'}}
+function Enable-ScheduledTask {$script:enabled++}
 $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'TimeObserver.Entry.ps1'))
 $source=$source.Replace("if(-not ([Security.Principal.WindowsPrincipal]::new(`$id)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))",'if($false)')
 $source=$source.Replace('if(-not $r.passed){exit 1}','')
@@ -22,11 +25,21 @@ foreach($script:scenario in @('success','collision','startFailure')){
  $dir=Join-Path ([IO.Path]::GetTempPath()) ('mb-time-install-'+[guid]::NewGuid().ToString('N'))
  $null=New-Item -ItemType Directory $dir
  $root=Join-Path $dir 'observer';$ResultPath=Join-Path $dir 'result.json';$Mode='Apply';$timeObserverWorker=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('# fixture only'))
- $script:registered=$false;$script:starts=0;$script:stops=0;$script:disabled=0;$script:sequence=0
+ $script:registered=$false;$script:starts=0;$script:stops=0;$script:disabled=0;$script:sequence=0;$script:enabled=0
  if($scenario -eq 'collision'){$null=New-Item -ItemType Directory $root}
  & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
  $r=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
  if($scenario -eq 'success' -and (-not $r.passed -or $starts -ne 1 -or $stops -or $r.healthAccountAcceptance)){throw 'Install success fixture failed'}
+ if($scenario -eq 'success'){
+  $script:taskValue.State='Disabled'
+  & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
+  $recovered=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
+  if(-not $recovered.passed -or -not $recovered.recovery -or $enabled -ne 1 -or $starts -ne 2){throw 'Verified recovery failed'}
+  $script:taskValue.Actions[0].Arguments='drift';$script:enabled=0
+  & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
+  $rejected=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
+  if($rejected.passed -or $enabled -or $starts -ne 2){throw 'Task drift accepted'}
+ }
  if($scenario -eq 'collision' -and ($r.passed -or $registered -or $starts)){throw 'Collision mutated state'}
  if($scenario -eq 'startFailure' -and ($r.passed -or $starts -ne 1 -or $stops -ne 1 -or $disabled -ne 1)){throw 'Start failure cleanup missing'}
 }

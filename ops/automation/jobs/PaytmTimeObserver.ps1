@@ -60,7 +60,14 @@ try{
   if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){Assert-TimeObservationAcl $snapshot;$raw=[IO.File]::ReadAllText($snapshot);if($raw.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=ConvertFrom-Json -InputObject $raw -DateKind String;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
- if((Test-Path -LiteralPath $root) -or $existing.Count){throw 'TIME_OBSERVER_EXISTING_INSTALL_REVIEW_REQUIRED'}
+ $recover=(Test-Path -LiteralPath $root) -or $existing.Count
+ if($recover){
+  if(-not (Test-Path -LiteralPath $root) -or $existing.Count -ne 1 -or [string]$existing[0].State -cne 'Disabled'){throw 'TIME_OBSERVER_EXISTING_INSTALL_REVIEW_REQUIRED'}
+  Assert-TimeObservationAcl $root
+  $path=Join-Path $root 'worker.ps1';Assert-TimeObservationAcl $path
+  if((Get-FileHash -LiteralPath $path).Hash -cne '7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0'){throw 'TIME_OBSERVER_RECOVERY_WORKER_DRIFT'}
+  $r.recovery=$true
+ }else{
  $null=New-Item -ItemType Directory -Path $root
  $acl=[Security.AccessControl.DirectorySecurity]::new();$acl.SetAccessRuleProtection($true,$false)
  $acl.SetOwner([Security.Principal.SecurityIdentifier]::new('S-1-5-32-544'))
@@ -71,6 +78,7 @@ try{
  Set-Acl -LiteralPath $root -AclObject $acl;Assert-TimeObservationAcl $root
  $path=Join-Path $root 'worker.ps1';$bytes=[Convert]::FromBase64String($timeObserverWorker)
  [IO.File]::WriteAllBytes($path,$bytes);Assert-TimeObservationAcl $path
+ }
  $hash=(Get-FileHash -LiteralPath $path).Hash
  $command="if((Get-FileHash -LiteralPath '$path').Hash -cne '$hash'){exit 9};&([scriptblock]::Create([IO.File]::ReadAllText('$path')))"
  $arguments='-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
@@ -79,16 +87,22 @@ try{
  $trigger=New-ScheduledTaskTrigger -AtStartup
  $principal=New-ScheduledTaskPrincipal -UserId 'S-1-5-18' -LogonType ServiceAccount -RunLevel Highest
  $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)
+ if(-not $recover){
  $null=Register-ScheduledTask -TaskName $task -TaskPath '\' -Description 'MarketBrain fixed read-only Windows time observer v1' -Action $action -Trigger $trigger -Principal $principal -Settings $settings
  $r.taskCreated=$true
+ }
  $t=Get-ScheduledTask -TaskName $task -TaskPath '\'
  if($t.Actions.Count -ne 1 -or $t.Actions[0].Arguments -cne $arguments -or $t.Actions[0].Execute -ine $exe -or $t.Principal.UserId -notin @('SYSTEM','S-1-5-18') -or [string]$t.Principal.LogonType -ne 'ServiceAccount' -or $t.Triggers.Count -ne 1 -or $t.Triggers[0].CimClass.CimClassName -cne 'MSFT_TaskBootTrigger'){throw 'TIME_OBSERVER_TASK_VERIFY'}
  $r.workerSha256=$hash
+ if($recover){$r.recoveryStartAttempted=$true;$null=Enable-ScheduledTask -TaskName $task -TaskPath '\'}
  Start-ScheduledTask -TaskName $task -TaskPath '\'
- $first=$null;$last=$null
+ $first=$null;$last=$null;$startedTicks=[Diagnostics.Stopwatch]::GetTimestamp()
  for($i=0;$i -lt 15;$i++){
   Start-Sleep -Seconds 1
   if(Test-Path -LiteralPath (Join-Path $root 'snapshot.json')){
+   $snapshotPath=Join-Path $root 'snapshot.json';Assert-TimeObservationAcl $snapshotPath
+   $snapshot=ConvertFrom-TimeObservationJson ([IO.File]::ReadAllText($snapshotPath))
+   if($snapshot.endTicks -lt $startedTicks){continue}
    $last=Read-TimeObservation
    if($first -and $last.sequence -gt $first.sequence){break}
    $first=$last
@@ -100,7 +114,7 @@ try{
 }catch{
  $r.failure=if($_.Exception.Message -cmatch '^TIME_OBSERVER_[A-Z_]+$'){$_.Exception.Message}else{'TIME_OBSERVER_'+$_.Exception.GetBaseException().GetType().Name}
  $r.failureLine=$_.InvocationInfo.ScriptLineNumber
- if($r.taskCreated){try{$null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\';$r.failureStopRequested=$true}catch{$r.cleanupFailure='TIME_OBSERVER_STOP_REVIEW_REQUIRED'}}
+ if($r.taskCreated -or $r.recoveryStartAttempted){try{$null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\';$r.failureStopRequested=$true}catch{$r.cleanupFailure='TIME_OBSERVER_STOP_REVIEW_REQUIRED'}}
 }finally{
  $r.elapsedSeconds=$watch.Elapsed.TotalSeconds
  [IO.File]::WriteAllText($ResultPath,($r|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
