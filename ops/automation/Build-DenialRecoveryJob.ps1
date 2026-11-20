@@ -26,6 +26,7 @@ $parts+=('$acceptedGatewayReceipt = @'+"'`n"+$json+"`n'@ | ConvertFrom-Json -AsH
 if($Stage -eq 'RecoveryActivation'){
  . (Join-Path $PSScriptRoot 'CollectorRecoveryActivation.ps1')
  $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CollectorRecoveryActivation.ps1'))
+ $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CollectorGatewayIncident.ps1'))
  $parts+=ConvertTo-RecoveryActivationSource ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1')))
 }
 elseif($Stage -eq 'Activation'){$parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DurableActivation.Entry.ps1'))}
@@ -39,6 +40,14 @@ $built=($parts -join "`n`n").Replace("`r`n","`n")
 $old='$receipt=Get-Content -LiteralPath (Join-Path $PSScriptRoot ''../../docs/evidence/queued-recovery-preflight-20261120.json'') -Raw|ConvertFrom-Json -AsHashtable'
 if(-not $built.Contains($old)){throw 'RECEIPT_TEMPLATE_CHANGED'}
 $built=$built.Replace($old,'$receipt=$acceptedGatewayReceipt')
+if($Stage -eq 'RecoveryActivation'){
+ $old="if(-not `$r.passed){throw `$r.failure}"
+ if(-not $built.Contains($old)){throw 'GATEWAY_REVIEW_TEMPLATE_CHANGED'}
+ $built=$built.Replace($old,'if(-not $r.passed){$r=Get-CollectorReviewedGatewayPreflight $Context $r}')
+ $old=' $Context.startAttempted=$true'
+ if(-not $built.Contains($old)){throw 'GATEWAY_ARCHIVE_TEMPLATE_CHANGED'}
+ $built=$built.Replace($old," Preserve-CollectorGatewayIncident `$Context `$again`n"+$old)
+}
 $t=$null;$e=$null;$null=[Management.Automation.Language.Parser]::ParseInput($built,[ref]$t,[ref]$e)
 if($e.Count -or [Text.Encoding]::UTF8.GetByteCount($built) -gt 65536){throw 'INVALID_ACTIVATION_ARTIFACT'}
 $path=Join-Path $PSScriptRoot 'jobs/PaytmDenialRecovery.ps1'
