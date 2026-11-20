@@ -5,7 +5,7 @@ $ErrorActionPreference='Stop'
 $result=[ordered]@{version=1;test='SUPERVISED_LOGIN_REPORT_COLLECTION';passed=$false;ordersEnabled=$false;failure=$null}
 try{
  if($Mode -ne 'Observe'){throw 'REPORT_OBSERVE_ONLY'}
- $files=@(Get-ChildItem -LiteralPath 'C:\MarketBrainData\Review' -Filter 'paytm-supervised-login-*.json' -File|Sort-Object LastWriteTimeUtc -Descending|Select-Object -First 1)
+ $files=@(Get-ChildItem -LiteralPath 'C:\MarketBrainData\Review' -Filter 'paytm-supervised-*.json' -File|Where-Object {$_.Name -match '^paytm-supervised-(login|deployment)-[a-f0-9]{32}\.json$'}|Sort-Object LastWriteTimeUtc -Descending|Select-Object -First 1)
  if($files.Count -ne 1){throw 'SUPERVISED_REPORT_NOT_CREATED_YET'}
  $file=$files[0]
  if($file.Length -gt 16384 -or $file.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'REPORT_FILE_REJECTED'}
@@ -22,6 +22,14 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['failureLine']){$safe.failureLine=[int]$v.failureLine}
+ if($v.PSObject.Properties['deploymentAttempted']){$safe.deploymentAttempted=($v.deploymentAttempted -eq $true)}
+ if($v.PSObject.Properties['commands']){
+  $safe.commands=@($v.commands|ForEach-Object {
+   if($_.stage -cnotmatch '^[A-Z_]{1,60}$'){throw 'REPORT_FIELD_REJECTED'}
+   @{stage=$_.stage;exitCode=[int]$_.exitCode;elapsedSeconds=[double]$_.elapsedSeconds}
+  })
+ }
  $result.report=$safe;$result.sourceFile=$file.Name;$result.passed=$true
  $result.status='REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED'
 }catch{$result.failure=if($_.Exception.Message -cmatch '^[A-Z_]+$'){$_.Exception.Message}else{'REPORT_COLLECTION_FAILED'}}

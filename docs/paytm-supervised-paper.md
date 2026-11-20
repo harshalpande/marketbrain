@@ -76,6 +76,18 @@ native SSH prompt and complete the browser login there. No PuTTY copying is
 needed. The gateway and collector must initially be stopped/disabled; existing
 failure markers are preserved rather than silently reset.
 
+Deployment correction (20 November): Compose overlays rely on process-only
+variables from earlier guarded deployment. The deployer now reconstructs those
+from the existing container environment and mounts, including approval-key host
+file, review directory, database OID and a new candidate image tag. It compares
+the resolved Compose settings privately before building, restores temporary
+process variables in `finally`, and checks applied environment/mounts afterward.
+It never reads or regenerates the approval-key contents. The old image remains
+available. A separate `paytm-supervised-deployment-<id>.json` is now saved even
+when configuration/build fails; the same queue collector can fetch it. Local
+regression coverage includes actual Compose interpolation using fixture values;
+the spare deployment has not yet been accepted.
+
 Expected success: `SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING` with application
 locked and gateway stopped/disabled. A provider error is evidence to inspect,
 not a reason to rerun old clock reliability tests.

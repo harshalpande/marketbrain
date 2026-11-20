@@ -1,0 +1,12 @@
+{
+    "date":  "2026-11-20",
+    "status":  "LOCAL_FIXTURES_PASSED_SPARE_DEPLOYMENT_PENDING",
+    "reportedFailure":  "MISSING_APPROVAL_KEY_HOST_FILE_DURING_COMPOSE_INTERPOLATION",
+    "rootCause":  "Existing Compose overlays reused without reconstructing their process-only variables",
+    "regressionChecks":  15,
+    "realComposeInterpolationTested":  true,
+    "realComposeUsedFixtureValuesOnly":  true,
+    "applicationRebuilt":  false,
+    "spareChanged":  false,
+    "ordersEnabled":  false
+}
