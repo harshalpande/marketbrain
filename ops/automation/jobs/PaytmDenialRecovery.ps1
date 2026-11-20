@@ -4,8 +4,23 @@ param([Parameter(Mandatory)][string]$ResultPath,[ValidateSet('Observe','Apply','
 $ErrorActionPreference='Stop'
 
 function Read-BoundedJson([string]$Path) {
-    if ((Get-Item -LiteralPath $Path).Length -gt 65536) { throw 'STATE_TOO_LARGE' }
-    Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -DateKind String
+    # Match the supervisor's atomic replacement protocol. Delete sharing keeps
+    # a complete old snapshot readable while a new heartbeat replaces its path.
+    for($attempt=0;$attempt -lt 5;$attempt++){
+        $stream=$null;$reader=$null
+        try{
+            $stream=[IO.File]::Open($Path,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+            if($stream.Length -gt 65536){throw 'STATE_TOO_LARGE'}
+            $reader=[IO.StreamReader]::new($stream)
+            $buffer=[char[]]::new(65537);$length=$reader.ReadBlock($buffer,0,$buffer.Length)
+            if($length -gt 65536){throw 'STATE_TOO_LARGE'}
+            return ([string]::new($buffer,0,$length)|ConvertFrom-Json -DateKind String)
+        }catch{
+            $e=$_.Exception.GetBaseException();$code=$e.HResult -band 65535
+            if($e -isnot [IO.IOException] -or $code -notin @(2,32,33) -or $attempt -eq 4){throw}
+        }finally{if($reader){$reader.Dispose()};if($stream){$stream.Dispose()}}
+        Start-Sleep -Milliseconds 50
+    }
 }
 
 function Get-DenialRecoveryPreflight($State) {
@@ -295,10 +310,10 @@ function Get-PostRecoveryPreflight($Context,$Receipt) {
         }
         foreach($name in @('blocked.json','startup-failure.json')){if(Test-Path -LiteralPath (Join-Path $Context.work $name)){throw 'RECOVERY_NEW_INCIDENT'}}
         $v=Read-BoundedJson (Join-Path $Context.work 'status.json')
-        if($v.instanceId -cne 'dc2c6bb7250543a4af8ad6ad59865762' -or $v.sequence -ne 8 -or $v.phase -cne 'TRANSPORT_READY' -or $v.failure -or $v.ordersEnabled -ne $false -or $v.brokerReady -ne $false){throw 'RECOVERY_POST_STATUS_DRIFT'}
+        if($v.instanceId -cne '8df248cef94f4b5baff3d672e0863e17' -or $v.sequence -ne 39 -or $v.phase -cne 'TRANSPORT_READY' -or $v.failure -or $v.ordersEnabled -ne $false -or $v.brokerReady -ne $false){throw 'RECOVERY_POST_STATUS_DRIFT'}
         $r.hashes['status.json']=(Get-FileHash -LiteralPath (Join-Path $Context.work 'status.json')).Hash
         $t=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\';$i=Get-ScheduledTaskInfo -TaskName $Context.taskName -TaskPath '\'
-        if([string]$t.State -cne 'Disabled' -or $t.Settings.Enabled -or $i.LastTaskResult -ne 267014 -or $i.LastRunTime.ToUniversalTime().ToString('o') -cne '2026-11-20T06:17:17.0000000Z'){throw 'RECOVERY_POST_TASK_DRIFT'}
+        if([string]$t.State -cne 'Disabled' -or $t.Settings.Enabled -or $i.LastTaskResult -ne 267014 -or $i.LastRunTime.ToUniversalTime().ToString('o') -cne '2026-11-20T06:25:25.0000000Z'){throw 'RECOVERY_POST_TASK_DRIFT'}
         $saved=[xml][IO.File]::ReadAllText((Join-Path $Context.root 'denial-recovery-649710f6-e95b-4ebc-831b-60a99d22ac69\task.xml'))
         $current=[xml](Export-ScheduledTask -TaskName $Context.taskName -TaskPath '\')
         if($saved.Task.Actions.OuterXml -cne $current.Task.Actions.OuterXml -or $saved.Task.Principals.OuterXml -cne $current.Task.Principals.OuterXml){throw 'RECOVERY_TASK_IDENTITY_DRIFT'}
@@ -321,7 +336,7 @@ function Get-ApplicationHealthInventory {
 }
 function Update-PostRecoverySample($State,$Value,[double]$Seconds) {
     if($Value.installationId -cne 'ea8b91471cf048aa97a0f6b939b355c7' -or $Value.ordersEnabled -ne $false -or $Value.brokerReady -ne $false){throw 'RECOVERY_SCOPE_DRIFT'}
-    if($Value.instanceId -ceq 'dc2c6bb7250543a4af8ad6ad59865762'){if($Seconds -gt 45){throw 'RECOVERY_START_TIMEOUT'};return $false}
+    if($Value.instanceId -ceq '8df248cef94f4b5baff3d672e0863e17'){if($Seconds -gt 45){throw 'RECOVERY_START_TIMEOUT'};return $false}
     if(-not $State.instance){$State.instance=$Value.instanceId;$State.sequence=$Value.sequence;$State.progressSeconds=$Seconds}
     if($State.instance -cne $Value.instanceId){throw 'RECOVERY_WORKER_CHANGED'}
     if($Value.failure -or $Value.phase -ceq 'BLOCKED'){throw 'RECOVERY_NEW_WORKER_BLOCKED'}

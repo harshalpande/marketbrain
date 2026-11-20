@@ -20,7 +20,7 @@ foreach($case in @('stale','worker','scope','blocked','tls','loss','frozenTls'))
     $failed=$false;try{$null=Update-PostRecoverySample $s $v $seconds}catch{$failed=$_.Exception.Message -like 'RECOVERY_*'}
     if(-not $failed){throw "Invalid sample accepted: $case"}
 }
-$s=New-State;$v=New-Sample 1;$v.instanceId='dc2c6bb7250543a4af8ad6ad59865762'
+$s=New-State;$v=New-Sample 1;$v.instanceId='8df248cef94f4b5baff3d672e0863e17'
 if(Update-PostRecoverySample $s $v 10){throw 'Old worker accepted'}
 $failed=$false;try{$null=Update-PostRecoverySample $s $v 46}catch{$failed=$_.Exception.Message -eq 'RECOVERY_START_TIMEOUT'}
 if(-not $failed){throw 'Old worker never times out'}

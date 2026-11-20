@@ -4,8 +4,23 @@ $ErrorActionPreference='Stop'
 $report=@{version=4;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
 $watch=[Diagnostics.Stopwatch]::StartNew()
 function Read-BoundedJson([string]$Path) {
-    if ((Get-Item -LiteralPath $Path).Length -gt 65536) { throw 'STATE_TOO_LARGE' }
-    Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -DateKind String
+    # Match the supervisor's atomic replacement protocol. Delete sharing keeps
+    # a complete old snapshot readable while a new heartbeat replaces its path.
+    for($attempt=0;$attempt -lt 5;$attempt++){
+        $stream=$null;$reader=$null
+        try{
+            $stream=[IO.File]::Open($Path,'Open','Read',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+            if($stream.Length -gt 65536){throw 'STATE_TOO_LARGE'}
+            $reader=[IO.StreamReader]::new($stream)
+            $buffer=[char[]]::new(65537);$length=$reader.ReadBlock($buffer,0,$buffer.Length)
+            if($length -gt 65536){throw 'STATE_TOO_LARGE'}
+            return ([string]::new($buffer,0,$length)|ConvertFrom-Json -DateKind String)
+        }catch{
+            $e=$_.Exception.GetBaseException();$code=$e.HResult -band 65535
+            if($e -isnot [IO.IOException] -or $code -notin @(2,32,33) -or $attempt -eq 4){throw}
+        }finally{if($reader){$reader.Dispose()};if($stream){$stream.Dispose()}}
+        Start-Sleep -Milliseconds 50
+    }
 }
 function Get-TransportPreflightEvidence($State,$Control) {
     $e=@{applicationLocked=($Control.mode -ceq 'LOCKED' -and $State.ordersEnabled -eq $false -and $State.brokerReady -eq $false)}
