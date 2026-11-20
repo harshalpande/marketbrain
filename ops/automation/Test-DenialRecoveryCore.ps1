@@ -1,5 +1,15 @@
 #requires -Version 7.5
 $ErrorActionPreference='Stop'
+# Exercise the actual generated receipt expression; date coercion must not alter
+# the exact accepted task timestamp on a host in a different timezone.
+$tokens=$null;$parseErrors=$null
+$artifact=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'jobs/PaytmDenialRecovery.ps1'),[ref]$tokens,[ref]$parseErrors)
+if($parseErrors.Count){throw 'Generated artifact parse failed'}
+$assignment=$artifact.Find({param($n)$n -is [Management.Automation.Language.AssignmentStatementAst] -and $n.Left.Extent.Text -ceq '$acceptedRecoveryReceipt'},$true)
+if(-not $assignment){throw 'Generated receipt missing'}
+$accepted=& ([scriptblock]::Create($assignment.Extent.Text+'; $acceptedRecoveryReceipt'))
+$original=Get-Content (Join-Path $PSScriptRoot '../../docs/evidence/queued-recovery-preflight-20261120.json') -Raw|ConvertFrom-Json -AsHashtable -DateKind String
+if($accepted.task.lastRunUtc -isnot [string] -or $accepted.task.lastRunUtc -cne $original.result.evidence.recoveryPreflight.task.lastRunUtc){throw 'Accepted timestamp changed during build/load'}
 . (Join-Path $PSScriptRoot 'DenialRecovery.Core.ps1')
 function Read-BoundedJson($Path){Get-Content -LiteralPath $Path -Raw|ConvertFrom-Json}
 function Get-ScheduledTask {return [pscustomobject]@{State=$script:taskState;Settings=[pscustomobject]@{Enabled=$script:enabled}}}

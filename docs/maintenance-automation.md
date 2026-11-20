@@ -1,5 +1,7 @@
 # Maintenance automation: initial installation
 
+**2026-11-20: catalogue upgrade verified; receipt timestamp fix.** Diagnostic 39ad5ceb-6f3b-44ea-9ed0-1b6fcd61b7d2 confirms elevated runner and recovery catalogue with matching CRLF source hashes. Observe job 9b7b4582-a222-4fb5-b5c4-9d4dec7b07da passed all five preflight groups but rejected the accepted timestamp after JSON date coercion. No mutation or start occurred. Builder and embedded receipt now preserve DateKind String; regression test evaluates the actual generated receipt against original evidence. Recovery remains pending; G3 unchanged.
+
 **2026-11-20: separate queued denial recovery implemented; activation pending.** The new `paytm-denial-recovery` catalogue entry supports read-only Observe and explicit Apply. Apply is bound to the accepted incident hashes, verifies backups, installs the pinned denial-observation helper, preserves the session checkpoint and credentials, and attempts one start. A separate SYSTEM scheduled stop backs up normal cleanup; the job finishes with the gateway stopped and disabled, including on a successful capture. No broker login, orders or application unlock. Existing `paytm-transport-test` remains read-only. Local recovery workflow and queue integration checks passed; actual scheduled guard execution on the spare laptop is not yet verified. One relay/runner catalogue bootstrap is required before remotely submitting Observe then Apply. Original denial failure cause remains unproven. G3 remains 80%; Paytm readiness remains 14/30 (46.7%).
 
 
