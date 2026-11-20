@@ -1,5 +1,91 @@
 #requires -Version 7.5
 param([Parameter(Mandatory)][string]$ResultPath,[ValidateSet('Observe','Apply','FailureFixture')][string]$Mode='Observe')
+$timeAccountContract = 'IyBQUzUtY29tcGF0aWJsZSByZWFkLW9ubHkgdGltZSBvYnNlcnZhdGlvbiBjb250cmFjdC4gTm8gYWN0aW9ucyBvbiBpbXBvcnQuDQpmdW5jdGlvbiBHZXQtVGltZU9ic2VydmF0aW9uQm9vdElkIHsNCiAgICAjIFN0YWJsZSBhY3Jvc3MgdXNlcnMvcHJvY2Vzc2VzOyBjaGFuZ2VzIGFmdGVyIGEgV2luZG93cyByZXN0YXJ0Lg0KICAgIChHZXQtQ2ltSW5zdGFuY2UgV2luMzJfT3BlcmF0aW5nU3lzdGVtIC1FcnJvckFjdGlvbiBTdG9wKS5MYXN0Qm9vdFVwVGltZS5Ub1VuaXZlcnNhbFRpbWUoKS5Ub1N0cmluZygnbycpDQp9DQpmdW5jdGlvbiBBc3NlcnQtVGltZU9ic2VydmF0aW9uQWNsKFtzdHJpbmddJFBhdGgpIHsNCiAgICBpZigoR2V0LUl0ZW0gLUxpdGVyYWxQYXRoICRQYXRoIC1Gb3JjZSkuQXR0cmlidXRlcyAtYmFuZCBbSU8uRmlsZUF0dHJpYnV0ZXNdOjpSZXBhcnNlUG9pbnQpe3Rocm93ICdUSU1FX09CU0VSVkVSX1JFUEFSU0UnfQ0KICAgICRhY2w9R2V0LUFjbCAtTGl0ZXJhbFBhdGggJFBhdGgNCiAgICAkdHJ1c3RlZD1AKCdTLTEtNS0xOCcsJ1MtMS01LTMyLTU0NCcpDQogICAgaWYoJGFjbC5HZXRPd25lcihbU2VjdXJpdHkuUHJpbmNpcGFsLlNlY3VyaXR5SWRlbnRpZmllcl0pLlZhbHVlIC1ub3RpbiAkdHJ1c3RlZCl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfT1dORVInfQ0KICAgICR3cml0ZT1bU2VjdXJpdHkuQWNjZXNzQ29udHJvbC5GaWxlU3lzdGVtUmlnaHRzXTo6V3JpdGUgLWJvciBbU2VjdXJpdHkuQWNjZXNzQ29udHJvbC5GaWxlU3lzdGVtUmlnaHRzXTo6RGVsZXRlIC1ib3IgW1NlY3VyaXR5LkFjY2Vzc0NvbnRyb2wuRmlsZVN5c3RlbVJpZ2h0c106OkRlbGV0ZVN1YmRpcmVjdG9yaWVzQW5kRmlsZXMgLWJvciBbU2VjdXJpdHkuQWNjZXNzQ29udHJvbC5GaWxlU3lzdGVtUmlnaHRzXTo6Q2hhbmdlUGVybWlzc2lvbnMgLWJvciBbU2VjdXJpdHkuQWNjZXNzQ29udHJvbC5GaWxlU3lzdGVtUmlnaHRzXTo6VGFrZU93bmVyc2hpcA0KICAgIGZvcmVhY2goJGFjZSBpbiAkYWNsLkdldEFjY2Vzc1J1bGVzKCR0cnVlLCR0cnVlLFtTZWN1cml0eS5QcmluY2lwYWwuU2VjdXJpdHlJZGVudGlmaWVyXSkpew0KICAgICAgICBpZigkYWNlLkFjY2Vzc0NvbnRyb2xUeXBlIC1lcSAnQWxsb3cnIC1hbmQgKCRhY2UuRmlsZVN5c3RlbVJpZ2h0cyAtYmFuZCAkd3JpdGUpIC1hbmQgJGFjZS5JZGVudGl0eVJlZmVyZW5jZS5WYWx1ZSAtbm90aW4gJHRydXN0ZWQpe3Rocm93ICdUSU1FX09CU0VSVkVSX1dSSVRBQkxFJ30NCiAgICB9DQp9DQpmdW5jdGlvbiBDb252ZXJ0RnJvbS1UaW1lT2JzZXJ2YXRpb24oJFZhbHVlLFtzdHJpbmddJEJvb3RJZCxbbG9uZ10kTm93VGlja3MsW2xvbmddJEZyZXF1ZW5jeSkgew0KICAgIGlmKCRWYWx1ZS52ZXJzaW9uIC1uZSAxIC1vciAkVmFsdWUuYm9vdElkIC1jbmUgJEJvb3RJZCAtb3IgJFZhbHVlLmZyZXF1ZW5jeSAtbmUgJEZyZXF1ZW5jeSAtb3IgJFZhbHVlLnNlcXVlbmNlIC1sdCAxKXt0aHJvdyAnVElNRV9PQlNFUlZFUl9JREVOVElUWSd9DQogICAgaWYoJFZhbHVlLnN0YXJ0VGlja3MgLWlzbm90IFtsb25nXSAtb3IgJFZhbHVlLmVuZFRpY2tzIC1pc25vdCBbbG9uZ10gLW9yICRWYWx1ZS5zdGFydFRpY2tzIC1ndCAkVmFsdWUuZW5kVGlja3MgLW9yICRWYWx1ZS5lbmRUaWNrcyAtZ3QgJE5vd1RpY2tzKXt0aHJvdyAnVElNRV9PQlNFUlZFUl9USU1JTkcnfQ0KICAgICRhZ2U9KCROb3dUaWNrcy0kVmFsdWUuc3RhcnRUaWNrcykvW2RvdWJsZV0kRnJlcXVlbmN5DQogICAgaWYoJGFnZSAtbHQgMCAtb3IgJGFnZSAtZ3QgOCl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfU1RBTEUnfQ0KICAgIGlmKCRWYWx1ZS5zdGF0dXMuZXhpdENvZGUgLW5lIDAgLW9yICRWYWx1ZS5zb3VyY2UuZXhpdENvZGUgLW5lIDAgLW9yICRWYWx1ZS5zZXJ2aWNlLnN0YXRlIC1jbmUgJ1J1bm5pbmcnIC1vciAkVmFsdWUuc2VydmljZS5zdGFydFR5cGUgLW5lIDIpe3Rocm93ICdUSU1FX09CU0VSVkVSX1VOSEVBTFRIWSd9DQogICAgaWYoJFZhbHVlLnN0YXR1cy5vdXRwdXQgLWlzbm90IFtzdHJpbmddIC1vciAkVmFsdWUuc291cmNlLm91dHB1dCAtaXNub3QgW3N0cmluZ10gLW9yICRWYWx1ZS5zdGF0dXMub3V0cHV0Lkxlbmd0aCAtZ3QgMTIwMDAgLW9yICRWYWx1ZS5zb3VyY2Uub3V0cHV0Lkxlbmd0aCAtZ3QgMTAyNCl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfRk9STUFUJ30NCiAgICAjIEFkZCBzbmFwc2hvdCBhZ2UgdG8gdGhlIHJlcG9ydGVkIHN5bmMgYWdlOyBuZXZlciBtYWtlIG9sZCBldmlkZW5jZSB5b3VuZ2VyLg0KICAgICRwYXR0ZXJuPScoP2ltKV4oVGltZSBzaW5jZSBMYXN0IEdvb2QgU3luYyBUaW1lOlxzKikoWzAtOV0rKD86XC5bMC05XSspPykoc1xzKikkJw0KICAgICRtPVtyZWdleF06Ok1hdGNoKCRWYWx1ZS5zdGF0dXMub3V0cHV0LCRwYXR0ZXJuKQ0KICAgIGlmKC1ub3QgJG0uU3VjY2Vzcyl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfU1lOQ19BR0UnfQ0KICAgICRzZWNvbmRzPVtkb3VibGVdOjpQYXJzZSgkbS5Hcm91cHNbMl0uVmFsdWUsW0dsb2JhbGl6YXRpb24uQ3VsdHVyZUluZm9dOjpJbnZhcmlhbnRDdWx0dXJlKSskYWdlDQogICAgJG91dHB1dD0kVmFsdWUuc3RhdHVzLm91dHB1dC5SZW1vdmUoJG0uR3JvdXBzWzJdLkluZGV4LCRtLkdyb3Vwc1syXS5MZW5ndGgpLkluc2VydCgkbS5Hcm91cHNbMl0uSW5kZXgsJHNlY29uZHMuVG9TdHJpbmcoJ0Y2JyxbR2xvYmFsaXphdGlvbi5DdWx0dXJlSW5mb106OkludmFyaWFudEN1bHR1cmUpKQ0KICAgIFtwc2N1c3RvbW9iamVjdF1Ae3N0YXR1cz1Ae2V4aXRDb2RlPTA7b3V0cHV0PSRvdXRwdXR9O3NvdXJjZT0kVmFsdWUuc291cmNlO3NlcnZpY2U9JFZhbHVlLnNlcnZpY2U7YWdlU2Vjb25kcz0kYWdlO3NlcXVlbmNlPSRWYWx1ZS5zZXF1ZW5jZX0NCn0NCmZ1bmN0aW9uIENvbnZlcnRGcm9tLVRpbWVPYnNlcnZhdGlvbkpzb24oW3N0cmluZ10kSnNvbikgew0KICAgICMgUFM3IG90aGVyd2lzZSBjb2VyY2VzIElTTyBib290IElEcyBpbnRvIERhdGVUaW1lLCB1bmxpa2UgdGhlIFBTNSBwcm9kdWNlci4NCiAgICBpZigkUFNWZXJzaW9uVGFibGUuUFNWZXJzaW9uIC1nZSBbdmVyc2lvbl0nNy41Jyl7Q29udmVydEZyb20tSnNvbiAtSW5wdXRPYmplY3QgJEpzb24gLURhdGVLaW5kIFN0cmluZ31lbHNle0NvbnZlcnRGcm9tLUpzb24gLUlucHV0T2JqZWN0ICRKc29ufQ0KfQ0KZnVuY3Rpb24gUmVhZC1UaW1lT2JzZXJ2YXRpb24gew0KICAgICRyb290PSdDOlxQcm9ncmFtRGF0YVxNYXJrZXRCcmFpblBheXRtSGVhbHRoXHRpbWUtb2JzZXJ2ZXItdjEnOyRwYXRoPUpvaW4tUGF0aCAkcm9vdCAnc25hcHNob3QuanNvbicNCiAgICBmb3JlYWNoKCRwIGluIEAoJ0M6XFByb2dyYW1EYXRhXE1hcmtldEJyYWluUGF5dG1IZWFsdGgnLCRyb290LCRwYXRoKSl7QXNzZXJ0LVRpbWVPYnNlcnZhdGlvbkFjbCAkcH0NCiAgICAkc3RyZWFtPVtJTy5GaWxlXTo6T3BlbigkcGF0aCwnT3BlbicsJ1JlYWQnLChbSU8uRmlsZVNoYXJlXTo6UmVhZFdyaXRlIC1ib3IgW0lPLkZpbGVTaGFyZV06OkRlbGV0ZSkpDQogICAgdHJ5e2lmKCRzdHJlYW0uTGVuZ3RoIC1ndCAxNjM4NCl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfU0laRSd9OyRyZWFkZXI9W0lPLlN0cmVhbVJlYWRlcl06Om5ldygkc3RyZWFtKTt0cnl7JGJ1ZmZlcj1bY2hhcltdXTo6bmV3KDE2Mzg1KTskbj0kcmVhZGVyLlJlYWRCbG9jaygkYnVmZmVyLDAsMTYzODUpO2lmKCRuIC1ndCAxNjM4NCl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfU0laRSd9OyRqc29uPVtzdHJpbmddOjpuZXcoJGJ1ZmZlciwwLCRuKTskdj1Db252ZXJ0RnJvbS1UaW1lT2JzZXJ2YXRpb25Kc29uICRqc29ufWZpbmFsbHl7JHJlYWRlci5EaXNwb3NlKCl9fWZpbmFsbHl7JHN0cmVhbS5EaXNwb3NlKCl9DQogICAgQ29udmVydEZyb20tVGltZU9ic2VydmF0aW9uICR2IChHZXQtVGltZU9ic2VydmF0aW9uQm9vdElkKSAoW0RpYWdub3N0aWNzLlN0b3B3YXRjaF06OkdldFRpbWVzdGFtcCgpKSAoW0RpYWdub3N0aWNzLlN0b3B3YXRjaF06OkZyZXF1ZW5jeSkNCn0NCg=='
+# Local-only probe; no password, network access or token decryption.
+function Get-TimeAccountProbeSource([string]$RunId,[string]$OutputPath,[string]$ContractSource) {
+ if($RunId -cnotmatch '^[a-f0-9]{32}$' -or $OutputPath.Contains("'")){throw 'TIME_ACCOUNT_ARGUMENT'}
+ $body=@'
+$ErrorActionPreference='Stop'
+$r=@{runId='__RUN__';passed=$false;failure=$null;ordersEnabled=$false;credentialsUsed=$false}
+try{
+ $id=[Security.Principal.WindowsIdentity]::GetCurrent()
+ try{$r.sid=$id.User.Value;$r.admin=([Security.Principal.WindowsPrincipal]::new($id)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)}finally{$id.Dispose()}
+ $r.sessionId=[Diagnostics.Process]::GetCurrentProcess().SessionId
+ if($r.sid -cne 'S-1-5-21-3041730714-102984520-3202743044-1011' -or $r.admin -or $r.sessionId -ne 0){throw 'TIME_ACCOUNT_IDENTITY'}
+ $r.samples=@()
+ for($i=0;$i -lt 3;$i++){$v=Read-TimeObservation;$r.samples+=@{sequence=$v.sequence;ageSeconds=$v.ageSeconds};if($i -lt 2){Start-Sleep -Milliseconds 1500}}
+ if($r.samples[2].sequence -le $r.samples[0].sequence){throw 'TIME_ACCOUNT_NOT_ADVANCING'}
+ $r.writeDenied=@()
+ foreach($name in @('worker.ps1','snapshot.json')){
+  $denied=$false;$handle=$null
+  try{$handle=[IO.File]::Open(('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1\'+$name),'Open','Write',([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))}
+  catch{if($_.Exception.GetBaseException() -is [UnauthorizedAccessException]){$denied=$true}else{throw}}
+  finally{if($handle){$handle.Dispose()}}
+  if(-not $denied){throw 'TIME_ACCOUNT_WRITE_ALLOWED'};$r.writeDenied+=$name
+ }
+ $r.passed=$true
+}catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber}
+[IO.File]::WriteAllText('__OUTPUT__',($r|ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
+if(-not $r.passed){exit 1}
+'@
+ return $ContractSource+"`n"+$body.Replace('__RUN__',$RunId).Replace('__OUTPUT__',$OutputPath)
+}
+function Assert-TimeAccountProbeResult($Value,[string]$RunId) {
+ if($Value.runId -cne $RunId -or $Value.passed -ne $true -or $Value.failure -or $Value.sid -cne 'S-1-5-21-3041730714-102984520-3202743044-1011' -or $Value.admin -ne $false -or $Value.sessionId -ne 0 -or @($Value.samples).Count -ne 3 -or (@($Value.writeDenied) -join ',') -cne 'worker.ps1,snapshot.json'){throw 'TIME_ACCOUNT_RESULT_INVALID'}
+ $previous=0L
+ foreach($sample in $Value.samples){if($null -eq $sample.sequence -or $null -eq $sample.ageSeconds -or [double]::IsNaN([double]$sample.ageSeconds) -or $sample.sequence -le $previous -or $sample.ageSeconds -lt 0 -or $sample.ageSeconds -gt 8){throw 'TIME_ACCOUNT_SAMPLE_INVALID'};$previous=$sample.sequence}
+}
+function Invoke-TimeAccountProbe([string]$ContractSource) {
+ $run=[guid]::NewGuid().ToString('N');$task='MarketBrain-Time-Read-Probe-'+$run
+ $parent='C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1'
+ $dir=Join-Path $parent ('probe-'+$run);$outputDir=Join-Path $dir 'result';$output=Join-Path $outputDir 'report.json'
+ $r=@{passed=$false;runId=$run;taskName=$task;taskCreated=$false;taskRemoved=$false;cleanupFailure=$null;failure=$null;authenticationTested=$false;healthPublicationTested=$false}
+ try{
+  Assert-TimeObservationAcl $parent
+  $null=Read-TimeObservation
+  if((Test-Path -LiteralPath $dir) -or @(Get-ScheduledTask|Where-Object {$_.TaskName -ceq $task -and $_.TaskPath -ceq '\'}).Count){throw 'TIME_ACCOUNT_COLLISION'}
+  $null=New-Item -ItemType Directory -Path $dir
+  Assert-TimeObservationAcl $dir
+  $null=New-Item -ItemType Directory -Path $outputDir
+  $acl=Get-Acl -LiteralPath $outputDir
+  $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-21-3041730714-102984520-3202743044-1011'),'Modify','ContainerInherit,ObjectInherit','None','Allow'))
+  Set-Acl -LiteralPath $outputDir -AclObject $acl
+  $worker=Join-Path $dir 'probe.ps1';$source=Get-TimeAccountProbeSource $run $output $ContractSource
+  [IO.File]::WriteAllText($worker,$source,[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $worker
+  $hash=(Get-FileHash -LiteralPath $worker).Hash
+  $command="if((Get-FileHash -LiteralPath '$worker').Hash -cne '$hash'){exit 9};&([scriptblock]::Create([IO.File]::ReadAllText('$worker')))"
+  $arguments='-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+  $exe=Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+  $action=New-ScheduledTaskAction -Execute $exe -Argument $arguments
+  $principal=New-ScheduledTaskPrincipal -UserId 'S-1-5-21-3041730714-102984520-3202743044-1011' -LogonType S4U -RunLevel Limited
+  $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::FromMinutes(1)) -MultipleInstances IgnoreNew
+  $null=Register-ScheduledTask -TaskName $task -TaskPath '\' -Action $action -Principal $principal -Settings $settings
+  $r.taskCreated=$true
+  $t=Get-ScheduledTask -TaskName $task -TaskPath '\'
+  if($t.Principal.UserId -notin @('marketbrain-health','S-1-5-21-3041730714-102984520-3202743044-1011') -or [string]$t.Principal.LogonType -cne 'S4U' -or [string]$t.Principal.RunLevel -cne 'Limited' -or @($t.Actions).Count -ne 1 -or $t.Actions[0].Arguments -cne $arguments -or $t.Actions[0].Execute -ine $exe -or @($t.Triggers).Count -ne 0){throw 'TIME_ACCOUNT_TASK_DRIFT'}
+  Start-ScheduledTask -TaskName $task -TaskPath '\'
+  $timer=[Diagnostics.Stopwatch]::StartNew()
+  do{Start-Sleep -Seconds 1;$t=Get-ScheduledTask -TaskName $task -TaskPath '\'}while($timer.Elapsed.TotalSeconds -lt 40 -and (-not (Test-Path -LiteralPath $output) -or [string]$t.State -eq 'Running'))
+  if([string]$t.State -eq 'Running'){throw 'TIME_ACCOUNT_TIMEOUT'}
+  if(-not (Test-Path -LiteralPath $output)){throw 'TIME_ACCOUNT_NO_REPORT'}
+  if((Get-Item -LiteralPath $output).Length -gt 8192){throw 'TIME_ACCOUNT_REPORT_SIZE'}
+  $r.worker=Get-Content -LiteralPath $output -Raw|ConvertFrom-Json
+  Assert-TimeAccountProbeResult $r.worker $run
+  if((Get-ScheduledTaskInfo -TaskName $task -TaskPath '\').LastTaskResult -ne 0){throw 'TIME_ACCOUNT_EXIT'}
+  $r.passed=$true
+ }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber}
+ finally{
+  if($r.taskCreated){try{
+   $null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\'
+   $t=Get-ScheduledTask -TaskName $task -TaskPath '\';if([string]$t.State -eq 'Running'){throw 'TIME_ACCOUNT_STILL_RUNNING'}
+   Unregister-ScheduledTask -TaskName $task -TaskPath '\' -Confirm:$false
+   if(@(Get-ScheduledTask|Where-Object {$_.TaskName -ceq $task -and $_.TaskPath -ceq '\'}).Count){throw 'TIME_ACCOUNT_TASK_REMAINS'}
+   $r.taskRemoved=$true
+  }catch{$r.cleanupFailure='TIME_ACCOUNT_CLEANUP';$r.passed=$false}}
+ }
+ return $r
+}
+
 # PS5-compatible read-only time observation contract. No actions on import.
 function Get-TimeObservationBootId {
     # Stable across users/processes; changes after a Windows restart.
@@ -59,6 +145,12 @@ try{
   $r.directoryPresent=Test-Path -LiteralPath $root;$r.taskPresent=($existing.Count -gt 0)
   if($r.directoryPresent){$snapshot=Join-Path $root 'snapshot.json';if(Test-Path -LiteralPath $snapshot){Assert-TimeObservationAcl $snapshot;$raw=[IO.File]::ReadAllText($snapshot);if($raw.Length -gt 16384){throw 'TIME_OBSERVER_SIZE'};$v=ConvertFrom-Json -InputObject $raw -DateKind String;$r.snapshotIdentity=@{bootId=$v.bootId;expectedBootId=(Get-TimeObservationBootId);frequency=$v.frequency;expectedFrequency=[Diagnostics.Stopwatch]::Frequency;sequence=$v.sequence;version=$v.version}};$r.workerSha256=(Get-FileHash -LiteralPath (Join-Path $root 'worker.ps1')).Hash};if($existing.Count -eq 1){$r.taskState=[string]$existing[0].State}
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
+ }
+ # An already-running observer needs the local non-admin read boundary checked.
+ if($existing.Count -eq 1 -and [string]$existing[0].State -ceq 'Running'){
+  $r.accountProbe=Invoke-TimeAccountProbe ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($timeAccountContract)))
+  if(-not $r.accountProbe.passed){throw 'TIME_ACCOUNT_PROBE_FAILED'}
+  $r.status='TIME_OBSERVER_NONADMIN_READ_PASSED_COLLECTOR_PENDING';$r.passed=$true;return
  }
  $recover=(Test-Path -LiteralPath $root) -or $existing.Count
  if($recover){

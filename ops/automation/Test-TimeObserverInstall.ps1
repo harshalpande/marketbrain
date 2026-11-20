@@ -15,6 +15,7 @@ function Stop-ScheduledTask {$script:stops++}
 function Disable-ScheduledTask {$script:disabled++}
 function Read-TimeObservation {$script:sequence++;return @{sequence=$script:sequence;ageSeconds=0.2}}
 function Start-Sleep {}
+function Invoke-TimeAccountProbe {$script:probeCalls++;return @{passed=$script:probePass}}
 function ConvertFrom-TimeObservationJson {return @{endTicks=[long]::MaxValue}}
 function Get-FileHash {return @{Hash='7129B3D3844D8E60F039ACE5F9701B100B2A849BB25AB3E5E653B18486BCFBE0'}}
 function Enable-ScheduledTask {$script:enabled++}
@@ -35,6 +36,14 @@ foreach($script:scenario in @('success','collision','startFailure')){
   & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
   $recovered=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
   if(-not $recovered.passed -or -not $recovered.recovery -or $enabled -ne 1 -or $starts -ne 2){throw 'Verified recovery failed'}
+  $script:taskValue.State='Running';$timeAccountContract=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fixture'));$script:probeCalls=0
+  foreach($script:probePass in @($true,$false)){
+   & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
+   $p=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
+   if($p.passed -ne $probePass -or $starts -ne 2 -or $p.healthAccountAcceptance){throw 'Running observer dispatch failed'}
+  }
+  if($probeCalls -ne 2){throw 'Probe dispatch count failed'}
+  $script:taskValue.State='Disabled'
   $script:taskValue.Actions[0].Arguments='drift';$script:enabled=0
   & ([scriptblock]::Create($source.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root)))
   $rejected=Get-Content -LiteralPath $ResultPath -Raw|ConvertFrom-Json
