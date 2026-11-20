@@ -1,0 +1,73 @@
+{
+    "applyEvidence":  {
+                          "credentialsUsed":  false,
+                          "rollbackSteps":  [
+                                                "ACTION"
+                                            ],
+                          "failure":  "UPGRADE_OPERATION_FAILED",
+                          "ordersEnabled":  false,
+                          "containerBefore":  {
+                                                  "readOnly":  true,
+                                                  "restartPolicy":  "no",
+                                                  "finishedAt":  "2026-11-20T15:29:02.541090458Z",
+                                                  "containerId":  "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+                                                  "restartCount":  0,
+                                                  "state":  "running",
+                                                  "startedAt":  "2026-11-20T15:29:46.631659063Z"
+                                              },
+                          "files":  {
+                                        "time-observer-v1\\snapshot.json":  false,
+                                        "time-observer-v1\\collector-install-result.json":  true,
+                                        "collector-v1\\known_hosts":  true,
+                                        "collector-v1\\control.json":  true,
+                                        "collector-v1\\worker.ps1":  true
+                                    },
+                          "workerStarted":  false,
+                          "runId":  "fee612a72977420ba4ab39eacdae88ac",
+                          "passed":  false,
+                          "workerSha256":  "F4C496DBBBB1CF55A1A3FA8E2BAD29AE832166E97A5A633F10A3C2C313CCFF4B",
+                          "stage":  "UPGRADE",
+                          "timeObserver":  {
+                                               "beforeState":  "Ready",
+                                               "lastSequence":  2,
+                                               "firstSequence":  1,
+                                               "started":  true,
+                                               "lastResult":  1,
+                                               "verified":  true
+                                           },
+                          "rollbackVerified":  false,
+                          "backup":  "C:\\ProgramData\\MarketBrainPaytmHealth\\collector-v1\\recovery-backup-fee612a72977420ba4ab39eacdae88ac",
+                          "preflight":  {
+                                            "runtimeStarted":  false,
+                                            "ordersEnabled":  false,
+                                            "taskDisabled":  true,
+                                            "observedUtc":  "2026-11-20T15:50:59.2599922Z",
+                                            "timeSnapshotAgeSeconds":  2.2140992,
+                                            "controlDisabled":  true,
+                                            "taskXmlVerified":  true,
+                                            "hostHashVerified":  true,
+                                            "workerHashVerified":  true,
+                                            "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING",
+                                            "installationId":  "ab47639ee8d74da69a9466c0f59e601e"
+                                        },
+                          "status":  "REVIEW_REQUIRED",
+                          "failureType":  "CimException",
+                          "rollbackFailure":  "UPGRADE_ROLLBACK_REVIEW_REQUIRED",
+                          "failureLine":  257,
+                          "version":  1,
+                          "mode":  "Apply",
+                          "applicationRestarted":  false
+                      },
+    "runtimeAccepted":  false,
+    "tests":  [
+                  "12 recovery-loop and 3 startup fixtures in PS5 and PS7",
+                  "Generated native PS5 disabled gate",
+                  "Action-only XML and forbidden identity/settings changes",
+                  "Nine observer identity/settings/action rejection cases"
+              ],
+    "g3Percent":  80,
+    "applyJob":  "c13ab1fa-fd68-4bc7-bccf-51dea5f2dea6",
+    "preflightJob":  "4e056ff7-6785-4197-8aa9-75f8f6a74d74",
+    "date":  "2026-11-20",
+    "scope":  "Collector application recovery upgrade"
+}

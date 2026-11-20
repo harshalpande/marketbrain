@@ -10,9 +10,11 @@ function Write-CollectorUpgradeNew([string]$Path,[byte[]]$Bytes){
  Assert-TimeObservationAcl $Path
 }
 function Set-CollectorUpgradeAction($Definition){
+ if(-not $script:collectorUpgradePassword){throw 'UPGRADE_LOCAL_PASSWORD_REQUIRED'}
  $action=New-ScheduledTaskAction -Execute $Definition.exe -Argument $Definition.arguments -WorkingDirectory $Definition.root
- # Action-only update preserves the existing stored task credential; no password registration.
- $null=Set-ScheduledTask -TaskName $Definition.name -TaskPath '\' -Action $action -ErrorAction Stop
+ $user=(Get-ScheduledTask -TaskName $Definition.name -TaskPath '\').Principal.UserId
+ $plain=$null
+ try{$plain=[Net.NetworkCredential]::new('', $script:collectorUpgradePassword).Password;$null=Set-ScheduledTask -TaskName $Definition.name -TaskPath '\' -Action $action -User $user -Password $plain -ErrorAction Stop}finally{$plain=$null}
 }
 function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
  $r=@{version=1;runId=[guid]::NewGuid().ToString('N');status='REVIEW_REQUIRED';passed=$false;stage='IDENTITY';mode=$RequestedMode;failure=$null;rollbackFailure=$null;ordersEnabled=$false;workerStarted=$false;applicationRestarted=$false;credentialsUsed=$false;workerSha256=$upgradeWorkerHash}
@@ -21,6 +23,24 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
   if($RequestedMode -notin @('Observe','Apply')){throw 'UPGRADE_MODE'}
   $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
   if(-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'UPGRADE_ADMIN_REQUIRED'}
+  $localReport='C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1\collector-upgrade-result.json'
+  if($RequestedMode -ceq 'Observe' -and (Test-Path -LiteralPath $localReport)){
+   $r.stage='LOCAL_UPGRADE_REVIEW';$r.localUpgrade=Read-TimeObservationFile $localReport
+   if($r.localUpgrade.failure -or $r.localUpgrade.status -cne 'COLLECTOR_RECOVERY_UPGRADED_DISABLED_RUNTIME_PENDING'){throw 'UPGRADE_LOCAL_REPORT_REVIEW_REQUIRED'}
+   $installed=Read-TimeObservationFile 'C:\ProgramData\MarketBrainPaytmHealth\collector-v1\recovery-upgrade.json'
+   if($installed.workerSha256 -cne $upgradeWorkerHash -or $installed.passed -ne $true -or $installed.runId -cne $r.localUpgrade.runId){throw 'UPGRADE_RECEIPT_MISMATCH'}
+   $d=Get-DurableCollectorDefinition $upgradeWorkerHash
+   Assert-TimeObservationAcl (Join-Path $d.root 'worker.ps1')
+   if((Get-FileHash -LiteralPath (Join-Path $d.root 'worker.ps1')).Hash -cne $upgradeWorkerHash){throw 'UPGRADE_WORKER_DRIFT'}
+   Assert-DurableCollectorTask (Get-ScheduledTask -TaskName $d.name -TaskPath '\') $d
+   $xml=Export-ScheduledTask -TaskName $d.name -TaskPath '\'
+   if((Get-CollectorUpgradeHash ([Text.Encoding]::UTF8.GetBytes($xml))) -cne $installed.taskXmlSha256){throw 'UPGRADE_XML_DRIFT'}
+   $control=Read-TimeObservationFile (Join-Path $d.root 'control.json')
+   if($control.installationId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $control.enabled -ne $false){throw 'UPGRADE_CONTROL_DRIFT'}
+   $r.containerAfter=Get-CollectorDockerState
+   if($r.containerAfter.containerId -cne $installed.containerAfter.containerId -or $r.containerAfter.restartPolicy -cne 'unless-stopped'){throw 'UPGRADE_DOCKER_DRIFT'}
+   $r.status='COLLECTOR_RECOVERY_UPGRADE_VERIFIED_RUNTIME_PENDING';$r.passed=$true;return $r
+  }
   $r.stage='STAGING_PREFLIGHT'
   $r.files=@{}
   foreach($relative in @('time-observer-v1\collector-install-result.json','time-observer-v1\snapshot.json','collector-v1\worker.ps1','collector-v1\known_hosts','collector-v1\control.json')){$r.files[$relative]=Test-Path -LiteralPath ('C:\ProgramData\MarketBrainPaytmHealth\'+$relative)}
@@ -53,7 +73,14 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
   if($bytes.Length -gt 262144 -or (Get-CollectorUpgradeHash $bytes) -cne $upgradeWorkerHash){throw 'UPGRADE_PAYLOAD'}
   $t=$null;$e=$null;$null=[Management.Automation.Language.Parser]::ParseInput([Text.Encoding]::UTF8.GetString($bytes),[ref]$t,[ref]$e);if($e.Count){throw 'UPGRADE_PARSE'}
   if($RequestedMode -ceq 'Observe'){$r.status='COLLECTOR_RECOVERY_UPGRADE_PREFLIGHT_PASSED';$r.passed=$true;return $r}
+  if(-not $LocalPassword){throw 'UPGRADE_LOCAL_PASSWORD_REQUIRED'}
+  Write-Host '[30%] Enter the existing WINDOWS marketbrain-health password locally. No password is sent to the queue.'
+  $script:collectorUpgradePassword=Read-Host 'marketbrain-health password' -AsSecureString
+  $r.credentialCheck=Test-TimeAccountCredential $script:collectorUpgradePassword
+  if(-not $r.credentialCheck.accepted){throw 'UPGRADE_WINDOWS_CREDENTIAL_REJECTED'}
+  $r.credentialsUsed=$true
   $r.stage='UPGRADE'
+  Write-Host '[60%] Back up stopped collector, update disabled task and verify application restart policy.'
   $backup=Join-Path $d.root ('recovery-backup-'+$r.runId)
   $null=New-Item -ItemType Directory -Path $backup -ErrorAction Stop;Assert-TimeObservationAcl $backup
   foreach($name in @('worker.ps1','known_hosts','control.json','signout-checkpoint.json')){
@@ -86,6 +113,7 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
  }catch{
   $r.status='REVIEW_REQUIRED';$r.passed=$false;$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.failure=if($_.Exception.Message -cmatch '^[A-Z][A-Z0-9_]+$'){$_.Exception.Message}else{'UPGRADE_OPERATION_FAILED'}
   $r.failureType=$_.Exception.GetType().Name
+  $r.failureHResult=$_.Exception.HResult
   $rollbackErrors=@()
   try{if($actionChanged){Set-CollectorUpgradeAction $d}}catch{$rollbackErrors+='ACTION'}
   try{
@@ -103,9 +131,10 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
    }
   }catch{$rollbackErrors+='VERIFY'}
   if($rollbackErrors.Count){$r.rollbackFailure='UPGRADE_ROLLBACK_REVIEW_REQUIRED';$r.rollbackSteps=$rollbackErrors;$r.rollbackVerified=$false}
- }finally{if($lease){$lease.Dispose()}}
+ }finally{if($lease){$lease.Dispose()};if($script:collectorUpgradePassword){$script:collectorUpgradePassword.Dispose();$script:collectorUpgradePassword=$null}}
  return $r
 }
 $result=Invoke-CollectorRecoveryUpgrade $Mode
 [IO.File]::WriteAllText($ResultPath,($result|ConvertTo-Json -Depth 12),[Text.UTF8Encoding]::new($false))
+Write-Host ('[100%] '+$result.status)
 if($result.failure){throw ('COLLECTOR_UPGRADE_REVIEW_REQUIRED: '+$result.failure)}
