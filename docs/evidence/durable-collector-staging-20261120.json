@@ -1,0 +1,20 @@
+{
+    "scope":  "Read-only installed-state verification; activation and lifecycle pending",
+    "version":  1,
+    "staging":  {
+                    "runtimeStarted":  false,
+                    "ordersEnabled":  false,
+                    "installationId":  "ab47639ee8d74da69a9466c0f59e601e",
+                    "observedUtc":  "2026-11-20T14:16:59.4928985Z",
+                    "hostHashVerified":  true,
+                    "timeSnapshotAgeSeconds":  0.242898,
+                    "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING",
+                    "taskXmlVerified":  true,
+                    "taskDisabled":  true,
+                    "controlDisabled":  true,
+                    "workerHashVerified":  true
+                },
+    "revision":  "777960d2b23291388f0947556bd99aac4ebc413d",
+    "state":  "SUCCEEDED",
+    "queueJobId":  "b2c4ce14-b2b8-4660-87f7-004a15d9f43b"
+}

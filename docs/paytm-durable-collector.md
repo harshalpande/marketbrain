@@ -1,5 +1,7 @@
 # Durable diagnostic collector
 
+2026-11-20 runtime acceptance: queued job b2c4ce14-b2b8-4660-87f7-004a15d9f43b SUCCEEDED. Installed worker, known_hosts and task XML pins matched; task/control disabled; time snapshot age 0.243 seconds. No runtime started. Evidence: docs/evidence/durable-collector-staging-20261120.json. Next: bounded activation with independent shutdown guard, followed by lifecycle acceptance. G3 remains 80%.
+
 2026-11-20: Automatically collected installation ab47639ee8d74da69a9466c0f59e601e: Windows BATCH credential accepted, durable task staged disabled, worker not started. Added queued read-only verification of pinned worker/host/task XML, disabled control, task identity/settings and fresh time snapshot. Local checks: 9 receipt cases and 2 installed-state drift cases on PS5/PS7. Activation and lifecycle remain pending; G3 stays 80%, total 14/30 checkpoints. Evidence: docs/evidence/durable-collector-install-20261120.json.
 
 The accepted temporary batch e514d3f3a91d4e719ad31fadf66597df passed all five rejection/recovery cases and final revocation. The next install stages MarketBrain-Health-Collector-v1 as a disabled Password-logon startup task under the existing non-admin marketbrain-health SID. Both task and control remain disabled; no gateway start, health publication, broker login or orders occur during installation.
