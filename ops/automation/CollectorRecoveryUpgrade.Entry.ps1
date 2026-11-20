@@ -25,6 +25,9 @@ function Invoke-CollectorRecoveryUpgrade([string]$RequestedMode){
   $r.files=@{}
   foreach($relative in @('time-observer-v1\collector-install-result.json','time-observer-v1\snapshot.json','collector-v1\worker.ps1','collector-v1\known_hosts','collector-v1\control.json')){$r.files[$relative]=Test-Path -LiteralPath ('C:\ProgramData\MarketBrainPaytmHealth\'+$relative)}
   $receipt=Read-TimeObservationFile 'C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1\collector-install-result.json'
+  $r.stage='TIME_OBSERVER';$r.timeObserver=Restore-CollectorTimeObserver -Start:($RequestedMode -ceq 'Apply')
+  if(-not $r.timeObserver.verified){throw 'UPGRADE_OBSERVER_STOPPED_RESTART_PENDING'}
+  $r.stage='STAGING_PREFLIGHT'
   $r.preflight=Get-DurableCollectorStagingPreflight $receipt
   $d=Get-DurableCollectorDefinition $receipt.workerSha256
   $destination=Join-Path $d.root 'recovery-upgrade.json'

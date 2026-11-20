@@ -17,7 +17,7 @@ function Add-Function([string]$Path,[string[]]$Names){
 }
 Add-Function "$w/PaytmTimeAccountProbe.ps1" @('Resolve-TimeAccountTaskSid')
 Add-Function "$w/PaytmDurableCollectorSetup.ps1" @('Get-DurableCollectorDefinition','Assert-DurableCollectorTask')
-foreach($file in @('PaytmTimeObservation.ps1','PaytmDurableCollectorPreflight.ps1','PaytmCollectorRecovery.ps1')){$parts+=[IO.File]::ReadAllText((Join-Path $w $file))}
+foreach($file in @('PaytmTimeObservation.ps1','PaytmDurableCollectorPreflight.ps1','PaytmCollectorRecovery.ps1','PaytmCollectorObserverRecovery.ps1')){$parts+=[IO.File]::ReadAllText((Join-Path $w $file))}
 Add-Function (Join-Path $PSScriptRoot 'CollectorLifecycle.Entry.ps1') @('Invoke-CollectorDockerRead','Get-CollectorDockerState')
 $parts+="`$upgradeWorkerHash='$hash'`n`$upgradePayload='$payload'"
 $parts+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CollectorRecoveryUpgrade.Entry.ps1'))
