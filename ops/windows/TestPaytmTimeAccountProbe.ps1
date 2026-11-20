@@ -13,6 +13,29 @@ foreach($case in @('valid','admin','sid','session','replay','stale','negativeAge
 $source=Get-TimeAccountProbeSource ('a'*32) 'C:\fixture\report.json' ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmTimeObservation.ps1')))
 $tokens=$null;$errors=$null;$null=[Management.Automation.Language.Parser]::ParseInput($source,[ref]$tokens,[ref]$errors)
 if($errors.Count -or $source.Contains('__RUN__') -or $source.Contains('__OUTPUT__')){throw 'Generated account worker invalid'}
+# Keep real SID parsing, substitute name resolution only for fixture accounts.
+$script:realSidResolver=(Get-Command Resolve-TimeAccountTaskSid).ScriptBlock
+function Resolve-TimeAccountTaskSid([string]$Identity) {
+ if($Identity -in @('marketbrain-health','SPARE\marketbrain-health')){return 'S-1-5-21-3041730714-102984520-3202743044-1011'}
+ if($Identity -eq 'OTHER\marketbrain-health'){return 'S-1-5-21-1-2-3-1011'}
+ if($Identity -eq 'unresolved'){throw 'fixture unresolved'}
+ & $script:realSidResolver $Identity
+}
+$taskCases=@('sid','shortName','qualifiedName','nullTriggers','nullElement','foreignName','unresolved','adminSid','high','s4u','extraAction','noAction','arguments','executable','trigger')
+foreach($taskCase in $taskCases){
+ $t=@{Principal=@{UserId='S-1-5-21-3041730714-102984520-3202743044-1011';LogonType='Password';RunLevel='Limited'};Actions=@(@{Execute='powershell.exe';Arguments='fixture'});Triggers=@()}
+ switch($taskCase){
+  'shortName'{$t.Principal.UserId='marketbrain-health'} 'qualifiedName'{$t.Principal.UserId='SPARE\marketbrain-health'}
+  'nullTriggers'{$t.Triggers=$null} 'nullElement'{$t.Triggers=@($null)}
+  'foreignName'{$t.Principal.UserId='OTHER\marketbrain-health'} 'unresolved'{$t.Principal.UserId='unresolved'} 'adminSid'{$t.Principal.UserId='S-1-5-32-544'}
+  'high'{$t.Principal.RunLevel='Highest'} 's4u'{$t.Principal.LogonType='S4U'}
+  'extraAction'{$t.Actions+=@{Execute='other'}} 'noAction'{$t.Actions=$null}
+  'arguments'{$t.Actions[0].Arguments='changed'} 'executable'{$t.Actions[0].Execute='other.exe'} 'trigger'{$t.Triggers=@(@{Enabled=$true})}
+ }
+ $v=Test-TimeAccountTask $t 'powershell.exe' 'fixture'
+ if($v.valid -ne ($taskCase -in @('sid','shortName','qualifiedName','nullTriggers','nullElement'))){throw "Task validation failed: $taskCase"}
+ if(-not $v.valid -and $v.reasons.Count -eq 0){throw 'Missing mismatch evidence'}
+}
 # Actual controller workflow with task/ACL calls replaced; never creates a real task.
 function Assert-TimeObservationAcl {}
 function Read-TimeObservation {return @{sequence=1;ageSeconds=1}}
@@ -22,7 +45,7 @@ function New-ScheduledTaskAction {param($Execute,$Argument) @{Execute=$Execute;A
 function New-ScheduledTaskPrincipal {param($UserId,$LogonType,$RunLevel) @{UserId=$UserId;LogonType=$LogonType;RunLevel=$RunLevel}}
 function New-ScheduledTaskSettingsSet {}
 function New-ScheduledTask {param($Action,$Principal,$Settings) @{Action=$Action;Principal=$Principal}}
-function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) $Action=$InputObject.Action;$Principal=$InputObject.Principal; $script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=@();State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
+function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) $Action=$InputObject.Action;$Principal=$InputObject.Principal; $Principal.UserId='SPARE\marketbrain-health';$script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=$null;State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
 function Get-ScheduledTask {if($script:task){return [pscustomobject]$script:task}}
 function Start-ScheduledTask {
  $script:started++
@@ -43,9 +66,10 @@ foreach($script:case in @('valid','drift','badWorker','cleanup')){
  $result=& ([scriptblock]::Create($original.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root))) 'fixture' (ConvertTo-SecureString 'fixture-only-not-a-real-password' -AsPlainText -Force)
  if($result.passed -ne ($case -eq 'valid')){throw "Workflow result incorrect: $case $($result.failure)"}
  if($case -eq 'drift' -and $started){throw 'Drifted task started'}
+ if($case -eq 'drift' -and ($result.stage -ne 'VERIFY_REGISTERED_TASK' -or 'RUN_LEVEL' -notin $result.taskValidation.reasons -or $result.failureDetail -like 'Scheduler registration failed*')){throw 'Incorrect task drift evidence'}
  if($case -ne 'cleanup' -and -not $result.taskRemoved){throw 'Temporary task not removed'}
  if($case -eq 'cleanup' -and -not $result.cleanupFailure){throw 'Cleanup failure not retained'}
 }
-Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, generated PS5 worker and 4 isolated workflows.'
+Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 4 isolated workflows.'
 
 $blocked=$false;try{Invoke-TimeAccountProbe 'fixture'}catch{$blocked=$_.Exception.Message -eq 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'};if(-not $blocked){throw 'Missing credential not blocked'}

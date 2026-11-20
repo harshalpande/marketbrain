@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-20",
+  "retrievalJob": "6e930a32-04d8-49d5-998d-5d2ec37d3cfb",
+  "observedProbe": {
+    "stage": "REGISTER",
+    "nativeHResult": -2146233087,
+    "failureLine": 65,
+    "cleanupFailure": null,
+    "runId": "41c71237055a4583b9c1843e9c77ed20",
+    "observedUtc": "2026-11-20T15:08:24.5029236+05:30",
+    "authenticationTested": false,
+    "taskName": "MarketBrain-Time-Read-Probe-41c71237055a4583b9c1843e9c77ed20",
+    "healthPublicationTested": false,
+    "taskRemoved": true,
+    "failure": "TIME_ACCOUNT_TASK_DRIFT",
+    "failureDetail": "Scheduler registration failed; password omitted",
+    "passed": false,
+    "taskCreated": true,
+    "sourceHashes": {
+      "TestPaytmTimeAccountAccess.ps1": "BA9143CE53A2719ECF17F89DDBDA7D742C49198C551C4165D4AFFD06987218A6",
+      "PaytmTimeObservation.ps1": "F9053BDCE08ACEC112D7304112523B679903DB498A472AE0F37BA03BF4C79B0A",
+      "PaytmTimeAccountProbe.ps1": "F4CB6896E3052F5966F1D5C08E8C37A588666E57527FB411E94E377EA8D7CFA7"
+    }
+  },
+  "observerState": "Running",
+  "causeEstablished": false,
+  "changes": [
+    "Resolve actual principal SID rather than compare display name",
+    "Treat null CIM trigger collection as empty",
+    "Record each mismatch without command or password contents",
+    "Separate registration from registered-task validation stage"
+  ],
+  "localTests": {
+    "powershellVersions": [
+      "5.1",
+      "7.7.0"
+    ],
+    "taskValidationCases": 15,
+    "resultCases": 10,
+    "isolatedWorkflows": 4
+  },
+  "runtimeRetestPending": true,
+  "g3Percent": 80
+}

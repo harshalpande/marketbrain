@@ -41,3 +41,7 @@ The protected `time-observer-v1/account-probe-result.json` is automatically avai
 | G6 Telegram | 0/5 | Real ACCEPT/REJECT/expiry/replay/unauthorized batch with fresh quotes |
 
 Local G4/G6 regression suites (25 JUnit tests) passed on2026-11-20, including login preparation's38 internal checks. They are engineering evidence, not runtime checkpoint credit. G4 login needs owner interaction; G5 market freshness needs market-hours data; G6 requires the configured Telegram user. Report these dependencies separately from automated work rather than rerunning unrelated accepted G1/G2 milestones.
+
+### Registered-task validation correction
+
+The local credential run created its task but stopped before execution on TASK_DRIFT; cleanup succeeded. The prior report cannot identify which field differed. The validator now compares the resolved Windows SID, accepts null as an absent trigger collection, and retains mismatch reasons/counts without recording command contents. Foreign identities, wrong logon type/run level, additional actions/triggers and altered commands still fail. Fifteen new cases run on PS5.1 and PS7. Rerun the same `TestPaytmTimeAccountAccess.ps1` after updating; the password remains local and the result is collected by queued Observe. No G3 checkpoint is closed by this code-only correction.

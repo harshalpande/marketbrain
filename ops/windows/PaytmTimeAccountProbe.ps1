@@ -32,6 +32,32 @@ function Assert-TimeAccountProbeResult($Value,[string]$RunId) {
  $previous=0L
  foreach($sample in $Value.samples){if($null -eq $sample.sequence -or $null -eq $sample.ageSeconds -or [double]::IsNaN([double]$sample.ageSeconds) -or $sample.sequence -le $previous -or $sample.ageSeconds -lt 0 -or $sample.ageSeconds -gt 8){throw 'TIME_ACCOUNT_SAMPLE_INVALID'};$previous=$sample.sequence}
 }
+function Resolve-TimeAccountTaskSid([string]$Identity) {
+ if([string]::IsNullOrWhiteSpace($Identity)){throw 'TIME_ACCOUNT_PRINCIPAL_MISSING'}
+ if($Identity.StartsWith('S-1-', [StringComparison]::OrdinalIgnoreCase)){
+  return [Security.Principal.SecurityIdentifier]::new($Identity).Value
+ }
+ return ([Security.Principal.NTAccount]::new($Identity)).Translate([Security.Principal.SecurityIdentifier]).Value
+}
+function Test-TimeAccountTask($Task,[string]$Executable,[string]$Arguments) {
+ $reasons=@();$sid=$null
+ try{$sid=Resolve-TimeAccountTaskSid ([string]$Task.Principal.UserId)}catch{$reasons+='PRINCIPAL_UNRESOLVED'}
+ if($sid -cne 'S-1-5-21-3041730714-102984520-3202743044-1011'){$reasons+='PRINCIPAL_SID'}
+ if([string]$Task.Principal.LogonType -cne 'Password'){$reasons+='LOGON_TYPE'}
+ if([string]$Task.Principal.RunLevel -cne 'Limited'){$reasons+='RUN_LEVEL'}
+ # CIM may represent an absent collection as null, not an empty array.
+ $actions=@($Task.Actions | Where-Object {$null -ne $_})
+ $triggers=@($Task.Triggers | Where-Object {$null -ne $_})
+ $argumentsMatch=$false;$executableMatch=$false
+ if($actions.Count -ne 1){$reasons+='ACTION_COUNT'}else{
+  $argumentsMatch=$actions[0].Arguments -ceq $Arguments
+  $executableMatch=$actions[0].Execute -ieq $Executable
+  if(-not $argumentsMatch){$reasons+='ACTION_ARGUMENTS'}
+  if(-not $executableMatch){$reasons+='ACTION_EXECUTABLE'}
+ }
+ if($triggers.Count -ne 0){$reasons+='UNEXPECTED_TRIGGER'}
+ return @{valid=($reasons.Count -eq 0);reasons=$reasons;principalSid=$sid;logonType=[string]$Task.Principal.LogonType;runLevel=[string]$Task.Principal.RunLevel;actionCount=$actions.Count;triggerCount=$triggers.Count;argumentsMatch=$argumentsMatch;executableMatch=$executableMatch}
+}
 function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]$Password) {
  if(-not $Password -or $Password.Length -eq 0){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}
  $run=[guid]::NewGuid().ToString('N');$task='MarketBrain-Time-Read-Probe-'+$run
@@ -61,8 +87,10 @@ function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]
   $r.stage='REGISTER';$plain=$null
   try{$plain=[Net.NetworkCredential]::new('', $Password).Password;$null=Register-ScheduledTask -TaskName $task -TaskPath '\' -InputObject $definition -User ($env:COMPUTERNAME+'\marketbrain-health') -Password $plain}finally{$plain=$null}
   $r.taskCreated=$true
+  $r.stage='VERIFY_REGISTERED_TASK'
   $t=Get-ScheduledTask -TaskName $task -TaskPath '\'
-  if($t.Principal.UserId -notin @('marketbrain-health','S-1-5-21-3041730714-102984520-3202743044-1011') -or [string]$t.Principal.LogonType -cne 'Password' -or [string]$t.Principal.RunLevel -cne 'Limited' -or @($t.Actions).Count -ne 1 -or $t.Actions[0].Arguments -cne $arguments -or $t.Actions[0].Execute -ine $exe -or @($t.Triggers).Count -ne 0){throw 'TIME_ACCOUNT_TASK_DRIFT'}
+  $r.taskValidation=Test-TimeAccountTask $t $exe $arguments
+  if(-not $r.taskValidation.valid){throw 'TIME_ACCOUNT_TASK_DRIFT'}
   $r.stage='START';Start-ScheduledTask -TaskName $task -TaskPath '\'
   $timer=[Diagnostics.Stopwatch]::StartNew()
   do{Start-Sleep -Seconds 1;$t=Get-ScheduledTask -TaskName $task -TaskPath '\'}while($timer.Elapsed.TotalSeconds -lt 40 -and (-not (Test-Path -LiteralPath $output) -or [string]$t.State -eq 'Running'))
