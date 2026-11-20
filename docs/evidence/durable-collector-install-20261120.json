@@ -1,0 +1,31 @@
+{
+    "installation":  {
+                         "sourceHashes":  {
+                                              "PaytmDurableCollector.ps1":  "749C8FD470BFBABBFC99C70CDFDBA867B4FCF7E561164DC1EF86E369B6427DC4",
+                                              "InstallPaytmDurableCollector.ps1":  "44CCAFFD1A796D9E826C1DB5A793784CE441818D2FE3D9BED7F502B2960BFD23",
+                                              "PaytmDurableCollectorSetup.ps1":  "C25CE801DA427A945215685606CFAE0F6D66EE22BAB27869E0ADF2965CA42DD8"
+                                          },
+                         "taskRegistered":  true,
+                         "status":  "DURABLE_COLLECTOR_STAGED_DISABLED_ACTIVATION_PENDING",
+                         "ordersEnabled":  false,
+                         "failure":  null,
+                         "workerSha256":  "25CFF7A9A54184DC0B5F43A094B331B14C4D288448C8BA8A01975A9F29053B99",
+                         "stage":  "COMPLETE",
+                         "disabledVerified":  true,
+                         "knownHostsSha256":  "C8D0896753936BC7AB4B47E755516BF253A973F8E65CC8B8CF249B9476CC924D",
+                         "workerStarted":  false,
+                         "credentialCheck":  {
+                                                 "logonType":  "BATCH",
+                                                 "win32Code":  0,
+                                                 "attempts":  1,
+                                                 "accepted":  true,
+                                                 "resolvedSid":  "S-1-5-21-3041730714-102984520-3202743044-1011"
+                                             },
+                         "runId":  "ab47639ee8d74da69a9466c0f59e601e",
+                         "taskXmlSha256":  "4D5EFBB0271BF6EB937050E89B5118CBDCE89FF9AC30AF1FD7F8C10EC8E6B730",
+                         "version":  1
+                     },
+    "scope":  "Disabled staging only; activation and lifecycle pending",
+    "queueJobId":  "7a4604af-fe84-475f-948c-8abb5c00875d",
+    "version":  1
+}

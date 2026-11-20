@@ -292,6 +292,70 @@ function Read-TimeObservation {
 }
 
 $timeObserverWorker = 'I1JlcXVpcmVzIC1WZXJzaW9uIDUuMQokRXJyb3JBY3Rpb25QcmVmZXJlbmNlPSdTdG9wJwokcm9vdD0nQzpcUHJvZ3JhbURhdGFcTWFya2V0QnJhaW5QYXl0bUhlYWx0aFx0aW1lLW9ic2VydmVyLXYxJwppZihbU2VjdXJpdHkuUHJpbmNpcGFsLldpbmRvd3NJZGVudGl0eV06OkdldEN1cnJlbnQoKS5Vc2VyLlZhbHVlIC1jbmUgJ1MtMS01LTE4Jyl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfU1lTVEVNX1JFUVVJUkVEJ30KJHBhdGg9Sm9pbi1QYXRoICRyb290ICdzbmFwc2hvdC5qc29uJzskc2VxdWVuY2U9MEwKZnVuY3Rpb24gUmVhZC1GaXhlZFRpbWVRdWVyeShbVmFsaWRhdGVTZXQoJy9xdWVyeSAvc3RhdHVzIC92ZXJib3NlJywnL3F1ZXJ5IC9zb3VyY2UnKV1bc3RyaW5nXSRBcmd1bWVudHMpewogICAgJHA9W0RpYWdub3N0aWNzLlByb2Nlc3NdOjpuZXcoKTskcC5TdGFydEluZm8uRmlsZU5hbWU9Sm9pbi1QYXRoICRlbnY6V0lORElSICdTeXN0ZW0zMlx3MzJ0bS5leGUnOyRwLlN0YXJ0SW5mby5Bcmd1bWVudHM9JEFyZ3VtZW50cwogICAgJHAuU3RhcnRJbmZvLlVzZVNoZWxsRXhlY3V0ZT0kZmFsc2U7JHAuU3RhcnRJbmZvLkNyZWF0ZU5vV2luZG93PSR0cnVlOyRwLlN0YXJ0SW5mby5SZWRpcmVjdFN0YW5kYXJkT3V0cHV0PSR0cnVlOyRwLlN0YXJ0SW5mby5SZWRpcmVjdFN0YW5kYXJkRXJyb3I9JHRydWUKICAgIHRyeXtpZigtbm90ICRwLlN0YXJ0KCkpe3Rocm93ICdUSU1FX09CU0VSVkVSX1NUQVJUJ307JG89JHAuU3RhbmRhcmRPdXRwdXQuUmVhZFRvRW5kQXN5bmMoKTskZT0kcC5TdGFuZGFyZEVycm9yLlJlYWRUb0VuZEFzeW5jKCk7aWYoLW5vdCAkcC5XYWl0Rm9yRXhpdCgyMDAwKSl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfVElNRU9VVCd9O2lmKC1ub3QgJG8uV2FpdCg1MDApIC1vciAtbm90ICRlLldhaXQoNTAwKSl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfRFJBSU4nfTtpZigkby5SZXN1bHQuTGVuZ3RoIC1ndCAxMjAwMCl7dGhyb3cgJ1RJTUVfT0JTRVJWRVJfU0laRSd9O0B7ZXhpdENvZGU9JHAuRXhpdENvZGU7b3V0cHV0PSRvLlJlc3VsdH19ZmluYWxseXt0cnl7aWYoLW5vdCAkcC5IYXNFeGl0ZWQpeyRwLktpbGwoKTskbnVsbD0kcC5XYWl0Rm9yRXhpdCgxMDAwKX19Y2F0Y2h7fTskcC5EaXNwb3NlKCl9Cn0KJGJvb3Q9KEdldC1DaW1JbnN0YW5jZSBXaW4zMl9PcGVyYXRpbmdTeXN0ZW0pLkxhc3RCb290VXBUaW1lLlRvVW5pdmVyc2FsVGltZSgpLlRvU3RyaW5nKCdvJykKd2hpbGUoJHRydWUpewogICAgJHN0YXJ0PVtEaWFnbm9zdGljcy5TdG9wd2F0Y2hdOjpHZXRUaW1lc3RhbXAoKQogICAgdHJ5ewogICAgICAgICRzdGF0dXM9UmVhZC1GaXhlZFRpbWVRdWVyeSAnL3F1ZXJ5IC9zdGF0dXMgL3ZlcmJvc2UnOyRzb3VyY2U9UmVhZC1GaXhlZFRpbWVRdWVyeSAnL3F1ZXJ5IC9zb3VyY2UnCiAgICAgICAgJHNlcnZpY2U9R2V0LVNlcnZpY2UgVzMyVGltZTskc3RhcnRUeXBlPShHZXQtSXRlbVByb3BlcnR5ICdIS0xNOlxTWVNURU1cQ3VycmVudENvbnRyb2xTZXRcU2VydmljZXNcVzMyVGltZScgLU5hbWUgU3RhcnQpLlN0YXJ0CiAgICAgICAgJHNlcXVlbmNlKysKICAgICAgICAkdj1Ae3ZlcnNpb249MTtib290SWQ9JGJvb3Q7c2VxdWVuY2U9JHNlcXVlbmNlO3N0YXJ0VGlja3M9JHN0YXJ0O2VuZFRpY2tzPVtEaWFnbm9zdGljcy5TdG9wd2F0Y2hdOjpHZXRUaW1lc3RhbXAoKTtmcmVxdWVuY3k9W0RpYWdub3N0aWNzLlN0b3B3YXRjaF06OkZyZXF1ZW5jeTtzdGF0dXM9JHN0YXR1cztzb3VyY2U9JHNvdXJjZTtzZXJ2aWNlPUB7c3RhdGU9W3N0cmluZ10kc2VydmljZS5TdGF0dXM7c3RhcnRUeXBlPSRzdGFydFR5cGV9fQogICAgICAgICRqc29uPSR2fENvbnZlcnRUby1Kc29uIC1EZXB0aCA1IC1Db21wcmVzcztpZihbVGV4dC5FbmNvZGluZ106OlVURjguR2V0Qnl0ZUNvdW50KCRqc29uKSAtZ3QgMTYzODQpe3Rocm93ICdUSU1FX09CU0VSVkVSX1NJWkUnfQogICAgICAgICR0ZW1wPSRwYXRoKycubmV3JztbSU8uRmlsZV06OldyaXRlQWxsVGV4dCgkdGVtcCwkanNvbixbVGV4dC5VVEY4RW5jb2RpbmddOjpuZXcoJGZhbHNlKSkKICAgICAgICBpZihbSU8uRmlsZV06OkV4aXN0cygkcGF0aCkpe1tJTy5GaWxlXTo6UmVwbGFjZSgkdGVtcCwkcGF0aCxbTWFuYWdlbWVudC5BdXRvbWF0aW9uLkxhbmd1YWdlLk51bGxTdHJpbmddOjpWYWx1ZSl9ZWxzZXtbSU8uRmlsZV06Ok1vdmUoJHRlbXAsJHBhdGgpfQogICAgfWNhdGNoe2lmKFtJTy5GaWxlXTo6RXhpc3RzKCRwYXRoKSl7W0lPLkZpbGVdOjpEZWxldGUoJHBhdGgpfTt0aHJvd30KICAgIFN0YXJ0LVNsZWVwIC1TZWNvbmRzIDEKfQo='
+# Controller helpers; staging remains disabled and does not start gateway or collector.
+function Get-DurableCollectorDefinition([string]$WorkerHash) {
+ if($WorkerHash -cnotmatch '^[A-F0-9]{64}$'){throw 'COLLECTOR_WORKER_HASH'}
+ $root='C:\ProgramData\MarketBrainPaytmHealth\collector-v1'
+ $command="if((Get-FileHash -LiteralPath '$root\worker.ps1').Hash -cne '$WorkerHash'){exit 9};&([scriptblock]::Create([IO.File]::ReadAllText('$root\worker.ps1')))"
+ @{name='MarketBrain-Health-Collector-v1';root=$root;work='C:\ProgramData\MarketBrainPaytmHealth\collector-work-v1';exe='C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe';arguments=('-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command)))}
+}
+function Assert-DurableCollectorTask($Task,$Definition) {
+ $sid=Resolve-TimeAccountTaskSid ([string]$Task.Principal.UserId)
+ if($Task.TaskName -cne $Definition.name -or $Task.TaskPath -cne '\' -or $sid -cne 'S-1-5-21-3041730714-102984520-3202743044-1011' -or [string]$Task.Principal.LogonType -cne 'Password' -or [string]$Task.Principal.RunLevel -cne 'Limited'){throw 'COLLECTOR_TASK_IDENTITY'}
+ if($Task.Actions.Count -ne 1 -or $Task.Actions[0].Execute -ine $Definition.exe -or $Task.Actions[0].Arguments -cne $Definition.arguments -or $Task.Actions[0].WorkingDirectory -cne $Definition.root){throw 'COLLECTOR_TASK_ACTION'}
+ if($Task.Settings.Enabled -or [string]$Task.State -cne 'Disabled' -or $Task.Triggers.Count -ne 1 -or $Task.Triggers[0].CimClass.CimClassName -cne 'MSFT_TaskBootTrigger' -or -not $Task.Triggers[0].Enabled){throw 'COLLECTOR_TASK_STARTUP'}
+ if([string]$Task.Settings.MultipleInstances -cne 'IgnoreNew' -or $Task.Settings.RestartCount -ne 0 -or [Xml.XmlConvert]::ToTimeSpan($Task.Settings.ExecutionTimeLimit).TotalSeconds -ne 0 -or $Task.Settings.DisallowStartIfOnBatteries -or $Task.Settings.StopIfGoingOnBatteries -or -not $Task.Settings.StartWhenAvailable){throw 'COLLECTOR_TASK_SETTINGS'}
+}
+function New-DurableCollectorSource([string]$Installation) {
+ if($Installation -cnotmatch '^[a-f0-9]{32}$'){throw 'COLLECTOR_INSTALLATION_ID'}
+ $root='C:\ProgramData\MarketBrainPaytmHealth\collector-v1';$work='C:\ProgramData\MarketBrainPaytmHealth\collector-work-v1'
+ $preamble=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmTimeObservation.ps1'))+"`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmDurableCollector.ps1'))+"`n"
+ $preamble+="if(-not (Read-DurableCollectorControl '$root\control.json' '$Installation')){exit 0}`n"
+ $preamble+="`$collectorLease=[IO.File]::Open('$work\instance.lock','Open','ReadWrite','None')`n"
+ $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmHealthScheduledWorker.ps1'))
+ $token=Get-HealthScheduledTokenSource
+ foreach($name in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmHealthCollectorCore.ps1')){$token+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot $name))}
+ $token+=@'
+
+ $token=$null
+ try{
+  $token=Unprotect-HealthToken ([IO.File]::ReadAllBytes($tokenRoot+'\health-token.dpapi'))
+  $r['collector']=Invoke-DurableCollectorLoop $token $a $r.applicationBootId {Read-DurableCollectorControl '__ROOT__\control.json' '__RUN__'} {param($v) Write-DurableCollectorStatus '__WORK__\status.json' $v}
+  if($r.collector.failure -or -not $r.collector.finalHealthRevoked){throw 'COLLECTOR_RUNTIME_FAILED'}
+ }finally{$token=$null}
+'@
+ $source=$source.Replace('__TOKEN_CHECK__',$token)
+ # One final report is atomically replaced, not an unbounded history of files.
+ $start=$source.IndexOf(' $bytes=[Text.Encoding]::UTF8.GetBytes')
+ $end=$source.IndexOf("`n}",$start)
+ if($start -lt 0 -or $end -lt 0){throw 'COLLECTOR_TEMPLATE_CHANGED'}
+ $source=$source.Substring(0,$start)+" Write-DurableCollectorStatus '__WORK__\final.json' `$r`n `$collectorLease.Dispose()"+$source.Substring($end)
+ return ($preamble+$source).Replace('__RUN__',$Installation).Replace('__ROOT__',$root).Replace('__WORK__',$work).Replace('__KNOWN__',($root.Replace('\','/')+'/known_hosts'))
+}
+
+# Read-only verification of the accepted spare-machine installation.
+function Assert-DurableCollectorReceipt($Receipt) {
+ if($Receipt.version -ne 1 -or $Receipt.runId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $Receipt.status -cne 'DURABLE_COLLECTOR_STAGED_DISABLED_ACTIVATION_PENDING' -or $Receipt.failure -or $Receipt.taskRegistered -ne $true -or $Receipt.disabledVerified -ne $true -or $Receipt.workerStarted -ne $false -or $Receipt.ordersEnabled -ne $false){throw 'COLLECTOR_RECEIPT_STATE'}
+ if($Receipt.workerSha256 -cne '25CFF7A9A54184DC0B5F43A094B331B14C4D288448C8BA8A01975A9F29053B99' -or $Receipt.knownHostsSha256 -cne 'C8D0896753936BC7AB4B47E755516BF253A973F8E65CC8B8CF249B9476CC924D' -or $Receipt.taskXmlSha256 -cne '4D5EFBB0271BF6EB937050E89B5118CBDCE89FF9AC30AF1FD7F8C10EC8E6B730'){throw 'COLLECTOR_RECEIPT_PINS'}
+ if($Receipt.credentialCheck.accepted -ne $true -or $Receipt.credentialCheck.win32Code -ne 0 -or $Receipt.credentialCheck.logonType -cne 'BATCH' -or $Receipt.credentialCheck.resolvedSid -cne 'S-1-5-21-3041730714-102984520-3202743044-1011'){throw 'COLLECTOR_RECEIPT_IDENTITY'}
+}
+function Get-DurableCollectorStagingPreflight($Receipt) {
+ Assert-DurableCollectorReceipt $Receipt
+ $d=Get-DurableCollectorDefinition $Receipt.workerSha256
+ foreach($path in @('C:\ProgramData\MarketBrainPaytmHealth',$d.root,(Join-Path $d.root 'worker.ps1'),(Join-Path $d.root 'known_hosts'),(Join-Path $d.root 'control.json'))){Assert-TimeObservationAcl $path}
+ if((Get-FileHash -LiteralPath (Join-Path $d.root 'worker.ps1')).Hash -cne $Receipt.workerSha256 -or (Get-FileHash -LiteralPath (Join-Path $d.root 'known_hosts')).Hash -cne $Receipt.knownHostsSha256){throw 'COLLECTOR_INSTALLED_FILE_DRIFT'}
+ $control=Read-TimeObservationFile (Join-Path $d.root 'control.json')
+ if($control.version -ne 1 -or $control.installationId -cne $Receipt.runId -or $control.enabled -isnot [bool] -or $control.enabled){throw 'COLLECTOR_CONTROL_DRIFT'}
+ $task=Get-ScheduledTask -TaskName $d.name -TaskPath '\' -ErrorAction Stop
+ Assert-DurableCollectorTask $task $d
+ if($task.Description -cne ('MarketBrain diagnostic collector '+$Receipt.runId)){throw 'COLLECTOR_TASK_OWNERSHIP'}
+ $sha=[Security.Cryptography.SHA256]::Create()
+ try{$xmlHash=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes((Export-ScheduledTask -TaskName $d.name -TaskPath '\'))))).Replace('-','')}finally{$sha.Dispose()}
+ if($xmlHash -cne $Receipt.taskXmlSha256){throw 'COLLECTOR_TASK_XML_DRIFT'}
+ $snapshot=Read-TimeObservation
+ return @{status='DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING';installationId=$Receipt.runId;taskDisabled=$true;controlDisabled=$true;workerHashVerified=$true;hostHashVerified=$true;taskXmlVerified=$true;timeSnapshotAgeSeconds=$snapshot.ageSeconds;observedUtc=[DateTime]::UtcNow.ToString('o');ordersEnabled=$false;runtimeStarted=$false}
+}
+
 # Embedded by Build-TimeObserverJob.ps1. Fixed installation; no supplied commands.
 $ErrorActionPreference='Stop'
 $r=@{version=1;passed=$false;mode=$Mode;failure=$null;ordersEnabled=$false;credentialsUsed=$false;taskCreated=$false;healthAccountAcceptance=$false}
@@ -312,7 +376,7 @@ try{
   $collectorResult=Join-Path $root 'collector-batch-result.json'
   if(Test-Path -LiteralPath $collectorResult){$r.collectorBatch=Read-TimeObservationFile $collectorResult}
   $installResult=Join-Path $root 'collector-install-result.json'
-  if(Test-Path -LiteralPath $installResult){$r.collectorInstallation=Read-TimeObservationFile $installResult}
+  if(Test-Path -LiteralPath $installResult){$r.collectorInstallation=Read-TimeObservationFile $installResult;$r.collectorStaging=Get-DurableCollectorStagingPreflight $r.collectorInstallation}
   $r.accountIdentity=Get-TimeAccountIdentityEvidence $account $r.localAccountProbe
   $r.accountExecution=Get-TimeAccountExecutionEvidence $r.localAccountProbe
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
@@ -370,7 +434,7 @@ try{
  $r.firstSequence=$first.sequence;$r.lastSequence=$last.sequence;$r.ageSeconds=$last.ageSeconds
  $r.status='TIME_OBSERVER_SYSTEM_PASSED_HEALTH_ACCOUNT_PENDING';$r.passed=$true
 }catch{
- $r.failure=if($_.Exception.Message -cmatch '^(TIME_OBSERVER|TIME_ACCOUNT)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_OBSERVER_'+$_.Exception.GetBaseException().GetType().Name}
+ $r.failure=if($_.Exception.Message -cmatch '^(TIME_OBSERVER|TIME_ACCOUNT|COLLECTOR)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_OBSERVER_'+$_.Exception.GetBaseException().GetType().Name}
  $r.failureLine=$_.InvocationInfo.ScriptLineNumber
  if($r.taskCreated -or $r.recoveryStartAttempted){try{$null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\';$r.failureStopRequested=$true}catch{$r.cleanupFailure='TIME_OBSERVER_STOP_REVIEW_REQUIRED'}}
 }finally{

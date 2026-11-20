@@ -18,7 +18,7 @@ try{
   $collectorResult=Join-Path $root 'collector-batch-result.json'
   if(Test-Path -LiteralPath $collectorResult){$r.collectorBatch=Read-TimeObservationFile $collectorResult}
   $installResult=Join-Path $root 'collector-install-result.json'
-  if(Test-Path -LiteralPath $installResult){$r.collectorInstallation=Read-TimeObservationFile $installResult}
+  if(Test-Path -LiteralPath $installResult){$r.collectorInstallation=Read-TimeObservationFile $installResult;$r.collectorStaging=Get-DurableCollectorStagingPreflight $r.collectorInstallation}
   $r.accountIdentity=Get-TimeAccountIdentityEvidence $account $r.localAccountProbe
   $r.accountExecution=Get-TimeAccountExecutionEvidence $r.localAccountProbe
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
@@ -76,7 +76,7 @@ try{
  $r.firstSequence=$first.sequence;$r.lastSequence=$last.sequence;$r.ageSeconds=$last.ageSeconds
  $r.status='TIME_OBSERVER_SYSTEM_PASSED_HEALTH_ACCOUNT_PENDING';$r.passed=$true
 }catch{
- $r.failure=if($_.Exception.Message -cmatch '^(TIME_OBSERVER|TIME_ACCOUNT)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_OBSERVER_'+$_.Exception.GetBaseException().GetType().Name}
+ $r.failure=if($_.Exception.Message -cmatch '^(TIME_OBSERVER|TIME_ACCOUNT|COLLECTOR)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_OBSERVER_'+$_.Exception.GetBaseException().GetType().Name}
  $r.failureLine=$_.InvocationInfo.ScriptLineNumber
  if($r.taskCreated -or $r.recoveryStartAttempted){try{$null=Disable-ScheduledTask -TaskName $task -TaskPath '\';Stop-ScheduledTask -TaskName $task -TaskPath '\';$r.failureStopRequested=$true}catch{$r.cleanupFailure='TIME_OBSERVER_STOP_REVIEW_REQUIRED'}}
 }finally{
