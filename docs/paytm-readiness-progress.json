@@ -173,7 +173,7 @@
             "E292",
             "E293"
           ],
-          "prerequisiteStatus": "2026-11-20: SYSTEM time observer accepted; actual non-admin snapshot read/write-denial test requires local target-account password. Historical time-query access denial isolated; snapshot JSON identity fixed. Collector publication/revocation, durable installation and lifecycle remain pending. Explicitly notify owner when G3 reaches100 percent."
+          "prerequisiteStatus": "2026-11-20: Actual non-admin time reads, three health publications, final revocation and bounded gateway cleanup accepted (dd31561bc9804ee8ad966b2ca3b77851). Automatic evidence retrieval verified. Failure/recovery batch implemented and locally tested; runtime negative cases, durable installation and restart/sign-out lifecycle remain pending. Announce G3 100 percent only after full checkpoint evidence."
         }
       ]
     },

@@ -35,7 +35,7 @@ if(-not $caught){throw 'GATEWAY_GRANT_ACCEPTED'}
 '@)
 & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File $compile $cs
 if($LASTEXITCODE -ne 0){throw 'INTEROP_VALIDATION_FAILED'};$count++
-foreach($case in @('success','wrongNonce','signFailure','interactive','identityFailure','tokenSuccess','decryptFailure','authFailure','collectorSuccess','collectorFailure','collectorException')){
+foreach($case in @('success','wrongNonce','signFailure','interactive','identityFailure','tokenSuccess','decryptFailure','authFailure','collectorSuccess','collectorFailure','collectorException','lifecycleSuccess','lifecycleFailure')){
  $dir=Join-Path $root $case;$null=New-Item -ItemType Directory $dir
  [IO.File]::WriteAllText((Join-Path $dir 'parser.ps1'),'')
  [IO.File]::WriteAllText((Join-Path $dir 'native.ps1'),'')
@@ -60,15 +60,16 @@ function Test-HealthTokenAuthority {param($Token) if('__CASE__' -ceq 'authFailur
  [IO.File]::WriteAllText((Join-Path $dir 'library.ps1'),$tokenMock.Replace('__CASE__',$case))
  [IO.File]::WriteAllBytes((Join-Path $dir 'health-token.dpapi'),[byte[]]::new(200))
  $result=Join-Path $dir 'result.json';$worker=Join-Path $dir 'worker.ps1'
- $withCollector=$case -cin @('collectorSuccess','collectorFailure','collectorException')
- $withToken=$case -cin @('tokenSuccess','decryptFailure','authFailure','collectorSuccess','collectorFailure','collectorException')
- $source=(New-HealthScheduledWorkerSource $run -WithToken:$withToken -WithCollector:$withCollector).Replace('C:\ProgramData\MarketBrainPaytmHealth\key-custody',$dir).Replace('C:\ProgramData\MarketBrainPaytmHealth\token-custody',$dir).Replace($c.result,$result)
+ $withCollector=$case -cin @('collectorSuccess','collectorFailure','collectorException','lifecycleSuccess','lifecycleFailure')
+ $withToken=$case -cin @('tokenSuccess','decryptFailure','authFailure','collectorSuccess','collectorFailure','collectorException','lifecycleSuccess','lifecycleFailure')
+ $source=(New-HealthScheduledWorkerSource $run -WithToken:$withToken -WithCollector:$withCollector -WithLifecycle:($case -like 'lifecycle*')).Replace('C:\ProgramData\MarketBrainPaytmHealth\key-custody',$dir).Replace('C:\ProgramData\MarketBrainPaytmHealth\token-custody',$dir).Replace($c.result,$result)
  if($withCollector){
   $stub=@'
 function Start-Sleep {param($Seconds)}
+function Invoke-CollectorLifecycleCases {return @{passed=('__CASE__' -ceq 'lifecycleSuccess');finalHealthRevoked=$true}}
 function Invoke-CollectorCycle {param($Token,$SshArguments,$Boot,[switch]$Revoke)
  if(-not $Revoke -and '__CASE__' -ceq 'collectorException'){throw 'COLLECTOR_FIXTURE_FAILURE'}
- [pscustomobject]@{accepted=(-not $Revoke -and '__CASE__' -ceq 'collectorSuccess');healthySubmitted=(-not $Revoke);revoked=[bool]$Revoke}
+ [pscustomobject]@{accepted=(-not $Revoke -and '__CASE__' -cin @('collectorSuccess','lifecycleSuccess','lifecycleFailure'));healthySubmitted=(-not $Revoke);revoked=[bool]$Revoke}
 }
 '@
   $source=$source.Replace(" `$r.stage='COLLECTOR'",($stub.Replace('__CASE__',$case)+"`r`n `$r.stage='COLLECTOR'"))
@@ -76,7 +77,7 @@ function Invoke-CollectorCycle {param($Token,$SshArguments,$Boot,[switch]$Revoke
  [IO.File]::WriteAllText($worker,$source)
  & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File $worker
  $exit=$LASTEXITCODE;$report=Get-Content -LiteralPath $result -Raw|ConvertFrom-Json
- if($case -cin @('success','tokenSuccess','collectorSuccess')){if($exit -ne 0){throw 'WORKER_SUCCESS_FAILED'};Assert-HealthScheduledWorker $report $run;if($withToken){Assert-HealthScheduledTokenResult $report}}
+ if($case -cin @('success','tokenSuccess','collectorSuccess','lifecycleSuccess')){if($exit -ne 0){throw 'WORKER_SUCCESS_FAILED'};Assert-HealthScheduledWorker $report $run;if($withToken){Assert-HealthScheduledTokenResult $report}}
  else{$caught=$false;try{Assert-HealthScheduledWorker $report $run}catch{$caught=$true};if($exit -eq 0 -or -not $caught -or -not $report.failure){throw "WORKER_FAILURE_ACCEPTED_$case"}}
  if($withCollector -and (-not $report.finalHealthRevoked -or -not $report.applicationLocked)){throw 'COLLECTOR_REVOCATION_MISSING'}
  $count++

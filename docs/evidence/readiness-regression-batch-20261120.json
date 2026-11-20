@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-20",
+  "scope": "Local engineering tests; no G4/G5/G6 runtime credit",
+  "mavenExitCode": 0,
+  "javaTests": 94,
+  "suites": [
+    {
+      "name": "in.marketbrain.marketdata.paytm.PaytmApplicationRouteTest",
+      "tests": "10",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.marketdata.paytm.PaytmCallbackRehearsalControllerTest",
+      "tests": "10",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.marketdata.paytm.PaytmGatewayTransportTest",
+      "tests": "1",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.marketdata.paytm.PaytmLoginPreparationTest",
+      "tests": "1",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.marketdata.paytm.PaytmRouteHealthBridgeTest",
+      "tests": "17",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.marketdata.paytm.PaytmTimedRouteIntegrationTest",
+      "tests": "9",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.paper.PaperTelegramReviewConfigurationTest",
+      "tests": "28",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.paper.PaperTelegramVerificationTest",
+      "tests": "6",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.telegram.TelegramPaperPollingTest",
+      "tests": "2",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.telegram.TelegramPollingBackoffTest",
+      "tests": "2",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "in.marketbrain.telegram.TelegramUpdateHandlerTest",
+      "tests": "8",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0"
+    }
+  ],
+  "powershell": {
+    "lifecycleCases": 8,
+    "runtimes": [
+      "Windows PowerShell 5.1",
+      "PowerShell 7.7"
+    ],
+    "scheduledWorkerChecks": 28,
+    "collectorChecks": 24
+  },
+  "runtimeBatchPending": true,
+  "durableCollectorInstalled": false
+}

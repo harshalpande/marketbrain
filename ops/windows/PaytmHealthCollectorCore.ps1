@@ -1,6 +1,6 @@
 # PS5.1-compatible collector. Fixed destinations only; no broker credentials or route arm.
 function Limit-CollectorDiagnostic([string]$Text){if($Text.Length -gt 512){$Text.Substring(0,512)}else{$Text}}
-function Invoke-CollectorHttp([string]$Token,[ValidateSet('clock','challenge','submit')][string]$Command,$Body){
+function Invoke-CollectorHttp([string]$Token,[ValidateSet('clock','challenge','submit')][string]$Command,$Body,[switch]$ExpectUnauthorized){
  Add-Type -AssemblyName System.Net.Http
  $h=[Net.Http.HttpClientHandler]::new();$h.UseProxy=$false;$h.AllowAutoRedirect=$false
  $c=[Net.Http.HttpClient]::new($h);$c.Timeout=[TimeSpan]::FromSeconds(3);$c.MaxResponseContentBufferSize=4096;$response=$null;$request=$null
@@ -10,9 +10,46 @@ function Invoke-CollectorHttp([string]$Token,[ValidateSet('clock','challenge','s
   $null=$request.Headers.TryAddWithoutValidation('X-MarketBrain-Paytm-Health','diagnostic-health')
   if($null -ne $Body){$request.Content=[Net.Http.StringContent]::new(($Body|ConvertTo-Json -Compress),[Text.Encoding]::UTF8,'application/json')}
   $response=$c.SendAsync($request).GetAwaiter().GetResult()
-  if([int]$response.StatusCode -ne 200 -or -not $response.Headers.CacheControl.NoStore){throw 'contract'}
+  $expected=if($ExpectUnauthorized){401}else{200}
+  if([int]$response.StatusCode -ne $expected -or -not $response.Headers.CacheControl.NoStore){throw 'contract'}
+  if($ExpectUnauthorized){
+   if($response.Content.ReadAsStringAsync().GetAwaiter().GetResult() -cne 'UNAUTHORIZED'){throw 'contract'}
+   return @{status='UNAUTHORIZED';ordersEnabled=$false;httpStatus=401}
+  }
   $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()|ConvertFrom-Json
  }catch{throw 'COLLECTOR_HTTP_FAILED'}finally{if($response){$response.Dispose()};if($request){$request.Dispose()};$c.Dispose()}
+}
+function Invoke-CollectorLifecycleCases([string]$Token,[string[]]$SshArguments,[string]$Boot) {
+ $r=@{passed=$false;cases=@();failure=$null;finalHealthRevoked=$false;ordersEnabled=$false}
+ try{
+  $bad=Invoke-CollectorHttp ($Token+'-invalid') 'clock' $null -ExpectUnauthorized
+  if($bad.status -cne 'UNAUTHORIZED' -or $bad.ordersEnabled -ne $false){throw 'COLLECTOR_AUTH_REJECTION'}
+  $r.cases+=@{name='INVALID_TOKEN';passed=$true}
+  foreach($name in @('REPLAY','WRONG_BOOT','EXPIRED_CHALLENGE')){
+   $c=Invoke-CollectorHttp $Token 'challenge' $null;Assert-CollectorReceipt $c $Boot
+   if($c.status -cne 'CHALLENGE' -or $c.validForSeconds -ne 10 -or $c.challenge -cnotmatch '^[a-f0-9-]{36}$'){throw 'COLLECTOR_CHALLENGE'}
+   # Negative submissions never assert healthy clocks/transport or arm anything.
+   $body=@{challenge=$c.challenge;bootId=$Boot;synchronizedClock=$false;transportHealthy=$false;lowerOffsetSeconds=0;upperOffsetSeconds=0}
+   if($name -ceq 'REPLAY'){
+    $first=Invoke-CollectorHttp $Token 'submit' $body;Assert-CollectorReceipt $first $Boot
+    if($first.accepted -or $first.status -cne 'UNHEALTHY_AND_LOCKED'){throw 'COLLECTOR_REPLAY_SETUP'}
+   }
+   if($name -ceq 'WRONG_BOOT'){$body.bootId=[guid]::NewGuid().ToString()}
+   if($name -ceq 'EXPIRED_CHALLENGE'){Start-Sleep -Seconds 11}
+   $v=Invoke-CollectorHttp $Token 'submit' $body;Assert-CollectorReceipt $v $Boot
+   if($v.accepted -or $v.status -cne 'REJECTED_AND_LOCKED'){throw 'COLLECTOR_NEGATIVE_ACCEPTED'}
+   $r.cases+=@{name=$name;passed=$true}
+  }
+  $recovery=Invoke-CollectorCycle $Token $SshArguments $Boot
+  if(-not $recovery.accepted -or -not $recovery.healthySubmitted){throw 'COLLECTOR_RECOVERY_FAILED'}
+  $r.cases+=@{name='FRESH_RECOVERY';passed=$true}
+ }catch{$r.failure=if($_.Exception.Message -cmatch '^COLLECTOR_[A-Z_]+$'){$_.Exception.Message}else{'COLLECTOR_LIFECYCLE_FAILED'}}
+ finally{
+  try{$revocation=Invoke-CollectorCycle $Token $SshArguments $Boot -Revoke;$r.finalHealthRevoked=$revocation.revoked;if(-not $r.finalHealthRevoked){throw 'COLLECTOR_FINAL_REVOCATION'}}
+  catch{$r.failure='COLLECTOR_FINAL_REVOCATION_FAILED'}
+ }
+ $r.passed=(-not $r.failure -and $r.cases.Count -eq 5 -and $r.finalHealthRevoked)
+ return $r
 }
 function Get-CollectorBounds([DateTimeOffset]$Start,[DateTimeOffset]$End,[double]$Elapsed,[long]$Millis){
  $wall=($End-$Start).TotalSeconds;$movement=[math]::Abs($wall-$Elapsed);$padding=0.002+$movement

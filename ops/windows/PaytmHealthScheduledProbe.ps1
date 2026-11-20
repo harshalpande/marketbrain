@@ -31,7 +31,8 @@ function Assert-HealthScheduledPrerequisites([string]$ReceiptPath) {
     if((Get-Item -LiteralPath $pub).Length -gt 1024 -or [IO.File]::ReadAllText($pub).Trim() -cne ('ssh-ed25519 '+$k.publicBlob)){throw 'SCHEDULE_PUBLIC_IDENTITY_DRIFT'}
     [pscustomobject]@{sid=$saved.sid;custodyRun=$state.runId;fingerprint=$state.fingerprint}
 }
-function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken,[switch]$WithCollector) {
+function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken,[switch]$WithCollector,[switch]$WithLifecycle) {
+ if($WithLifecycle -and -not $WithCollector){throw 'SCHEDULE_LIFECYCLE_COLLECTOR_REQUIRED'}
  $c=Get-HealthScheduledProbeContract $RunId
  $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'PaytmHealthScheduledWorker.ps1'))
  $tokenCode=if($WithToken){Get-HealthScheduledTokenSource}else{''}
@@ -45,6 +46,7 @@ function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken,[swit
   $token=Unprotect-HealthToken ([IO.File]::ReadAllBytes($tokenRoot+'\health-token.dpapi'))
   try{
    foreach($iteration in 1..3){$r.collectorRounds+=,(Invoke-CollectorCycle $token $a $r.applicationBootId);if($iteration -lt 3){Start-Sleep -Seconds 1}}
+__LIFECYCLE_CASES__
   }finally{
    $revocation=Invoke-CollectorCycle $token $a $r.applicationBootId -Revoke
    $r.finalHealthRevoked=$revocation.revoked;$r.applicationLocked=$revocation.revoked
@@ -53,6 +55,8 @@ function New-HealthScheduledWorkerSource([string]$RunId,[switch]$WithToken,[swit
  }finally{$token=$null}
 '@
  }
+ $lifecycleCode=if($WithLifecycle){'$r[''lifecycle'']=Invoke-CollectorLifecycleCases $token $a $r.applicationBootId;if(-not $r.lifecycle.passed){throw ''SCHEDULE_LIFECYCLE_FAILED''}'}else{''}
+ $tokenCode=$tokenCode.Replace('__LIFECYCLE_CASES__',$lifecycleCode)
  $source.Replace('__RUN__',$RunId).Replace('__RESULT__',$c.result).Replace('__KNOWN__',((Join-Path $c.directory 'known_hosts').Replace('\','/'))).Replace('__TOKEN_CHECK__',$tokenCode)
 }
 function Get-HealthScheduledArguments([string]$RunId) {

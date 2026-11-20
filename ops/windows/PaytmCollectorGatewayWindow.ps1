@@ -75,6 +75,7 @@ function Save-CollectorAutomaticSummary($Report,[string]$ReportPath,$Context) {
  $summary=@{runId=$Report.runId;observedUtc=[DateTimeOffset]::UtcNow.ToString('o');status=$Report.status;failure=$Report.failure;cleanupFailure=$Report.cleanupFailure;stage=$Report.stage;taskRemoved=$Report.taskRemoved;lastTaskResult=$Report.lastTaskResult;reportPath=$ReportPath;reportSha256=(Get-FileHash -LiteralPath $ReportPath).Hash;ordersEnabled=$false;gatewayStarted=$Context.startAttempted;gatewayStopped=$Context.stopped;guardRemoved=$Context.guardRemoved;worker=@{}}
  foreach($name in @('failure','stage','identityVerified','nonAdmin','nonInteractiveSession','signingChecks','clockVerified','tokenAuthenticated','tokenDecrypted','finalHealthRevoked','applicationLocked')){$summary.worker[$name]=$Report.worker.$name}
  $summary.worker.rounds=@($Report.worker.collectorRounds|Where-Object {$null -ne $_}|ForEach-Object {@{accepted=$_.accepted;healthySubmitted=$_.healthySubmitted;findings=$_.findings;failedPhase=$_.failedPhase}})
+ if($Report.lifecycleRequested){$summary.worker.lifecycle=$Report.worker.lifecycle}
  $json=$summary|ConvertTo-Json -Depth 7;if([Text.Encoding]::UTF8.GetByteCount($json) -gt 16384){throw 'SCHEDULE_SUMMARY_SIZE'}
  $path=Join-Path $root 'collector-batch-result.json';if(Test-Path -LiteralPath $path){Assert-TimeObservationAcl $path}
  $temp=Join-Path $root ('collector-'+[guid]::NewGuid().ToString('N')+'.new')

@@ -1,5 +1,7 @@
 # Scheduled collector integration batch
 
+2026-11-20: Next combined runtime batch adds invalid-token HTTP401, replay rejection, wrong-boot rejection, real 11-second challenge expiry, fresh recovery and final revocation to -ManagedGatewayWindow -LifecycleCases. New negatives assert only unhealthy state; no broker call or route arm. Eight lifecycle fixtures pass on PS5.1/PS7; 28 scheduled-worker checks and 24 collector checks pass. Runtime pending. This batch is not durable installation or restart/sign-out proof.
+
 2026-11-20: Combined collector runtime accepted (dd31561bc9804ee8ad966b2ca3b77851): 18 source hashes matched, 3/3 rounds accepted without findings, 55.923s total/13.280s worker; non-admin session0, signing/token authentication, Windows/VPS/Java clocks and proxy TLS passed. Final health revoked, application locked, task removed, gateway stopped/disabled and guard removed; policy unchanged. Automatic Observe d653af64-66e7-4344-9974-46404ea5f45b retrieved the same run and exact full-report SHA256. Root HEAD503 is transport evidence only. Durable installation and lifecycle remain pending; G3 stays 80%, total 14/30 (46.7%). No rerun of this accepted batch needed.
 
 2026-11-20: Combined collector window implemented with -ManagedGatewayWindow. It validates the stopped gateway and application before prompting, uses existing local Windows credential/signing and custody checks, registers the limited collector task, then starts the gateway under an independently verified three-minute stop guard. Two fresh advancing transport observations are required within 45 seconds. Three collector rounds and final health revocation follow; normal/error cleanup stops/disables the gateway and removes the guard only after confirmed stop. A partially verified guard is retained for review. No persistent collector or trading enablement. Protected collector-batch-result.json is retrieved by queued Observe. Runtime acceptance pending; G3 remains 80%, overall 14/30 (46.7%).
@@ -75,3 +77,14 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 ```
 
 Enter the existing Windows marketbrain-health password locally; no SSH passphrase or new credential is needed. Keep the window open until cleanup completes. Expected HEALTH_COLLECTOR_THREE_ROUNDS_PASSED_REVOKED_LIFECYCLE_PENDING. The protected summary retains stage, findings, task status and gateway cleanup; full diagnostic JSON remains locally at its recorded path/hash. An interrupted controller may leave no final summary; absence is not success. The independent guard requests gateway shutdown and Java health TTL bounds unrenewed health; neither establishes successful revocation without returned evidence.
+
+## Remaining path to G6 (2026-11-20)
+
+1. G3: run the combined negative/recovery batch, then install the durable collector and verify actual startup/sign-out, loss/recovery and stale blocking. The current temporary batch does not install that service.
+2. G4: current Paytm app/auth contract, owner login, callback/replay validation, token custody and expiry/relogin. Owner interaction is required; no credentials in chat.
+3. G5: instrument/entitlement checks and actual fresh Paytm quotes during market hours, with stale/malformed/rate-limit/recovery behavior.
+4. G6: one combined Telegram session for ACCEPT, REJECT, 100-second expiry, stale/out-of-zone rejection, replay and unauthorized-action rejection. Keep quantity1, maximum notional5000 INR, quote age15 seconds, max slippage0.5%, review only. Requires owner interaction and accepted fresh quotes.
+
+Target G6 execution as one session after G4/G5 acceptance. No reliable overall completion date is established before first live Paytm authentication/quote validation. Do not count local regression tests as runtime checkpoint completion or promise an iteration count. Group progress remains 100/100/80/0/0/0, total14/30.
+
+Use the documented combined command with the additional -LifecycleCases switch. Expected HEALTH_COLLECTOR_FAILURE_RECOVERY_PASSED_DURABLE_INSTALL_PENDING. One local Windows password prompt; summary collection automatic. The expiry case deliberately waits11 seconds. Do not manually start the gateway.

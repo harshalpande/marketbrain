@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='',[string]$CollectorDeploymentReport='',[switch]$ManagedGatewayWindow)
+[CmdletBinding()]param([string]$CustodyReportPath='C:\MarketBrainData\Review\paytm-health-key-custody-d5e799ea1ba84d438008f64c13e41571.json',[string]$OutputDirectory='C:\MarketBrainData\Review',[string]$TokenReportPath='',[string]$CollectorDeploymentReport='',[switch]$ManagedGatewayWindow,[switch]$LifecycleCases)
 $ErrorActionPreference='Stop'
 foreach($n in @('PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmHealthAccount.ps1','PaytmGatewayKeyCustody.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthBatchLogon.ps1')){. (Join-Path $PSScriptRoot $n)}
 . (Join-Path $PSScriptRoot 'PaytmHealthScheduledToken.ps1')
@@ -13,6 +13,8 @@ function Save-HealthScheduled {$r.elapsedSeconds=$watch.Elapsed.TotalSeconds;[IO
 function Health-Step([string]$Name,[int]$Percent){$r.stage=$Name;Save-HealthScheduled;Write-Progress -Activity 'Scheduled clock access' -Status $Name -PercentComplete $Percent;Write-Host "[$Percent%] $Name"}
 try{
  Save-HealthScheduled;Assert-PaytmCustodyController
+ if($LifecycleCases -and (-not $ManagedGatewayWindow -or -not $CollectorDeploymentReport)){throw 'SCHEDULE_LIFECYCLE_ARGUMENTS'}
+ $r['lifecycleRequested']=[bool]$LifecycleCases
  if($ManagedGatewayWindow){
   if(-not $CollectorDeploymentReport -or -not $TokenReportPath){throw 'SCHEDULE_COLLECTOR_ARGUMENTS'}
   $gatewayContext=New-CollectorGatewayContext $run
@@ -29,7 +31,7 @@ try{
   foreach($n in @('PaytmTimeServiceRepair.ps1','PaytmLiveHealthCollector.ps1','PaytmTimeObservation.ps1','PaytmHealthCollectorCore.ps1')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
  }
  if($TokenReportPath){Assert-HealthScheduledTokenPrerequisites $TokenReportPath;$r['tokenMode']=$true}
- $preparedSource=New-HealthScheduledWorkerSource $run -WithToken:([bool]$TokenReportPath) -WithCollector:([bool]$CollectorDeploymentReport)
+ $preparedSource=New-HealthScheduledWorkerSource $run -WithToken:([bool]$TokenReportPath) -WithCollector:([bool]$CollectorDeploymentReport) -WithLifecycle:$LifecycleCases
  $r.sourceHashes['PaytmHealthScheduledToken.ps1']=(Get-FileHash -LiteralPath "$PSScriptRoot/PaytmHealthScheduledToken.ps1").Hash
  foreach($n in @('TestPaytmHealthScheduledAccess.ps1','PaytmHealthScheduledProbe.ps1','PaytmHealthScheduledWorker.ps1','PaytmHealthBatchLogon.ps1','PaytmHealthKeyCustody.ps1','PaytmHealthAccount.ps1','PaytmGatewayAccount.ps1','PaytmGatewayAccountRepair.ps1','PaytmGatewayKeyCustody.ps1','paytm-vps-host-rsa.pub')){$r.sourceHashes[$n]=(Get-FileHash -LiteralPath "$PSScriptRoot/$n").Hash}
  $pins=ConvertFrom-PaytmHostPublicKey ([IO.File]::ReadAllText("$PSScriptRoot/paytm-vps-host-rsa.pub").Trim())
@@ -77,10 +79,12 @@ try{
  if($CollectorDeploymentReport){
   if($r.worker.finalHealthRevoked -ne $true -or @($r.worker.collectorRounds).Count -ne 3 -or @($r.worker.collectorRounds|Where-Object {$_.accepted -ne $true -or $_.healthySubmitted -ne $true}).Count){throw 'SCHEDULE_COLLECTOR_PROOF_MISSING'}
  }
+ if($LifecycleCases -and ($r.worker.lifecycle.passed -ne $true -or @($r.worker.lifecycle.cases).Count -ne 5 -or $r.worker.lifecycle.finalHealthRevoked -ne $true)){throw 'SCHEDULE_LIFECYCLE_PROOF_MISSING'}
  if($r.lastTaskResult -ne 0){throw 'SCHEDULE_TASK_NONZERO_RESULT'}
  $r.status='HEALTH_SCHEDULED_SIGNING_AND_CLOCK_PASSED_COLLECTOR_PENDING';$r.stage='COMPLETE'
  if($TokenReportPath){$r.status='HEALTH_SCHEDULED_CLOCK_AND_TOKEN_PASSED_COLLECTOR_PENDING'}
  if($CollectorDeploymentReport){$r.status='HEALTH_COLLECTOR_THREE_ROUNDS_PASSED_REVOKED_LIFECYCLE_PENDING'}
+ if($LifecycleCases){$r.status='HEALTH_COLLECTOR_FAILURE_RECOVERY_PASSED_DURABLE_INSTALL_PENDING'}
 }catch{
  $r.failure=if($_.Exception.Message -cmatch '^(SCHEDULE|ACCOUNT|KEY|HEALTH_KEY|HEALTH_ACCOUNT|RECOVERY|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'SCHEDULE_SETUP_FAILED'}
  $e=$_.Exception.GetBaseException();$r.failureDetails=@{type=$e.GetType().Name;hresult=$e.HResult;line=$_.InvocationInfo.ScriptLineNumber}
