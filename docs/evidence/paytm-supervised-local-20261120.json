@@ -1,0 +1,25 @@
+{
+    "date":  "2026-11-20",
+    "scope":  "SUPERVISED_PAPER_LOGIN_LOCAL_VERIFICATION",
+    "status":  "LOCAL_PASSED_SPARE_LOGIN_PENDING",
+    "javaTests":  23,
+    "javaFailures":  0,
+    "javaErrors":  0,
+    "embeddedLoginChecks":  38,
+    "powershellSyntaxFiles":  5,
+    "artifactCheck":  "PASSED",
+    "spareDiagnosticJob":  "633b46cc-e5d4-4e17-8930-e2f5ac0d5bf2",
+    "spareDiagnosticState":  "SUCCEEDED",
+    "providerLoginTested":  false,
+    "quotesTested":  false,
+    "ordersEnabled":  false,
+    "originalReadiness":  {
+                              "G6":  0,
+                              "G1":  100,
+                              "G5":  0,
+                              "G4":  0,
+                              "G3":  80,
+                              "G2":  100
+                          },
+    "note":  "VPS accuracy accepted for supervised scope. Windows clock reliability and unattended lifecycle deferred, not passed."
+}

@@ -32,6 +32,11 @@ management:
       show-details: never
 
 marketbrain:
+  paytm-supervised:
+    enabled: ${MARKETBRAIN_PAYTM_SUPERVISED_ENABLED:false}
+  paytm-auth:
+    rehearsal:
+      enabled: ${MARKETBRAIN_PAYTM_AUTH_REHEARSAL_ENABLED:false}
   review:
     output-directory: ${MARKETBRAIN_REVIEW_OUTPUT_DIRECTORY:/marketbrain-review}
   notifications:

@@ -50,6 +50,11 @@ public final class PaytmLoginPreparation {
 
     /** Consumes the challenge once; the request token is NOT retained, exchanged or returned. */
     public synchronized void validateAndDiscard(String query, String browserBinding) {
+        consume(query, browserBinding);
+    }
+
+    /** Returns a validated one-use token to the supervised exchange; never log this value. */
+    synchronized String consume(String query, String browserBinding) {
         Map<String, String> fields = parse(query);
         String state = fields.get("state");
         String requestToken = fields.get("requestToken");
@@ -61,6 +66,7 @@ public final class PaytmLoginPreparation {
         Instant now = clock.instant();
         pending.remove(state);
         if (!now.isBefore(value.expiresAt()) || now.isBefore(value.issuedAt())) throw rejected();
+        return requestToken;
     }
 
     static Map<String, String> parse(String query) {

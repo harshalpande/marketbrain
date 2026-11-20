@@ -1,0 +1,7 @@
+# Opt-in supervised PAPER login; no broker credentials in Compose or environment.
+# Use with the same base/storage overrides as the existing deployment.
+services:
+  marketbrain-service:
+    environment:
+      MARKETBRAIN_PAYTM_SUPERVISED_ENABLED: "true"
+      MARKETBRAIN_PAYTM_AUTH_REHEARSAL_ENABLED: "false"

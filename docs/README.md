@@ -1,5 +1,7 @@
 # MarketBrain: canonical project baseline
 
+**20 November 2026 - supervised paper priority:** [Supervised login path](paytm-supervised-paper.md) implements VPS-anchored elapsed time, local owner login and a protected read-only check. Windows clock screens and unfinished unattended G3 lifecycle do not gate this path. Local verification is separate from spare acceptance; G1/G2 100%, G3 80%, G4-G6 0% remain unchanged. Next: deploy and perform the first owner login, then quotes and combined Telegram/paper integration.
+
 **Gateway inspection accepted, 2026-11-18:** [Automated report](evidence/automation-gateway-blocked-20261118.json) contains the updated helper; both source hashes verified. Preserved HOST_AGENT_UNAVAILABLE latch and unchanged BLOCKED heartbeat from 16 November explain why recovery needs review. Current SSH-agent service Running is not per-account key proof; scheduled-task query timed out, so task state remains unknown. Elevated time sync recovered (error 0). No latch reset/restart; G3 remains 80%, 14/30 overall.
 
 **Delayed automation result, 2026-11-18:** [Existing queued job completed](evidence/automation-delayed-old-helper-20261118.json) after network disruption; it was not cancelled. Returned helper is the previous F170 version, so supervisor inspection is still missing. At capture, gateway TCP failed and Windows reported stale time data (sync error 2). Runner updater now requires process/nonce/source-hash startup proof; transport status clears after reconnection. Runtime update acceptance pending; G3 80%, 14/30 overall.
