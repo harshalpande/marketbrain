@@ -311,6 +311,8 @@ try{
   if(Test-Path -LiteralPath $localResult){$r.localAccountProbe=Read-TimeObservationFile $localResult}
   $collectorResult=Join-Path $root 'collector-batch-result.json'
   if(Test-Path -LiteralPath $collectorResult){$r.collectorBatch=Read-TimeObservationFile $collectorResult}
+  $installResult=Join-Path $root 'collector-install-result.json'
+  if(Test-Path -LiteralPath $installResult){$r.collectorInstallation=Read-TimeObservationFile $installResult}
   $r.accountIdentity=Get-TimeAccountIdentityEvidence $account $r.localAccountProbe
   $r.accountExecution=Get-TimeAccountExecutionEvidence $r.localAccountProbe
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return

@@ -1,0 +1,39 @@
+{
+  "runId": "e514d3f3a91d4e719ad31fadf66597df",
+  "reportSha256": "E67BF9258CDBD488A296D8E25FA61E142862068413172BDB765E465A142E89AA",
+  "status": "HEALTH_COLLECTOR_FAILURE_RECOVERY_PASSED_DURABLE_INSTALL_PENDING",
+  "elapsedSeconds": 232.2036352,
+  "workerSeconds": 28.083900399999997,
+  "sourceHashesMatched": 18,
+  "lifecycle": {
+    "failure": null,
+    "ordersEnabled": false,
+    "passed": true,
+    "finalHealthRevoked": true,
+    "cases": [
+      {
+        "name": "INVALID_TOKEN",
+        "passed": true
+      },
+      {
+        "name": "REPLAY",
+        "passed": true
+      },
+      {
+        "name": "WRONG_BOOT",
+        "passed": true
+      },
+      {
+        "name": "EXPIRED_CHALLENGE",
+        "passed": true
+      },
+      {
+        "name": "FRESH_RECOVERY",
+        "passed": true
+      }
+    ]
+  },
+  "cleanupPassed": true,
+  "ordersEnabled": false,
+  "durableInstalled": false
+}
