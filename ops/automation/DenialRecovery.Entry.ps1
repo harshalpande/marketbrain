@@ -13,7 +13,8 @@ try {
     if(Test-Path -LiteralPath (Join-Path $ctx.root 'denial-recovery-ea723866-1fa0-45e9-a0e4-586d61d5c267')){
         $report.test='POST_RECOVERY_BOUNDED_OBSERVATION'
         if($Mode -ceq 'Observe'){$report.applicationInventory=Get-ApplicationHealthInventory}
-        $report.preflight=Get-PostRecoveryPreflight $ctx $acceptedRecoveryReceipt
+        # Inventory of a later stopped run is distinct from replaying the pinned recovery mutation.
+        $report.preflight=Get-PostRecoveryPreflight $ctx $acceptedRecoveryReceipt -CollectorPreflight:($Mode -ceq 'Observe')
         if(-not $report.preflight.passed){throw $report.preflight.failure}
         if($Mode -ceq 'Observe'){
             $report.status='POST_RECOVERY_PREFLIGHT_PASSED';$report.passed=$true

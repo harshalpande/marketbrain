@@ -297,7 +297,7 @@ function Invoke-DenialRecoveryApply($Context,$Before,[byte[]]$Bytes,$Report) {
 
 
 # Bounded follow-up to accepted recovery ea723866. No imports have side effects.
-function Get-PostRecoveryPreflight($Context,$Receipt) {
+function Get-PostRecoveryPreflight($Context,$Receipt,[switch]$CollectorPreflight) {
     $r=@{passed=$false;hashes=@{};failure=$null};$lease=$null
     try{
         foreach($dir in @($Context.root,$Context.work)){if((Get-Item -LiteralPath $dir).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'RECOVERY_REPARSE_POINT'}}
@@ -313,10 +313,13 @@ function Get-PostRecoveryPreflight($Context,$Receipt) {
         $r.currentStatus=@{instanceId=$v.instanceId;sequence=$v.sequence;phase=$v.phase;failure=$v.failure;ordersEnabled=$v.ordersEnabled;brokerReady=$v.brokerReady}
         $taskInventory=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
         $r.currentTask=@{state=[string]$taskInventory.State;enabled=[bool]$taskInventory.Settings.Enabled}
-        if($v.instanceId -cne '8df248cef94f4b5baff3d672e0863e17' -or $v.sequence -ne 39 -or $v.phase -cne 'TRANSPORT_READY' -or $v.failure -or $v.ordersEnabled -ne $false -or $v.brokerReady -ne $false){throw 'RECOVERY_POST_STATUS_DRIFT'}
+        if($v.phase -cne 'TRANSPORT_READY' -or $v.failure -or $v.ordersEnabled -ne $false -or $v.brokerReady -ne $false){throw 'RECOVERY_POST_STATUS_DRIFT'}
+        if(-not $CollectorPreflight -and ($v.instanceId -cne '8df248cef94f4b5baff3d672e0863e17' -or $v.sequence -ne 39)){throw 'RECOVERY_POST_STATUS_DRIFT'}
+        if($CollectorPreflight -and ($v.instanceId -cnotmatch '^[a-f0-9]{32}$' -or $v.sequence -lt 1)){throw 'RECOVERY_POST_STATUS_DRIFT'}
         $r.hashes['status.json']=(Get-FileHash -LiteralPath (Join-Path $Context.work 'status.json')).Hash
         $t=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\';$i=Get-ScheduledTaskInfo -TaskName $Context.taskName -TaskPath '\'
-        if([string]$t.State -cne 'Disabled' -or $t.Settings.Enabled -or $i.LastTaskResult -ne 267014 -or $i.LastRunTime.ToUniversalTime().ToString('o') -cne '2026-11-20T06:25:25.0000000Z'){throw 'RECOVERY_POST_TASK_DRIFT'}
+        if([string]$t.State -cne 'Disabled' -or $t.Settings.Enabled -or $i.LastTaskResult -ne 267014){throw 'RECOVERY_POST_TASK_DRIFT'}
+        if(-not $CollectorPreflight -and $i.LastRunTime.ToUniversalTime().ToString('o') -cne '2026-11-20T06:25:25.0000000Z'){throw 'RECOVERY_POST_TASK_DRIFT'}
         $saved=[xml][IO.File]::ReadAllText((Join-Path $Context.root 'denial-recovery-649710f6-e95b-4ebc-831b-60a99d22ac69\task.xml'))
         $current=[xml](Export-ScheduledTask -TaskName $Context.taskName -TaskPath '\')
         if($saved.Task.Actions.OuterXml -cne $current.Task.Actions.OuterXml -or $saved.Task.Principals.OuterXml -cne $current.Task.Principals.OuterXml){throw 'RECOVERY_TASK_IDENTITY_DRIFT'}
@@ -410,7 +413,8 @@ try {
     if(Test-Path -LiteralPath (Join-Path $ctx.root 'denial-recovery-ea723866-1fa0-45e9-a0e4-586d61d5c267')){
         $report.test='POST_RECOVERY_BOUNDED_OBSERVATION'
         if($Mode -ceq 'Observe'){$report.applicationInventory=Get-ApplicationHealthInventory}
-        $report.preflight=Get-PostRecoveryPreflight $ctx $acceptedRecoveryReceipt
+        # Inventory of a later stopped run is distinct from replaying the pinned recovery mutation.
+        $report.preflight=Get-PostRecoveryPreflight $ctx $acceptedRecoveryReceipt -CollectorPreflight:($Mode -ceq 'Observe')
         if(-not $report.preflight.passed){throw $report.preflight.failure}
         if($Mode -ceq 'Observe'){
             $report.status='POST_RECOVERY_PREFLIGHT_PASSED';$report.passed=$true

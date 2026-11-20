@@ -1,5 +1,7 @@
 # Scheduled collector integration batch
 
+2026-11-20: Background health-account snapshot access is accepted. Automatic inventory confirms application HTTP 200/UP and gateway Disabled, with a newer completed TRANSPORT_READY snapshot. Read-only Observe now checks a stopped collector baseline without requiring the old recovery instance/sequence/time; immutable sources, task identity, lock, no listener, no incident and trading-disabled checks remain. Apply still requires its historical exact recovery checkpoint and must not be used to restart this newer run. Full collector needs a separately reviewed bounded gateway start plus local health-account credential; no persistent collector is installed yet.
+
 ## Diagnostic rerun after E293
 
 Run 5320e935c0034206bc0aed37383d20d4 rejected all three rounds. Findings were WINDOWS_TIME_SERVICE, WINDOWS_SYNC_UNCONFIRMED, WINDOWS_SYNC_AGE_UNKNOWN and GATEWAY_TLS_UNCONFIRMED; round two also reported CLOCK_BOUNDS_OUTSIDE_SCREEN. These findings do not establish whether the cause is account permissions, stopped services, connectivity, latency or command behavior. The original report omitted native errors, so that diagnostic gap must be closed before system changes.

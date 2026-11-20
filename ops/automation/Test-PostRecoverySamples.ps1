@@ -34,3 +34,19 @@ function Get-ScheduledTask {return @{State='Disabled';Settings=@{Enabled=$false}
 $v=Get-PostRecoveryPreflight @{root='C:\fixture';work='C:\fixture';taskName='fixture'} @{hashes=@{}}
 if($v.passed -or $v.failure -ne 'RECOVERY_POST_STATUS_DRIFT' -or $v.currentStatus.instanceId -ne 'changed' -or $v.currentTask.state -ne 'Disabled'){throw 'Mismatch evidence missing or acceptance weakened'}
 Write-Host 'POST_RECOVERY_MISMATCH_EVIDENCE_PASSED'
+# Later stopped-run inventory accepts a new identity, but never running/unsafe scope.
+$fixture=Join-Path ([IO.Path]::GetTempPath()) ('mb-collector-preflight-'+[guid]::NewGuid().ToString('N'))
+$null=New-Item -ItemType Directory -Path (Join-Path $fixture 'denial-recovery-649710f6-e95b-4ebc-831b-60a99d22ac69')
+$xml='<Task><Actions><Exec /></Actions><Principals><Principal /></Principals></Task>'
+[IO.File]::WriteAllText((Join-Path $fixture 'denial-recovery-649710f6-e95b-4ebc-831b-60a99d22ac69\task.xml'),$xml)
+[IO.File]::WriteAllText((Join-Path $fixture 'status.json'),'{}')
+[IO.File]::WriteAllText((Join-Path $fixture 'instance.lock'),'')
+function Export-ScheduledTask {return $xml}
+function Get-ScheduledTaskInfo {return @{LastTaskResult=267014;LastRunTime=[datetime]::Now}}
+function Get-ScheduledTask {return @{State=$(if($script:collectorCase -eq 'running'){'Running'}else{'Disabled'});Settings=@{Enabled=($script:collectorCase -eq 'running')}}}
+function Read-BoundedJson {return @{instanceId=('b'*32);sequence=81;phase='TRANSPORT_READY';failure=$null;ordersEnabled=($script:collectorCase -eq 'orders');brokerReady=$false}}
+foreach($script:collectorCase in @('valid','running','orders')){
+ $v=Get-PostRecoveryPreflight @{root=$fixture;work=$fixture;taskName='fixture'} @{hashes=@{}} -CollectorPreflight
+ if($v.passed -ne ($collectorCase -eq 'valid')){throw "Collector preflight incorrect: $collectorCase $($v.failure)"}
+}
+Write-Host 'COLLECTOR_STOPPED_PREFLIGHT_PASSED: later identity, running denial, orders denial; recovery mutation gate preserved.'
