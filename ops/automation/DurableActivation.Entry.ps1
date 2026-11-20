@@ -8,11 +8,35 @@ function Test-CollectorActivationSample($Value,$State) {
  if($Value.version -ne 1 -or $Value.instanceId -cnotmatch '^[a-f0-9]{32}$' -or $Value.processId -le 0 -or $Value.ordersEnabled -ne $false){throw 'COLLECTOR_SAMPLE_IDENTITY'}
  if($State.instance -and $Value.instanceId -cne $State.instance){throw 'COLLECTOR_INSTANCE_CHANGED'}
  if($State.processId -and $Value.processId -ne $State.processId){throw 'COLLECTOR_PROCESS_CHANGED'}
- if($Value.failure -or $Value.phase -ne 'HEALTH_RECORDED' -or $Value.consecutiveFailures -ne 0){throw 'COLLECTOR_SAMPLE_UNHEALTHY'}
  if($Value.sequence -lt $State.sequence -or $Value.acceptedCount -gt $Value.sequence){throw 'COLLECTOR_SAMPLE_SEQUENCE'}
+ if($Value.phase -ceq 'BACKOFF' -and $Value.failure -ceq 'COLLECTOR_SAMPLE_FAILED' -and $Value.consecutiveFailures -in @(1,2)){
+  $State.instance=$Value.instanceId;$State.processId=$Value.processId;$State.sequence=$Value.sequence;return $false
+ }
+ if($Value.failure -or $Value.phase -ne 'HEALTH_RECORDED' -or $Value.consecutiveFailures -ne 0){throw 'COLLECTOR_SAMPLE_UNHEALTHY'}
  if($Value.sequence -gt $State.sequence){$State.advances++;$State.sequence=$Value.sequence}
  $State.instance=$Value.instanceId;$State.processId=$Value.processId
  return ($Value.acceptedCount -ge 3 -and $State.advances -ge 2)
+}
+function Preserve-CollectorRejectedAttempt($Definition) {
+ $claim=Join-Path $Definition.root 'activation-attempt.json'
+ if(-not (Test-Path -LiteralPath $claim)){return}
+ $v=Read-TimeObservationFile $claim
+ if($v.runId -cne 'a46e0f93692c401ab3d0e52f9aaac5a2'){throw 'COLLECTOR_ATTEMPT_REVIEW_REQUIRED'}
+ $final=Read-BoundedJson (Join-Path $Definition.work 'final.json');$status=Read-BoundedJson (Join-Path $Definition.work 'status.json')
+ if($final.runId -cne 'ab47639ee8d74da69a9466c0f59e601e' -or $final.failure -or $final.stage -cne 'COMPLETE' -or $final.ordersEnabled -ne $false){throw 'COLLECTOR_RETRY_FINAL_DRIFT'}
+ foreach($sample in @($final.collector,$status)){
+  if($sample.instanceId -cne '46f6741158754a6294298a5b23117de3' -or $sample.phase -cne 'STOPPED' -or $sample.finalHealthRevoked -ne $true -or $sample.acceptedCount -ne 0 -or $sample.sequence -ne 1 -or $sample.ordersEnabled -ne $false){throw 'COLLECTOR_RETRY_STATUS_DRIFT'}
+ }
+ $archive=Join-Path $Definition.root 'retry-after-a46e0f93692c401ab3d0e52f9aaac5a2'
+ if(Test-Path -LiteralPath $archive){throw 'COLLECTOR_RETRY_ALREADY_PREPARED'}
+ $null=New-Item -ItemType Directory -Path $archive
+ foreach($path in @($claim,(Join-Path $Definition.work 'status.json'),(Join-Path $Definition.work 'final.json'))){
+  $item=Get-Item -LiteralPath $path
+  if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_RETRY_REPARSE'}
+  $hash=(Get-FileHash -LiteralPath $path).Hash;$target=Join-Path $archive $item.Name
+  Move-Item -LiteralPath $path -Destination $target -ErrorAction Stop
+  if((Get-FileHash -LiteralPath $target).Hash -cne $hash){throw 'COLLECTOR_RETRY_ARCHIVE_MISMATCH'}
+ }
 }
 function Stop-CollectorActivation($Definition,$Report) {
  Set-CollectorActivationControl $Definition $false
@@ -49,8 +73,9 @@ try{
  $r.gatewayPreflight=Get-CollectorGatewayPreflight $ctx
  if($Mode -eq 'Observe'){$r.status='COLLECTOR_ACTIVATION_PREFLIGHT_PASSED';$r.passed=$true;return}
  foreach($path in @($d.work,(Join-Path $d.work 'instance.lock'))){if((Get-Item -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_WORK_REPARSE'}}
- foreach($name in @('status.json','final.json')){if(Test-Path -LiteralPath (Join-Path $d.work $name)){throw 'COLLECTOR_PRIOR_RUN_REVIEW_REQUIRED'}}
  $lease=[IO.File]::Open((Join-Path $d.work 'instance.lock'),'Open','ReadWrite','None');$lease.Dispose()
+ Preserve-CollectorRejectedAttempt $d
+ foreach($name in @('status.json','final.json')){if(Test-Path -LiteralPath (Join-Path $d.work $name)){throw 'COLLECTOR_PRIOR_RUN_REVIEW_REQUIRED'}}
  # Durable one-shot receipt stops an automatic second activation after interruption.
  $claim=Join-Path $d.root 'activation-attempt.json'
  $f=[IO.File]::Open($claim,'CreateNew','Write','Read');try{$b=[Text.Encoding]::UTF8.GetBytes(($r|ConvertTo-Json -Depth 5));$f.Write($b,0,$b.Length);$f.Flush($true)}finally{$f.Dispose()}

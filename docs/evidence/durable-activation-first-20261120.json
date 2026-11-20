@@ -1,0 +1,103 @@
+{
+    "id":  "7a70d4a2-5e33-40d9-98a2-5833bba09a0c",
+    "kind":  "paytm-denial-recovery",
+    "state":  "FAILED",
+    "created":  1795185941.9747665,
+    "updated":  1795186018.7622628,
+    "result":  {
+                   "exitCode":  1,
+                   "stderrCharacters":  0,
+                   "sourceSha256":  "BC7486C51C645192CB392159D00E9A3504818FCD8F7C9B69C0CD61EC88643C5D",
+                   "elapsedSeconds":  67.2050911,
+                   "revision":  "262467f003dc555cde559309048d3e4b29bd2af8",
+                   "ordersEnabled":  false,
+                   "passed":  false,
+                   "timedOut":  false,
+                   "stdoutCharacters":  0,
+                   "evidence":  {
+                                    "passed":  false,
+                                    "gatewayPreflight":  {
+                                                             "passed":  true,
+                                                             "currentStatus":  {
+                                                                                   "instanceId":  "e3611788c22e4e7488f2c264fce9d07f",
+                                                                                   "failure":  null,
+                                                                                   "sequence":  34,
+                                                                                   "brokerReady":  false,
+                                                                                   "phase":  "TRANSPORT_READY",
+                                                                                   "ordersEnabled":  false
+                                                                               },
+                                                             "hashes":  {
+                                                                            "runner.ps1":  "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+                                                                            "manifest.json":  "7DEBDC0E181DF0484E74F5FF4A2AD24D1034A8464A12DD72684A5D3EFFFAAD55",
+                                                                            "status.json":  "C2F9E8E975940E9BC5FDBEC69C4F2BE1789F9DEA222834CC9970E4CD5DFB6004",
+                                                                            "gateway.ps1":  "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453",
+                                                                            "transport.ps1":  "40343DDDBF1063ACE422922D5D4DAD98B126B04C53ECA40790B174ECA8C9CBCD",
+                                                                            "host.ps1":  "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+                                                                            "native.dll":  "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+                                                                            "session-checkpoint.json":  "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+                                                                            "control.json":  "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39",
+                                                                            "transport.dll":  "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6",
+                                                                            "transport-control.json":  "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B"
+                                                                        },
+                                                             "currentTask":  {
+                                                                                 "state":  "Disabled",
+                                                                                 "enabled":  false
+                                                                             },
+                                                             "failure":  null
+                                                         },
+                                    "runId":  "a46e0f93692c401ab3d0e52f9aaac5a2",
+                                    "collectorStarted":  true,
+                                    "status":  "REVIEW_REQUIRED",
+                                    "preflight":  {
+                                                      "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING",
+                                                      "hostHashVerified":  true,
+                                                      "ordersEnabled":  false,
+                                                      "observedUtc":  "2026-11-20T14:45:57.5294354Z",
+                                                      "timeSnapshotAgeSeconds":  1.3244808,
+                                                      "installationId":  "ab47639ee8d74da69a9466c0f59e601e",
+                                                      "taskXmlVerified":  true,
+                                                      "controlDisabled":  true,
+                                                      "runtimeStarted":  false,
+                                                      "workerHashVerified":  true,
+                                                      "taskDisabled":  true
+                                                  },
+                                    "ordersEnabled":  false,
+                                    "failure":  "COLLECTOR_SAMPLE_UNHEALTHY",
+                                    "forcedStop":  false,
+                                    "gatewayStopped":  true,
+                                    "mode":  "Apply",
+                                    "elapsedSeconds":  64.0468875,
+                                    "cleanupFailure":  null,
+                                    "guardRemoved":  true,
+                                    "worker":  {
+                                                   "tokenAuthenticated":  true,
+                                                   "sessionId":  0,
+                                                   "failure":  null,
+                                                   "stage":  "COMPLETE",
+                                                   "nonAdmin":  true,
+                                                   "collector":  {
+                                                                     "processId":  11136,
+                                                                     "consecutiveFailures":  1,
+                                                                     "failure":  null,
+                                                                     "phase":  "STOPPED",
+                                                                     "version":  1,
+                                                                     "acceptedCount":  0,
+                                                                     "sequence":  1,
+                                                                     "finalHealthRevoked":  true,
+                                                                     "observedUtc":  "2026-11-20T20:16:44.1568593+05:30",
+                                                                     "instanceId":  "46f6741158754a6294298a5b23117de3",
+                                                                     "ordersEnabled":  false
+                                                                 }
+                                               },
+                                    "failureLine":  368,
+                                    "collectorStopped":  true,
+                                    "stage":  "COLLECTOR_START",
+                                    "version":  1
+                                }
+               },
+    "spec":  {
+                 "sha256":  "BC7486C51C645192CB392159D00E9A3504818FCD8F7C9B69C0CD61EC88643C5D",
+                 "mode":  "Apply",
+                 "revision":  "262467f003dc555cde559309048d3e4b29bd2af8"
+             }
+}

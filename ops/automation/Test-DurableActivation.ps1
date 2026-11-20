@@ -7,9 +7,22 @@ foreach($fn in $ast.FindAll({param($n)$n -is [Management.Automation.Language.Fun
 foreach($case in @('valid','orders','wrongInstance','failed','backoff','regression','impossibleCount','repeat')){
  $state=@{instance=('a'*32);sequence=2;advances=1}
  $v=@{version=1;instanceId=('a'*32);processId=12;ordersEnabled=$false;failure=$null;phase='HEALTH_RECORDED';consecutiveFailures=0;sequence=3;acceptedCount=3}
- switch($case){orders{$v.ordersEnabled=$true} wrongInstance{$v.instanceId='b'*32} failed{$v.failure='failed'} backoff{$v.phase='BACKOFF'} regression{$v.sequence=1} impossibleCount{$v.acceptedCount=9} repeat{$v.sequence=2;$v.acceptedCount=2}}
+ switch($case){orders{$v.ordersEnabled=$true} wrongInstance{$v.instanceId='b'*32} failed{$v.failure='failed'} backoff{$v.phase='BACKOFF';$v.failure='COLLECTOR_SAMPLE_FAILED';$v.consecutiveFailures=1} regression{$v.sequence=1} impossibleCount{$v.acceptedCount=9} repeat{$v.sequence=2;$v.acceptedCount=2}}
  $failed=$false;$ok=$false;try{$ok=Test-CollectorActivationSample $v $state}catch{$failed=$true}
- if($failed -ne ($case -notin @('valid','repeat')) -or $ok -ne ($case -eq 'valid')){throw ('SAMPLE_CASE_'+$case)}
+ if($failed -ne ($case -notin @('valid','repeat','backoff')) -or $ok -ne ($case -eq 'valid')){throw ('SAMPLE_CASE_'+$case)}
+}
+function Read-TimeObservationFile($Path){Get-Content -LiteralPath $Path -Raw|ConvertFrom-Json}
+function Read-BoundedJson($Path){Get-Content -LiteralPath $Path -Raw|ConvertFrom-Json}
+foreach($case in @('validArchive','wrongPrior','unrevoked')){
+ $dir=Join-Path ([IO.Path]::GetTempPath()) ('mb-retry-fixture-'+[guid]::NewGuid().ToString('N'));$null=[IO.Directory]::CreateDirectory($dir)
+ $d=@{root=$dir;work=$dir}
+ $claim=@{runId=$(if($case -eq 'wrongPrior'){'other'}else{'a46e0f93692c401ab3d0e52f9aaac5a2'})}
+ $sample=@{instanceId='46f6741158754a6294298a5b23117de3';phase='STOPPED';finalHealthRevoked=($case -ne 'unrevoked');acceptedCount=0;sequence=1;ordersEnabled=$false}
+ $final=@{runId='ab47639ee8d74da69a9466c0f59e601e';stage='COMPLETE';ordersEnabled=$false;collector=$sample}
+ foreach($pair in @(@('activation-attempt.json',$claim),@('status.json',$sample),@('final.json',$final))){[IO.File]::WriteAllText((Join-Path $dir $pair[0]),($pair[1]|ConvertTo-Json -Depth 5))}
+ $failed=$false;try{Preserve-CollectorRejectedAttempt $d}catch{$failed=$true}
+ if($failed -ne ($case -ne 'validArchive')){throw 'ARCHIVE_CASE_FAILED'}
+ if((Test-Path -LiteralPath (Join-Path $dir 'activation-attempt.json')) -ne $failed){throw 'ARCHIVE_PRESERVATION_FAILED'}
 }
 # Run orchestration with fixed OS substitutes; no real task/network/credential access.
 $body=$source.Substring($source.IndexOf('$r=@{version=1;runId='))
