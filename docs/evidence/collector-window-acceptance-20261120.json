@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-20",
+  "runId": "dd31561bc9804ee8ad966b2ca3b77851",
+  "sourceRevision": "e316a59",
+  "reportSha256": "D899BBAFA41F88A70F7D249A29FF5D6B6D1DBD80A0C5B59A4CDC0A73C4EDA221",
+  "sourceHashesMatched": 18,
+  "status": "HEALTH_COLLECTOR_THREE_ROUNDS_PASSED_REVOKED_LIFECYCLE_PENDING",
+  "elapsedSeconds": 55.9234699,
+  "workerSeconds": 13.2804769,
+  "acceptedRounds": 3,
+  "roundSeconds": [
+    3.4773034,
+    2.5013186,
+    2.0309234
+  ],
+  "finalHealthRevoked": true,
+  "taskRemoved": true,
+  "gatewayWindow": {
+    "guardRemoved": true,
+    "stopped": true,
+    "started": true,
+    "readyInstance": "b6aac35e14864bf4b291c3d7edb4907a"
+  },
+  "policyUnchanged": true,
+  "ordersEnabled": false,
+  "productionTaskInstalled": false,
+  "automaticCollection": {
+    "jobId": "d653af64-66e7-4344-9974-46404ea5f45b",
+    "state": "SUCCEEDED",
+    "fullReportHashMatched": true
+  },
+  "scope": "Runtime non-admin collector publication/revocation accepted; durable lifecycle pending; root HEAD HTTP503 is not broker API readiness"
+}
