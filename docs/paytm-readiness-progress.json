@@ -173,7 +173,7 @@
             "E292",
             "E293"
           ],
-          "prerequisiteStatus": "2026-11-20: Non-admin reads, publication/revocation, five runtime failure/recovery cases and automatic evidence retrieval accepted. Durable disabled startup collector staging implemented and locally tested. Actual installation, activation and startup/sign-out lifecycle remain pending; do not mark G3 complete yet."
+          "prerequisiteStatus": "2026-11-20: Non-admin reads, negative/recovery cases, disabled installation and queued bounded durable activation accepted. Four accepted publications in five cycles; final revocation, task exit 0 and collector/gateway/guard cleanup verified. Restart/sign-out lifecycle remains pending. Evidence: docs/evidence/durable-activation-accepted-20261120.json. G3 remains 80 percent."
         }
       ]
     },

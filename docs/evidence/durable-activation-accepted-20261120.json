@@ -1,0 +1,119 @@
+{
+    "id":  "4a2a76b5-afea-42d1-8b49-22c934f69017",
+    "kind":  "paytm-denial-recovery",
+    "state":  "SUCCEEDED",
+    "created":  1795186153.5978425,
+    "updated":  1795186243.668723,
+    "result":  {
+                   "exitCode":  0,
+                   "stderrCharacters":  0,
+                   "sourceSha256":  "1AC782B389B4750DCC16A20CF02A5FD047CC17AD685D9DC772D8913E9F7B3C80",
+                   "elapsedSeconds":  88.478624,
+                   "revision":  "c4256e66e5dae803b79d76b092bedd78fe7459c6",
+                   "ordersEnabled":  false,
+                   "passed":  true,
+                   "timedOut":  false,
+                   "stdoutCharacters":  0,
+                   "evidence":  {
+                                    "failure":  null,
+                                    "cleanupFailure":  null,
+                                    "lastTaskResult":  0,
+                                    "collectorStopped":  true,
+                                    "observation":  {
+                                                        "processId":  8996,
+                                                        "consecutiveFailures":  0,
+                                                        "failure":  null,
+                                                        "phase":  "HEALTH_RECORDED",
+                                                        "version":  1,
+                                                        "acceptedCount":  3,
+                                                        "sequence":  4,
+                                                        "finalHealthRevoked":  false,
+                                                        "observedUtc":  "2026-11-20T20:20:18.8385966+05:30",
+                                                        "instanceId":  "753e0869ea71497eb220580af420108d",
+                                                        "ordersEnabled":  false
+                                                    },
+                                    "version":  1,
+                                    "stage":  "COMPLETE",
+                                    "collectorStarted":  true,
+                                    "preflight":  {
+                                                      "hostHashVerified":  true,
+                                                      "workerHashVerified":  true,
+                                                      "timeSnapshotAgeSeconds":  2.2049508,
+                                                      "taskXmlVerified":  true,
+                                                      "runtimeStarted":  false,
+                                                      "ordersEnabled":  false,
+                                                      "status":  "DURABLE_COLLECTOR_STAGING_VERIFIED_ACTIVATION_PENDING",
+                                                      "observedUtc":  "2026-11-20T14:49:18.8987773Z",
+                                                      "taskDisabled":  true,
+                                                      "installationId":  "ab47639ee8d74da69a9466c0f59e601e",
+                                                      "controlDisabled":  true
+                                                  },
+                                    "gatewayPreflight":  {
+                                                             "hashes":  {
+                                                                            "control.json":  "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39",
+                                                                            "runner.ps1":  "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+                                                                            "transport.ps1":  "40343DDDBF1063ACE422922D5D4DAD98B126B04C53ECA40790B174ECA8C9CBCD",
+                                                                            "gateway.ps1":  "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453",
+                                                                            "host.ps1":  "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+                                                                            "transport.dll":  "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6",
+                                                                            "native.dll":  "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+                                                                            "session-checkpoint.json":  "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+                                                                            "transport-control.json":  "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B",
+                                                                            "manifest.json":  "7DEBDC0E181DF0484E74F5FF4A2AD24D1034A8464A12DD72684A5D3EFFFAAD55",
+                                                                            "status.json":  "09A0EB6CB8E54F79FAA1C25E3A32337546F4577071B9F362E9071AA074712BD4"
+                                                                        },
+                                                             "currentStatus":  {
+                                                                                   "brokerReady":  false,
+                                                                                   "phase":  "TRANSPORT_READY",
+                                                                                   "failure":  null,
+                                                                                   "instanceId":  "59a33ad20cda4a10968bf5512d8d5980",
+                                                                                   "sequence":  19,
+                                                                                   "ordersEnabled":  false
+                                                                               },
+                                                             "passed":  true,
+                                                             "currentTask":  {
+                                                                                 "state":  "Disabled",
+                                                                                 "enabled":  false
+                                                                             },
+                                                             "failure":  null
+                                                         },
+                                    "status":  "DURABLE_COLLECTOR_ACTIVATION_PASSED_LIFECYCLE_PENDING",
+                                    "guardRemoved":  true,
+                                    "finalHealthRevoked":  true,
+                                    "mode":  "Apply",
+                                    "gatewayStopped":  true,
+                                    "runId":  "0222ec7c4e024d4da5ce4753389674a2",
+                                    "elapsedSeconds":  86.9975948,
+                                    "ordersEnabled":  false,
+                                    "forcedStop":  false,
+                                    "passed":  true,
+                                    "publicationsVerified":  true,
+                                    "worker":  {
+                                                   "nonAdmin":  true,
+                                                   "collector":  {
+                                                                     "processId":  8996,
+                                                                     "consecutiveFailures":  0,
+                                                                     "failure":  null,
+                                                                     "phase":  "STOPPED",
+                                                                     "version":  1,
+                                                                     "acceptedCount":  4,
+                                                                     "sequence":  5,
+                                                                     "finalHealthRevoked":  true,
+                                                                     "observedUtc":  "2026-11-20T20:20:29.1869855+05:30",
+                                                                     "instanceId":  "753e0869ea71497eb220580af420108d",
+                                                                     "ordersEnabled":  false
+                                                                 },
+                                                   "sessionId":  0,
+                                                   "failure":  null,
+                                                   "applicationLocked":  true,
+                                                   "tokenAuthenticated":  true,
+                                                   "stage":  "COMPLETE"
+                                               }
+                                }
+               },
+    "spec":  {
+                 "revision":  "c4256e66e5dae803b79d76b092bedd78fe7459c6",
+                 "mode":  "Apply",
+                 "sha256":  "1AC782B389B4750DCC16A20CF02A5FD047CC17AD685D9DC772D8913E9F7B3C80"
+             }
+}
