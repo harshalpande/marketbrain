@@ -1,5 +1,8 @@
 # Evidence register and verification procedure
 
+**2026-11-20: explicit automation elevation verification added.** After owner-reported RUNNER_UPDATE_VERIFIED, queued Observe5d8067c4-c89b-4d9a-a689-77fb450e9264 still failed ADMIN_REQUIRED before account inspection. The old success message verified code/PID/nonce, not elevation. Updater now supports RequireElevation: reject a non-elevated shell before touching the existing runner, propagate that requirement into the child, and require elevated=true in its startup receipt before reporting RUNNER_ELEVATION_VERIFIED. No password/authentication retry. Account1326 investigation remains pending; G3 80%, total14/30 (46.7%).
+
+
 **2026-11-20: account identity investigation prepared; runner elevation lost.** Owner confirms remembered password. Error1326 alone is not proof of typing error. Added read-only resolution of configured machine/account to SID and bounded Security4625 lookup around the saved report; only expected-user domain/status/substatus/logon type exported, no other users or raw messages. Queue job479029fe-2a97-4ba4-8f3e-9129f2de6ada stopped at ADMIN_REQUIRED before account inspection or authentication; restart the same runner elevated, preserving pending results, then repeat Observe. No password reset or new login attempt. PS5/PS7 tests passed, including event filtering and credential argument preservation. Account/root cause remains unconfirmed; G3 80%, total14/30 (46.7%).
 
 

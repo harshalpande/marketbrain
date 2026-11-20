@@ -55,3 +55,7 @@ Queued Observe reads the changing snapshot and protected report through the same
 ### Read-only account investigation
 
 Observe now compares the script's configured machine/account name with the actual account SID. It optionally queries at most50 failed-logon events in a three-minute window ending ten seconds after the saved local report. Only marketbrain-health event fields are retained; missing/unavailable auditing is not interpreted as successful authentication. No credentials are tested and no security policy is changed. The first attempt stopped on ADMIN_REQUIRED, so runtime identity/event evidence remains pending until the same paired runner is restarted from elevated PowerShell7. This elevation issue is separate from the earlier1326 error.
+
+### Elevation verification for account inspection
+
+`RUNNER_UPDATE_VERIFIED` alone confirms files, PID and startup nonce; it historically did not establish administrator rights. Use elevated PowerShell7 under the already-paired Windows user and run `Update-AutomationDiagnostics.ps1 -PreserveCompletedPendingResult -RequireElevation`. Expect both `RUNNER_ELEVATION_VERIFIED` and `RUNNER_UPDATE_VERIFIED`. Non-elevated invocation fails before stopping or replacing the current runner. The child also checks its own token before queue access, and records elevation in the matched startup receipt. No implicit UAC elevation or pairing reset occurs.

@@ -52,7 +52,7 @@ if (-not $rejected) { throw 'Worker could submit jobs' }
 if (Test-Path -LiteralPath (Join-Path $root 'pending.json')) { throw 'Unexpected pending fixture work' }
 $installedDirectory=Join-Path $root 'runner'
 New-Item -ItemType Directory -Path $installedDirectory -Force | Out-Null
-foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Start-AutomationWorker.ps1')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $installedDirectory }
+foreach($name in @('Automation.Common.ps1','Automation.Diagnostics.ps1','Automation.TestExecution.ps1','Start-AutomationWorker.ps1')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $installedDirectory }
 $installedWorker=Join-Path $installedDirectory 'Start-AutomationWorker.ps1'
 $exe=(Get-Process -Id $PID).Path
 $oldProcess=$null
@@ -66,8 +66,17 @@ try {
         Start-Sleep -Milliseconds 250
     }
     if(-not $ready){throw 'Fixture worker did not start'}
+    $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+    try{$expectedElevated=([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)}finally{$identity.Dispose()}
+    if(-not $expectedElevated){
+        $blocked=$false
+        try{& (Join-Path $PSScriptRoot 'Update-AutomationDiagnostics.ps1') -RequireElevation}catch{$blocked=$_.Exception.Message -like 'RUNNER_ADMIN_REQUIRED:*'}
+        $oldProcess.Refresh()
+        if(-not $blocked -or $oldProcess.HasExited){throw 'Elevation precheck did not preserve active runner'}
+    }
     & (Join-Path $PSScriptRoot 'Update-AutomationDiagnostics.ps1')
     $s=Get-Content $statusPath -Raw|ConvertFrom-Json
+    if($s.elevated -ne $expectedElevated){throw 'Worker startup elevation receipt incorrect'}
     if($s.processId -eq $oldProcess.Id -or $s.startupNonce -notmatch '^[a-f0-9]{32}$'){throw 'Updater did not confirm a replacement'}
     $oldProcess.Refresh()
     if(-not $oldProcess.HasExited){throw 'Old worker survived replacement'}

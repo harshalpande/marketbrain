@@ -1,6 +1,9 @@
 #requires -Version 7.5
 [CmdletBinding()]
-param([switch]$Once,[ValidatePattern('^$|^[a-f0-9]{32}$')][string]$StartupNonce='')
+param([switch]$Once,[switch]$RequireElevation,[ValidatePattern('^$|^[a-f0-9]{32}$')][string]$StartupNonce='')
+$identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+try{$runnerElevated=([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)}finally{$identity.Dispose()}
+if($RequireElevation -and -not $runnerElevated){throw 'RUNNER_ADMIN_REQUIRED: open PowerShell 7 as Administrator under the paired user.'}
 . (Join-Path $PSScriptRoot 'Automation.Common.ps1')
 . (Join-Path $PSScriptRoot 'Automation.Diagnostics.ps1')
 . (Join-Path $PSScriptRoot 'Automation.TestExecution.ps1')
@@ -16,7 +19,7 @@ $pending = Join-Path $root 'pending.json'
 $history = Join-Path $root 'reports'
 New-Item -ItemType Directory -Path $history -Force | Out-Null
 try {
-    Write-AutomationState (Join-Path $root 'worker-status.json') @{state='STARTED';processId=$PID;startupNonce=$StartupNonce;runnerSha256=$loadedRunnerHash;diagnosticsSha256=$loadedDiagnosticsHash;executionSha256=$loadedExecutionHash;observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
+    Write-AutomationState (Join-Path $root 'worker-status.json') @{state='STARTED';elevated=$runnerElevated;processId=$PID;startupNonce=$StartupNonce;runnerSha256=$loadedRunnerHash;diagnosticsSha256=$loadedDiagnosticsHash;executionSha256=$loadedExecutionHash;observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
     do {
         try {
             # Persist before execution; an interrupted job is reported, never replayed.

@@ -1,5 +1,10 @@
 # Maintenance automation: initial installation
 
+Validation: local real-TLS integration passed runner replacement, PID/nonce/hash/elevation receipt, pending-result preservation and role isolation. The fixture now includes Automation.TestExecution.ps1, previously missing from its copied worker bundle. Spare elevated-start acceptance remains pending.
+
+**2026-11-20: explicit automation elevation verification added.** After owner-reported RUNNER_UPDATE_VERIFIED, queued Observe5d8067c4-c89b-4d9a-a689-77fb450e9264 still failed ADMIN_REQUIRED before account inspection. The old success message verified code/PID/nonce, not elevation. Updater now supports RequireElevation: reject a non-elevated shell before touching the existing runner, propagate that requirement into the child, and require elevated=true in its startup receipt before reporting RUNNER_ELEVATION_VERIFIED. No password/authentication retry. Account1326 investigation remains pending; G3 80%, total14/30 (46.7%).
+
+
 **2026-11-20: automated health-account probe prepared; local credential step required.** [Evidence](evidence/time-account-probe-preparation-20261120.json). Queue submitted diagnostics, captured failures and retrieved reports without manual transfer. Password-free cross-account S4U registration was rejected with Access denied; Microsoft requires the target password. That approach is withdrawn. `TestPaytmTimeAccountAccess.ps1` now accepts the existing health password locally, creates one limited Password-logon task, checks three fresh reads and write denials, removes its task and saves a protected report for automatic Observe collection. No account elevation or credential transport. A possible snapshot replacement lookup race has bounded I/O retries; policy/identity/stale failures never retry. Tests: ten result cases, four isolated workflows, three retry cases, generated PS5 worker, PS5/PS7 parity; 25 existing Java login/callback/Telegram tests passed. Actual health-account access/publication/lifecycle remain pending. G1/G2 100%, G3 80%, G4/G5/G6 0%;14/30 (46.7%).
 
 
