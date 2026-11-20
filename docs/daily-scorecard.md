@@ -1,5 +1,8 @@
 # Daily delivery scorecard
 
+**2026-11-20: elevated read-only identity check accepted.** [Evidence](evidence/health-account-identity-20261120.json): job84dc03c7-7212-4b33-a213-2a7e37d6c523 resolves LAPTOP-0FE1T6V5/marketbrain-health to the expected enabled SID1011; observer running. No usable Security4625 event returned; this is not evidence that authentication succeeded. Earlier1326 remains unresolved. Added one local LogonUserW BATCH preflight before task registration: close token, zero temporary unmanaged password buffer, retain only code/SID/result; stop on failure without scheduling or retry. Source compiled on PS5/PS7; six mocked workflows include credential rejection before registration. Actual credential preflight remains pending. G3 80%, total14/30 (46.7%).
+
+
 **2026-11-20: credential/scheduler diagnostics made explicit.** Latest retrieved local probe68444aeae77840ad8f226747f1fa9fb4 stopped in REGISTER with no task created. Its generic CLR HRESULT cannot establish password correctness. New reporting extracts bounded numeric HRESULT/CIM error data (not raw errors or password arguments), classifies known Windows codes and leaves unknowns inconclusive. Nine native-error fixtures include secret redaction and CIM namespace separation; five workflow cases include registration failure. Report collection uses bounded delete-sharing reads with limited I/O retries, tested against actual replacement plus malformed/oversized/missing files on PS5.1/PS7. Runtime credential diagnosis requires one local rerun; no password reset, permission change or repeated login attempt is automated. G3 remains80%, readiness14/30 (46.7%).
 
 

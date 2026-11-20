@@ -15,7 +15,7 @@ Write-Host 'Enter the existing WINDOWS marketbrain-health password here only. It
 try{
  $password=Read-Host 'marketbrain-health password' -AsSecureString
  Write-Progress -Activity 'Health account time access' -Status 'Running bounded background probe' -PercentComplete 30
- Write-Host '[30%] Registering one limited background task; checking reads and write denials (up to 40 seconds).'
+ Write-Host '[30%] Checking the credential once with Windows; only on acceptance, register the limited task.'
  $r=Invoke-TimeAccountProbe $contract $password
 }finally{if($password){$password.Dispose()};Write-Progress -Activity 'Health account time access' -Completed}
 $r.sourceHashes=@{}
@@ -25,5 +25,6 @@ $path=Join-Path $root 'account-probe-result.json';$temp=Join-Path $root ('result
 if(Test-Path -LiteralPath $path){Assert-TimeObservationAcl $path}
 [IO.File]::WriteAllText($temp,($r|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $temp
 if(Test-Path -LiteralPath $path){[IO.File]::Replace($temp,$path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temp,$path)}
+if($r.credentialCheck){Write-Host ('Windows credential accepted: '+$r.credentialCheck.accepted+'; code: '+$r.credentialCheck.win32Code)}
 if(-not $r.passed){Write-Host '[100%] Report saved for automatic collection.';if($r.nativeFailure){Write-Host ('Windows codes: '+(@($r.nativeFailure.win32Codes) -join ', '));Write-Host ('Findings: '+(@($r.nativeFailure.findings) -join ', '));Write-Host 'Password correctness is not established by a generic failure.'};throw "TIME_ACCOUNT_REVIEW_REQUIRED: $($r.failure)"}
 Write-Host '[100%] TIME_ACCOUNT_READ_VERIFIED. Report ready for automatic collection; no file upload needed.'

@@ -1,5 +1,8 @@
 # Daily progress and decision log
 
+**2026-11-20: elevated read-only identity check accepted.** [Evidence](evidence/health-account-identity-20261120.json): job84dc03c7-7212-4b33-a213-2a7e37d6c523 resolves LAPTOP-0FE1T6V5/marketbrain-health to the expected enabled SID1011; observer running. No usable Security4625 event returned; this is not evidence that authentication succeeded. Earlier1326 remains unresolved. Added one local LogonUserW BATCH preflight before task registration: close token, zero temporary unmanaged password buffer, retain only code/SID/result; stop on failure without scheduling or retry. Source compiled on PS5/PS7; six mocked workflows include credential rejection before registration. Actual credential preflight remains pending. G3 80%, total14/30 (46.7%).
+
+
 **2026-11-20: explicit automation elevation verification added.** After owner-reported RUNNER_UPDATE_VERIFIED, queued Observe5d8067c4-c89b-4d9a-a689-77fb450e9264 still failed ADMIN_REQUIRED before account inspection. The old success message verified code/PID/nonce, not elevation. Updater now supports RequireElevation: reject a non-elevated shell before touching the existing runner, propagate that requirement into the child, and require elevated=true in its startup receipt before reporting RUNNER_ELEVATION_VERIFIED. No password/authentication retry. Account1326 investigation remains pending; G3 80%, total14/30 (46.7%).
 
 

@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-20",
+  "jobId": "84dc03c7-7212-4b33-a213-2a7e37d6c523",
+  "state": "SUCCEEDED",
+  "accountIdentity": {
+    "accountSid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+    "machineName": "LAPTOP-0FE1T6V5",
+    "passwordLastSetUtc": "2026-11-17T06:20:27.4004656Z",
+    "eventQuery": "UNAVAILABLE_OR_NO_EVENTS",
+    "enabled": true,
+    "eventFailure": "Exception",
+    "identityMatches": true,
+    "resolvedSid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+    "events": [],
+    "configuredUser": "LAPTOP-0FE1T6V5\\marketbrain-health"
+  },
+  "observerState": "Running",
+  "previousFailureCode": 1326,
+  "newAuthenticationAttempt": false,
+  "passwordCorrectness": "NOT_ESTABLISHED",
+  "next": "Single native Windows batch-logon preflight with locally entered password; no reset or automatic retry"
+}

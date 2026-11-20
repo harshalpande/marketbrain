@@ -115,6 +115,32 @@ function Get-TimeAccountNativeFailure($ErrorRecord) {
  foreach($code in $win32){$findings+=switch($code){5{'ACCESS_DENIED'}1326{'USERNAME_OR_PASSWORD_REJECTED'}1330{'PASSWORD_EXPIRED'}1331{'ACCOUNT_DISABLED'}1385{'LOGON_TYPE_NOT_GRANTED'}1909{'ACCOUNT_LOCKED'}default{'UNCLASSIFIED_WIN32_ERROR'}}}
  return @{numericDiagnostics=$items;win32Codes=$win32;findings=$findings;passwordCorrectness='NOT_ESTABLISHED'}
 }
+function Test-TimeAccountCredential([Security.SecureString]$Password) {
+ if(-not ('MarketBrainTimeCredentialV1' -as [type])){
+  Add-Type -TypeDefinition @'
+using System;
+using System.Security;
+using System.Security.Principal;
+using System.Runtime.InteropServices;
+public static class MarketBrainTimeCredentialV1 {
+ [DllImport("advapi32.dll", CharSet=CharSet.Unicode, ExactSpelling=true, SetLastError=true)]
+ static extern bool LogonUserW(string user, string domain, IntPtr password, int type, int provider, out IntPtr token);
+ [DllImport("kernel32.dll", ExactSpelling=true)] static extern bool CloseHandle(IntPtr handle);
+ public static int Check(SecureString secret, out string sid) {
+  sid=null; IntPtr password=IntPtr.Zero, token=IntPtr.Zero;
+  try {
+   password=Marshal.SecureStringToGlobalAllocUnicode(secret);
+   if(!LogonUserW("marketbrain-health", Environment.MachineName, password, 4, 0, out token)) return Marshal.GetLastWin32Error();
+   using(var identity=new WindowsIdentity(token)) { sid=identity.User.Value; }
+   return 0;
+  } finally { if(token!=IntPtr.Zero) CloseHandle(token); if(password!=IntPtr.Zero) Marshal.ZeroFreeGlobalAllocUnicode(password); }
+ }
+}
+'@
+ }
+ $sid=$null;$code=[MarketBrainTimeCredentialV1]::Check($Password,[ref]$sid)
+ return @{accepted=($code -eq 0 -and $sid -ceq 'S-1-5-21-3041730714-102984520-3202743044-1011');win32Code=$code;resolvedSid=$sid;attempts=1;logonType='BATCH'}
+}
 function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]$Password) {
  if(-not $Password -or $Password.Length -eq 0){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}
  $run=[guid]::NewGuid().ToString('N');$task='MarketBrain-Time-Read-Probe-'+$run
@@ -124,6 +150,8 @@ function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]
  try{
   $r.stage='PARENT_ACL';Assert-TimeObservationAcl $parent
   $r.stage='SNAPSHOT_READ';$null=Read-TimeObservation
+  $r.stage='WINDOWS_CREDENTIAL_CHECK';$r.credentialCheck=Test-TimeAccountCredential $Password
+  if(-not $r.credentialCheck.accepted){throw 'TIME_ACCOUNT_WINDOWS_CREDENTIAL_NOT_ACCEPTED'}
   if((Test-Path -LiteralPath $dir) -or @(Get-ScheduledTask|Where-Object {$_.TaskName -ceq $task -and $_.TaskPath -ceq '\'}).Count){throw 'TIME_ACCOUNT_COLLISION'}
   $r.stage='CREATE_PROBE';$null=New-Item -ItemType Directory -Path $dir
   $r.stage='PROBE_ACL';Assert-TimeObservationAcl $dir

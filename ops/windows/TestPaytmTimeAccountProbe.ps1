@@ -1,6 +1,13 @@
 #Requires -Version 5.1
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'PaytmTimeAccountProbe.ps1')
+# Compile the exact interop implementation without authenticating any account.
+$tokens=$null;$errors=$null
+$ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'PaytmTimeAccountProbe.ps1'),[ref]$tokens,[ref]$errors)
+$code=$ast.Find({param($node) $node -is [Management.Automation.Language.StringConstantExpressionAst] -and $node.Value.StartsWith('using System;') -and $node.Value.Contains('public static class MarketBrainTimeCredentialV1')},$true)
+if(-not $code -or $errors.Count){throw 'Credential interop source not found'}
+Add-Type -TypeDefinition $code.Value
+
 function New-ValidProbe {
  @{runId='a'*32;passed=$true;failure=$null;sid='S-1-5-21-3041730714-102984520-3202743044-1011';admin=$false;sessionId=0;samples=@(@{sequence=1;ageSeconds=1},@{sequence=2;ageSeconds=2},@{sequence=3;ageSeconds=1});writeDenied=@('worker.ps1','snapshot.json')}
 }
@@ -38,6 +45,7 @@ foreach($taskCase in $taskCases){
 }
 # Actual controller workflow with task/ACL calls replaced; never creates a real task.
 function Assert-TimeObservationAcl {}
+function Test-TimeAccountCredential {return @{accepted=($script:case -ne 'credentialFailure');win32Code=1326;attempts=1}}
 function Read-TimeObservation {return @{sequence=1;ageSeconds=1}}
 function Get-Acl {return [Security.AccessControl.DirectorySecurity]::new()}
 function Set-Acl {}
@@ -59,7 +67,7 @@ function Disable-ScheduledTask {}
 function Stop-ScheduledTask {}
 function Unregister-ScheduledTask {param($TaskName,$TaskPath,[switch]$Confirm) if($script:case -eq 'cleanup'){throw 'fixture cleanup failure'};$script:task=$null}
 $original=(Get-Command Invoke-TimeAccountProbe).ScriptBlock.ToString()
-foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure')){
+foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure','credentialFailure')){
  $root=Join-Path ([IO.Path]::GetTempPath()) ('mb-time-account-fixture-'+[guid]::NewGuid().ToString('N'))
  $null=New-Item -ItemType Directory -Path $root
  $script:task=$null;$script:started=0
@@ -67,11 +75,12 @@ foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure
  if($result.passed -ne ($case -eq 'valid')){throw "Workflow result incorrect: $case $($result.failure)"}
  if($case -eq 'drift' -and $started){throw 'Drifted task started'}
  if($case -eq 'drift' -and ($result.stage -ne 'VERIFY_REGISTERED_TASK' -or 'RUN_LEVEL' -notin $result.taskValidation.reasons -or $result.failureDetail -like 'Scheduler registration failed*')){throw 'Incorrect task drift evidence'}
- if($case -notin @('cleanup','registerFailure') -and -not $result.taskRemoved){throw 'Temporary task not removed'}
+ if($case -notin @('cleanup','registerFailure','credentialFailure') -and -not $result.taskRemoved){throw 'Temporary task not removed'}
+ if($case -eq 'credentialFailure' -and ($started -or $result.taskCreated -or $result.credentialCheck.attempts -ne 1 -or $result.stage -ne 'WINDOWS_CREDENTIAL_CHECK')){throw 'Credential failure did not stop before scheduling'}
  if($case -eq 'registerFailure' -and ($result.taskCreated -or $started -or 1326 -notin $result.nativeFailure.win32Codes -or ($result|ConvertTo-Json -Depth 10) -match 'fixture secret')){throw 'Registration diagnostics leaked or missing'}
  if($case -eq 'cleanup' -and -not $result.cleanupFailure){throw 'Cleanup failure not retained'}
 }
-Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 5 isolated workflows.'
+Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 6 isolated workflows.'
 
 $blocked=$false;try{Invoke-TimeAccountProbe 'fixture'}catch{$blocked=$_.Exception.Message -eq 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'};if(-not $blocked){throw 'Missing credential not blocked'}
 
