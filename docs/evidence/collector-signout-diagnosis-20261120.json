@@ -1,0 +1,107 @@
+{
+    "ownerObservation":  "Docker started automatically after login; MarketBrain service was started manually before restarting the elevated automation runner.",
+    "version":  1,
+    "scope":  "Read-only diagnosis. Exact first failed sample cause not captured; recovery gap confirmed.",
+    "revision":  "162e7ead66347245c95ae93ecce602569107a00a",
+    "diagnostic":  {
+                       "status":  {
+                                      "processId":  4400,
+                                      "consecutiveFailures":  3,
+                                      "failure":  "COLLECTOR_REVOCATION_UNCONFIRMED",
+                                      "phase":  "FAILED",
+                                      "version":  1,
+                                      "acceptedCount":  13,
+                                      "sequence":  18,
+                                      "finalHealthRevoked":  false,
+                                      "observedUtc":  "2026-11-20T20:57:16.3692032+05:30",
+                                      "instanceId":  "9e0e85a010c2457887faa0fe8efdb6a1",
+                                      "ordersEnabled":  false
+                                  },
+                       "application":  {
+                                           "readOnly":  true,
+                                           "files":  {
+                                                         "installation.json":  true,
+                                                         "key-custody\\manifest.json":  false,
+                                                         "token-custody\\health-token.dpapi":  true
+                                                     },
+                                           "applicationUp":  true,
+                                           "applicationHttpStatus":  200,
+                                           "credentialsRead":  false,
+                                           "healthTasks":  [
+                                                               {
+                                                                   "name":  "MarketBrain-Health-Clock-Probe-3f20293aade542e7985c9055f2c2a79a",
+                                                                   "state":  "Disabled",
+                                                                   "enabled":  false,
+                                                                   "logonType":  "Password"
+                                                               },
+                                                               {
+                                                                   "name":  "MarketBrain-Health-Clock-Probe-5320e935c0034206bc0aed37383d20d4",
+                                                                   "state":  "Disabled",
+                                                                   "enabled":  false,
+                                                                   "logonType":  "Password"
+                                                               },
+                                                               {
+                                                                   "name":  "MarketBrain-Health-Collector-v1",
+                                                                   "state":  "Disabled",
+                                                                   "enabled":  false,
+                                                                   "logonType":  "Password"
+                                                               },
+                                                               {
+                                                                   "name":  "MarketBrain-HealthCheck",
+                                                                   "state":  "Ready",
+                                                                   "enabled":  true,
+                                                                   "logonType":  "Interactive"
+                                                               }
+                                                           ]
+                                       },
+                       "failures":  [
+
+                                    ],
+                       "task":  {
+                                    "enabled":  false,
+                                    "state":  "Disabled",
+                                    "lastResult":  1,
+                                    "lastRunUtc":  "2026-11-20T15:25:25.0000000Z"
+                                },
+                       "interactive":  {
+                                           "userSidHash":  "BEB5D4CE569E9B9A6CB1A960649B733B3068ACA6AFACAA361F55559A5766FD7A",
+                                           "sessionId":  9,
+                                           "authenticationId":  "000000002116C29E"
+                                       },
+                       "ordersEnabled":  false,
+                       "readOnly":  true,
+                       "docker":  {
+                                      "startedAt":  "2026-11-20T15:29:46.631659063Z",
+                                      "restartCount":  0,
+                                      "state":  "running",
+                                      "containerId":  "1644e08701f13e4cf8df734d516e2e04a098c7a88cb0cb55597996f71204c6ad",
+                                      "readOnly":  true,
+                                      "finishedAt":  "2026-11-20T15:29:02.541090458Z",
+                                      "restartPolicy":  "no"
+                                  },
+                       "worker":  {
+                                      "sessionId":  0,
+                                      "clockVerified":  true,
+                                      "stage":  "TOKEN_AND_LOCAL_AUTHENTICATION",
+                                      "failure":  "COLLECTOR_RUNTIME_FAILED",
+                                      "tokenAuthenticated":  true,
+                                      "nonAdmin":  true,
+                                      "collector":  {
+                                                        "processId":  4400,
+                                                        "consecutiveFailures":  3,
+                                                        "failure":  "COLLECTOR_REVOCATION_UNCONFIRMED",
+                                                        "phase":  "FAILED",
+                                                        "version":  1,
+                                                        "acceptedCount":  13,
+                                                        "sequence":  18,
+                                                        "finalHealthRevoked":  false,
+                                                        "observedUtc":  "2026-11-20T20:57:16.3692032+05:30",
+                                                        "instanceId":  "9e0e85a010c2457887faa0fe8efdb6a1",
+                                                        "ordersEnabled":  false
+                                                    },
+                                      "applicationLocked":  true,
+                                      "runId":  "ab47639ee8d74da69a9466c0f59e601e"
+                                  }
+                   },
+    "queueJobId":  "27b95997-092d-4b6f-98f9-05196b7ca986"
+}
