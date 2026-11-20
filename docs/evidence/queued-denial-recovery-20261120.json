@@ -1,0 +1,772 @@
+{
+  "scope": "queued denial recovery; no broker credentials or orders",
+  "jobs": [
+    {
+      "id": "39ad5ceb-6f3b-44ea-9ed0-1b6fcd61b7d2",
+      "kind": "diagnostic",
+      "state": "SUCCEEDED",
+      "created": 1795154969.1459494,
+      "updated": 1795154989.26907,
+      "result": {
+        "windowsTimeService": "Running",
+        "runnerSha256": "8E5E062EC807098BFB1DA230EBCF6EE6F8E0478E363CB7C465858A5FE997E537",
+        "paytmObservation": {
+          "loopbackTcpConnected": false,
+          "sshReachability": [
+            {
+              "outcome": "SSH_IDENTIFICATION_RECEIVED",
+              "scope": "OPERATOR_NOT_GATEWAY_IDENTITY",
+              "address": "130.250.191.137",
+              "gatewayChanged": false,
+              "receivedBytes": 41,
+              "sshIdentificationReceived": true,
+              "port": 22,
+              "elapsedMilliseconds": 183,
+              "authenticationAttempted": false,
+              "observedUtc": "2026-11-20T06:09:48.5928430+00:00",
+              "tcpConnected": true,
+              "ordersEnabled": false,
+              "hostIdentityVerified": false
+            },
+            {
+              "outcome": "SSH_IDENTIFICATION_RECEIVED",
+              "scope": "OPERATOR_NOT_GATEWAY_IDENTITY",
+              "address": "130.250.191.137",
+              "gatewayChanged": false,
+              "receivedBytes": 41,
+              "sshIdentificationReceived": true,
+              "port": 22,
+              "elapsedMilliseconds": 155,
+              "authenticationAttempted": false,
+              "observedUtc": "2026-11-20T06:09:48.7769497+00:00",
+              "tcpConnected": true,
+              "ordersEnabled": false,
+              "hostIdentityVerified": false
+            }
+          ],
+          "windowsSource": {
+            "timedOut": false,
+            "stderr": "",
+            "elapsedSeconds": 0.0351193,
+            "stdout": "time.windows.com,0x8 \n",
+            "exitCode": 0
+          },
+          "proxyObservations": [
+            {
+              "connectTimeoutSeconds": 2,
+              "observation": {
+                "timedOut": false,
+                "stderr": "curl: (28) Connection timed out after 2001 milliseconds\r\n",
+                "elapsedSeconds": 2.0600341,
+                "stdout": "000|000||0.000000|0.000000|2.001249",
+                "exitCode": 28
+              }
+            },
+            {
+              "connectTimeoutSeconds": 8,
+              "observation": {
+                "timedOut": false,
+                "stderr": "curl: (7) Failed to connect to 127.0.0.1 port 18889 after 2038 ms: Could not connect to server\r\n",
+                "elapsedSeconds": 2.1061065,
+                "stdout": "000|000||0.000000|0.000000|2.065374",
+                "exitCode": 7
+              }
+            }
+          ],
+          "gatewaySupervisor": {
+            "sshAgentService": {
+              "startType": "Automatic",
+              "status": "Running"
+            },
+            "localRecovery": {
+              "fields": {
+                "recoveryMode": "PAIRED_CAPTURE_RESUME_APPLICATION_LOCKED",
+                "cleanupFailure": null,
+                "stage": "COMPLETE",
+                "accountPreserved": true,
+                "applicationHealthPending": true,
+                "nativeRecoveryAttempted": true,
+                "nativeRecovery": {
+                  "keyImported": false,
+                  "backupVerified": true,
+                  "startAttempts": 1,
+                  "healthy": true,
+                  "installedCodeChanged": false
+                },
+                "version": 1,
+                "sourceHashes": {
+                  "RunPaytmGatewaySupervisor.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+                  "PaytmGatewayFailureEvidence.ps1": "639E9FB0E24A6FA96AAB6767C0BBB01C1FFBE88DE2F5161CA5F0250663BF73E2",
+                  "PaytmPairedCaptureResume.ps1": "A94A91558620DE2116EBB0B1CA40E169F4C2BAF795EFBC03A7B748CFEE9D4404",
+                  "PaytmNativeRecovery.ps1": "97D2AB445E5FA68824A4A3EA48B3D8E2073585C3941A9841EA30CB46BA2F8671",
+                  "RepairPaytmNativeProcess.ps1": "331D517256A00F1529D463D4842770805E596A2C9C21C36989BC710D3D39572B",
+                  "PaytmGatewayRestart.ps1": "AA9E39DCE308D5AE73CC005242EF8F0986C77E675F3A26AE43CC28D9922DC2EE"
+                },
+                "brokerCredentialsUsed": false,
+                "elapsedSeconds": 1835.634,
+                "soakPassed": true,
+                "runId": "4560308b0f274b87b48d4eff857e2b2e",
+                "status": "TRANSPORT_STABILITY_PASSED_APPLICATION_HEALTH_PENDING",
+                "soak": {
+                  "elapsedSeconds": 1810.146,
+                  "observations": 127,
+                  "requiredSeconds": 1800
+                },
+                "ordersEnabled": false,
+                "failureStopVerified": false,
+                "finalApplicationLockVerified": true,
+                "failure": null
+              },
+              "state": "READ"
+            },
+            "files": {
+              "startup-failure.json": {
+                "fields": {
+                  "networkContacted": false,
+                  "details": {
+                    "hresult": -2146233087,
+                    "type": "RuntimeException",
+                    "outerType": "RuntimeException",
+                    "line": 128
+                  },
+                  "processId": 19100,
+                  "failure": "TRANSPORT_DENIAL_FAILED",
+                  "ordersEnabled": false,
+                  "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+                  "version": 1,
+                  "stage": "OBSERVATION_LOOP",
+                  "instanceId": "1f2c636c108042898f3c58143e00d9c7"
+                },
+                "state": "READ"
+              },
+              "blocked.json": {
+                "fields": {
+                  "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+                  "failure": "TRANSPORT_DENIAL_FAILED"
+                },
+                "state": "READ"
+              },
+              "transport-control.json": {
+                "fields": {
+                  "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+                  "version": 1,
+                  "mode": "ENABLED"
+                },
+                "state": "READ"
+              },
+              "control.json": {
+                "fields": {
+                  "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+                  "version": 1,
+                  "mode": "LOCKED"
+                },
+                "state": "READ"
+              },
+              "status.json": {
+                "fields": {
+                  "agentIdentityVerified": true,
+                  "failure": "TRANSPORT_DENIAL_FAILED",
+                  "transportVersion": 1,
+                  "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+                  "privateCopyAbsent": true,
+                  "signingVerified": true,
+                  "transportState": {
+                    "failures": 3,
+                    "attempts": 26,
+                    "action": "NONE",
+                    "reason": "CONNECTING",
+                    "brokerReady": false,
+                    "ordersEnabled": false,
+                    "lastSeconds": 7201,
+                    "retryAtSeconds": 7196,
+                    "phase": "CONNECTING"
+                  },
+                  "sequence": 3860,
+                  "sessionId": 0,
+                  "phase": "BLOCKED",
+                  "lastSshObservation": {
+                    "exited": true,
+                    "stderrDrained": true,
+                    "stderrSha256": "3D2A7CF267DC6C7AF2F9A08E1030C605A8AE0533C375460DCC3D2FDE50BC1A03",
+                    "authenticated": false,
+                    "stderrCharacters": 524,
+                    "tags": [
+                      "TCP_CONNECT_TIMEOUT"
+                    ],
+                    "version": 1,
+                    "reason": "NETWORK_UNAVAILABLE"
+                  },
+                  "elapsedSeconds": 7201.275,
+                  "version": 1,
+                  "lastSshElapsedSeconds": 3821,
+                  "identityVerified": true,
+                  "lastSshAttempt": 8,
+                  "observedUtc": "2026-11-19T16:40:28.3139792Z",
+                  "transportEnabled": true,
+                  "ordersEnabled": false,
+                  "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+                  "processId": 19100,
+                  "networkContacted": true,
+                  "brokerReady": false
+                },
+                "state": "READ"
+              },
+              "manifest.json": {
+                "fields": {
+                  "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+                  "transportVersion": 1,
+                  "version": 1
+                },
+                "state": "READ"
+              }
+            },
+            "readOnly": true,
+            "localSigningProbe": {
+              "fields": {
+                "networkContacted": false,
+                "cleanupFailure": null,
+                "stage": "COMPLETE",
+                "ordersEnabled": false,
+                "productionStateUnchanged": true,
+                "taskRegistered": true,
+                "status": "SCHEDULED_SIGNING_PASSED_SUPERVISOR_INSTALLATION_PENDING",
+                "taskState": "Ready",
+                "worker": {
+                  "agentIdentityVerified": true,
+                  "stage": "COMPLETE",
+                  "ordersEnabled": false,
+                  "nonAdmin": true,
+                  "privateCopyAbsent": true,
+                  "sessionId": 0,
+                  "version": 1,
+                  "keyImported": false,
+                  "elapsedSeconds": 1.18,
+                  "processId": 16228,
+                  "runId": "ba3fa8bf42434bd1bbb1115f63f4c457",
+                  "nonInteractiveSession": true,
+                  "nativeObservations": [
+                    {
+                      "classification": "EXIT_ZERO",
+                      "stderrCharacters": 0,
+                      "limitSeconds": 10,
+                      "errorType": null,
+                      "operation": "LIST_IDENTITIES",
+                      "elapsedSeconds": 0.481,
+                      "exitCode": 0,
+                      "stdoutCharacters": 85,
+                      "timedOut": false
+                    },
+                    {
+                      "classification": "EXIT_ZERO",
+                      "stderrCharacters": 0,
+                      "limitSeconds": 10,
+                      "errorType": null,
+                      "operation": "SIGN_1",
+                      "elapsedSeconds": 0.12,
+                      "exitCode": 0,
+                      "stdoutCharacters": 0,
+                      "timedOut": false
+                    },
+                    {
+                      "classification": "EXIT_ZERO",
+                      "stderrCharacters": 0,
+                      "limitSeconds": 10,
+                      "errorType": null,
+                      "operation": "SIGN_2",
+                      "elapsedSeconds": 0.1,
+                      "exitCode": 0,
+                      "stdoutCharacters": 0,
+                      "timedOut": false
+                    }
+                  ],
+                  "signingChecks": 2,
+                  "identityVerified": true,
+                  "networkContacted": false,
+                  "failure": null
+                },
+                "version": 1,
+                "lastTaskResult": 0,
+                "sourceHashes": {
+                  "Invoke-LocalGatewaySigning.ps1": "B7BB5904E24C2122ED425E4304EF09E8FC5A89A630464FBDF9975918C3C9A5E2",
+                  "PaytmGatewayScheduledProbe.ps1": "5D473A9F234E2AB5D4C8EE80DC57D370DBFB439A1F20379E880EB367778E47E3",
+                  "PaytmGatewayAccountRepair.ps1": "2AA61943D64AC10C5EF384C3F4BDEC16EBC75B5C676480CA7F8851EE0688142B",
+                  "TestPaytmGatewayScheduledSigning.ps1": "DBA1CD184F1EFFDA3AB145C052242E0DF0938FC5A0AA394137A5286A30BD0CBE",
+                  "PaytmGatewayAccount.ps1": "9E64140801D7CC044117206E8411277F9CEA120614EACD5A8E90EE68016D405A",
+                  "PaytmGatewayKeyCustody.ps1": "2D0CEDE38E0B3314915FBDB1FEC69E328560F8EFC48DAE86F8BA4F40050FC463"
+                },
+                "keyImported": false,
+                "taskRemoved": true,
+                "runId": "ba3fa8bf42434bd1bbb1115f63f4c457",
+                "taskStarted": true,
+                "agentChanged": false,
+                "failure": null,
+                "elapsedSeconds": 55.225,
+                "taskDisabled": true
+              },
+              "state": "READ"
+            },
+            "task": {
+              "timedOut": false,
+              "stderr": "#< CLIXML\r\n<Objs Version=\"1.1.0.1\" xmlns=\"http://schemas.microsoft.com/powershell/2004/04\"><Obj S=\"progress\" RefId=\"0\"><TN RefId=\"0\"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N=\"SourceId\">1</I64><PR N=\"Record\"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj><Obj S=\"progress\" RefId=\"1\"><TNRef RefId=\"0\" /><MS><I64 N=\"SourceId\">2</I64><PR N=\"Record\"><AV>Get-ScheduledTask -TaskName 'Mar",
+              "elapsedSeconds": 1.7356157,
+              "stdout": "{\"runLevel\":\"Limited\",\"lastRunTime\":\"2026-11-19T20:10:40.0000000+05:30\",\"lastTaskResult\":1,\"logonType\":\"Password\",\"state\":\"Ready\",\"actionCount\":1,\"enabled\":true}\r\n",
+              "exitCode": 0
+            },
+            "capturedUtc": "2026-11-20T06:09:37.8740001+00:00",
+            "secondStatus": {
+              "fields": {
+                "agentIdentityVerified": true,
+                "failure": "TRANSPORT_DENIAL_FAILED",
+                "transportVersion": 1,
+                "installationId": "ea8b91471cf048aa97a0f6b939b355c7",
+                "privateCopyAbsent": true,
+                "signingVerified": true,
+                "transportState": {
+                  "failures": 3,
+                  "attempts": 26,
+                  "action": "NONE",
+                  "reason": "CONNECTING",
+                  "brokerReady": false,
+                  "ordersEnabled": false,
+                  "lastSeconds": 7201,
+                  "retryAtSeconds": 7196,
+                  "phase": "CONNECTING"
+                },
+                "sequence": 3860,
+                "sessionId": 0,
+                "phase": "BLOCKED",
+                "lastSshObservation": {
+                  "exited": true,
+                  "stderrDrained": true,
+                  "stderrSha256": "3D2A7CF267DC6C7AF2F9A08E1030C605A8AE0533C375460DCC3D2FDE50BC1A03",
+                  "authenticated": false,
+                  "stderrCharacters": 524,
+                  "tags": [
+                    "TCP_CONNECT_TIMEOUT"
+                  ],
+                  "version": 1,
+                  "reason": "NETWORK_UNAVAILABLE"
+                },
+                "elapsedSeconds": 7201.275,
+                "version": 1,
+                "lastSshElapsedSeconds": 3821,
+                "identityVerified": true,
+                "lastSshAttempt": 8,
+                "observedUtc": "2026-11-19T16:40:28.3139792Z",
+                "transportEnabled": true,
+                "ordersEnabled": false,
+                "instanceId": "1f2c636c108042898f3c58143e00d9c7",
+                "processId": 19100,
+                "networkContacted": true,
+                "brokerReady": false
+              },
+              "state": "READ"
+            }
+          },
+          "ordersEnabled": false,
+          "listenerInspectionError": "CimJobException",
+          "scope": "INTERACTIVE_OPERATOR_READ_ONLY_NOT_HEALTH_ACCOUNT_ACCEPTANCE",
+          "permissionChanges": false,
+          "windowsStatus": {
+            "timedOut": false,
+            "stderr": "",
+            "elapsedSeconds": 0.0415296,
+            "stdout": "Leap Indicator: 0(no warning)\nStratum: 5 (secondary reference - syncd by (S)NTP)\nPrecision: -23 (119.209ns per tick)\nRoot Delay: 0.0653464s\nRoot Dispersion: 0.4472604s\nReferenceId: 0x28515E41 (source IP:  40.81.94.65)\nLast Successful Sync Time: 11/20/2026 11:35:04 AM\nSource: time.windows.com,0x8 \nPoll Interval: 11 (2048s)\n\nPhase Offset: 0.0922131s\nClockRate: 0.0156248s\nState Machine: 2 (Sync)\nTime Source Flags: 0 (None)\nServer Role: 0 (None)\nLast Sync Error: 0 (The command completed successfully.)\nTime since Last Good Sync Time: 276.8407527s\n\n",
+            "exitCode": 0
+          },
+          "elevated": true
+        },
+        "observedUtc": "2026-11-20T06:09:37.8540961+00:00",
+        "powershell": "7.7.0",
+        "elapsedSeconds": 11.0946404,
+        "supportedJobs": [
+          "diagnostic",
+          "intervention-test",
+          "paytm-transport-test",
+          "paytm-denial-recovery"
+        ],
+        "ordersEnabled": false,
+        "executionSha256": "CB083CE2F60173031C446A613888B4A9EFC44E5114F413F2C967588E04AE867D",
+        "interactive": true,
+        "diagnosticsSha256": "5A448DAC41174F9DC8A90894BB06A7573FF07417174E2EEA998075F26B8AB514",
+        "sessionId": 5
+      },
+      "spec": null
+    },
+    {
+      "id": "9b7b4582-a222-4fb5-b5c4-9d4dec7b07da",
+      "kind": "paytm-denial-recovery",
+      "state": "FAILED",
+      "created": 1795155013.9299846,
+      "updated": 1795155023.8692818,
+      "result": {
+        "passed": false,
+        "ordersEnabled": false,
+        "revision": "a15301e5be187ea7ad188bf7105b183fb804dfa5",
+        "sourceSha256": "DAD35C5AECDDDDBDE9A353B09FAD35C2BF108F71316FAF08651D4D1377C74ACA",
+        "exitCode": 1,
+        "stdoutCharacters": 0,
+        "elapsedSeconds": 2.7000102,
+        "timedOut": false,
+        "evidence": {
+          "failureLine": 247,
+          "brokerCredentialsUsed": false,
+          "instrumentationInstalled": false,
+          "guardRegistered": false,
+          "mode": "Observe",
+          "preflight": {
+            "readOnly": true,
+            "task": {
+              "enabled": true,
+              "lastTaskResult": 1,
+              "state": "Ready",
+              "lastRunUtc": "2026-11-19T14:40:40.0000000Z"
+            },
+            "failure": null,
+            "readyForReviewedRecovery": true,
+            "hashes": {
+              "runner.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+              "manifest.json": "343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98",
+              "blocked.json": "CE8ADFE890F9BD641B5AC010F97B9392F678F1D60E595233820B14841E4C090E",
+              "status.json": "D39BD1F0E645DE8FBB0E1C4E84F43030638AE35DC8020F8E0032FE6BEB4BFBF6",
+              "startup-failure.json": "CCFCCFCE7A1823FAE9C7904EC23C933C7B021B4604AE1CA552A18070D91751EB",
+              "gateway.ps1": "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453",
+              "transport.ps1": "AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1",
+              "session-checkpoint.json": "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+              "native.dll": "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+              "transport.dll": "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6",
+              "host.ps1": "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+              "transport-control.json": "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B",
+              "control.json": "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39"
+            },
+            "checks": {
+              "taskIdentityAndIdleVerified": true,
+              "noListenerAndStableFiles": true,
+              "incidentAndControlVerified": true,
+              "installedSourcesVerified": true,
+              "exclusiveLeaseAvailable": true
+            }
+          },
+          "elapsedSeconds": 1.2283669,
+          "startAttempts": 0,
+          "guardRemoved": false,
+          "test": "PINNED_DENIAL_RECOVERY",
+          "passed": false,
+          "archivedMarkersCleared": false,
+          "backupVerified": false,
+          "transportObserved": false,
+          "finalStoppedAndDisabled": false,
+          "ordersEnabled": false,
+          "version": 1,
+          "failure": "RECOVERY_ACCEPTED_TASK_DRIFT",
+          "cleanupFailure": null
+        },
+        "stderrCharacters": 0
+      },
+      "spec": {
+        "mode": "Observe",
+        "sha256": "DAD35C5AECDDDDBDE9A353B09FAD35C2BF108F71316FAF08651D4D1377C74ACA",
+        "revision": "a15301e5be187ea7ad188bf7105b183fb804dfa5"
+      }
+    },
+    {
+      "id": "f8d16b12-4c9f-42f6-bd5f-f6f37d84219c",
+      "kind": "paytm-denial-recovery",
+      "state": "SUCCEEDED",
+      "created": 1795155161.6443937,
+      "updated": 1795155166.7618933,
+      "result": {
+        "passed": true,
+        "ordersEnabled": false,
+        "revision": "446d8192ea58e2607fd8b68f6ca8793a556dc33a",
+        "sourceSha256": "86E4A18B63CE4346D8A81C9E9B54C3752D7E7DE7D1C6AFFA04E30DD3D68396D1",
+        "exitCode": 0,
+        "stdoutCharacters": 0,
+        "elapsedSeconds": 2.5318353,
+        "timedOut": false,
+        "evidence": {
+          "guardRemoved": false,
+          "guardRegistered": false,
+          "brokerCredentialsUsed": false,
+          "preflight": {
+            "readyForReviewedRecovery": true,
+            "failure": null,
+            "checks": {
+              "noListenerAndStableFiles": true,
+              "incidentAndControlVerified": true,
+              "exclusiveLeaseAvailable": true,
+              "installedSourcesVerified": true,
+              "taskIdentityAndIdleVerified": true
+            },
+            "readOnly": true,
+            "task": {
+              "lastTaskResult": 1,
+              "lastRunUtc": "2026-11-19T14:40:40.0000000Z",
+              "enabled": true,
+              "state": "Ready"
+            },
+            "hashes": {
+              "status.json": "D39BD1F0E645DE8FBB0E1C4E84F43030638AE35DC8020F8E0032FE6BEB4BFBF6",
+              "startup-failure.json": "CCFCCFCE7A1823FAE9C7904EC23C933C7B021B4604AE1CA552A18070D91751EB",
+              "blocked.json": "CE8ADFE890F9BD641B5AC010F97B9392F678F1D60E595233820B14841E4C090E",
+              "native.dll": "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+              "transport.dll": "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6",
+              "runner.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+              "manifest.json": "343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98",
+              "session-checkpoint.json": "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+              "transport.ps1": "AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1",
+              "transport-control.json": "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B",
+              "host.ps1": "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+              "control.json": "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39",
+              "gateway.ps1": "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453"
+            }
+          },
+          "archivedMarkersCleared": false,
+          "instrumentationInstalled": false,
+          "mode": "Observe",
+          "backupVerified": false,
+          "passed": true,
+          "elapsedSeconds": 1.3539178,
+          "transportObserved": false,
+          "cleanupFailure": null,
+          "failure": null,
+          "version": 1,
+          "test": "PINNED_DENIAL_RECOVERY",
+          "finalStoppedAndDisabled": false,
+          "ordersEnabled": false,
+          "status": "RECOVERY_PREFLIGHT_PASSED_APPLY_PENDING",
+          "startAttempts": 0
+        },
+        "stderrCharacters": 0
+      },
+      "spec": {
+        "revision": "446d8192ea58e2607fd8b68f6ca8793a556dc33a",
+        "sha256": "86E4A18B63CE4346D8A81C9E9B54C3752D7E7DE7D1C6AFFA04E30DD3D68396D1",
+        "mode": "Observe"
+      }
+    },
+    {
+      "id": "649710f6-e95b-4ebc-831b-60a99d22ac69",
+      "kind": "paytm-denial-recovery",
+      "state": "FAILED",
+      "created": 1795155180.717038,
+      "updated": 1795155196.3782341,
+      "result": {
+        "passed": false,
+        "ordersEnabled": false,
+        "revision": "446d8192ea58e2607fd8b68f6ca8793a556dc33a",
+        "sourceSha256": "86E4A18B63CE4346D8A81C9E9B54C3752D7E7DE7D1C6AFFA04E30DD3D68396D1",
+        "exitCode": 1,
+        "stdoutCharacters": 0,
+        "elapsedSeconds": 8.6284561,
+        "timedOut": false,
+        "evidence": {
+          "preflight": {
+            "checks": {
+              "exclusiveLeaseAvailable": true,
+              "incidentAndControlVerified": true,
+              "taskIdentityAndIdleVerified": true,
+              "noListenerAndStableFiles": true,
+              "installedSourcesVerified": true
+            },
+            "task": {
+              "state": "Ready",
+              "lastRunUtc": "2026-11-19T14:40:40.0000000Z",
+              "lastTaskResult": 1,
+              "enabled": true
+            },
+            "hashes": {
+              "session-checkpoint.json": "353E2A30A6FA0085857DF3523FA5DAB858309936CE6C550C814D2BD80E2FFDB5",
+              "startup-failure.json": "CCFCCFCE7A1823FAE9C7904EC23C933C7B021B4604AE1CA552A18070D91751EB",
+              "manifest.json": "343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98",
+              "control.json": "0E0055C44B349A9394BFBD7E97AC13C6F190B5B58BE9EA2CC24F0AECB4302B39",
+              "transport-control.json": "771B4F00BBD8E703E0C53598ECF18FBF6F95374297CEF26699F3E4A3B6AD574B",
+              "host.ps1": "8345B8BF264B4A040A5076E8B94AA030F8F94847A151F8CF547D7D09C5FBDEE1",
+              "native.dll": "3EEF1F0E1251B770CB345248EE627AE897703D6799AB111F58177BC35A110F8C",
+              "status.json": "D39BD1F0E645DE8FBB0E1C4E84F43030638AE35DC8020F8E0032FE6BEB4BFBF6",
+              "transport.ps1": "AB861CA9E1556EC56F5EF149F63A49D407B3AAEB2771C2195B2A6A32A25754F1",
+              "gateway.ps1": "02984F2C16011A2916A06F4B66DE56AF5C88F1469E91F8A2DEC893C24D414453",
+              "runner.ps1": "D143505DBC8565E1984C7A05100D1E565CF113D197E153804877D2FC4EE93CEC",
+              "blocked.json": "CE8ADFE890F9BD641B5AC010F97B9392F678F1D60E595233820B14841E4C090E",
+              "transport.dll": "8AB8A14B23C079AFF9ECEDDFB8897E2E93B3DB6C86B88595D63B3B4C811540B6"
+            },
+            "failure": null,
+            "readOnly": true,
+            "readyForReviewedRecovery": true
+          },
+          "transportObserved": false,
+          "installedTransportSha256": "40343DDDBF1063ACE422922D5D4DAD98B126B04C53ECA40790B174ECA8C9CBCD",
+          "failureLine": 138,
+          "version": 1,
+          "guardRemoved": false,
+          "cleanupFailure": "RECOVERY_GUARD_REGISTRATION_REVIEW_REQUIRED",
+          "mode": "Apply",
+          "startAttempts": 0,
+          "backupVerified": true,
+          "elapsedSeconds": 7.8239679,
+          "ordersEnabled": false,
+          "passed": false,
+          "archivedMarkersCleared": true,
+          "brokerCredentialsUsed": false,
+          "finalStoppedAndDisabled": true,
+          "test": "PINNED_DENIAL_RECOVERY",
+          "failure": "RECOVERY_GUARD_NOT_VERIFIED",
+          "guardRegistered": false,
+          "instrumentationInstalled": true
+        },
+        "stderrCharacters": 0
+      },
+      "spec": {
+        "mode": "Apply",
+        "revision": "446d8192ea58e2607fd8b68f6ca8793a556dc33a",
+        "sha256": "86E4A18B63CE4346D8A81C9E9B54C3752D7E7DE7D1C6AFFA04E30DD3D68396D1"
+      }
+    },
+    {
+      "id": "f325e48e-6aaa-4f7b-bb51-a2866f676206",
+      "kind": "paytm-denial-recovery",
+      "state": "SUCCEEDED",
+      "created": 1795155255.0626311,
+      "updated": 1795155262.4267588,
+      "result": {
+        "passed": true,
+        "ordersEnabled": false,
+        "revision": "6a1a9fc3b612c306fd3536e56a815bca735c477c",
+        "sourceSha256": "AE4D6D0E75A19207F01468FB40D828BF33EB365E69B35C3DFA305DBC6B206A66",
+        "exitCode": 0,
+        "stdoutCharacters": 0,
+        "elapsedSeconds": 4.3752441,
+        "timedOut": false,
+        "evidence": {
+          "guardRemoved": false,
+          "instrumentationInstalled": false,
+          "transportObserved": false,
+          "brokerCredentialsUsed": false,
+          "finalStoppedAndDisabled": false,
+          "startAttempts": 0,
+          "status": "GUARD_INSPECTION_ONLY_RECOVERY_PENDING",
+          "passed": true,
+          "cleanupFailure": null,
+          "test": "PINNED_DENIAL_RECOVERY",
+          "version": 1,
+          "ordersEnabled": false,
+          "archivedMarkersCleared": false,
+          "elapsedSeconds": 2.220825,
+          "guardInspection": {
+            "guardFired": false,
+            "manifestHash": "7DEBDC0E181DF0484E74F5FF4A2AD24D1034A8464A12DD72684A5D3EFFFAAD55",
+            "state": "Ready",
+            "gatewayEnabled": false,
+            "triggers": [
+              {
+                "startBoundary": "2026-11-20T11:46:12+05:30",
+                "enabled": true,
+                "class": "MSFT_TaskTimeTrigger"
+              }
+            ],
+            "settings": {
+              "startWhenAvailable": true,
+              "stopIfGoingOnBatteries": false,
+              "enabled": true,
+              "disallowStartIfOnBatteries": false
+            },
+            "userId": "SYSTEM",
+            "priorJob": "649710f6-e95b-4ebc-831b-60a99d22ac69",
+            "logonType": "ServiceAccount",
+            "runLevel": "Highest",
+            "gatewayState": "Disabled",
+            "actions": [
+              {
+                "execute": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "argumentCharacters": 1123
+              }
+            ]
+          },
+          "failure": null,
+          "mode": "Observe",
+          "guardRegistered": false,
+          "backupVerified": false
+        },
+        "stderrCharacters": 0
+      },
+      "spec": {
+        "mode": "Observe",
+        "sha256": "AE4D6D0E75A19207F01468FB40D828BF33EB365E69B35C3DFA305DBC6B206A66",
+        "revision": "6a1a9fc3b612c306fd3536e56a815bca735c477c"
+      }
+    },
+    {
+      "id": "ea723866-1fa0-45e9-a0e4-586d61d5c267",
+      "kind": "paytm-denial-recovery",
+      "state": "SUCCEEDED",
+      "created": 1795155462.6857786,
+      "updated": 1795155488.2202497,
+      "result": {
+        "passed": true,
+        "ordersEnabled": false,
+        "revision": "a20dfc52d99b28b6bc277ec4abe9ce3e5500f2ad",
+        "sourceSha256": "E749A7DCA0A26A6BA6BD2575809BE87B9C9B88F401647C14DEB088F21B29A9C5",
+        "exitCode": 0,
+        "stdoutCharacters": 0,
+        "elapsedSeconds": 19.744174,
+        "timedOut": false,
+        "evidence": {
+          "version": 1,
+          "finalStoppedAndDisabled": true,
+          "transportObserved": true,
+          "mode": "Apply",
+          "failure": null,
+          "startAttempts": 1,
+          "resumedFrom": "649710f6-e95b-4ebc-831b-60a99d22ac69",
+          "guardRemoved": true,
+          "ordersEnabled": false,
+          "elapsedSeconds": 18.646496,
+          "archivedMarkersCleared": false,
+          "guardRegistered": true,
+          "guardVerification": {
+            "logonType": "ServiceAccount",
+            "actualBoundary": "2026-11-20T11:50:52+05:30",
+            "userId": "SYSTEM",
+            "runLevel": "Highest",
+            "argumentMatch": true,
+            "expectedBoundary": "2026-11-20T06:20:52Z",
+            "executeMatch": true
+          },
+          "status": "DENIAL_RECOVERY_CAPTURE_PASSED_GATEWAY_STOPPED",
+          "lastObservation": {
+            "lastDenialObservation": {
+              "version": 1,
+              "observedUtc": "2026-11-20T06:17:59.8589234Z",
+              "case": "PLAIN_HTTP",
+              "passed": true,
+              "timedOut": false,
+              "exitCode": 0,
+              "metricsParsed": true,
+              "connectStatus": 0,
+              "tlsVerifyCode": 0,
+              "httpStatus": 403,
+              "classification": "EXPECTED_DENIAL"
+            },
+            "instanceId": "dc2c6bb7250543a4af8ad6ad59865762",
+            "sequence": 7,
+            "failure": null,
+            "phase": "TRANSPORT_READY"
+          },
+          "cleanupFailure": null,
+          "instrumentationInstalled": true,
+          "backupVerified": true,
+          "test": "PINNED_DENIAL_RECOVERY",
+          "brokerCredentialsUsed": false,
+          "passed": true
+        },
+        "stderrCharacters": 0
+      },
+      "spec": {
+        "revision": "a20dfc52d99b28b6bc277ec4abe9ce3e5500f2ad",
+        "mode": "Apply",
+        "sha256": "E749A7DCA0A26A6BA6BD2575809BE87B9C9B88F401647C14DEB088F21B29A9C5"
+      }
+    }
+  ],
+  "conclusion": "Bounded recovery passed; instrumented transport reached ready; one start; cleanup verified; gateway intentionally disabled. Original intermittent denial cause not established. Application health and G3 acceptance pending."
+}

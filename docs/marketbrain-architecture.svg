@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1180" viewBox="0 0 1200 1180" role="img" aria-labelledby="title desc">
 
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">Elevated remote runner verified after startup. Five read-only recovery prerequisite groups passed with exact installation and incident hashes. Transport remains blocked and application locked. Separate queued recovery implemented and locally tested; relay and runner catalogue activation pending. One observed start ends stopped and disabled. G3 80 percent.</desc>
+  <desc id="desc">Queued denial recovery accepted remotely: pinned instrumentation, verified backup, one start, transport ready and denial checks passed. Gateway stopped and disabled and guard removed after capture. Application health and unattended acceptance remain pending; G3 80 percent.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -69,5 +69,5 @@
   <rect x="30" y="1060" width="1140" height="96" rx="9" class="planned"/>
   <text x="48" y="1087" class="label">Maintenance automation: separate from trading application</text>
   <text x="48" y="1115" class="body">Development controller &lt;-&gt; VPS HTTPS queue &lt;-&gt; spare Windows runner + local user prompt</text>
-  <text x="48" y="1141" class="small">Queued recovery locally tested; catalogue activation and spare-machine capture pending</text>
+  <text x="48" y="1141" class="small">Queued recovery passed remotely; gateway disabled after capture; application health pending</text>
 </svg>
