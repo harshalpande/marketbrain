@@ -56,12 +56,13 @@ if([string](Get-ScheduledTask -TaskName '$($Context.taskName)' -TaskPath '\').St
     if(Get-ScheduledTask -TaskName $Context.guardName -TaskPath '\' -ErrorAction SilentlyContinue){throw 'RECOVERY_GUARD_ALREADY_EXISTS'}
     $null=Register-ScheduledTask -TaskName $Context.guardName -TaskPath '\' -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description ('MarketBrain bounded denial capture '+$Context.runId) -ErrorAction Stop
     $guard=Get-ScheduledTask -TaskName $Context.guardName -TaskPath '\'
+    $Context.guardVerification=@{expectedBoundary=$trigger.StartBoundary;actualBoundary=$guard.Triggers[0].StartBoundary;argumentMatch=($guard.Actions[0].Arguments -ceq $args);executeMatch=($guard.Actions[0].Execute -ieq $action.Execute);userId=$guard.Principal.UserId;logonType=[string]$guard.Principal.LogonType;runLevel=[string]$guard.Principal.RunLevel}
     if($guard.Actions.Count -ne 1 -or $guard.Actions[0].Arguments -cne $args -or
        $guard.Actions[0].Execute -ine $action.Execute -or -not $guard.Settings.Enabled -or
        $guard.Principal.UserId -notin @('S-1-5-18','SYSTEM','NT AUTHORITY\SYSTEM') -or
        [string]$guard.Principal.LogonType -ne 'ServiceAccount' -or
        [string]$guard.Principal.RunLevel -ne 'Highest' -or
-       $guard.Triggers.Count -ne 1 -or $guard.Triggers[0].StartBoundary -cne $trigger.StartBoundary -or
+       $guard.Triggers.Count -ne 1 -or [DateTimeOffset]::Parse($guard.Triggers[0].StartBoundary) -ne [DateTimeOffset]::Parse($trigger.StartBoundary) -or
        -not $guard.Settings.StartWhenAvailable -or $guard.Settings.DisallowStartIfOnBatteries -or
        $guard.Settings.StopIfGoingOnBatteries){throw 'RECOVERY_GUARD_NOT_VERIFIED'}
     $Context.guardXmlHash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes((Export-ScheduledTask -TaskName $Context.guardName -TaskPath '\'))))
@@ -70,6 +71,59 @@ function Remove-DenialRecoveryGuard($Context) {
     $xml=Export-ScheduledTask -TaskName $Context.guardName -TaskPath '\'
     if([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($xml))) -cne $Context.guardXmlHash){throw 'RECOVERY_GUARD_DRIFT'}
     Unregister-ScheduledTask -TaskName $Context.guardName -TaskPath '\' -Confirm:$false -ErrorAction Stop
+}
+function Resume-DenialRecoveryCapture($Context,$Receipt,$Report) {
+    $prior='649710f6-e95b-4ebc-831b-60a99d22ac69'
+    $archive=Join-Path $Context.root ('denial-recovery-'+$prior)
+    $manifestHash='7DEBDC0E181DF0484E74F5FF4A2AD24D1034A8464A12DD72684A5D3EFFFAAD55'
+    $lease=$null;$guardAttempted=$false
+    try {
+        $lease=[IO.File]::Open((Join-Path $Context.work 'instance.lock'),'Open','ReadWrite','None')
+        foreach($name in $Receipt.hashes.Keys){
+            if((Get-FileHash -LiteralPath (Join-Path $archive $name)).Hash -cne $Receipt.hashes[$name]){throw 'RECOVERY_BACKUP_DRIFT'}
+            $dir=if($name -in @('status.json','blocked.json','startup-failure.json')){$Context.work}else{$Context.root}
+            $path=Join-Path $dir $name
+            if($name -in @('blocked.json','startup-failure.json')){if(Test-Path -LiteralPath $path){throw 'RECOVERY_NEW_INCIDENT'};continue}
+            $expected=switch($name){'manifest.json'{$manifestHash} 'transport.ps1'{'40343DDDBF1063ACE422922D5D4DAD98B126B04C53ECA40790B174ECA8C9CBCD'} default{$Receipt.hashes[$name]}}
+            if((Get-Item -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint -or (Get-FileHash -LiteralPath $path).Hash -cne $expected){throw 'RECOVERY_RESUME_DRIFT'}
+        }
+        $t=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
+        $i=Get-ScheduledTaskInfo -TaskName $Context.taskName -TaskPath '\'
+        if([string]$t.State -cne 'Disabled' -or $t.Settings.Enabled -or $i.LastTaskResult -ne 1 -or $i.LastRunTime.ToUniversalTime().ToString('o') -cne $Receipt.task.lastRunUtc){throw 'RECOVERY_TASK_CHANGED'}
+        $saved=[xml][IO.File]::ReadAllText((Join-Path $archive 'task.xml'))
+        $current=[xml](Export-ScheduledTask -TaskName $Context.taskName -TaskPath '\')
+        if($saved.Task.Actions.OuterXml -cne $current.Task.Actions.OuterXml -or $saved.Task.Principals.OuterXml -cne $current.Task.Principals.OuterXml -or $t.Description -cne 'MarketBrain locked supervisor ea8b91471cf048aa97a0f6b939b355c7'){throw 'RECOVERY_TASK_IDENTITY_DRIFT'}
+        if(@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()|Where-Object Port -EQ 18889).Count){throw 'RECOVERY_LISTENER_PRESENT'}
+        $oldName='MarketBrain-Denial-Guard-'+$prior
+        $g=Get-ScheduledTask -TaskName $oldName -TaskPath '\'
+        $guardPath=Join-Path $archive 'guard.ps1';$hash=(Get-FileHash -LiteralPath $guardPath).Hash
+        $command="if((Get-FileHash -LiteralPath '$guardPath').Hash -cne '$hash'){exit 4};&([scriptblock]::Create([IO.File]::ReadAllText('$guardPath')))"
+        $expectedArgs='-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+        if([string]$g.State -in @('Running','Queued') -or $g.Description -cne ('MarketBrain bounded denial capture '+$prior) -or $g.Actions.Count -ne 1 -or $g.Actions[0].Arguments -cne $expectedArgs -or $g.Actions[0].Execute -ine 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'){throw 'RECOVERY_PRIOR_GUARD_DRIFT'}
+        if(Test-Path -LiteralPath $Context.archive){throw 'RECOVERY_ARCHIVE_ALREADY_EXISTS'}
+        $null=New-Item -ItemType Directory -Path $Context.archive
+        [IO.File]::WriteAllText((Join-Path $Context.archive 'previous-guard.xml'),(Export-ScheduledTask -TaskName $oldName -TaskPath '\'))
+        Unregister-ScheduledTask -TaskName $oldName -TaskPath '\' -Confirm:$false -ErrorAction Stop
+        $Report.resumedFrom=$prior;$Report.backupVerified=$true;$Report.instrumentationInstalled=$true
+        $guardAttempted=$true
+        Register-DenialRecoveryGuard $Context $manifestHash
+        $Report.guardRegistered=$true;Save-DenialRecoveryResult $Context $Report
+        $lease.Dispose();$lease=$null
+        $null=Enable-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
+        $Report.startAttempts=1;Save-DenialRecoveryResult $Context $Report
+        Start-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
+        Wait-DenialRecoveryObservation $Context $Report
+        $Report.transportObserved=$true
+    } finally {
+        if($lease){$lease.Dispose()}
+        if($guardAttempted){
+            try{Stop-DenialRecoveryTask $Context;$Report.finalStoppedAndDisabled=$true}catch{$Report.cleanupFailure='RECOVERY_STOP_NOT_VERIFIED'}
+            if($Report.finalStoppedAndDisabled -and $Context.guardXmlHash){
+                try{Remove-DenialRecoveryGuard $Context;$Report.guardRemoved=$true}catch{$Report.cleanupFailure='RECOVERY_GUARD_CLEANUP_REQUIRED'}
+            }
+            Save-DenialRecoveryResult $Context $Report
+        }
+    }
 }
 function Wait-DenialRecoveryObservation($Context,$Report) {
     $watch=[Diagnostics.Stopwatch]::StartNew();$first=$null

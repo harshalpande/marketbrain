@@ -27,6 +27,13 @@ try {
         $report.status='GUARD_INSPECTION_ONLY_RECOVERY_PENDING';$report.passed=$true
         return
     }
+    if($Mode -ceq 'Apply' -and (Test-Path -LiteralPath $priorArchive)){
+        Resume-DenialRecoveryCapture $ctx $acceptedRecoveryReceipt $report
+        $report.passed=$report.transportObserved -and $report.finalStoppedAndDisabled -and $report.guardRemoved -and -not $report.cleanupFailure
+        $report.status=if($report.passed){'DENIAL_RECOVERY_CAPTURE_PASSED_GATEWAY_STOPPED'}else{'DENIAL_RECOVERY_REVIEW_REQUIRED'}
+        if(-not $report.passed){throw 'RECOVERY_RESUME_INCOMPLETE'}
+        return
+    }
     $before=Get-DenialRecoveryPreflight (Read-BoundedJson (Join-Path $ctx.work 'status.json'))
     $report.preflight=$before
     if(-not $before.readyForReviewedRecovery){throw 'RECOVERY_PREFLIGHT_FAILED'}
@@ -49,5 +56,5 @@ try {
     $report.passed=$false
     $report.failure=if($_.Exception.Message -cmatch '^RECOVERY_[A-Z_]+$'){$_.Exception.Message}else{'RECOVERY_'+$_.Exception.GetType().Name}
     $report.failureLine=$_.InvocationInfo.ScriptLineNumber
-} finally {$report.elapsedSeconds=$clock.Elapsed.TotalSeconds;Save-DenialRecoveryResult $ctx $report}
+} finally {if($ctx.guardVerification){$report.guardVerification=$ctx.guardVerification};$report.elapsedSeconds=$clock.Elapsed.TotalSeconds;Save-DenialRecoveryResult $ctx $report}
 if(-not $report.passed){exit 1}
