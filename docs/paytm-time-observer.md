@@ -1,5 +1,7 @@
 # Windows time observation for the health collector
 
+2026-11-20: Health-account read accepted via queued job 49dbc14d-8f2f-46a6-91fc-64fbe228dcc4: credential accepted, non-admin/session 0, three advancing snapshots age 0.51-1.01 seconds, both writes denied, task exit 0 and removed. G3 remains 80%; next full collector publication/revocation. Read-only gateway preflight 0ad8d810 stopped on RECOVERY_POST_STATUS_DRIFT against an older exact recovery checkpoint; no start attempted. Observe now preserves current status/task and application inventory before that rejection; mutation checks unchanged.
+
 2026-11-20: Queue job 96cbd8af-7d6e-40d4-8e2f-fb67f14bf299 recovered the local probe: Windows batch logon accepted (code 0), limited task definition valid, then TIME_ACCOUNT_NO_REPORT. Temporary task removed. This is not a password failure. Preserve scheduler exit/status before the missing-report check and collect bounded exact-task operational events via Observe. No authentication replay; G3 remains 80%, readiness 14/30 (46.7%).
 
 The failed scheduled collector reports show that signing, VPS clock access and token authentication succeeded, while local `w32tm` queries returned access denied. Microsoft documents local administrator membership as a requirement for this tool: [Windows Time Service tools and settings](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings).

@@ -25,3 +25,12 @@ if(Update-PostRecoverySample $s $v 10){throw 'Old worker accepted'}
 $failed=$false;try{$null=Update-PostRecoverySample $s $v 46}catch{$failed=$_.Exception.Message -eq 'RECOVERY_START_TIMEOUT'}
 if(-not $failed){throw 'Old worker never times out'}
 Write-Host 'POST_RECOVERY_SAMPLES_PASSED: duration, seven rejection paths, old worker timeout.'
+
+# Read-only mismatch retains evidence without relaxing the original acceptance gate.
+function Get-Item {return @{Attributes=0}}
+function Test-Path {return $false}
+function Read-BoundedJson {return @{instanceId='changed';sequence=50;phase='TRANSPORT_READY';failure=$null;ordersEnabled=$false;brokerReady=$false}}
+function Get-ScheduledTask {return @{State='Disabled';Settings=@{Enabled=$false}}}
+$v=Get-PostRecoveryPreflight @{root='C:\fixture';work='C:\fixture';taskName='fixture'} @{hashes=@{}}
+if($v.passed -or $v.failure -ne 'RECOVERY_POST_STATUS_DRIFT' -or $v.currentStatus.instanceId -ne 'changed' -or $v.currentTask.state -ne 'Disabled'){throw 'Mismatch evidence missing or acceptance weakened'}
+Write-Host 'POST_RECOVERY_MISMATCH_EVIDENCE_PASSED'

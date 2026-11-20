@@ -12,6 +12,9 @@ function Get-PostRecoveryPreflight($Context,$Receipt) {
         }
         foreach($name in @('blocked.json','startup-failure.json')){if(Test-Path -LiteralPath (Join-Path $Context.work $name)){throw 'RECOVERY_NEW_INCIDENT'}}
         $v=Read-BoundedJson (Join-Path $Context.work 'status.json')
+        $r.currentStatus=@{instanceId=$v.instanceId;sequence=$v.sequence;phase=$v.phase;failure=$v.failure;ordersEnabled=$v.ordersEnabled;brokerReady=$v.brokerReady}
+        $taskInventory=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\'
+        $r.currentTask=@{state=[string]$taskInventory.State;enabled=[bool]$taskInventory.Settings.Enabled}
         if($v.instanceId -cne '8df248cef94f4b5baff3d672e0863e17' -or $v.sequence -ne 39 -or $v.phase -cne 'TRANSPORT_READY' -or $v.failure -or $v.ordersEnabled -ne $false -or $v.brokerReady -ne $false){throw 'RECOVERY_POST_STATUS_DRIFT'}
         $r.hashes['status.json']=(Get-FileHash -LiteralPath (Join-Path $Context.work 'status.json')).Hash
         $t=Get-ScheduledTask -TaskName $Context.taskName -TaskPath '\';$i=Get-ScheduledTaskInfo -TaskName $Context.taskName -TaskPath '\'

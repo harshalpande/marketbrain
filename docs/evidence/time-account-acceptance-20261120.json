@@ -1,0 +1,73 @@
+{
+  "jobId": "49dbc14d-8f2f-46a6-91fc-64fbe228dcc4",
+  "probe": {
+    "sourceHashes": {
+      "PaytmTimeObservation.ps1": "F43D01381D295C5B46F8E9C00378F1D0C76A0977C6AE15E56E56E28BD363DCA4",
+      "PaytmTimeAccountProbe.ps1": "138C7ED6CB626F360DC60CF6A01632DA83F8E759546C9F28E8CDB435FE5A3F14",
+      "TestPaytmTimeAccountAccess.ps1": "71FEECBB3F6773FD6381CF2A5D2A2AFB3460F121510E52013700A476B90C37F5"
+    },
+    "taskRemoved": true,
+    "taskExecution": {
+      "lastTaskResult": 0,
+      "lastRunTimeUtc": "2026-11-20T12:18:18.0000000Z",
+      "state": "Ready"
+    },
+    "failure": null,
+    "stage": "START",
+    "authenticationTested": false,
+    "observedUtc": "2026-11-20T12:18:37.4898508+00:00",
+    "taskValidation": {
+      "valid": true,
+      "reasons": [],
+      "actionCount": 1,
+      "argumentsMatch": true,
+      "runLevel": "Limited",
+      "triggerCount": 0,
+      "logonType": "Password",
+      "principalSid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+      "executableMatch": true
+    },
+    "credentialCheck": {
+      "logonType": "BATCH",
+      "win32Code": 0,
+      "attempts": 1,
+      "accepted": true,
+      "resolvedSid": "S-1-5-21-3041730714-102984520-3202743044-1011"
+    },
+    "passed": true,
+    "cleanupFailure": null,
+    "taskCreated": true,
+    "worker": {
+      "samples": [
+        {
+          "sequence": 9779,
+          "ageSeconds": 0.9755483
+        },
+        {
+          "sequence": 9781,
+          "ageSeconds": 0.5137348
+        },
+        {
+          "sequence": 9782,
+          "ageSeconds": 1.0031548
+        }
+      ],
+      "runId": "c18c460f1d854c579a0833a4e00ab8d0",
+      "writeDenied": [
+        "worker.ps1",
+        "snapshot.json"
+      ],
+      "ordersEnabled": false,
+      "sid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+      "sessionId": 0,
+      "passed": true,
+      "admin": false,
+      "failure": null,
+      "credentialsUsed": false
+    },
+    "runId": "c18c460f1d854c579a0833a4e00ab8d0",
+    "healthPublicationTested": false,
+    "taskName": "MarketBrain-Time-Read-Probe-c18c460f1d854c579a0833a4e00ab8d0"
+  },
+  "scope": "Non-admin background snapshot read/write-denial accepted; publication and lifecycle still pending"
+}
