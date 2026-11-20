@@ -45,7 +45,7 @@ function New-ScheduledTaskAction {param($Execute,$Argument) @{Execute=$Execute;A
 function New-ScheduledTaskPrincipal {param($UserId,$LogonType,$RunLevel) @{UserId=$UserId;LogonType=$LogonType;RunLevel=$RunLevel}}
 function New-ScheduledTaskSettingsSet {}
 function New-ScheduledTask {param($Action,$Principal,$Settings) @{Action=$Action;Principal=$Principal}}
-function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) if($script:case -eq 'registerFailure'){throw [Runtime.InteropServices.COMException]::new('fixture secret must not escape',[Convert]::ToInt32('8007052e',16))};$Action=$InputObject.Action;$Principal=$InputObject.Principal; $Principal.UserId='SPARE\marketbrain-health';$script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=$null;State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
+function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$Password) if($script:case -eq 'registerFailure'){throw [Runtime.InteropServices.COMException]::new('fixture secret must not escape',[Convert]::ToInt32('8007052e',16))};if($Password -cne 'fixture-only-not-a-real-password' -or $User -cne ($env:COMPUTERNAME+'\marketbrain-health')){throw 'Credential argument changed in transit'};$Action=$InputObject.Action;$Principal=$InputObject.Principal; $Principal.UserId='SPARE\marketbrain-health';$script:task=@{TaskName=$TaskName;TaskPath=$TaskPath;Actions=@($Action);Principal=$Principal;Triggers=$null;State='Ready'};if($script:case -eq 'drift'){$script:task.Principal.RunLevel='Highest'}}
 function Get-ScheduledTask {if($script:task){return [pscustomobject]$script:task}}
 function Start-ScheduledTask {
  $script:started++

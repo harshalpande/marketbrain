@@ -1,5 +1,8 @@
 # Daily progress and decision log
 
+**2026-11-20: account identity investigation prepared; runner elevation lost.** Owner confirms remembered password. Error1326 alone is not proof of typing error. Added read-only resolution of configured machine/account to SID and bounded Security4625 lookup around the saved report; only expected-user domain/status/substatus/logon type exported, no other users or raw messages. Queue job479029fe-2a97-4ba4-8f3e-9129f2de6ada stopped at ADMIN_REQUIRED before account inspection or authentication; restart the same runner elevated, preserving pending results, then repeat Observe. No password reset or new login attempt. PS5/PS7 tests passed, including event filtering and credential argument preservation. Account/root cause remains unconfirmed; G3 80%, total14/30 (46.7%).
+
+
 **2026-11-20: credential/scheduler diagnostics made explicit.** Latest retrieved local probe68444aeae77840ad8f226747f1fa9fb4 stopped in REGISTER with no task created. Its generic CLR HRESULT cannot establish password correctness. New reporting extracts bounded numeric HRESULT/CIM error data (not raw errors or password arguments), classifies known Windows codes and leaves unknowns inconclusive. Nine native-error fixtures include secret redaction and CIM namespace separation; five workflow cases include registration failure. Report collection uses bounded delete-sharing reads with limited I/O retries, tested against actual replacement plus malformed/oversized/missing files on PS5.1/PS7. Runtime credential diagnosis requires one local rerun; no password reset, permission change or repeated login attempt is automated. G3 remains80%, readiness14/30 (46.7%).
 
 
