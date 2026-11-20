@@ -10,6 +10,23 @@ try {
     if($ctx.runId -cnotmatch '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'){throw 'RECOVERY_JOB_ID_REQUIRED'}
     $ctx.archive=Join-Path $ctx.root ('denial-recovery-'+$ctx.runId)
     $ctx.guardName='MarketBrain-Denial-Guard-'+$ctx.runId
+    $prior='649710f6-e95b-4ebc-831b-60a99d22ac69'
+    $priorArchive=Join-Path $ctx.root ('denial-recovery-'+$prior)
+    if($Mode -ceq 'Observe' -and (Test-Path -LiteralPath $priorArchive)){
+        $g=Get-ScheduledTask -TaskName ('MarketBrain-Denial-Guard-'+$prior) -TaskPath '\' -ErrorAction Stop
+        $task=Get-ScheduledTask -TaskName $ctx.taskName -TaskPath '\'
+        $report.guardInspection=@{
+            priorJob=$prior;state=[string]$g.State;userId=$g.Principal.UserId;logonType=[string]$g.Principal.LogonType;runLevel=[string]$g.Principal.RunLevel
+            actions=@($g.Actions|ForEach-Object {@{execute=$_.Execute;argumentCharacters=$_.Arguments.Length}})
+            triggers=@($g.Triggers|ForEach-Object {@{startBoundary=$_.StartBoundary;enabled=$_.Enabled;class=$_.CimClass.CimClassName}})
+            settings=@{enabled=$g.Settings.Enabled;startWhenAvailable=$g.Settings.StartWhenAvailable;disallowStartIfOnBatteries=$g.Settings.DisallowStartIfOnBatteries;stopIfGoingOnBatteries=$g.Settings.StopIfGoingOnBatteries}
+            gatewayState=[string]$task.State;gatewayEnabled=$task.Settings.Enabled
+            guardFired=(Test-Path -LiteralPath (Join-Path $priorArchive 'guard-fired.json'))
+            manifestHash=(Get-FileHash -LiteralPath (Join-Path $ctx.root 'manifest.json')).Hash
+        }
+        $report.status='GUARD_INSPECTION_ONLY_RECOVERY_PENDING';$report.passed=$true
+        return
+    }
     $before=Get-DenialRecoveryPreflight (Read-BoundedJson (Join-Path $ctx.work 'status.json'))
     $report.preflight=$before
     if(-not $before.readyForReviewedRecovery){throw 'RECOVERY_PREFLIGHT_FAILED'}
