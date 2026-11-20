@@ -21,6 +21,7 @@ function Assert-DurableCollectorReceipt {}
 function Test-Path {param($LiteralPath) if($script:case -like 'prep*' -and $LiteralPath.EndsWith('signout-checkpoint.json')){return $false};return $true}
 function Read-CollectorLifecycleCheckpoint {return $script:checkpoint}
 function Get-CollectorLifecycleSnapshot {return $script:after}
+function Get-CollectorLifecycleDiagnostic {return @{readOnly=$true;ordersEnabled=$false}}
 function Stop-CollectorActivation($Definition,$Report){$script:stops++;if($script:case -eq 'stopFailure'){throw 'FIXTURE_STOP'};$Report.collectorStopped=$true}
 function Stop-DenialRecoveryTask {$script:gatewayStops++}
 function Remove-DenialRecoveryGuard {$script:guardRemoves++}

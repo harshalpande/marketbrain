@@ -50,6 +50,23 @@ function Save-CollectorLifecycleCheckpoint([string]$Path,$Value) {
  $temp=$Path+'.'+[guid]::NewGuid().ToString('N')+'.new';[IO.File]::WriteAllText($temp,$json,[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $temp
  if(Test-Path -LiteralPath $Path){Assert-TimeObservationAcl $Path;[IO.File]::Replace($temp,$Path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temp,$Path)}
 }
+function Get-CollectorLifecycleDiagnostic($Definition) {
+ $v=@{readOnly=$true;status=$null;worker=$null;application=$null;interactive=$null;task=$null;failures=@();ordersEnabled=$false}
+ foreach($name in @('status.json','final.json')){
+  try{
+   $p=Join-Path $Definition.work $name
+   if(Test-Path -LiteralPath $p){
+    if((Get-Item -LiteralPath $p).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'COLLECTOR_WORK_REPARSE'}
+    $item=Read-BoundedJson $p
+    if($name -eq 'status.json'){$v.status=$item}else{$v.worker=@{runId=$item.runId;failure=$item.failure;stage=$item.stage;nonAdmin=$item.nonAdmin;sessionId=$item.sessionId;clockVerified=$item.clockVerified;tokenAuthenticated=$item.tokenAuthenticated;applicationLocked=$item.applicationLocked;collector=$item.collector}}
+   }
+  }catch{$v.failures+=('READ_'+$name)}
+ }
+ try{$v.application=Get-ApplicationHealthInventory}catch{$v.failures+='APPLICATION_QUERY'}
+ try{$v.interactive=Get-CollectorLogonIdentity}catch{$v.failures+='LOGON_QUERY'}
+ try{$t=Get-ScheduledTask -TaskName $Definition.name -TaskPath '\';$i=Get-ScheduledTaskInfo -TaskName $Definition.name -TaskPath '\';$v.task=@{state=[string]$t.State;enabled=[bool]$t.Settings.Enabled;lastResult=$i.LastTaskResult;lastRunUtc=$i.LastRunTime.ToUniversalTime().ToString('o')}}catch{$v.failures+='TASK_QUERY'}
+ return $v
+}
 function Preserve-CollectorAcceptedActivation($Definition) {
  $claim=Read-TimeObservationFile (Join-Path $Definition.root 'activation-attempt.json')
  $v=Read-BoundedJson (Join-Path $Definition.work 'final.json')
@@ -73,7 +90,7 @@ try{
  $receipt=Read-TimeObservationFile 'C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1\collector-install-result.json';Assert-DurableCollectorReceipt $receipt
  if(Test-Path -LiteralPath $path){
   $cp=Read-CollectorLifecycleCheckpoint $path;$ctx=$cp.context;$r.runId=$cp.runId
-  if($cp.phase -ne 'WAITING_FOR_SIGNOUT'){$r.checkpoint=$cp;$r.status=$cp.phase;$r.passed=($cp.phase -eq 'COMPLETE');$ctx=$null;return}
+  if($cp.phase -ne 'WAITING_FOR_SIGNOUT'){$r.checkpoint=$cp;$r.diagnostic=Get-CollectorLifecycleDiagnostic $d;$r.status=$cp.phase;$r.passed=($cp.phase -eq 'COMPLETE');$ctx=$null;return}
   $after=Get-CollectorLifecycleSnapshot $d;$r.after=$after
   if($after.bootUtc -cne $cp.before.bootUtc -or ([Diagnostics.Stopwatch]::GetTimestamp()-$cp.before.ticks)/[double]$cp.before.frequency -gt 480){throw 'COLLECTOR_SIGNOUT_WINDOW_EXPIRED'}
   if($after.interactive.authenticationId -ceq $cp.before.interactive.authenticationId){$r.status='COLLECTOR_WAITING_FOR_SIGNOUT';$r.passed=$true;$leaveRunning=$true;return}
@@ -112,6 +129,7 @@ finally{
   if($ctx -and $cp -and ($cleanup -or $cp.phase -eq 'COMPLETE')){if($r.failure -or $r.cleanupFailure){$cp.phase='REVIEW_REQUIRED'};$cp.cleanup=@{collectorStopped=$r.collectorStopped;gatewayStopped=$r.gatewayStopped;guardRemoved=$r.guardRemoved;failure=$r.failure;cleanupFailure=$r.cleanupFailure};try{Save-CollectorLifecycleCheckpoint $path $cp}catch{$r.cleanupFailure='COLLECTOR_CHECKPOINT_SAVE_FAILED'}}
  }
  if($r.failure -or $r.cleanupFailure){$r.passed=$false;$r.status='REVIEW_REQUIRED'}
+ if($r.failure -and -not $r.diagnostic){$r.diagnostic=Get-CollectorLifecycleDiagnostic $d}
  $r.elapsedSeconds=$watch.Elapsed.TotalSeconds
  [IO.File]::WriteAllText($ResultPath,($r|ConvertTo-Json -Depth 10),[Text.UTF8Encoding]::new($false))
 }

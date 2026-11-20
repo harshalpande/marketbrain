@@ -1,5 +1,7 @@
 # Durable diagnostic collector
 
+2026-11-20: Post-sign-out job f16c5087-4134-4f45-906c-7a4ed6b71787 returned COLLECTOR_SAMPLE_UNHEALTHY. Collector and gateway stopped, guard removed, no cleanup failure. Sign-out acceptance remains pending; cause not established. Added read-only retained-status/final/task/application/logon diagnostics to avoid requesting manual log transfers. No automatic retry or checkpoint reset.
+
 2026-11-20 runtime preflight: queued Observe d3ebe6e1-a74d-4e2d-88c8-d75c9a3cb2f1 PASSED in 12.846s, including native paired-user logon identity, pinned disabled collector and stopped gateway preflight. No task started; awaiting owner availability before the ten-minute sign-out window. Readiness stays G3 80%; sign-out and restart acceptance not claimed. Evidence: docs/evidence/collector-signout-preflight-20261120.json.
 
 2026-11-20: Sign-out lifecycle implementation prepared. Queued Observe is read-only. Apply verifies the accepted activation, preserves its evidence, starts a bounded ten-minute collector/gateway window, records protected boot/logon/worker identity, and returns READY_FOR_OWNER_SIGNOUT. A subsequent Apply requires the same boot and worker, changed owner logon, advancing accepted samples, fresh status, final revocation and cleanup. Restart is a distinct subsequent stage; not counted by sign-out. Local verification: 11 boundary cases and 12 preparation/resume/cleanup cases. Runtime pending; G3 remains 80%.

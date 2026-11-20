@@ -1,0 +1,39 @@
+{
+    "id":  "f16c5087-4134-4f45-906c-7a4ed6b71787",
+    "kind":  "paytm-denial-recovery",
+    "state":  "FAILED",
+    "created":  1795188689.7977695,
+    "updated":  1795188711.1330717,
+    "result":  {
+                   "elapsedSeconds":  15.4909343,
+                   "revision":  "f32feae5fda6b61d9b7de0748806cce30b302ea9",
+                   "exitCode":  1,
+                   "ordersEnabled":  false,
+                   "evidence":  {
+                                    "cleanupFailure":  null,
+                                    "mode":  "Apply",
+                                    "gatewayStopped":  true,
+                                    "forcedStop":  false,
+                                    "failureLine":  377,
+                                    "passed":  false,
+                                    "failure":  "COLLECTOR_SAMPLE_UNHEALTHY",
+                                    "runId":  "73fc2f10891346768bdc0f88e978da75",
+                                    "guardRemoved":  true,
+                                    "collectorStopped":  true,
+                                    "version":  1,
+                                    "status":  "REVIEW_REQUIRED",
+                                    "elapsedSeconds":  12.0212485,
+                                    "ordersEnabled":  false
+                                },
+                   "stderrCharacters":  0,
+                   "timedOut":  false,
+                   "passed":  false,
+                   "sourceSha256":  "F0F70F31015BA52E4CEB66E60CDF75B70C98D42063837CAB8F5E83BBC930855C",
+                   "stdoutCharacters":  0
+               },
+    "spec":  {
+                 "revision":  "f32feae5fda6b61d9b7de0748806cce30b302ea9",
+                 "mode":  "Apply",
+                 "sha256":  "F0F70F31015BA52E4CEB66E60CDF75B70C98D42063837CAB8F5E83BBC930855C"
+             }
+}
