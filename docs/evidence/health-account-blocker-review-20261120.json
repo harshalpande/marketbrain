@@ -1,0 +1,72 @@
+{
+  "sourceFile": "paytm-health-scheduled-3f20293aade542e7985c9055f2c2a79a.json",
+  "historicalEvidence": true,
+  "status": "REVIEW_REQUIRED",
+  "workerFailure": "SCHEDULE_COLLECTOR_NOT_ACCEPTED",
+  "clockVerified": true,
+  "tokenAuthenticated": true,
+  "applicationLocked": true,
+  "finalHealthRevoked": true,
+  "rounds": [
+    {
+      "findings": [
+        "WINDOWS_TIME_SERVICE",
+        "WINDOWS_SYNC_UNCONFIRMED",
+        "WINDOWS_SYNC_AGE_UNKNOWN",
+        "GATEWAY_TLS_UNCONFIRMED"
+      ],
+      "windowsStatus": {
+        "exitCode": -2147024891,
+        "output": "The following error occurred: Access is denied. (0x80070005)\n"
+      },
+      "windowsSource": {
+        "exitCode": -2147024891,
+        "output": "The following error occurred: Access is denied. (0x80070005)\n"
+      },
+      "service": {
+        "state": "Unavailable",
+        "startType": 2
+      }
+    },
+    {
+      "findings": [
+        "WINDOWS_TIME_SERVICE",
+        "WINDOWS_SYNC_UNCONFIRMED",
+        "WINDOWS_SYNC_AGE_UNKNOWN",
+        "GATEWAY_TLS_UNCONFIRMED"
+      ],
+      "windowsStatus": {
+        "exitCode": -2147024891,
+        "output": "The following error occurred: Access is denied. (0x80070005)\n"
+      },
+      "windowsSource": {
+        "exitCode": -2147024891,
+        "output": "The following error occurred: Access is denied. (0x80070005)\n"
+      },
+      "service": {
+        "state": "Unavailable",
+        "startType": 2
+      }
+    },
+    {
+      "findings": [
+        "WINDOWS_TIME_SERVICE",
+        "WINDOWS_SYNC_UNCONFIRMED",
+        "WINDOWS_SYNC_AGE_UNKNOWN",
+        "GATEWAY_TLS_UNCONFIRMED"
+      ],
+      "windowsStatus": {
+        "exitCode": -2147024891,
+        "output": "The following error occurred: Access is denied. (0x80070005)\n"
+      },
+      "windowsSource": {
+        "exitCode": -2147024891,
+        "output": "The following error occurred: Access is denied. (0x80070005)\n"
+      },
+      "service": {
+        "state": "Unavailable",
+        "startType": 2
+      }
+    }
+  ]
+}
