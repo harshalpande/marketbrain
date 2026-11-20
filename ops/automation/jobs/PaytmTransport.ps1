@@ -1,7 +1,7 @@
 #requires -Version 7.5
 param([Parameter(Mandatory)][string]$ResultPath,[ValidateSet('Observe','FailureFixture')][string]$Mode='Observe')
 $ErrorActionPreference='Stop'
-$report=@{version=3;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
+$report=@{version=4;test='PAYTM_TRANSPORT_OBSERVATION';passed=$false;ordersEnabled=$false;brokerCredentialsUsed=$false;gatewayChanged=$false;scope='OPERATOR_TRANSPORT_NOT_BROKER_READINESS';samples=@();failure=$null}
 $watch=[Diagnostics.Stopwatch]::StartNew()
 function Read-BoundedJson([string]$Path) {
     if ((Get-Item -LiteralPath $Path).Length -gt 65536) { throw 'STATE_TOO_LARGE' }
@@ -39,6 +39,63 @@ function Get-DenialIncidentEvidence($State) {
         }
     }
     return $e
+}
+function Get-DenialRecoveryPreflight($State) {
+    $root='C:\ProgramData\MarketBrainPaytmGateway\supervisor-v1'
+    $work='C:\ProgramData\MarketBrainPaytmGateway\supervisor-work-v1'
+    $id='ea8b91471cf048aa97a0f6b939b355c7'
+    $r=@{readOnly=$true;readyForReviewedRecovery=$false;hashes=@{};checks=@{};failure=$null}
+    $lease=$null
+    try {
+        foreach($dir in @('C:\ProgramData\MarketBrainPaytmGateway',$root,$work)){
+            if((Get-Item -LiteralPath $dir).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'RECOVERY_REPARSE_POINT'}
+        }
+        $manifest=Read-BoundedJson (Join-Path $root 'manifest.json')
+        if($manifest.installationId -cne $id -or $manifest.version -ne 1 -or $manifest.transportVersion -ne 1){throw 'RECOVERY_MANIFEST_IDENTITY'}
+        foreach($name in @('host.ps1','runner.ps1','native.dll','transport.ps1','gateway.ps1','transport.dll','manifest.json','control.json','transport-control.json','session-checkpoint.json','status.json','blocked.json','startup-failure.json')){
+            $dir=if($name -in @('status.json','blocked.json','startup-failure.json')){$work}else{$root}
+            $path=Join-Path $dir $name
+            if($name -eq 'session-checkpoint.json' -and -not (Test-Path -LiteralPath $path)){$r.hashes[$name]='ABSENT';continue}
+            if((Get-Item -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'RECOVERY_REPARSE_FILE'}
+            $r.hashes[$name]=(Get-FileHash -LiteralPath $path).Hash
+            if($name -in @('host.ps1','runner.ps1','native.dll','transport.ps1','gateway.ps1','transport.dll') -and $r.hashes[$name] -cne $manifest.hashes.$name){throw 'RECOVERY_INSTALLED_SOURCE_DRIFT'}
+        }
+        $r.checks.installedSourcesVerified=$true
+        if($r.hashes['manifest.json'] -cne '343A080C09E468F73FAC844ABC5CAA02B2A429CCD4B66308D2B6366102B12A98'){throw 'RECOVERY_REVIEWED_MANIFEST_CHANGED'}
+        foreach($name in @('status.json','blocked.json','startup-failure.json')){
+            $v=Read-BoundedJson (Join-Path $work $name)
+            if($v.instanceId -cne '1f2c636c108042898f3c58143e00d9c7' -or $v.failure -cne 'TRANSPORT_DENIAL_FAILED'){throw 'RECOVERY_INCIDENT_CHANGED'}
+        }
+        if($State.sequence -ne 3860 -or $State.phase -cne 'BLOCKED' -or $State.ordersEnabled -ne $false -or $State.brokerReady -ne $false){throw 'RECOVERY_STATUS_CHANGED'}
+        if((Read-BoundedJson (Join-Path $root 'control.json')).mode -cne 'LOCKED' -or (Read-BoundedJson (Join-Path $root 'transport-control.json')).mode -cne 'ENABLED'){throw 'RECOVERY_CONTROLS_CHANGED'}
+        $r.checks.incidentAndControlVerified=$true
+        $task=Get-ScheduledTask -TaskName 'MarketBrain-Gateway-Supervisor-v1' -TaskPath '\' -ErrorAction Stop
+        $info=Get-ScheduledTaskInfo -TaskName $task.TaskName -TaskPath '\' -ErrorAction Stop
+        $r.task=@{state=[string]$task.State;enabled=[bool]$task.Settings.Enabled;lastTaskResult=$info.LastTaskResult;lastRunUtc=$info.LastRunTime.ToUniversalTime().ToString('o')}
+        $sid=$task.Principal.UserId
+        if($sid -notmatch '^S-1-'){$sid=([Security.Principal.NTAccount]::new($sid)).Translate([Security.Principal.SecurityIdentifier]).Value}
+        $command="&([scriptblock]::Create([IO.File]::ReadAllText('"+$root+"\runner.ps1')))"
+        $expected='-NoLogo -NoProfile -NonInteractive -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+        $actions=@($task.Actions)
+        if($sid -cne 'S-1-5-21-3041730714-102984520-3202743044-1010' -or [string]$task.Principal.RunLevel -cne 'Limited' -or [string]$task.Principal.LogonType -cne 'Password' -or $task.Description -cne ('MarketBrain locked supervisor '+$id) -or $actions.Count -ne 1 -or $actions[0].Execute -cne 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -or $actions[0].Arguments -cne $expected -or $actions[0].WorkingDirectory -cne $root){throw 'RECOVERY_TASK_IDENTITY_CHANGED'}
+        if([string]$task.State -cne 'Ready' -or -not $task.Settings.Enabled -or $info.LastTaskResult -ne 1){throw 'RECOVERY_TASK_NOT_IDLE'}
+        $r.checks.taskIdentityAndIdleVerified=$true
+        $lease=[IO.File]::Open((Join-Path $work 'instance.lock'),'Open','ReadWrite','None')
+        $r.checks.exclusiveLeaseAvailable=$true
+        $listeners=@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners() | Where-Object Port -EQ 18889)
+        if($listeners.Count){throw 'RECOVERY_LISTENER_PRESENT'}
+        foreach($name in $r.hashes.Keys){
+            $dir=if($name -in @('status.json','blocked.json','startup-failure.json')){$work}else{$root}
+            $path=Join-Path $dir $name
+            if($r.hashes[$name] -eq 'ABSENT'){if(Test-Path -LiteralPath $path){throw 'RECOVERY_STATE_DRIFT'}}
+            elseif((Get-FileHash -LiteralPath $path).Hash -cne $r.hashes[$name]){throw 'RECOVERY_STATE_DRIFT'}
+        }
+        $r.checks.noListenerAndStableFiles=$true
+        $r.readyForReviewedRecovery=$true
+    } catch {
+        $r.failure=if($_.Exception.Message -cmatch '^RECOVERY_[A-Z_]+$'){$_.Exception.Message}else{'RECOVERY_PREFLIGHT_'+$_.Exception.GetType().Name}
+    } finally {if($lease){$lease.Dispose()}}
+    return $r
 }
 function Test-LocalDenialFormatting {
     # Ephemeral loopback server never forwards a request or contacts the broker/VPS.
@@ -103,7 +160,7 @@ try {
     if($initial.phase -cne 'TRANSPORT_READY'){
         if($report.preflight.phase -ceq 'BLOCKED' -and $report.preflight.failure){
             $report.incident=Get-DenialIncidentEvidence $initial
-            if($report.preflight.failure -ceq 'TRANSPORT_DENIAL_FAILED'){$report.localDenialFormatting=Test-LocalDenialFormatting}
+            if($report.preflight.failure -ceq 'TRANSPORT_DENIAL_FAILED'){$report.recoveryPreflight=Get-DenialRecoveryPreflight $initial}
             throw ('GATEWAY_BLOCKED:'+$report.preflight.failure)
         }
         throw 'GATEWAY_NOT_READY'
