@@ -50,6 +50,21 @@ function Save-CollectorLifecycleCheckpoint([string]$Path,$Value) {
  $temp=$Path+'.'+[guid]::NewGuid().ToString('N')+'.new';[IO.File]::WriteAllText($temp,$json,[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $temp
  if(Test-Path -LiteralPath $Path){Assert-TimeObservationAcl $Path;[IO.File]::Replace($temp,$Path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temp,$Path)}
 }
+function Invoke-CollectorDockerRead([string]$Executable,[string[]]$Arguments) {
+ $p=[Diagnostics.Process]::new();$p.StartInfo.FileName=$Executable;$p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true;$p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true
+ foreach($arg in $Arguments){$p.StartInfo.ArgumentList.Add($arg)}
+ try{if(-not $p.Start()){throw 'DOCKER_READ_START'};$o=$p.StandardOutput.ReadToEndAsync();$e=$p.StandardError.ReadToEndAsync();if(-not $p.WaitForExit(8000)){$p.Kill();throw 'DOCKER_READ_TIMEOUT'};if($p.ExitCode -ne 0 -or -not $o.Wait(1000) -or $o.Result.Length -gt 4096){throw 'DOCKER_READ_FAILED'};return $o.Result.Trim()}finally{$p.Dispose()}
+}
+function Get-CollectorDockerState {
+ $exe=@(Get-Command docker.exe -CommandType Application -ErrorAction Stop)[0].Source
+ $ids=Invoke-CollectorDockerRead $exe @('ps','-a','--filter','label=com.docker.compose.service=marketbrain-service','--format','{{.ID}}')
+ $rows=@($ids -split '\r?\n'|Where-Object {$_})
+ if($rows.Count -ne 1 -or $rows[0] -cnotmatch '^[a-f0-9]{12,64}$'){throw 'DOCKER_SERVICE_SELECTION_AMBIGUOUS'}
+ $format='{{.Id}}|{{.State.Status}}|{{.State.StartedAt}}|{{.State.FinishedAt}}|{{.HostConfig.RestartPolicy.Name}}|{{.RestartCount}}'
+ $v=(Invoke-CollectorDockerRead $exe @('inspect','--format',$format,$rows[0])) -split '\|'
+ if($v.Count -ne 6 -or $v[0] -cnotmatch '^[a-f0-9]{64}$' -or $v[5] -cnotmatch '^\d+$'){throw 'DOCKER_SERVICE_STATE_FORMAT'}
+ return @{containerId=$v[0];state=$v[1];startedAt=$v[2];finishedAt=$v[3];restartPolicy=$v[4];restartCount=[int]$v[5];readOnly=$true}
+}
 function Get-CollectorLifecycleDiagnostic($Definition) {
  $v=@{readOnly=$true;status=$null;worker=$null;application=$null;interactive=$null;task=$null;failures=@();ordersEnabled=$false}
  foreach($name in @('status.json','final.json')){
@@ -63,6 +78,7 @@ function Get-CollectorLifecycleDiagnostic($Definition) {
   }catch{$v.failures+=('READ_'+$name)}
  }
  try{$v.application=Get-ApplicationHealthInventory}catch{$v.failures+='APPLICATION_QUERY'}
+ try{$v.docker=Get-CollectorDockerState}catch{$v.failures+='DOCKER_STATE_QUERY'}
  try{$v.interactive=Get-CollectorLogonIdentity}catch{$v.failures+='LOGON_QUERY'}
  try{$t=Get-ScheduledTask -TaskName $Definition.name -TaskPath '\';$i=Get-ScheduledTaskInfo -TaskName $Definition.name -TaskPath '\';$v.task=@{state=[string]$t.State;enabled=[bool]$t.Settings.Enabled;lastResult=$i.LastTaskResult;lastRunUtc=$i.LastRunTime.ToUniversalTime().ToString('o')}}catch{$v.failures+='TASK_QUERY'}
  return $v
