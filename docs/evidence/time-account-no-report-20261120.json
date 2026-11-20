@@ -1,0 +1,55 @@
+{
+  "jobId": "96cbd8af-7d6e-40d4-8e2f-fb67f14bf299",
+  "state": "SUCCEEDED",
+  "probe": {
+    "failureDetail": "TIME_ACCOUNT_NO_REPORT",
+    "taskRemoved": true,
+    "nativeHResult": -2146233087,
+    "failure": "TIME_ACCOUNT_NO_REPORT",
+    "observedUtc": "2026-11-20T11:45:10.1994012+00:00",
+    "stage": "START",
+    "sourceHashes": {
+      "PaytmTimeObservation.ps1": "F43D01381D295C5B46F8E9C00378F1D0C76A0977C6AE15E56E56E28BD363DCA4",
+      "PaytmTimeAccountProbe.ps1": "4C107647486E485ABB41FA92DFB26A48E94D0C7AD4A09B1D87E000471BBC058C",
+      "TestPaytmTimeAccountAccess.ps1": "C66E380DD6FEFF4F2F89F2B33E5F2A1BDB78A988AB2565B727FD83B75DE6C20F"
+    },
+    "authenticationTested": false,
+    "failureLine": 180,
+    "taskValidation": {
+      "valid": true,
+      "reasons": [],
+      "actionCount": 1,
+      "argumentsMatch": true,
+      "runLevel": "Limited",
+      "triggerCount": 0,
+      "logonType": "Password",
+      "principalSid": "S-1-5-21-3041730714-102984520-3202743044-1011",
+      "executableMatch": true
+    },
+    "credentialCheck": {
+      "logonType": "BATCH",
+      "win32Code": 0,
+      "attempts": 1,
+      "accepted": true,
+      "resolvedSid": "S-1-5-21-3041730714-102984520-3202743044-1011"
+    },
+    "passed": false,
+    "cleanupFailure": null,
+    "taskCreated": true,
+    "runId": "10057d57439242b285a6a0cf2c357470",
+    "healthPublicationTested": false,
+    "taskName": "MarketBrain-Time-Read-Probe-10057d57439242b285a6a0cf2c357470",
+    "nativeFailure": {
+      "numericDiagnostics": [
+        {
+          "value": -2146233087,
+          "source": "exception.0.HResult"
+        }
+      ],
+      "win32Codes": [],
+      "findings": [],
+      "passwordCorrectness": "NOT_ESTABLISHED"
+    }
+  },
+  "conclusion": "Windows credential accepted; task definition valid; execution report missing. Task removed. Root cause not yet established."
+}

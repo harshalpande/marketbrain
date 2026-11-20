@@ -16,6 +16,7 @@ try{
   $localResult=Join-Path $root 'account-probe-result.json'
   if(Test-Path -LiteralPath $localResult){$r.localAccountProbe=Read-TimeObservationFile $localResult}
   $r.accountIdentity=Get-TimeAccountIdentityEvidence $account $r.localAccountProbe
+  $r.accountExecution=Get-TimeAccountExecutionEvidence $r.localAccountProbe
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
  if($existing.Count -eq 1 -and [string]$existing[0].State -ceq 'Running'){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}

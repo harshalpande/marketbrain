@@ -64,6 +64,27 @@ function Get-TimeAccountIdentityEvidence($Account,$LocalReport) {
  }
  return $r
 }
+function Get-TimeAccountExecutionEvidence($LocalReport) {
+ $r=@{query='NOT_REQUESTED';events=@()}
+ if(-not $LocalReport -or [string]$LocalReport.runId -cnotmatch '^[a-f0-9]{32}$' -or -not $LocalReport.observedUtc){return $r}
+ $task='\MarketBrain-Time-Read-Probe-'+$LocalReport.runId
+ try{
+  $end=[DateTimeOffset]::Parse([string]$LocalReport.observedUtc).UtcDateTime.AddSeconds(10)
+  $events=@(Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-TaskScheduler/Operational';StartTime=$end.AddMinutes(-3);EndTime=$end} -MaxEvents 200 -ErrorAction Stop)
+  foreach($event in $events){
+   $xml=[xml]$event.ToXml();$data=@{}
+   foreach($item in $xml.Event.EventData.Data){$data[[string]$item.Name]=[string]$item.'#text'}
+   if($data.TaskName -cne $task){continue}
+   $entry=@{id=[int]$event.Id;observedUtc=$event.TimeCreated.ToUniversalTime().ToString('o');codes=@{}}
+   foreach($name in @('ResultCode','ErrorCode','ProcessId','EnginePID')){
+    $number=0L;if($data.ContainsKey($name) -and [long]::TryParse($data[$name],[ref]$number)){$entry.codes[$name]=$number}
+   }
+   $r.events+=$entry
+  }
+  $r.query='COMPLETED_BOUNDED_200'
+ }catch{$r.query='UNAVAILABLE_OR_NO_EVENTS';$r.failureType=$_.Exception.GetType().Name}
+ return $r
+}
 function Test-TimeAccountTask($Task,[string]$Executable,[string]$Arguments) {
  $reasons=@();$sid=$null
  try{$sid=Resolve-TimeAccountTaskSid ([string]$Task.Principal.UserId)}catch{$reasons+='PRINCIPAL_UNRESOLVED'}
@@ -179,12 +200,15 @@ function Invoke-TimeAccountProbe([string]$ContractSource,[Security.SecureString]
   $r.stage='START';Start-ScheduledTask -TaskName $task -TaskPath '\'
   $timer=[Diagnostics.Stopwatch]::StartNew()
   do{Start-Sleep -Seconds 1;$t=Get-ScheduledTask -TaskName $task -TaskPath '\'}while($timer.Elapsed.TotalSeconds -lt 40 -and (-not (Test-Path -LiteralPath $output) -or [string]$t.State -eq 'Running'))
+  $info=Get-ScheduledTaskInfo -TaskName $task -TaskPath '\'
+  $r.taskExecution=@{state=[string]$t.State;lastTaskResult=[long]$info.LastTaskResult}
+  if($info.LastRunTime){$r.taskExecution.lastRunTimeUtc=$info.LastRunTime.ToUniversalTime().ToString('o')}
   if([string]$t.State -eq 'Running'){throw 'TIME_ACCOUNT_TIMEOUT'}
   if(-not (Test-Path -LiteralPath $output)){throw 'TIME_ACCOUNT_NO_REPORT'}
   if((Get-Item -LiteralPath $output).Length -gt 8192){throw 'TIME_ACCOUNT_REPORT_SIZE'}
   $r.worker=Get-Content -LiteralPath $output -Raw|ConvertFrom-Json
   Assert-TimeAccountProbeResult $r.worker $run
-  if((Get-ScheduledTaskInfo -TaskName $task -TaskPath '\').LastTaskResult -ne 0){throw 'TIME_ACCOUNT_EXIT'}
+  if($r.taskExecution.lastTaskResult -ne 0){throw 'TIME_ACCOUNT_EXIT'}
   $r.passed=$true
  }catch{$r.failure=if($_.Exception.Message -cmatch '^(TIME_ACCOUNT|TIME_OBSERVER)_[A-Z_]+$'){$_.Exception.Message}else{'TIME_ACCOUNT_'+$_.Exception.GetBaseException().GetType().Name};$r.failureLine=$_.InvocationInfo.ScriptLineNumber;$r.nativeHResult=$_.Exception.HResult;$r.nativeFailure=Get-TimeAccountNativeFailure $_;$message=$_.Exception.Message;$r.failureDetail=if($r.stage -eq 'REGISTER'){'Scheduler registration failed; password omitted'}else{$message.Substring(0,[Math]::Min(512,$message.Length))};$target=[string]$_.TargetObject;if($target.StartsWith($parent,[StringComparison]::OrdinalIgnoreCase)){$r.failureTarget=$target.Substring($parent.Length)}}
  finally{
@@ -286,6 +310,7 @@ try{
   $localResult=Join-Path $root 'account-probe-result.json'
   if(Test-Path -LiteralPath $localResult){$r.localAccountProbe=Read-TimeObservationFile $localResult}
   $r.accountIdentity=Get-TimeAccountIdentityEvidence $account $r.localAccountProbe
+  $r.accountExecution=Get-TimeAccountExecutionEvidence $r.localAccountProbe
   $r.status='TIME_OBSERVER_INVENTORY_ONLY';$r.passed=$true;return
  }
  if($existing.Count -eq 1 -and [string]$existing[0].State -ceq 'Running'){throw 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'}

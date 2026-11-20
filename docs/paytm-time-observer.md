@@ -1,5 +1,7 @@
 # Windows time observation for the health collector
 
+2026-11-20: Queue job 96cbd8af-7d6e-40d4-8e2f-fb67f14bf299 recovered the local probe: Windows batch logon accepted (code 0), limited task definition valid, then TIME_ACCOUNT_NO_REPORT. Temporary task removed. This is not a password failure. Preserve scheduler exit/status before the missing-report check and collect bounded exact-task operational events via Observe. No authentication replay; G3 remains 80%, readiness 14/30 (46.7%).
+
 The failed scheduled collector reports show that signing, VPS clock access and token authentication succeeded, while local `w32tm` queries returned access denied. Microsoft documents local administrator membership as a requirement for this tool: [Windows Time Service tools and settings](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings).
 
 The implementation separates privileged observation from health publication. It does not add `marketbrain-health` to Administrators or change W32Time configuration or permissions.

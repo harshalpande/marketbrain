@@ -26,5 +26,11 @@ if(Test-Path -LiteralPath $path){Assert-TimeObservationAcl $path}
 [IO.File]::WriteAllText($temp,($r|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false));Assert-TimeObservationAcl $temp
 if(Test-Path -LiteralPath $path){[IO.File]::Replace($temp,$path,[Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($temp,$path)}
 if($r.credentialCheck){Write-Host ('Windows credential accepted: '+$r.credentialCheck.accepted+'; code: '+$r.credentialCheck.win32Code)}
-if(-not $r.passed){Write-Host '[100%] Report saved for automatic collection.';if($r.nativeFailure){Write-Host ('Windows codes: '+(@($r.nativeFailure.win32Codes) -join ', '));Write-Host ('Findings: '+(@($r.nativeFailure.findings) -join ', '));Write-Host 'Password correctness is not established by a generic failure.'};throw "TIME_ACCOUNT_REVIEW_REQUIRED: $($r.failure)"}
+if(-not $r.passed){
+ Write-Host '[100%] Report saved for automatic collection.'
+ if($r.credentialCheck.accepted){Write-Host 'Windows accepted the credential. Failure occurred after authentication.'}
+ elseif($r.nativeFailure){Write-Host ('Windows codes: '+(@($r.nativeFailure.win32Codes) -join ', '));Write-Host ('Findings: '+(@($r.nativeFailure.findings) -join ', '));Write-Host 'Password correctness is not established by a generic failure.'}
+ if($r.taskExecution){Write-Host ('Task state: '+$r.taskExecution.state+'; exit/status code: '+$r.taskExecution.lastTaskResult)}
+ throw "TIME_ACCOUNT_REVIEW_REQUIRED: $($r.failure)"
+}
 Write-Host '[100%] TIME_ACCOUNT_READ_VERIFIED. Report ready for automatic collection; no file upload needed.'

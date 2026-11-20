@@ -57,21 +57,22 @@ function Register-ScheduledTask {param($TaskName,$TaskPath,$InputObject,$User,$P
 function Get-ScheduledTask {if($script:task){return [pscustomobject]$script:task}}
 function Start-ScheduledTask {
  $script:started++
+ if($script:case -eq 'noReport'){return}
  $v=New-ValidProbe;$v.runId=$run
  if($script:case -eq 'badWorker'){$v.admin=$true}
  [IO.File]::WriteAllText($output,($v|ConvertTo-Json -Depth 5))
 }
-function Get-ScheduledTaskInfo {return @{LastTaskResult=0}}
+function Get-ScheduledTaskInfo {return @{LastTaskResult=$(if($script:case -eq 'noReport'){9}else{0})}}
 function Start-Sleep {}
 function Disable-ScheduledTask {}
 function Stop-ScheduledTask {}
 function Unregister-ScheduledTask {param($TaskName,$TaskPath,[switch]$Confirm) if($script:case -eq 'cleanup'){throw 'fixture cleanup failure'};$script:task=$null}
 $original=(Get-Command Invoke-TimeAccountProbe).ScriptBlock.ToString()
-foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure','credentialFailure')){
+foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure','credentialFailure','noReport')){
  $root=Join-Path ([IO.Path]::GetTempPath()) ('mb-time-account-fixture-'+[guid]::NewGuid().ToString('N'))
  $null=New-Item -ItemType Directory -Path $root
  $script:task=$null;$script:started=0
- $result=& ([scriptblock]::Create($original.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root))) 'fixture' (ConvertTo-SecureString 'fixture-only-not-a-real-password' -AsPlainText -Force)
+ $result=& ([scriptblock]::Create($original.Replace('C:\ProgramData\MarketBrainPaytmHealth\time-observer-v1',$root).Replace('$timer.Elapsed.TotalSeconds -lt 40','$timer.Elapsed.TotalSeconds -lt 0'))) 'fixture' (ConvertTo-SecureString 'fixture-only-not-a-real-password' -AsPlainText -Force)
  if($result.passed -ne ($case -eq 'valid')){throw "Workflow result incorrect: $case $($result.failure)"}
  if($case -eq 'drift' -and $started){throw 'Drifted task started'}
  if($case -eq 'drift' -and ($result.stage -ne 'VERIFY_REGISTERED_TASK' -or 'RUN_LEVEL' -notin $result.taskValidation.reasons -or $result.failureDetail -like 'Scheduler registration failed*')){throw 'Incorrect task drift evidence'}
@@ -79,8 +80,9 @@ foreach($script:case in @('valid','drift','badWorker','cleanup','registerFailure
  if($case -eq 'credentialFailure' -and ($started -or $result.taskCreated -or $result.credentialCheck.attempts -ne 1 -or $result.stage -ne 'WINDOWS_CREDENTIAL_CHECK')){throw 'Credential failure did not stop before scheduling'}
  if($case -eq 'registerFailure' -and ($result.taskCreated -or $started -or 1326 -notin $result.nativeFailure.win32Codes -or ($result|ConvertTo-Json -Depth 10) -match 'fixture secret')){throw 'Registration diagnostics leaked or missing'}
  if($case -eq 'cleanup' -and -not $result.cleanupFailure){throw 'Cleanup failure not retained'}
+ if($case -eq 'noReport' -and ($result.failure -ne 'TIME_ACCOUNT_NO_REPORT' -or $result.taskExecution.lastTaskResult -ne 9 -or -not $result.taskRemoved)){throw 'Missing report lost task exit evidence'}
 }
-Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 6 isolated workflows.'
+Write-Host 'TIME_ACCOUNT_PROBE_FIXTURES_PASSED: 10 result cases, 15 task cases, generated PS5 worker and 7 isolated workflows.'
 
 $blocked=$false;try{Invoke-TimeAccountProbe 'fixture'}catch{$blocked=$_.Exception.Message -eq 'TIME_ACCOUNT_LOCAL_PASSWORD_REQUIRED'};if(-not $blocked){throw 'Missing credential not blocked'}
 
@@ -102,3 +104,18 @@ $v=ConvertFrom-TimeAccountLogonEvent $xml
 if($v.subStatus -cne '0xc000006a' -or ($v|ConvertTo-Json) -match 'DO_NOT_EXPORT'){throw 'Unsafe logon event extraction'}
 if($null -ne (ConvertFrom-TimeAccountLogonEvent $xml.Replace('marketbrain-health','other-user'))){throw 'Unrelated event exported'}
 Write-Host 'TIME_ACCOUNT_EVENT_FILTER_PASSED: expected account fields only; unrelated users excluded.'
+
+function Get-WinEvent {
+ param($FilterHashtable,$MaxEvents,$ErrorAction)
+ if($MaxEvents -ne 200 -or ($FilterHashtable.EndTime-$FilterHashtable.StartTime).TotalMinutes -ne 3){throw 'Unbounded query'}
+ if($script:eventFailure){throw 'fixture unavailable'}
+ foreach($name in @(('\MarketBrain-Time-Read-Probe-'+('a'*32)),'\unrelated')){
+  $e=[pscustomobject]@{Id=201;TimeCreated=[datetime]::UtcNow;Xml=('<Event><EventData><Data Name="TaskName">'+$name+'</Data><Data Name="ResultCode">9</Data><Data Name="ActionName">DO_NOT_EXPORT</Data></EventData></Event>')}
+  $e|Add-Member ScriptMethod ToXml {return $this.Xml};$e
+ }
+}
+$v=Get-TimeAccountExecutionEvidence @{runId=('a'*32);observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
+if($v.query -ne 'COMPLETED_BOUNDED_200' -or $v.events.Count -ne 1 -or $v.events[0].codes.ResultCode -ne 9 -or ($v|ConvertTo-Json -Depth 8) -match 'DO_NOT_EXPORT'){throw 'Task event extraction unsafe or incorrect'}
+$script:eventFailure=$true
+if((Get-TimeAccountExecutionEvidence @{runId=('a'*32);observedUtc=[DateTimeOffset]::UtcNow.ToString('o')}).query -ne 'UNAVAILABLE_OR_NO_EVENTS'){throw 'Missing events not explicit'}
+Write-Host 'TIME_ACCOUNT_TASK_EVENTS_PASSED: bounded exact-task query, numeric fields only, unavailable log explicit.'
