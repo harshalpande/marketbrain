@@ -299,3 +299,26 @@ Local fixtures cover normal expiry, unexpected lock, missing limit rejection,
 timeout and request failure, plus sanitized report collection. Valid-session
 restart/relogin and successful callback replay remain future tests, not claims
 of this batch. Await spare evidence before changing any checkpoint percentage.
+Authenticated expiry accepted on spare: run 5c343090bb964577a378aff211c9f149,
+total 1288.231 seconds, expiry wait 1162.899 seconds; all four expiry flags true
+and application/gateway cleanup passed. Quote freshness remains pending.
+
+## Authenticated application restart
+
+Use -TestQuotes -QuoteSymbol RELIANCE -TestSessionRestart on the same launcher.
+Do not combine with -TestSessionExpiry. After owner login and three diagnostic
+quotes, require authenticated status, discover one running local Docker Compose
+MarketBrain container, record only its ID/start time, restart that exact
+container (no rebuild/configuration changes), and require the same ID with a
+changed start time. Application must return LOCKED, readAccessVerified=false,
+ordersEnabled=false, and quote must return SUPERVISED_SESSION_LOCKED.
+The usual final lock and gateway stop/disable still run on success or failure.
+
+This briefly interrupts all application functions, so run with no other test or
+owner session in progress. Native restart bounded to60seconds; startup polling
+has a120second deadline (a final bounded40second HTTP request may complete
+later). Identity readouts contain no Docker environment or broker credentials.
+Progress and sanitized sessionRestart flags are saved in the compact report.
+Five offline fixtures cover success, unauthenticated precondition, surviving
+session, unchanged start identity and native failure. Runtime restart and
+subsequent fresh relogin are pending; do not repeat expiry just to prove them.

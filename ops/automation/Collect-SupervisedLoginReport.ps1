@@ -28,6 +28,12 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['sessionRestart']){
+  $x=$v.sessionRestart
+  if($x.status -cnotmatch '^[A-Z_]{1,100}$' -or ($x.failure -and $x.failure -cnotmatch '^SUPERVISED_[A-Z_]{1,100}$') -or $x.ordersEnabled -ne $false){throw 'REPORT_RESTART_REJECTED'}
+  $safe.sessionRestart=[ordered]@{status=[string]$x.status;failure=[string]$x.failure;elapsedSeconds=[double]$x.elapsedSeconds;ordersEnabled=$false}
+  foreach($n in @('passed','authenticatedBeforeRestart','restartAttempted','sameContainer','startChanged','lockedAfterRestart','quoteRejected')){if($x.$n -isnot [bool]){throw 'REPORT_RESTART_REJECTED'};$safe.sessionRestart[$n]=$x.$n}
+ }
  if($v.PSObject.Properties['sessionExpiry']){
   $x=$v.sessionExpiry
   if($x.status -cnotmatch '^[A-Z_]{1,100}$' -or ($x.failure -and $x.failure -cnotmatch '^SUPERVISED_[A-Z_]{1,100}$') -or $x.ordersEnabled -ne $false){throw 'REPORT_EXPIRY_REJECTED'}

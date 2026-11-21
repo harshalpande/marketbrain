@@ -3,6 +3,7 @@
 [CmdletBinding()]param(
  [switch]$TestQuotes,
  [switch]$TestSessionExpiry,
+ [switch]$TestSessionRestart,
  [ValidatePattern('^[A-Z0-9][A-Z0-9&-]{0,29}$')][string]$QuoteSymbol,
  [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
@@ -12,6 +13,7 @@ $ErrorActionPreference='Stop'
 . "$PSScriptRoot/PaytmGatewayKeyCustody.ps1"
 . "$PSScriptRoot/PaytmQuoteMapping.ps1"
 . "$PSScriptRoot/PaytmAuthenticatedExpiry.ps1"
+. "$PSScriptRoot/PaytmAuthenticatedRestart.ps1"
 $id=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $null=New-Item -ItemType Directory -Force -Path $OutputDirectory
 $path=Join-Path $OutputDirectory "paytm-supervised-login-$id.json"
@@ -31,6 +33,7 @@ function Invoke-LocalSupervised([string]$Command,$Body=$null) {
 try {
  Save-SupervisedReport
  if($TestSessionExpiry -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_EXPIRY_REQUIRES_MAPPED_QUOTES'}
+ if($TestSessionRestart -and ($TestSessionExpiry -or -not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_RESTART_REQUIRES_MAPPED_QUOTES_NO_EXPIRY'}
  if($QuoteSymbol){
   if(-not $TestQuotes -or $PSBoundParameters.ContainsKey('QuoteSecurityId')){throw 'SUPERVISED_MAPPING_ARGUMENT_CONFLICT'}
   $report.stage='INSTRUMENT_MAPPING';Save-SupervisedReport
@@ -131,6 +134,12 @@ try {
   if(-not $result.passed){throw $result.failure}
   # Preserve quote freshness status separately from expiry acceptance.
   $report.sessionExpiry=$result;Save-SupervisedReport
+ }
+ if($TestSessionRestart){
+  $report.stage='AUTHENTICATED_RESTART';Save-SupervisedReport
+  $result=Test-PaytmAuthenticatedRestart -SecurityId $QuoteSecurityId -Request {param($command,$body) Invoke-LocalSupervised $command $body} -Checkpoint {param($progress) $report.sessionRestart=$progress;Save-SupervisedReport}
+  if(-not $result.passed){throw $result.failure}
+  $report.sessionRestart=$result;Save-SupervisedReport
  }
 }catch{
  $report.status='REVIEW_REQUIRED'
