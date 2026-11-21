@@ -275,3 +275,27 @@ with cleanup, and failed cleanup. No application rebuild or user input needed.
 Runtime acceptance: job 9bf20273-543e-46ca-b8a4-45de7c9e3bff passed all fourteen
 assertions and final lock on 21 November, 5.510s including universe read. Valid
 authenticated callback replay and expiry/restart/relogin are still pending.
+
+## Authenticated natural-expiry batch
+
+Run StartPaytmSupervisedLogin.ps1 -TestQuotes -QuoteSymbol RELIANCE
+-TestSessionExpiry in elevated PowerShell 7 on the spare laptop. No rebuild.
+Requires the existing local owner login, application credentials, paper read
+token and clock-key passphrase; do not pass those through the queue or chat.
+The existing 20-minute application deadline is unchanged. After three quotes,
+the fourth must return PAYTM_QUOTE_LIMIT. Poll local status every ten seconds
+for at most 21 minutes until LOCKED with SUPERVISED_SESSION_EXPIRED; a quote
+must then return SUPERVISED_SESSION_LOCKED. Finally lock the application and
+stop/disable the gateway as usual. Keep the machine awake and the terminal open.
+
+Each progress checkpoint updates the same compact report. The collector now
+returns whitelisted sessionExpiry flags and timing, with no credentials or
+callback URLs. No clock adjustment, application restart, provider relogin,
+broker order or extra provider quote is intended. Runtime freshness remains
+separate: stale/no-quote samples do not close G5 fresh-data acceptance. Use a
+market session for fresh quote evidence; expiry can be checked outside it.
+
+Local fixtures cover normal expiry, unexpected lock, missing limit rejection,
+timeout and request failure, plus sanitized report collection. Valid-session
+restart/relogin and successful callback replay remain future tests, not claims
+of this batch. Await spare evidence before changing any checkpoint percentage.

@@ -28,6 +28,13 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['sessionExpiry']){
+  $x=$v.sessionExpiry
+  if($x.status -cnotmatch '^[A-Z_]{1,100}$' -or ($x.failure -and $x.failure -cnotmatch '^SUPERVISED_[A-Z_]{1,100}$') -or $x.ordersEnabled -ne $false){throw 'REPORT_EXPIRY_REJECTED'}
+  $safe.sessionExpiry=[ordered]@{status=[string]$x.status;failure=[string]$x.failure;elapsedSeconds=[double]$x.elapsedSeconds;ordersEnabled=$false}
+  foreach($n in @('passed','quoteLimitRejected','authenticatedBeforeWait','expiryObserved','postExpiryQuoteRejected')){if($x.$n -isnot [bool]){throw 'REPORT_EXPIRY_REJECTED'};$safe.sessionExpiry[$n]=$x.$n}
+  if($safe.sessionExpiry.elapsedSeconds -lt 0 -or $safe.sessionExpiry.elapsedSeconds -gt 1800){throw 'REPORT_EXPIRY_REJECTED'}
+ }
  if($v.PSObject.Properties['universeMatch']){
   $u=$v.universeMatch
   if($u.status -cnotmatch '^[A-Z_]{1,100}$' -or $u.ordersEnabled -ne $false -or $u.snapshotMatched -isnot [bool]){throw 'REPORT_UNIVERSE_REJECTED'}

@@ -10,12 +10,15 @@ try {
  [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
  $fixture.quoteMapping=@{symbol='RELIANCE';securityId=2885;exchange='NSE';series='EQ';segment='E';instrumentType='ES';source='PAYTM_PUBLIC_EQUITY_MASTER';sha256=('A'*64);localUniverseVerified=$false;secret='MUST_NOT_LEAVE'}
  $fixture.universeMatch=@{symbol='RELIANCE';status='LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED';snapshotId='11111111-1111-1111-1111-111111111111';observedOn='2026-09-18';isin='INE002A01018';instrumentId=1;snapshotMatched=$true;currentMembershipVerified=$false;providerIsinVerified=$false;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
+ $fixture.sessionExpiry=@{status='AUTHENTICATED_EXPIRY_PASSED_RELOGIN_RESTART_PENDING';failure=$null;elapsedSeconds=900;passed=$true;authenticatedBeforeWait=$true;quoteLimitRejected=$true;expiryObserved=$true;postExpiryQuoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
  & $script -ResultPath $output -Mode Observe
  $text=[IO.File]::ReadAllText($output);$r=$text|ConvertFrom-Json
  if(-not $r.passed -or $r.report.quoteSamples.Count -ne 1 -or $r.report.quoteSamples[0].status -ne 'STALE_QUOTE' -or $text.Contains('MUST_NOT_LEAVE')){throw 'QUOTE_REPORT_FIXTURE_FAILED'}
  if($r.report.quoteMapping.securityId -ne 2885 -or $r.report.quoteMapping.symbol -ne 'RELIANCE'){throw 'MAPPING_REPORT_FIXTURE_FAILED'}
  if(-not $r.report.universeMatch.snapshotMatched -or $r.report.universeMatch.isin -ne 'INE002A01018'){throw 'UNIVERSE_REPORT_FIXTURE_FAILED'}
+ if(-not $r.report.sessionExpiry.postExpiryQuoteRejected -or -not $r.report.sessionExpiry.passed){throw 'EXPIRY_REPORT_FIXTURE_FAILED'}
+ $fixture.Remove('sessionExpiry')
  $fixture.Remove('quoteMapping')
  $fixture.Remove('universeMatch')
  $fixture.Remove('quoteSamples');$fixture.quotesTested=$false

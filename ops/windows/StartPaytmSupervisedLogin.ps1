@@ -2,6 +2,7 @@
 #Requires -RunAsAdministrator
 [CmdletBinding()]param(
  [switch]$TestQuotes,
+ [switch]$TestSessionExpiry,
  [ValidatePattern('^[A-Z0-9][A-Z0-9&-]{0,29}$')][string]$QuoteSymbol,
  [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
@@ -10,6 +11,7 @@ $ErrorActionPreference='Stop'
 . "$PSScriptRoot/PaytmClockLogin.ps1"
 . "$PSScriptRoot/PaytmGatewayKeyCustody.ps1"
 . "$PSScriptRoot/PaytmQuoteMapping.ps1"
+. "$PSScriptRoot/PaytmAuthenticatedExpiry.ps1"
 $id=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $null=New-Item -ItemType Directory -Force -Path $OutputDirectory
 $path=Join-Path $OutputDirectory "paytm-supervised-login-$id.json"
@@ -28,6 +30,7 @@ function Invoke-LocalSupervised([string]$Command,$Body=$null) {
 }
 try {
  Save-SupervisedReport
+ if($TestSessionExpiry -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_EXPIRY_REQUIRES_MAPPED_QUOTES'}
  if($QuoteSymbol){
   if(-not $TestQuotes -or $PSBoundParameters.ContainsKey('QuoteSecurityId')){throw 'SUPERVISED_MAPPING_ARGUMENT_CONFLICT'}
   $report.stage='INSTRUMENT_MAPPING';Save-SupervisedReport
@@ -109,7 +112,7 @@ try {
  $report.status='SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING'
  if($TestQuotes){
   $report.stage='QUOTES';$report.quoteSamples=@();Save-SupervisedReport
-  Write-Host '[80%] Reading three NSE EQUITY quote samples, five seconds apart. Diagnostic only; local universe integration remains pending.'
+  Write-Host '[80%] Reading three NSE EQUITY quote samples, five seconds apart. Diagnostic only; current membership remains unverified.'
   for($sample=1;$sample -le 3;$sample++){
    if($sample -gt 1){Start-Sleep -Seconds 5}
    $quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}
@@ -121,6 +124,13 @@ try {
   }
   $fresh=@($report.quoteSamples|Where-Object fresh -EQ $true).Count
   $report.status=if($fresh -eq 3){'SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING'}else{'SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING'}
+ }
+ if($TestSessionExpiry){
+  $report.stage='AUTHENTICATED_EXPIRY';Save-SupervisedReport
+  $result=Test-PaytmAuthenticatedExpiry -SecurityId $QuoteSecurityId -Request {param($command,$body) Invoke-LocalSupervised $command $body} -Checkpoint {param($progress) $report.sessionExpiry=$progress;Save-SupervisedReport}
+  if(-not $result.passed){throw $result.failure}
+  # Preserve quote freshness status separately from expiry acceptance.
+  $report.sessionExpiry=$result;Save-SupervisedReport
  }
 }catch{
  $report.status='REVIEW_REQUIRED'
