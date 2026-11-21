@@ -1,0 +1,17 @@
+{
+    "date":  "2026-11-21",
+    "scope":  "SUPERVISED_READ_ONLY_QUOTE_PROBE",
+    "javaTests":  44,
+    "failures":  0,
+    "errors":  0,
+    "scriptSyntaxAndArtifact":  "PASSED",
+    "reportFixtures":  "QUOTE_SANITIZATION_AND_LOGIN_COMPATIBILITY_PASSED",
+    "runtimeQuotesAccepted":  false,
+    "ordersEnabled":  false,
+    "mappingVerified":  false,
+    "limitations":  [
+                        "Default provider example ID 3456 is not a local company mapping",
+                        "Freshness threshold is diagnostic only; no approval authority",
+                        "Weekend data can be stale; market-hours acceptance still required"
+                    ]
+}

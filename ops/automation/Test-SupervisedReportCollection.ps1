@@ -1,0 +1,26 @@
+#Requires -Version 7.2
+$ErrorActionPreference='Stop'
+$dir=Join-Path ([IO.Path]::GetTempPath()) ('mb-report-fixture-'+[guid]::NewGuid().ToString('N'))
+$null=New-Item -ItemType Directory -Path $dir
+try {
+ $source=[IO.File]::ReadAllText("$PSScriptRoot/Collect-SupervisedLoginReport.ps1").Replace('C:\MarketBrainData\Review',$dir)
+ $script=[scriptblock]::Create($source)
+ $run='a'*32;$file=Join-Path $dir "paytm-supervised-login-$run.json";$output=Join-Path $dir 'result.json'
+ $fixture=@{version=1;runId=$run;ordersEnabled=$false;status='SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING';stage='QUOTES';readAccessVerified=$true;quotesTested=$true;windowsClockGate=$false;vpsAccuracyAssumed=$true;cleanup=@('APPLICATION_LOCKED','GATEWAY_STOPPED_DISABLED');elapsedSeconds=123;quoteSamples=@(@{status='STALE_QUOTE';securityId=3456;lastPrice=423.75;rawTradeTime=1479700000;ageMilliseconds=20000;fresh=$false;mappingVerified=$false;ordersEnabled=$false;secret='MUST_NOT_LEAVE'})}
+ [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
+ & $script -ResultPath $output -Mode Observe
+ $text=[IO.File]::ReadAllText($output);$r=$text|ConvertFrom-Json
+ if(-not $r.passed -or $r.report.quoteSamples.Count -ne 1 -or $r.report.quoteSamples[0].status -ne 'STALE_QUOTE' -or $text.Contains('MUST_NOT_LEAVE')){throw 'QUOTE_REPORT_FIXTURE_FAILED'}
+ $fixture.Remove('quoteSamples');$fixture.quotesTested=$false
+ [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
+ & $script -ResultPath $output -Mode Observe
+ if(-not ((Get-Content $output -Raw|ConvertFrom-Json).passed)){throw 'LOGIN_COMPATIBILITY_FAILED'}
+ Write-Host 'SUPERVISED_REPORT_QUOTE_AND_LOGIN_FIXTURES_PASSED'
+}finally{
+ # Unique generated fixture directory, created above; no application files are touched.
+ if((Split-Path $dir -Leaf) -notmatch '^mb-report-fixture-[a-f0-9]{32}$'){throw 'FIXTURE_PATH_REJECTED'}
+ $resolved=[IO.Path]::GetFullPath($dir)
+ $tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+ if(-not $resolved.StartsWith($tempRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'FIXTURE_PATH_REJECTED'}
+ Remove-Item -LiteralPath $dir -Recurse -Force
+}

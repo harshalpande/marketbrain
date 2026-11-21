@@ -184,12 +184,12 @@
         {
           "id": "G4.1",
           "goal": "Current provider auth/callback contract and app configuration verified",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-supervised-login-accepted-20261121.json"
         },
         {
           "id": "G4.2",
           "goal": "Owner login and required authentication completed through reviewed flow",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-supervised-login-accepted-20261121.json"
         },
         {
           "id": "G4.3",
@@ -199,7 +199,7 @@
         {
           "id": "G4.4",
           "goal": "Secret-safe token custody and authenticated read-only access accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-supervised-login-accepted-20261121.json"
         },
         {
           "id": "G4.5",

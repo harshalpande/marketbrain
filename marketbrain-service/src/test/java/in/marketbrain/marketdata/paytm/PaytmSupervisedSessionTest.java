@@ -9,12 +9,17 @@ import java.util.concurrent.atomic.AtomicLong;
 class PaytmSupervisedSessionTest {
     private final AtomicLong ticks = new AtomicLong();
     private final Instant vps = Instant.parse("2026-11-20T00:00:00Z");
-    private int exchanges, reads;
+    private int exchanges, reads, quotes;
     private boolean fail;
     private PaytmSupervisedSession create() {
         return new PaytmSupervisedSession(new PaytmSupervisedSession.Broker() {
             public String exchange(String k, String s, String t) { exchanges++; if(fail) throw new IllegalStateException("PAYTM_HTTP_401"); return "read-token"; }
             public void verifyRead(String t) { assertThat(t).isEqualTo("read-token"); reads++; }
+            public com.fasterxml.jackson.databind.JsonNode quote(String t,int id) {
+                assertThat(t).isEqualTo("read-token");quotes++;
+                if(fail) throw new IllegalStateException("PAYTM_HTTP_429");
+                return PaytmQuoteProbeTest.reply(0);
+            }
         }, instant -> new PaytmSupervisedClock(instant,Duration.ofMinutes(20),ticks::get));
     }
     @Test void loginConsumesOnceAndLockClearsSession() {
@@ -29,6 +34,27 @@ class PaytmSupervisedSessionTest {
         assertThat(exchanges).isEqualTo(1); assertThat(reads).isEqualTo(1);
         assertThatThrownBy(()->session.callback("state="+state+"&requestToken=test",browser.binding())).isInstanceOf(IllegalArgumentException.class);
         session.close(); assertThat(session.status().get("status")).isEqualTo("LOCKED");
+    }
+    private void login(PaytmSupervisedSession session) {
+        var url=session.start("key","secret",vps.toEpochMilli());
+        var browser=session.browser(URI.create(url).getQuery().substring(5));
+        session.callback("state="+browser.location().getQuery().split("state=")[1]+"&requestToken=test",browser.binding());
+    }
+    @Test void quoteRequiresLoginIsBoundedAndStopsOnProviderError() {
+        var session=create();
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("SUPERVISED_SESSION_LOCKED");
+        login(session);
+        session.quote(3456);
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("PAYTM_QUOTE_LIMIT");
+        for(int i=1;i<3;i++){ticks.set(Duration.ofSeconds(i*5).toNanos());session.quote(3456);}
+        ticks.set(Duration.ofSeconds(15).toNanos());
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("PAYTM_QUOTE_LIMIT");
+        assertThat(quotes).isEqualTo(3);
+        session.close();login(session);fail=true;
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("PAYTM_HTTP_429");
+        assertThat(session.status()).containsEntry("status","LOCKED");
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("SUPERVISED_SESSION_LOCKED");
+        assertThat(quotes).isEqualTo(4);
     }
     @Test void callbackExpiryUsesElapsedTimeNotHostWallClock() {
         var session=create();

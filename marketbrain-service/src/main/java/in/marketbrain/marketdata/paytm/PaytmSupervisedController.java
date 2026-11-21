@@ -40,6 +40,16 @@ public final class PaytmSupervisedController {
         if ("lock".equals(command)) session.close();
         return response(200).body(session.status());
     }
+    public record QuoteRequest(int securityId) { }
+    @PostMapping("/api/v1/paytm/supervised/quote")
+    public ResponseEntity<?> quote(@RequestBody QuoteRequest body, HttpServletRequest request) {
+        if (!authorized(request)) return response(401).body(Map.of("status","UNAUTHORIZED"));
+        try { return response(200).body(session.quote(body.securityId())); }
+        catch (RuntimeException e) {
+            String reason=e.getMessage()!=null && e.getMessage().matches("(PAYTM|SUPERVISED)_[A-Z0-9_]{1,80}")?e.getMessage():"PAYTM_QUOTE_FAILED";
+            return response(200).body(Map.of("status",reason,"ordersEnabled",false,"fresh",false,"mappingVerified",false));
+        }
+    }
     @GetMapping("/paytm/supervised/browser")
     public ResponseEntity<?> browser(@RequestParam String code, HttpServletRequest request) {
         if (!local(request)) return response(400).body("Local browser required.");

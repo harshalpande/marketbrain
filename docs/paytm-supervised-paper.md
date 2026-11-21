@@ -10,17 +10,43 @@ This is a scope decision, not evidence that deferred tests passed.
 
 | Milestone | Current state | Runtime acceptance |
 | --- | --- | --- |
-| Supervised login and protected account read | Implemented; local tests passed; spare deployment pending | Owner login, one-use callback, read token exchange and account-read HTTP response |
-| Real quotes | Next | Verified instrument mapping, actual provider timestamp and price; missing/stale quote rejection |
+| Supervised login and protected account read | Accepted on spare: login/read and cleanup, 110.105 seconds | Owner login, one-use callback, read token exchange and account-read HTTP response |
+| Real quotes | Bounded probe implemented; spare run pending | Verified instrument mapping, actual provider timestamp and price; missing/stale quote rejection |
 | Combined Telegram actions | Pending | ACCEPT, REJECT, 100-second expiry and duplicate rejection in one batch |
 | Paper execution and portal | Pending integration | Virtual cash/holdings, costs, fills and portal reconciliation |
 | Unattended lifecycle and clock reliability | Deferred | Resume after supervised workflow works |
 
 The original accepted checkpoint score remains G1 100%, G2 100%, G3 80%,
-G4/G5/G6 0% (14/30 accepted). New code is not runtime acceptance. There is no
+G4 60%, G5/G6 0% (17/30 accepted, 56.7%). G4.1, G4.2 and G4.4 accepted by the collected owner-login report. Callback negative and lifecycle runtime cases remain open. New code is not runtime acceptance. There is no
 claim of prediction accuracy, complete paper integration or live-order readiness.
 
-## Implemented login behavior
+## Quote probe (21 November)
+
+`StartPaytmSupervisedLogin.ps1 -TestQuotes` reads three LTP samples, five seconds
+apart, before locking the same authenticated session. The default is the
+provider documentation's NSE EQUITY security ID 3456. This is a protocol probe,
+not a verified company mapping; it must not feed proposals or execution.
+An explicit `-QuoteSecurityId` can select another positive provider ID.
+
+The endpoint uses only the in-memory read token and the existing fixed proxy.
+Java permits at most three calls per session, spaced at least five seconds
+apart. HTTP errors end the session without automatic retry. Missing packets
+are recorded as NO_QUOTE; malformed, future or missing timestamps require review.
+Stale packets are retained as diagnostic evidence but never marked fresh.
+Fresh means age between zero and 15 seconds against the VPS-anchored clock at
+receipt. This does not prove market-open status, symbol mapping or execution
+eligibility. Weekend/closed-market data can complete capture while freshness
+remains pending. No laptop-clock repair is required for this workflow.
+
+Contract sources checked 21 November: [official live-data documentation](https://developer.paytmmoney.com/docs/api/live-market-data-api)
+for the LTP response and read-token support; [official SDK epoch converter](https://github.com/paytmmoney/pyPMClient/blob/master/pmClient/epochConverterUtil.py)
+for seconds since 1980 (add 315532800 for Unix seconds). Raw provider seconds,
+converted time, VPS observation, age, price and status are recorded in one compact
+report. Unknown provider fields and all credentials are excluded from queue
+collection. Full instrument-master mapping and real market-hours acceptance
+remain G5 work; the public master download did not return during local inspection.
+
+## Login implementation
 
 `compose.paytm-supervised.yaml` opts the main application into PAPER-only login.
 It cannot run alongside the synthetic rehearsal controller. The existing paper
@@ -65,7 +91,7 @@ $ErrorActionPreference = 'Stop'
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 & .\ops\windows\DeployPaytmSupervised.ps1
-& .\ops\windows\StartPaytmSupervisedLogin.ps1
+& .\ops\windows\StartPaytmSupervisedLogin.ps1 -TestQuotes
 ```
 
 The deployer retains the current Compose project/overrides, builds before
@@ -86,7 +112,7 @@ It never reads or regenerates the approval-key contents. The old image remains
 available. A separate `paytm-supervised-deployment-<id>.json` is now saved even
 when configuration/build fails; the same queue collector can fetch it. Local
 regression coverage includes actual Compose interpolation using fixture values;
-the spare deployment has not yet been accepted.
+the subsequent spare deployment and login/read have now passed (21 November).
 
 Expected success: `SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING` with application
 locked and gateway stopped/disabled. A provider error is evidence to inspect,
@@ -124,3 +150,7 @@ with atomic replacement; the queue reader permits replacement while reading.
 This avoids returning only the initial PREPARATION checkpoint while the browser
 and terminal are already at LOGIN. No callback query/token is saved in reports.
 Close old callback tabs and use the new browser launch on retry.
+
+Local verification (21 November): 44 Java tests passed with zero failures/errors;
+PowerShell handoff parsing/artifact equality and quote/login collection fixtures
+passed. Actual quote entitlement/freshness is not yet accepted.

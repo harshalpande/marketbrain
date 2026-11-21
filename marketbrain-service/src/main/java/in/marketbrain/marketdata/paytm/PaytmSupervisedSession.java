@@ -11,6 +11,7 @@ public final class PaytmSupervisedSession implements AutoCloseable {
     interface Broker {
         String exchange(String key, String secret, String requestToken);
         void verifyRead(String readToken);
+        default com.fasterxml.jackson.databind.JsonNode quote(String readToken, int securityId) { throw new IllegalStateException("PAYTM_QUOTE_UNAVAILABLE"); }
     }
     private final Broker broker;
     private final java.util.function.Function<Instant, Clock> clockFactory;
@@ -20,10 +21,13 @@ public final class PaytmSupervisedSession implements AutoCloseable {
     private String launchCode, key, secret, readToken;
     private String state = "LOCKED";
     private String failure = "NONE";
+    private int quoteCalls;
+    private Instant nextQuote;
     public PaytmSupervisedSession(PaytmSupervisedClient client) {
         this(new Broker() {
             public String exchange(String k, String s, String t) { return client.exchange(k,s,t); }
             public void verifyRead(String t) { client.verifyRead(t); }
+            public com.fasterxml.jackson.databind.JsonNode quote(String t, int id) { return client.quote(t,id); }
         }, instant -> new PaytmSupervisedClock(instant, Duration.ofMinutes(20)));
     }
     PaytmSupervisedSession(Broker broker, java.util.function.Function<Instant, Clock> clockFactory) {
@@ -86,11 +90,28 @@ public final class PaytmSupervisedSession implements AutoCloseable {
                 "clockSource", "VPS_ANCHORED_MONOTONIC", "vpsAccuracyAssumed", true,
                 "windowsClockGate", false, "ordersEnabled", false, "failure", failure);
     }
+    public synchronized Map<String,Object> quote(int securityId) {
+        alive();
+        if (!"READ_ACCESS_VERIFIED".equals(state)) throw new IllegalStateException("PAYTM_READ_ACCESS_REQUIRED");
+        if(securityId<1 || securityId>99999999) throw new IllegalArgumentException("PAYTM_SECURITY_ID_INVALID");
+        Instant now=clock.instant();
+        if(quoteCalls>=3 || (nextQuote!=null && now.isBefore(nextQuote))) throw new IllegalStateException("PAYTM_QUOTE_LIMIT");
+        quoteCalls++; nextQuote=now.plusSeconds(5);
+        try {
+            var reply=broker.quote(readToken,securityId);
+            alive();
+            return PaytmQuoteProbe.assess(reply,securityId,clock.instant());
+        } catch(RuntimeException e) {
+            failure=e.getMessage()!=null && e.getMessage().matches("PAYTM_[A-Z0-9_]{1,80}")?e.getMessage():"PAYTM_QUOTE_FAILED";
+            close();throw new IllegalStateException(failure);
+        }
+    }
     private void alive() {
         if (clock == null) throw new IllegalStateException("SUPERVISED_SESSION_LOCKED");
         try { clock.instant(); } catch (RuntimeException e) { close(); throw new IllegalStateException("SUPERVISED_SESSION_EXPIRED"); }
     }
     @Override public synchronized void close() {
+        quoteCalls=0;nextQuote=null;
         key = null; secret = null; readToken = null; launchCode = null; challenge = null; preparation = null; clock = null; state = "LOCKED";
     }
 }

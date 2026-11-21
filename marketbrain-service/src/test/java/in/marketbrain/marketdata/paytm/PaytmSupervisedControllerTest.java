@@ -22,6 +22,13 @@ class PaytmSupervisedControllerTest {
         var c=new PaytmSupervisedController(TOKEN,"PAPER",false);
         try {
             var mvc=MockMvcBuilders.standaloneSetup(c).build();
+            mvc.perform(post("/api/v1/paytm/supervised/quote").header("Host","127.0.0.1:8080")
+                    .contentType("application/json").content("{\"securityId\":3456}"))
+                    .andExpect(status().isUnauthorized());
+            mvc.perform(post("/api/v1/paytm/supervised/quote").header("Host","127.0.0.1:8080")
+                    .header("X-MarketBrain-Paper-Read-Token",TOKEN).header("X-MarketBrain-Paytm-Supervised","supervised-paper")
+                    .contentType("application/json").content("{\"securityId\":3456}"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUPERVISED_SESSION_LOCKED"));
             mvc.perform(post("/api/v1/paytm/supervised/status").header("Host","127.0.0.1:8080")).andExpect(status().isUnauthorized());
             mvc.perform(post("/api/v1/paytm/supervised/status").header("Host","127.0.0.1:8080")
                     .header("X-MarketBrain-Paper-Read-Token",TOKEN).header("X-MarketBrain-Paytm-Supervised","supervised-paper")

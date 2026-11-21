@@ -1,0 +1,38 @@
+{
+    "acceptedDate":  "2026-11-21",
+    "automationJobId":  "081b3537-df25-4f10-9e01-ff0be3c66659",
+    "sourceRevision":  "e4dae05d0532d96709d1224d3870ce11e645b262",
+    "sourceSha256":  "32BB59F6B7FBFDD805FE329B135BF9019DE336327510146A65C4940A6520D75E",
+    "sourceFile":  "paytm-supervised-login-df75a04a0d1245e4bb08a9bb25994d0d.json",
+    "report":  {
+                   "runId":  "df75a04a0d1245e4bb08a9bb25994d0d",
+                   "ordersEnabled":  false,
+                   "status":  "SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING",
+                   "stage":  "LOGIN",
+                   "failure":  "",
+                   "providerFailure":  "NONE",
+                   "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                   "applicationState":  "READ_ACCESS_VERIFIED",
+                   "readAccessVerified":  true,
+                   "quotesTested":  false,
+                   "windowsClockGate":  false,
+                   "vpsAccuracyAssumed":  true,
+                   "cleanup":  [
+                                   "APPLICATION_LOCKED",
+                                   "GATEWAY_STOPPED_DISABLED"
+                               ],
+                   "elapsedSeconds":  110.1045796
+               },
+    "acceptedCheckpoints":  [
+                                "G4.1",
+                                "G4.2",
+                                "G4.4"
+                            ],
+    "limitations":  [
+                        "Account read success is not account identity verification",
+                        "No quote entitlement or market freshness established",
+                        "Callback negative and lifecycle runtime acceptance pending",
+                        "No provider-side token revocation claimed",
+                        "No orders enabled"
+                    ]
+}

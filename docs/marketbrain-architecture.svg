@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1180" viewBox="0 0 1200 1180" role="img" aria-labelledby="title desc">
 
   <title id="title">MarketBrain V2 paper-first target architecture, 2026-09-18</title>
-  <desc id="desc">Queued transport observation accepted. Fixed SYSTEM time observer and protected fresh snapshots implemented for non-admin health collector; SYSTEM observer runtime accepted; elevated account identity verified; Non-admin collector runtime accepted: three health publications, revocation and gateway cleanup; automatic report collection verified; health rejection/recovery runtime accepted; disabled durable startup collector installation accepted; queued installed-state verification accepted; bounded durable activation accepted: four publications, revocation and dual-task cleanup; sign-out recovery gap confirmed: application restart policy no; collector exhausted retries; application startup and collector recovery coordination pending. No broker readiness or trading enablement. G3 80 percent. Recovery upgrade installed and verified: bounded application readiness and boot reauthentication; Docker unless-stopped; guarded v2 activation passed with 3 accepted of 6 cycles and verified cleanup; clock reliability and lifecycle pending, G3 80%. Supervised PAPER login now implemented with VPS anchor and monotonic expiry, independent of G3 clock screens; owner login and read acceptance pending. Quotes and paper execution integration next. Supervised deploy now preserves existing environment and key/review mounts; deployment failures are automatically collectable. Callback corrected for observed success=true flag; rejected owner attempts close promptly; runtime read acceptance pending.</desc>
+  <desc id="desc">Paper-first architecture. Supervised Paytm owner login, read-token exchange, protected account read and final lock/gateway cleanup accepted on 21 November 2026. G1 100%, G2 100%, G3 80%, G4 60%, G5 and G6 0%; 17 of 30 accepted checkpoints. VPS anchored monotonic time supports supervised testing; unattended clock lifecycle remains deferred. Three bounded read-token quote probes implemented and locally tested; provider-ID mapping and actual fresh market-hours quote acceptance pending. No orders enabled.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#405870"/></marker>
     <style>
@@ -69,5 +69,5 @@
   <rect x="30" y="1060" width="1140" height="96" rx="9" class="planned"/>
   <text x="48" y="1087" class="label">Maintenance automation: separate from trading application</text>
   <text x="48" y="1115" class="body">Development controller &lt;-&gt; VPS HTTPS queue &lt;-&gt; spare Windows runner + local user prompt</text>
-  <text x="48" y="1141" class="small">Supervised login + VPS elapsed time implemented; runtime login pending; unattended clock work deferred</text>
+  <text x="48" y="1141" class="small">Supervised login accepted (G4 60%); bounded quote probe next; unattended clock work deferred</text>
 </svg>

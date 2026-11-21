@@ -28,6 +28,21 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['quoteSamples']){
+  if(@($v.quoteSamples).Count -gt 3){throw 'REPORT_FIELD_REJECTED'}
+  $safe.quoteSamples=@($v.quoteSamples|ForEach-Object {
+   $q=$_;$s=[ordered]@{}
+   foreach($n in @('status','exchange','scripType','timestampEpoch')){
+    if($q.PSObject.Properties[$n]){if([string]$q.$n -cnotmatch '^[A-Z0-9_]{1,100}$'){throw 'REPORT_FIELD_REJECTED'};$s[$n]=[string]$q.$n}
+   }
+   foreach($n in @('securityId','observedEpochMilliseconds','rawTradeTime','tradeEpochMilliseconds','ageMilliseconds','lastPrice')){
+    if($q.PSObject.Properties[$n]){if($q.$n -is [string] -or $q.$n -is [bool] -or $null -eq $q.$n){throw 'REPORT_FIELD_REJECTED'};$s[$n]=[decimal]$q.$n}
+   }
+   foreach($n in @('fresh','mappingVerified','ordersEnabled')){if($q.$n -isnot [bool]){throw 'REPORT_FIELD_REJECTED'};$s[$n]=$q.$n}
+   if($q.ordersEnabled -ne $false -or $q.mappingVerified -ne $false){throw 'REPORT_SCOPE_REJECTED'}
+   $s
+  })
+ }
  if($v.PSObject.Properties['failureLine']){$safe.failureLine=[int]$v.failureLine}
  if($v.PSObject.Properties['deploymentAttempted']){$safe.deploymentAttempted=($v.deploymentAttempted -eq $true)}
  if($v.PSObject.Properties['commands']){

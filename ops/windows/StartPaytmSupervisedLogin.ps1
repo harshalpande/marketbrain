@@ -1,6 +1,8 @@
 #Requires -Version 7.2
 #Requires -RunAsAdministrator
 [CmdletBinding()]param(
+ [switch]$TestQuotes,
+ [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
@@ -87,7 +89,23 @@ try {
  }while($wait.Elapsed.TotalSeconds -lt 600)
  if(-not $report.readAccessVerified){throw 'SUPERVISED_LOGIN_TIMEOUT'}
  $report.status='SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING'
+ if($TestQuotes){
+  $report.stage='QUOTES';$report.quoteSamples=@();Save-SupervisedReport
+  Write-Host '[80%] Reading three NSE EQUITY quote samples, five seconds apart. Security ID is a provider diagnostic, not a verified company mapping.'
+  for($sample=1;$sample -le 3;$sample++){
+   if($sample -gt 1){Start-Sleep -Seconds 5}
+   $quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}
+   if($quote.ordersEnabled -ne $false -or $quote.status -cnotmatch '^[A-Z0-9_]{1,100}$'){throw 'SUPERVISED_QUOTE_RESPONSE_INVALID'}
+   $report.quoteSamples+= $quote;$report.quotesTested=$true;Save-SupervisedReport
+   Write-Host "  Quote $sample/3: $($quote.status)"
+   Write-Progress -Activity 'Supervised Paytm login' -PercentComplete (80+5*$sample) -Status "Quote $sample/3: $($quote.status)"
+   if($quote.status -notin @('FRESH_QUOTE_OBSERVED','STALE_QUOTE','NO_QUOTE')){throw 'SUPERVISED_QUOTE_REVIEW_REQUIRED'}
+  }
+  $fresh=@($report.quoteSamples|Where-Object fresh -EQ $true).Count
+  $report.status=if($fresh -eq 3){'SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING'}else{'SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING'}
+ }
 }catch{
+ $report.status='REVIEW_REQUIRED'
  # Do not retain HTTP bodies, exception dumps, API keys or callback URLs in shareable evidence.
  $report.failure=if($_.Exception.Message -cmatch '^(SUPERVISED|CLOCK_LOGIN)_[A-Z_]+$'){$_.Exception.Message}else{'SUPERVISED_STEP_FAILED'}
 }finally{

@@ -7,7 +7,7 @@ import java.net.http.*;
 import java.time.Duration;
 import java.util.*;
 
-/** Only token exchange and account-read verification. No order API, redirects or direct fallback. */
+/** Token exchange, account read and bounded quote probe. No orders, redirects or direct fallback. */
 public final class PaytmSupervisedClient implements AutoCloseable {
     static final String HOST = "developer.paytmmoney.com";
     static final URI TOKEN = URI.create("https://" + HOST + "/accounts/v2/gettoken");
@@ -30,7 +30,14 @@ public final class PaytmSupervisedClient implements AutoCloseable {
     static boolean allowed(URI uri) {
         return "https".equals(uri.getScheme()) && HOST.equals(uri.getHost()) && uri.getPort() == -1
                 && uri.getUserInfo() == null && uri.getFragment() == null
-                && (TOKEN.equals(uri) || URI.create("https://" + HOST + "/accounts/v1/user/details").equals(uri));
+                && (TOKEN.equals(uri) || URI.create("https://" + HOST + "/accounts/v1/user/details").equals(uri)
+                    || ("/data/v1/price/live".equals(uri.getRawPath()) && uri.getRawQuery()!=null
+                        && uri.getRawQuery().matches("mode=LTP&pref=NSE:[1-9][0-9]{0,7}:EQUITY")));
+    }
+    JsonNode quote(String readToken, int securityId) {
+        if (securityId<1 || securityId>99999999) throw new IllegalArgumentException("PAYTM_SECURITY_ID_INVALID");
+        URI uri=URI.create("https://"+HOST+"/data/v1/price/live?mode=LTP&pref=NSE:"+securityId+":EQUITY");
+        return send(HttpRequest.newBuilder(uri).header("x-jwt-token",readToken).GET());
     }
     String exchange(String key, String secret, String requestToken) {
         try {
