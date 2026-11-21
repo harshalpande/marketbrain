@@ -271,3 +271,7 @@ no concurrent owner login. This does not verify authenticated expiry, provider
 relogin, cold restart, or successful callback replay; those remain pending.
 Four offline fixtures cover success, existing active session, request failure
 with cleanup, and failed cleanup. No application rebuild or user input needed.
+
+Runtime acceptance: job 9bf20273-543e-46ca-b8a4-45de7c9e3bff passed all fourteen
+assertions and final lock on 21 November, 5.510s including universe read. Valid
+authenticated callback replay and expiry/restart/relogin are still pending.

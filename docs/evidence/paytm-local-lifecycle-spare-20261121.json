@@ -1,0 +1,159 @@
+{
+    "id":  "9bf20273-543e-46ca-b8a4-45de7c9e3bff",
+    "kind":  "paytm-denial-recovery",
+    "state":  "SUCCEEDED",
+    "created":  1795248745.5271046,
+    "updated":  1795248754.7487807,
+    "result":  {
+                   "passed":  true,
+                   "revision":  "1bdf1ece7f7d97425d550b5e7a8035bd8a51427f",
+                   "stdoutCharacters":  0,
+                   "stderrCharacters":  0,
+                   "exitCode":  0,
+                   "timedOut":  false,
+                   "sourceSha256":  "CCB180B1B0F2275FD1D905E42936FAB5DA7E7DA21D4E5DCA67483A970875AF6A",
+                   "elapsedSeconds":  5.5096795,
+                   "ordersEnabled":  false,
+                   "evidence":  {
+                                    "lifecycle":  {
+                                                      "version":  1,
+                                                      "test":  "SUPERVISED_LOCAL_NEGATIVE_LIFECYCLE",
+                                                      "passed":  true,
+                                                      "checks":  [
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "INITIAL_LOCKED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "LOCAL_ATTEMPT_CREATED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  303,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  303,
+                                                                         "passed":  true,
+                                                                         "name":  "BROWSER_LINK_CONSUMED_LOCALLY"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  400,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  400,
+                                                                         "passed":  true,
+                                                                         "name":  "BROWSER_LINK_REPLAY_REJECTED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  400,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  400,
+                                                                         "passed":  true,
+                                                                         "name":  "WRONG_COOKIE_REJECTED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "WRONG_COOKIE_PRESERVES_OWNER"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  400,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  400,
+                                                                         "passed":  true,
+                                                                         "name":  "OWNER_CANCELLATION_REJECTED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "CANCELLED_ATTEMPT_LOCKED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  400,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  400,
+                                                                         "passed":  true,
+                                                                         "name":  "CANCELLED_CALLBACK_REPLAY_REJECTED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "NEW_ATTEMPT_AFTER_CANCELLATION"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  400,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  400,
+                                                                         "passed":  true,
+                                                                         "name":  "OLD_BROWSER_LINK_REJECTED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "NEW_ATTEMPT_PRESERVED"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "FINAL_LOCK"
+                                                                     },
+                                                                     {
+                                                                         "expectedStatus":  200,
+                                                                         "noStore":  true,
+                                                                         "actualStatus":  200,
+                                                                         "passed":  true,
+                                                                         "name":  "FINAL_LOCK_VERIFIED"
+                                                                     }
+                                                                 ],
+                                                      "failure":  null,
+                                                      "finalLocked":  true,
+                                                      "ordersEnabled":  false,
+                                                      "brokerCredentialsUsed":  false,
+                                                      "brokerRedirectsFollowed":  false,
+                                                      "clockSource":  "SYNTHETIC_ANCHOR_FOR_LOCAL_NEGATIVES_ONLY"
+                                                  },
+                                    "test":  "SUPERVISED_UNIVERSE_AND_LIFECYCLE",
+                                    "ordersEnabled":  false,
+                                    "universe":  {
+                                                     "version":  1,
+                                                     "test":  "SUPERVISED_SAVED_UNIVERSE_PROBE",
+                                                     "passed":  true,
+                                                     "ordersEnabled":  false,
+                                                     "brokerCredentialsUsed":  false,
+                                                     "failure":  null,
+                                                     "universeMatch":  {
+                                                                           "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                                                           "snapshotMatched":  true,
+                                                                           "ordersEnabled":  false,
+                                                                           "isin":  "INE002A01018",
+                                                                           "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                                           "observedOn":  "2026-09-02",
+                                                                           "symbol":  "RELIANCE",
+                                                                           "instrumentId":  1202,
+                                                                           "currentMembershipVerified":  false,
+                                                                           "providerIsinVerified":  false
+                                                                       }
+                                                 },
+                                    "passed":  true
+                                }
+               },
+    "spec":  {
+                 "revision":  "1bdf1ece7f7d97425d550b5e7a8035bd8a51427f",
+                 "mode":  "Apply",
+                 "sha256":  "CCB180B1B0F2275FD1D905E42936FAB5DA7E7DA21D4E5DCA67483A970875AF6A"
+             }
+}
