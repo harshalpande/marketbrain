@@ -322,3 +322,11 @@ Progress and sanitized sessionRestart flags are saved in the compact report.
 Five offline fixtures cover success, unauthenticated precondition, surviving
 session, unchanged start identity and native failure. Runtime restart and
 subsequent fresh relogin are pending; do not repeat expiry just to prove them.
+
+Authenticated restart accepted on spare: run244ae32090bb4ef4a26c869a97e01b0d,
+31.413s restart check,127.841s total. Same container/start changed, session
+locked and quote rejected, final application/gateway cleanup passed. Next run
+StartPaytmSupervisedLogin.ps1 -TestQuotes -QuoteSymbol RELIANCE without either
+lifecycle switch to establish fresh login after restart. No rebuild required.
+Capture and review that result before accepting the full lifecycle checkpoint.
+Freshness and successful-callback replay acceptance remain separate.

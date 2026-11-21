@@ -1,0 +1,134 @@
+{
+    "id":  "07d21c48-bbe9-42e7-978d-aefe2a2ca187",
+    "kind":  "paytm-denial-recovery",
+    "state":  "SUCCEEDED",
+    "created":  1795257240.7695367,
+    "updated":  1795257243.8634098,
+    "result":  {
+                   "passed":  true,
+                   "revision":  "59a1d10e550cfb25428c9c650cdc08c2f560f185",
+                   "stdoutCharacters":  0,
+                   "stderrCharacters":  0,
+                   "exitCode":  0,
+                   "timedOut":  false,
+                   "sourceSha256":  "09C10B3EFDB19D568A3791313CA4F83C62C3FFC4B515B5428D47101F29497768",
+                   "elapsedSeconds":  1.4156898,
+                   "ordersEnabled":  false,
+                   "evidence":  {
+                                    "version":  1,
+                                    "test":  "SUPERVISED_LOGIN_REPORT_COLLECTION",
+                                    "passed":  true,
+                                    "ordersEnabled":  false,
+                                    "failure":  null,
+                                    "report":  {
+                                                   "runId":  "244ae32090bb4ef4a26c869a97e01b0d",
+                                                   "ordersEnabled":  false,
+                                                   "status":  "SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING",
+                                                   "stage":  "AUTHENTICATED_RESTART",
+                                                   "failure":  "",
+                                                   "providerFailure":  "NONE",
+                                                   "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                                                   "applicationState":  "READ_ACCESS_VERIFIED",
+                                                   "readAccessVerified":  true,
+                                                   "quotesTested":  true,
+                                                   "windowsClockGate":  false,
+                                                   "vpsAccuracyAssumed":  true,
+                                                   "cleanup":  [
+                                                                   "APPLICATION_LOCKED",
+                                                                   "GATEWAY_STOPPED_DISABLED"
+                                                               ],
+                                                   "elapsedSeconds":  127.8414059,
+                                                   "sessionRestart":  {
+                                                                          "status":  "AUTHENTICATED_RESTART_PASSED_RELOGIN_PENDING",
+                                                                          "failure":  "",
+                                                                          "elapsedSeconds":  31.4126693,
+                                                                          "ordersEnabled":  false,
+                                                                          "passed":  true,
+                                                                          "authenticatedBeforeRestart":  true,
+                                                                          "restartAttempted":  true,
+                                                                          "sameContainer":  true,
+                                                                          "startChanged":  true,
+                                                                          "lockedAfterRestart":  true,
+                                                                          "quoteRejected":  true
+                                                                      },
+                                                   "universeMatch":  {
+                                                                         "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                                                         "snapshotMatched":  true,
+                                                                         "ordersEnabled":  false,
+                                                                         "isin":  "INE002A01018",
+                                                                         "observedOn":  "2026-09-02",
+                                                                         "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                                         "instrumentId":  1202,
+                                                                         "symbol":  "RELIANCE",
+                                                                         "currentMembershipVerified":  false,
+                                                                         "providerIsinVerified":  false
+                                                                     },
+                                                   "quoteMapping":  {
+                                                                        "symbol":  "RELIANCE",
+                                                                        "segment":  "E",
+                                                                        "sha256":  "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+                                                                        "exchange":  "NSE",
+                                                                        "localUniverseVerified":  false,
+                                                                        "securityId":  2885,
+                                                                        "series":  "EQ",
+                                                                        "source":  "PAYTM_PUBLIC_EQUITY_MASTER",
+                                                                        "instrumentType":  "ES"
+                                                                    },
+                                                   "quoteSamples":  [
+                                                                        {
+                                                                            "status":  "STALE_QUOTE",
+                                                                            "exchange":  "NSE",
+                                                                            "scripType":  "EQUITY",
+                                                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                                            "securityId":  2885.0,
+                                                                            "observedEpochMilliseconds":  1795255148287.0,
+                                                                            "rawTradeTime":  1479637779.0,
+                                                                            "tradeEpochMilliseconds":  1795170579000.0,
+                                                                            "ageMilliseconds":  84569287.0,
+                                                                            "lastPrice":  1377.5,
+                                                                            "fresh":  false,
+                                                                            "mappingVerified":  false,
+                                                                            "ordersEnabled":  false
+                                                                        },
+                                                                        {
+                                                                            "status":  "STALE_QUOTE",
+                                                                            "exchange":  "NSE",
+                                                                            "scripType":  "EQUITY",
+                                                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                                            "securityId":  2885.0,
+                                                                            "observedEpochMilliseconds":  1795255153432.0,
+                                                                            "rawTradeTime":  1479637779.0,
+                                                                            "tradeEpochMilliseconds":  1795170579000.0,
+                                                                            "ageMilliseconds":  84574432.0,
+                                                                            "lastPrice":  1377.5,
+                                                                            "fresh":  false,
+                                                                            "mappingVerified":  false,
+                                                                            "ordersEnabled":  false
+                                                                        },
+                                                                        {
+                                                                            "status":  "STALE_QUOTE",
+                                                                            "exchange":  "NSE",
+                                                                            "scripType":  "EQUITY",
+                                                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                                            "securityId":  2885.0,
+                                                                            "observedEpochMilliseconds":  1795255158585.0,
+                                                                            "rawTradeTime":  1479637779.0,
+                                                                            "tradeEpochMilliseconds":  1795170579000.0,
+                                                                            "ageMilliseconds":  84579585.0,
+                                                                            "lastPrice":  1377.5,
+                                                                            "fresh":  false,
+                                                                            "mappingVerified":  false,
+                                                                            "ordersEnabled":  false
+                                                                        }
+                                                                    ]
+                                               },
+                                    "sourceFile":  "paytm-supervised-login-244ae32090bb4ef4a26c869a97e01b0d.json",
+                                    "status":  "REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED"
+                                }
+               },
+    "spec":  {
+                 "sha256":  "09C10B3EFDB19D568A3791313CA4F83C62C3FFC4B515B5428D47101F29497768",
+                 "revision":  "59a1d10e550cfb25428c9c650cdc08c2f560f185",
+                 "mode":  "Observe"
+             }
+}
