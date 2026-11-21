@@ -42,6 +42,13 @@ try {
  $headers=@{'X-MarketBrain-Paper-Read-Token'=(Read-LocalSecret 'Existing private paper read token');'X-MarketBrain-Paytm-Supervised'='supervised-paper'}
  $initial=Invoke-LocalSupervised 'status'
  if($initial.ordersEnabled -ne $false -or $initial.status -ne 'LOCKED'){throw 'SUPERVISED_EXISTING_SESSION_OR_SCOPE'}
+ if($QuoteSymbol){
+  $report.stage='LOCAL_UNIVERSE';Save-SupervisedReport
+  $report.universeMatch=Invoke-LocalSupervised 'universe-match' @{symbol=$QuoteSymbol}
+  Save-SupervisedReport
+  if($report.universeMatch.status -ne 'LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED' -or $report.universeMatch.snapshotMatched -ne $true -or $report.universeMatch.symbol -cne $QuoteSymbol -or $report.universeMatch.ordersEnabled -ne $false){throw 'SUPERVISED_LOCAL_UNIVERSE_NOT_MATCHED'}
+  Write-Host "Local snapshot match: $QuoteSymbol; snapshot dated $($report.universeMatch.observedOn). Current membership and provider ISIN are not asserted."
+ }
  $report.stage='GATEWAY';Save-SupervisedReport
  $collector=Get-ScheduledTask -TaskName 'MarketBrain-Health-Collector-v1' -ErrorAction SilentlyContinue
  if($collector -and ($collector.State -ne 'Disabled')){throw 'SUPERVISED_COLLECTOR_MUST_BE_DISABLED'}

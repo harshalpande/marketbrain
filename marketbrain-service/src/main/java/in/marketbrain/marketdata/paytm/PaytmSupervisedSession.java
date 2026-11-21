@@ -79,7 +79,7 @@ public final class PaytmSupervisedSession implements AutoCloseable {
             broker.verifyRead(readToken);
             alive(); state = "READ_ACCESS_VERIFIED";
         } catch (RuntimeException e) {
-            failure = e.getMessage() != null && e.getMessage().matches("PAYTM_[A-Z0-9_]{1,80}") ? e.getMessage() : "SUPERVISED_EXCHANGE_FAILED";
+            failure = e.getMessage() != null && e.getMessage().matches("(PAYTM|SUPERVISED)_[A-Z0-9_]{1,80}") ? e.getMessage() : "SUPERVISED_EXCHANGE_FAILED";
             close(); throw e;
         }
         finally { key = null; secret = null; challenge = null; preparation = null; }
@@ -102,13 +102,13 @@ public final class PaytmSupervisedSession implements AutoCloseable {
             alive();
             return PaytmQuoteProbe.assess(reply,securityId,clock.instant());
         } catch(RuntimeException e) {
-            failure=e.getMessage()!=null && e.getMessage().matches("PAYTM_[A-Z0-9_]{1,80}")?e.getMessage():"PAYTM_QUOTE_FAILED";
+            failure=e.getMessage()!=null && e.getMessage().matches("(PAYTM|SUPERVISED)_[A-Z0-9_]{1,80}")?e.getMessage():"PAYTM_QUOTE_FAILED";
             close();throw new IllegalStateException(failure);
         }
     }
     private void alive() {
         if (clock == null) throw new IllegalStateException("SUPERVISED_SESSION_LOCKED");
-        try { clock.instant(); } catch (RuntimeException e) { close(); throw new IllegalStateException("SUPERVISED_SESSION_EXPIRED"); }
+        try { clock.instant(); } catch (RuntimeException e) { failure="SUPERVISED_SESSION_EXPIRED";close(); throw new IllegalStateException("SUPERVISED_SESSION_EXPIRED"); }
     }
     @Override public synchronized void close() {
         quoteCalls=0;nextQuote=null;

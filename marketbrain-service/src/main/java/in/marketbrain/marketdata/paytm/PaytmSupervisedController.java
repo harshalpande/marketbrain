@@ -71,7 +71,7 @@ public final class PaytmSupervisedController {
             return response(400).header("Set-Cookie",cookie("",0)).body("Paytm login/read check failed. No orders enabled. Return to PowerShell.");
         }
     }
-    private boolean authorized(HttpServletRequest r) {
+    boolean authorized(HttpServletRequest r) {
         String supplied = r.getHeader("X-MarketBrain-Paper-Read-Token");
         return local(r) && r.getHeader("Origin") == null && r.getQueryString() == null
                 && "supervised-paper".equals(r.getHeader("X-MarketBrain-Paytm-Supervised"))

@@ -213,3 +213,34 @@ runtime boundary evidence, not valid-cookie replay, expiry or restart proof.
 Runtime result: all seven boundary checks accepted on spare through job
 73838720-3697-4df6-b4a5-7d2feebd0799; 0.583 seconds for probes. No manual
 script/report transfer was needed. Remaining valid-session cases are unchanged.
+
+## Saved-universe corroboration and session follow-up
+
+The opt-in POST /api/v1/paytm/supervised/universe-match uses the same local
+paper-read authentication and request restrictions. It performs a parameterized
+read of the latest saved NIFTY_500 snapshot, with a five-second query timeout
+and at most two rows. Ambiguous matches, inactive instruments, non-NSE symbols,
+unmatched membership and source/local ISIN disagreement fail the match.
+Snapshot date and ID are returned: this is dated corroboration, not current
+membership or Paytm ISIN verification (the public provider CSV has no ISIN).
+No history scan, database write, migration, broker request or order is involved.
+
+DeployPaytmSupervised.ps1 must deploy this endpoint first. Then the fixed queue
+job paytm-denial-recovery in Apply mode performs this read-only RELIANCE probe.
+Apply is the existing queue mode name; this job does not mutate application or
+database state. It reads the existing paper-read token locally into memory,
+never returns it, requires one running application container, uses only local
+Docker and loopback HTTP, and returns whitelisted identity fields. Observe still
+collects reports; FailureFixture still runs the seven rejection probes.
+The supervised quote launcher also requires this match before starting a
+QuoteSymbol session. No additional broker login is needed for the standalone
+universe probe. Deployment needs no clock repair or key/password prompts.
+
+Local verification: 58 Java tests, four universe automation fixtures, report
+filtering/compatibility, eight provider mapping fixtures, boundary fixtures and
+handoff syntax/generated artifact checks passed. Session expiry now retains an
+explicit SUPERVISED_SESSION_EXPIRED reason, including late quote responses.
+Tests cover authenticated expiry, relogin, obsolete callback bindings and a new
+application instance starting locked. These are local fixtures; spare runtime
+expiry/restart and market-hours freshness acceptance are still pending. G1-G6
+checkpoint percentages do not change from this preparation alone.

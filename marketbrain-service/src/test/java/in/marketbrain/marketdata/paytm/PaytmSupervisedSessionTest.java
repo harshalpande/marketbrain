@@ -11,6 +11,7 @@ class PaytmSupervisedSessionTest {
     private final Instant vps = Instant.parse("2026-11-20T00:00:00Z");
     private int exchanges, reads, quotes;
     private boolean fail;
+    private boolean expireDuringQuote;
     private PaytmSupervisedSession create() {
         return new PaytmSupervisedSession(new PaytmSupervisedSession.Broker() {
             public String exchange(String k, String s, String t) { exchanges++; if(fail) throw new IllegalStateException("PAYTM_HTTP_401"); return "read-token"; }
@@ -18,6 +19,7 @@ class PaytmSupervisedSessionTest {
             public com.fasterxml.jackson.databind.JsonNode quote(String t,int id) {
                 assertThat(t).isEqualTo("read-token");quotes++;
                 if(fail) throw new IllegalStateException("PAYTM_HTTP_429");
+                if(expireDuringQuote)ticks.set(Duration.ofMinutes(20).toNanos());
                 return PaytmQuoteProbeTest.reply(0);
             }
         }, instant -> new PaytmSupervisedClock(instant,Duration.ofMinutes(20),ticks::get));
@@ -111,6 +113,35 @@ class PaytmSupervisedSessionTest {
         ticks.set(Duration.ofMinutes(20).toNanos());
         assertThat(session.status().get("status")).isEqualTo("LOCKED");
         assertThat(create().status().get("status")).isEqualTo("LOCKED");
+    }
+    @Test void authenticatedSessionExpiryBlocksReadsUntilFreshLogin(){
+        var session=create();login(session);
+        ticks.set(Duration.ofMinutes(20).toNanos());
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("SUPERVISED_SESSION_EXPIRED");
+        assertThat(quotes).isZero();
+        assertThat(session.status()).containsEntry("status","LOCKED").containsEntry("failure","SUPERVISED_SESSION_EXPIRED");
+        login(session);session.quote(3456);
+        assertThat(quotes).isEqualTo(1);assertThat(session.status()).containsEntry("failure","NONE");
+    }
+    @Test void responseArrivingAfterSessionExpiryCannotBeUsed(){
+        var session=create();login(session);expireDuringQuote=true;
+        assertThatThrownBy(()->session.quote(3456)).hasMessage("SUPERVISED_SESSION_EXPIRED");
+    }
+    @Test void oldCallbackCannotReplaceNewOwnerChallenge(){
+        var session=create();var url=session.start("key","secret",vps.toEpochMilli());
+        var old=session.browser(URI.create(url).getQuery().substring(5));
+        var oldQuery="state="+old.location().getQuery().split("state=")[1]+"&requestToken=old";
+        var next=session.start("key","secret",vps.toEpochMilli());
+        var current=session.browser(URI.create(next).getQuery().substring(5));
+        assertThatThrownBy(()->session.callback(oldQuery,old.binding())).isInstanceOf(IllegalArgumentException.class);
+        assertThat(exchanges).isZero();assertThat(session.status()).containsEntry("status","AWAITING_CALLBACK");
+        session.callback("state="+current.location().getQuery().split("state=")[1]+"&requestToken=new",current.binding());
+        assertThat(exchanges).isEqualTo(1);
+    }
+    @Test void newInstanceDoesNotInheritAuthenticatedSession(){
+        var before=create();login(before);
+        var after=create();assertThatThrownBy(()->after.quote(3456)).hasMessage("SUPERVISED_SESSION_LOCKED");
+        assertThat(quotes).isZero();before.close();
     }
     @Test void vpsAnchorAdvancesAndRejectsMonotonicRollback() {
         var clock=new PaytmSupervisedClock(vps,Duration.ofMinutes(20),ticks::get);

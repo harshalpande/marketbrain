@@ -28,6 +28,14 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['universeMatch']){
+  $u=$v.universeMatch
+  if($u.status -cnotmatch '^[A-Z_]{1,100}$' -or $u.ordersEnabled -ne $false -or $u.snapshotMatched -isnot [bool]){throw 'REPORT_UNIVERSE_REJECTED'}
+  $safe.universeMatch=[ordered]@{status=[string]$u.status;snapshotMatched=$u.snapshotMatched;ordersEnabled=$false}
+  $patterns=@{symbol='^[A-Z0-9][A-Z0-9&-]{0,29}$';snapshotId='^[a-f0-9-]{36}$';observedOn='^[0-9]{4}-[0-9]{2}-[0-9]{2}$';isin='^[A-Z]{2}[A-Z0-9]{9}[0-9]$';instrumentId='^[1-9][0-9]{0,18}$'}
+  foreach($n in $patterns.Keys){if($u.PSObject.Properties[$n]){if([string]$u.$n -cnotmatch $patterns[$n]){throw 'REPORT_UNIVERSE_REJECTED'};$safe.universeMatch[$n]=$u.$n}}
+  foreach($n in @('currentMembershipVerified','providerIsinVerified')){if($u.PSObject.Properties[$n]){if($u.$n -isnot [bool] -or $u.$n){throw 'REPORT_UNIVERSE_REJECTED'};$safe.universeMatch[$n]=$false}}
+ }
  if($v.PSObject.Properties['quoteMapping']){
   $m=$v.quoteMapping
   if($m.symbol -cnotmatch '^[A-Z0-9][A-Z0-9&-]{0,29}$' -or [string]$m.securityId -cnotmatch '^[1-9][0-9]{0,7}$' -or $m.sha256 -cnotmatch '^[A-F0-9]{64}$' -or $m.exchange -cne 'NSE' -or $m.series -cne 'EQ' -or $m.segment -cne 'E' -or $m.instrumentType -cne 'ES' -or $m.source -cne 'PAYTM_PUBLIC_EQUITY_MASTER' -or $m.localUniverseVerified -ne $false){throw 'REPORT_MAPPING_REJECTED'}

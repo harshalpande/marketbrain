@@ -3,12 +3,19 @@ param([switch]$Check)
 $ErrorActionPreference='Stop'
 $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Collect-SupervisedLoginReport.ps1'))
 $probe=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedBoundaryProbe.ps1'))
+$probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedUniverseProbe.ps1'))
 $insertion=$probe+@'
 
 if($Mode -eq 'FailureFixture'){
  $boundary=Invoke-SupervisedBoundaryProbe
  [IO.File]::WriteAllText($ResultPath,($boundary|ConvertTo-Json -Depth 6))
  if(-not $boundary.passed){exit 1}
+ exit 0
+}
+if($Mode -eq 'Apply'){
+ $universe=Invoke-SupervisedUniverseProbe
+ [IO.File]::WriteAllText($ResultPath,($universe|ConvertTo-Json -Depth 6))
+ if(-not $universe.passed){exit 1}
  exit 0
 }
 
