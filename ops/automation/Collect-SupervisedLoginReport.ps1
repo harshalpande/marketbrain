@@ -28,6 +28,13 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['quoteBatch']){
+  $x=$v.quoteBatch
+  if($x.status -notin @('THREE_FRESH_MAPPED_QUOTES','FRESHNESS_PENDING') -or $x.passed -isnot [bool] -or $x.strictFreshRequired -isnot [bool] -or $x.ordersEnabled -ne $false -or $x.sampleCount -ne 3){throw 'REPORT_BATCH_REJECTED'}
+  foreach($n in @('freshCount','staleCount','missingCount')){if([string]$x.$n -cnotmatch '^[0-3]$'){throw 'REPORT_BATCH_REJECTED'}}
+  if(($x.freshCount+$x.staleCount+$x.missingCount) -ne 3 -or [string]$x.securityId -cnotmatch '^[1-9][0-9]{0,7}$'){throw 'REPORT_BATCH_REJECTED'}
+  $safe.quoteBatch=@{status=$x.status;passed=$x.passed;strictFreshRequired=$x.strictFreshRequired;sampleCount=3;freshCount=[int]$x.freshCount;staleCount=[int]$x.staleCount;missingCount=[int]$x.missingCount;securityId=[int]$x.securityId;ordersEnabled=$false}
+ }
  if($v.PSObject.Properties['callbackReplay']){
   $x=$v.callbackReplay
   if($x.requested -isnot [bool] -or $x.verified -isnot [bool] -or $x.exchangeAttempts -ne 1){throw 'REPORT_REPLAY_REJECTED'}

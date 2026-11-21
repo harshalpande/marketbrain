@@ -194,7 +194,7 @@
         {
           "id": "G4.3",
           "goal": "Callback binding, validation and invalid/replayed callback rejection accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-callback-replay-accepted-20261121.json"
         },
         {
           "id": "G4.4",

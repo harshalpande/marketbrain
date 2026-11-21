@@ -361,3 +361,18 @@ run in the same session, but stale quotes still do not establish G5 freshness.
 No restart or 20-minute wait is needed. Rebuild once via the guarded deployment
 script because Java has changed. The queue collects whitelisted replay evidence
 from the normal compact report after the owner completes login.
+G4.3 accepted from runa073c634e26145db802afedf803f6bf1 with exactly one exchange
+and replay verified, together with the previous HTTP/binding/cancellation tests.
+G4 now100% for the supervised path; total19/30=63.3%. Mobile callback, unattended
+renewal and broker-side revocation remain outside this completed scope.
+
+Next run: -TestQuotes -QuoteSymbol RELIANCE -RequireFreshQuotes, during an open
+market session. No rebuild required. This requires three correctly identified
+NSE EQUITY samples, positive prices, increasing observations, consistent
+observed-minus-trade ages and each age0..15000ms. Stale or missing samples are
+retained but the strict run fails with SUPERVISED_FRESH_QUOTES_NOT_OBSERVED.
+Cleanup still runs. This explicit failure is a data acceptance result, not
+permission to relax freshness or repeat completed login lifecycle tests.
+Eight local fixtures cover fresh, stale, missing, wrong identity, inconsistent
+age, invalid price, repeated observation and false freshness. Collector returns
+only whitelisted counts/status. Runtime fresh acceptance remains pending.

@@ -2,6 +2,7 @@
 #Requires -RunAsAdministrator
 [CmdletBinding()]param(
  [switch]$TestQuotes,
+ [switch]$RequireFreshQuotes,
  [switch]$TestSessionExpiry,
  [switch]$TestSessionRestart,
  [switch]$TestCallbackReplay,
@@ -13,6 +14,7 @@ $ErrorActionPreference='Stop'
 . "$PSScriptRoot/PaytmClockLogin.ps1"
 . "$PSScriptRoot/PaytmGatewayKeyCustody.ps1"
 . "$PSScriptRoot/PaytmQuoteMapping.ps1"
+. "$PSScriptRoot/PaytmQuoteBatch.ps1"
 . "$PSScriptRoot/PaytmAuthenticatedExpiry.ps1"
 . "$PSScriptRoot/PaytmAuthenticatedRestart.ps1"
 $id=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
@@ -33,6 +35,7 @@ function Invoke-LocalSupervised([string]$Command,$Body=$null) {
 }
 try {
  Save-SupervisedReport
+ if($RequireFreshQuotes -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_FRESH_REQUIRES_MAPPED_QUOTES'}
  if($TestSessionExpiry -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_EXPIRY_REQUIRES_MAPPED_QUOTES'}
  if($TestSessionRestart -and ($TestSessionExpiry -or -not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_RESTART_REQUIRES_MAPPED_QUOTES_NO_EXPIRY'}
  if($QuoteSymbol){
@@ -133,6 +136,9 @@ try {
    if($quote.status -notin @('FRESH_QUOTE_OBSERVED','STALE_QUOTE','NO_QUOTE')){throw 'SUPERVISED_QUOTE_REVIEW_REQUIRED'}
   }
   $fresh=@($report.quoteSamples|Where-Object fresh -EQ $true).Count
+  $report.quoteBatch=Get-PaytmQuoteBatchAssessment -Samples $report.quoteSamples -SecurityId $QuoteSecurityId -RequireFresh:$RequireFreshQuotes
+  Save-SupervisedReport
+  if($RequireFreshQuotes -and -not $report.quoteBatch.passed){throw 'SUPERVISED_FRESH_QUOTES_NOT_OBSERVED'}
   $report.status=if($fresh -eq 3){'SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING'}else{'SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING'}
  }
  if($TestSessionExpiry){

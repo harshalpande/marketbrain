@@ -13,6 +13,7 @@ try {
  $fixture.sessionExpiry=@{status='AUTHENTICATED_EXPIRY_PASSED_RELOGIN_RESTART_PENDING';failure=$null;elapsedSeconds=900;passed=$true;authenticatedBeforeWait=$true;quoteLimitRejected=$true;expiryObserved=$true;postExpiryQuoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.sessionRestart=@{status='AUTHENTICATED_RESTART_PASSED_RELOGIN_PENDING';failure=$null;elapsedSeconds=30;passed=$true;authenticatedBeforeRestart=$true;restartAttempted=$true;sameContainer=$true;startChanged=$true;lockedAfterRestart=$true;quoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.callbackReplay=@{requested=$true;verified=$true;exchangeAttempts=1;secret='MUST_NOT_LEAVE'}
+ $fixture.quoteBatch=@{status='FRESHNESS_PENDING';passed=$false;strictFreshRequired=$true;sampleCount=3;freshCount=0;staleCount=3;missingCount=0;securityId=2885;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
  & $script -ResultPath $output -Mode Observe
  $text=[IO.File]::ReadAllText($output);$r=$text|ConvertFrom-Json
@@ -25,6 +26,8 @@ try {
  $fixture.Remove('sessionRestart')
  if(-not $r.report.callbackReplay.verified -or $r.report.callbackReplay.exchangeAttempts -ne 1){throw 'REPLAY_REPORT_FIXTURE_FAILED'}
  $fixture.Remove('callbackReplay')
+ if($r.report.quoteBatch.passed -or $r.report.quoteBatch.staleCount -ne 3 -or -not $r.report.quoteBatch.strictFreshRequired){throw 'BATCH_REPORT_FIXTURE_FAILED'}
+ $fixture.Remove('quoteBatch')
  $fixture.Remove('quoteMapping')
  $fixture.Remove('universeMatch')
  $fixture.Remove('quoteSamples');$fixture.quotesTested=$false
