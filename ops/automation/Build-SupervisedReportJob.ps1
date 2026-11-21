@@ -4,6 +4,7 @@ $ErrorActionPreference='Stop'
 $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Collect-SupervisedLoginReport.ps1'))
 $probe=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedBoundaryProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedUniverseProbe.ps1'))
+$probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedLifecycleProbe.ps1'))
 $insertion=$probe+@'
 
 if($Mode -eq 'FailureFixture'){
@@ -16,6 +17,10 @@ if($Mode -eq 'Apply'){
  $universe=Invoke-SupervisedUniverseProbe
  [IO.File]::WriteAllText($ResultPath,($universe|ConvertTo-Json -Depth 6))
  if(-not $universe.passed){exit 1}
+ $lifecycle=Invoke-SupervisedLifecycleProbe
+ $batch=@{test='SUPERVISED_UNIVERSE_AND_LIFECYCLE';passed=$lifecycle.passed;ordersEnabled=$false;universe=$universe;lifecycle=$lifecycle}
+ [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
+ if(-not $lifecycle.passed){exit 1}
  exit 0
 }
 

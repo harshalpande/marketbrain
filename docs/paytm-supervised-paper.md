@@ -226,8 +226,8 @@ membership or Paytm ISIN verification (the public provider CSV has no ISIN).
 No history scan, database write, migration, broker request or order is involved.
 
 DeployPaytmSupervised.ps1 must deploy this endpoint first. Then the fixed queue
-job paytm-denial-recovery in Apply mode performs this read-only RELIANCE probe.
-Apply is the existing queue mode name; this job does not mutate application or
+job paytm-denial-recovery in Apply mode performs this read-only RELIANCE probe, then the local negative lifecycle batch below.
+Apply is the existing queue mode name; the universe probe does not mutate application or
 database state. It reads the existing paper-read token locally into memory,
 never returns it, requires one running application container, uses only local
 Docker and loopback HTTP, and returns whitelisted identity fields. Observe still
@@ -251,3 +251,23 @@ automatic universe probe matched RELIANCE / INE002A01018 against the saved
 No new broker login or order was needed. This supersedes deployment/database
 pending above; current membership, provider ISIN equivalence, market-hours
 freshness and runtime valid-session lifecycle acceptance remain pending.
+
+
+## Automated local negative lifecycle batch
+
+Apply now follows the universe read with fourteen local HTTP assertions. It
+requires the supervised session to be LOCKED before starting. It uses fake app
+credentials and a synthetic time anchor solely for local negative cases; no
+freshness or provider authentication is asserted. Redirect following, proxy use
+and cookie storage are disabled. Callback paths can only contain success=false,
+so no token exchange is attempted. Tests cover one-use browser launch, wrong
+cookie preserving the owner attempt, owner cancellation, cancelled replay,
+a new attempt after cancellation, old launch rejection and final lock/readback.
+Each HTTP call has an eight-second limit; responses are capped at 8 KiB. Only
+check names, status codes and flags are reported, never nonces/cookies/tokens.
+An already active session is left alone. After an attempted fixture start, the
+finally block attempts lock and verifies it, including after failures. Run with
+no concurrent owner login. This does not verify authenticated expiry, provider
+relogin, cold restart, or successful callback replay; those remain pending.
+Four offline fixtures cover success, existing active session, request failure
+with cleanup, and failed cleanup. No application rebuild or user input needed.
