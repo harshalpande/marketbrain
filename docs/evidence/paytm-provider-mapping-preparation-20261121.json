@@ -1,0 +1,31 @@
+{
+    "date":  "2026-11-21",
+    "source":  "https://developer.paytmmoney.com/data/v1/scrips/equity_security_master.csv",
+    "sha256":  "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+    "observedOn":  "CONTROLLER",
+    "rows":  [
+                 {
+                     "segment":  "E",
+                     "instrumentType":  "ES",
+                     "exchange":  "NSE",
+                     "securityId":  3456,
+                     "symbol":  "TMPV",
+                     "series":  "EQ"
+                 },
+                 {
+                     "segment":  "E",
+                     "instrumentType":  "ES",
+                     "exchange":  "NSE",
+                     "securityId":  2885,
+                     "symbol":  "RELIANCE",
+                     "series":  "EQ"
+                 }
+             ],
+    "mappingFixtureCount":  8,
+    "mappingFixtures":  "PASSED",
+    "livePublicDownloadAndResolver":  "PASSED",
+    "reportCollectionFixtures":  "PASSED",
+    "spareMappedQuoteRun":  "PENDING",
+    "localUniverseVerified":  false,
+    "ordersEnabled":  false
+}

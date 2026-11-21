@@ -1,0 +1,81 @@
+{
+    "reviewDate":  "2026-11-21",
+    "automationJobId":  "364a401e-039d-48d4-a9e8-b380540854b3",
+    "sourceRevision":  "1f8c8e04a93957e2e1e73d5479eda10866ee9af5",
+    "sourceSha256":  "E88243566714603D83B3A9C588A7930A1968924BA8701FD9911F16874B911A3C",
+    "sourceFile":  "paytm-supervised-login-8e7dc1be1a0645a28652d7c5667f42ea.json",
+    "report":  {
+                   "runId":  "8e7dc1be1a0645a28652d7c5667f42ea",
+                   "ordersEnabled":  false,
+                   "status":  "SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING",
+                   "stage":  "QUOTES",
+                   "failure":  "",
+                   "providerFailure":  "NONE",
+                   "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                   "applicationState":  "READ_ACCESS_VERIFIED",
+                   "readAccessVerified":  true,
+                   "quotesTested":  true,
+                   "windowsClockGate":  false,
+                   "vpsAccuracyAssumed":  true,
+                   "cleanup":  [
+                                   "APPLICATION_LOCKED",
+                                   "GATEWAY_STOPPED_DISABLED"
+                               ],
+                   "elapsedSeconds":  411.2813819,
+                   "quoteSamples":  [
+                                        {
+                                            "status":  "STALE_QUOTE",
+                                            "exchange":  "NSE",
+                                            "scripType":  "EQUITY",
+                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                            "securityId":  3456.0,
+                                            "observedEpochMilliseconds":  1795240079131.0,
+                                            "rawTradeTime":  1479637795.0,
+                                            "tradeEpochMilliseconds":  1795170595000.0,
+                                            "ageMilliseconds":  69484131.0,
+                                            "lastPrice":  266.35,
+                                            "fresh":  false,
+                                            "mappingVerified":  false,
+                                            "ordersEnabled":  false
+                                        },
+                                        {
+                                            "status":  "STALE_QUOTE",
+                                            "exchange":  "NSE",
+                                            "scripType":  "EQUITY",
+                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                            "securityId":  3456.0,
+                                            "observedEpochMilliseconds":  1795240084333.0,
+                                            "rawTradeTime":  1479637795.0,
+                                            "tradeEpochMilliseconds":  1795170595000.0,
+                                            "ageMilliseconds":  69489333.0,
+                                            "lastPrice":  266.35,
+                                            "fresh":  false,
+                                            "mappingVerified":  false,
+                                            "ordersEnabled":  false
+                                        },
+                                        {
+                                            "status":  "STALE_QUOTE",
+                                            "exchange":  "NSE",
+                                            "scripType":  "EQUITY",
+                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                            "securityId":  3456.0,
+                                            "observedEpochMilliseconds":  1795240089497.0,
+                                            "rawTradeTime":  1479637795.0,
+                                            "tradeEpochMilliseconds":  1795170595000.0,
+                                            "ageMilliseconds":  69494497.0,
+                                            "lastPrice":  266.35,
+                                            "fresh":  false,
+                                            "mappingVerified":  false,
+                                            "ordersEnabled":  false
+                                        }
+                                    ]
+               },
+    "assessment":  "QUOTE_CAPTURE_AND_STALE_CLASSIFICATION_ACCEPTED",
+    "checkpointChange":  "NONE",
+    "limitations":  [
+                        "Three stale samples do not establish fresh market-hours data",
+                        "Missing and malformed negative cases locally tested, not completed on spare",
+                        "Provider mapping discovered separately, not bound in original quote run",
+                        "G5 checkpoints remain open"
+                    ]
+}

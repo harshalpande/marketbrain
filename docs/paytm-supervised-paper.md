@@ -11,7 +11,7 @@ This is a scope decision, not evidence that deferred tests passed.
 | Milestone | Current state | Runtime acceptance |
 | --- | --- | --- |
 | Supervised login and protected account read | Accepted on spare: login/read and cleanup, 110.105 seconds | Owner login, one-use callback, read token exchange and account-read HTTP response |
-| Real quotes | Bounded probe implemented; spare run pending | Verified instrument mapping, actual provider timestamp and price; missing/stale quote rejection |
+| Real quotes | Three stale samples captured on spare; mapped/fresh run pending | Verified instrument mapping, actual provider timestamp and price; missing/stale quote rejection |
 | Combined Telegram actions | Pending | ACCEPT, REJECT, 100-second expiry and duplicate rejection in one batch |
 | Paper execution and portal | Pending integration | Virtual cash/holdings, costs, fills and portal reconciliation |
 | Unattended lifecycle and clock reliability | Deferred | Resume after supervised workflow works |
@@ -22,7 +22,7 @@ claim of prediction accuracy, complete paper integration or live-order readiness
 
 ## Quote probe (21 November)
 
-`StartPaytmSupervisedLogin.ps1 -TestQuotes` reads three LTP samples, five seconds
+`StartPaytmSupervisedLogin.ps1 -TestQuotes -QuoteSymbol RELIANCE` reads three LTP samples, five seconds
 apart, before locking the same authenticated session. The default is the
 provider documentation's NSE EQUITY security ID 3456. This is a protocol probe,
 not a verified company mapping; it must not feed proposals or execution.
@@ -44,7 +44,7 @@ for seconds since 1980 (add 315532800 for Unix seconds). Raw provider seconds,
 converted time, VPS observation, age, price and status are recorded in one compact
 report. Unknown provider fields and all credentials are excluded from queue
 collection. Full instrument-master mapping and real market-hours acceptance
-remain G5 work; the public master download did not return during local inspection.
+remain G5 work. The public master download succeeded on the controller on 21 November; its schema and selected rows are recorded in the mapping preparation evidence.
 
 ## Login implementation
 
@@ -91,7 +91,7 @@ $ErrorActionPreference = 'Stop'
 git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 & .\ops\windows\DeployPaytmSupervised.ps1
-& .\ops\windows\StartPaytmSupervisedLogin.ps1 -TestQuotes
+& .\ops\windows\StartPaytmSupervisedLogin.ps1 -TestQuotes -QuoteSymbol RELIANCE
 ```
 
 The deployer retains the current Compose project/overrides, builds before
@@ -154,3 +154,25 @@ Close old callback tabs and use the new browser launch on retry.
 Local verification (21 November): 44 Java tests passed with zero failures/errors;
 PowerShell handoff parsing/artifact equality and quote/login collection fixtures
 passed. Actual quote entitlement/freshness is not yet accepted.
+
+## Next combined run: mapped quotes
+
+The new QuoteSymbol option downloads the fixed public equity master (25 seconds,
+4 MiB maximum, no credentials or redirects), requires one NSE/EQ/E/ES row and a
+unique NSE security ID, and records the source hash and selected symbol. It runs
+before starting the gateway or prompting for credentials. A download or mapping
+failure stops without opening a broker session. QuoteSecurityId and QuoteSymbol
+are mutually exclusive. The CSV has no ISIN field: this verifies provider symbol
+to ID only, not local Nifty-500 membership or corporate-action lineage.
+
+This preparation changes scripts only; do not rebuild the already accepted app.
+Run the launcher after pulling. It can capture mapped stale data now; complete
+freshness acceptance during a normal market session. No exception is raised just
+because a well-formed returned quote is stale; fresh remains false and execution
+is disabled. The quote object's mappingVerified remains false until Java/local
+universe integration; report.quoteMapping describes only the public master lookup.
+
+Then batch the remaining callback/lifecycle negatives and quote failure cases;
+finally integrate the real quote into the combined Telegram ACCEPT/REJECT/expiry/
+duplicate/unauthorized review test. G6 acceptance records review only. Paper
+reservations, fills, costs and P&L integration follow; live orders remain disabled.

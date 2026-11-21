@@ -28,6 +28,11 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['quoteMapping']){
+  $m=$v.quoteMapping
+  if($m.symbol -cnotmatch '^[A-Z0-9][A-Z0-9&-]{0,29}$' -or [string]$m.securityId -cnotmatch '^[1-9][0-9]{0,7}$' -or $m.sha256 -cnotmatch '^[A-F0-9]{64}$' -or $m.exchange -cne 'NSE' -or $m.series -cne 'EQ' -or $m.segment -cne 'E' -or $m.instrumentType -cne 'ES' -or $m.source -cne 'PAYTM_PUBLIC_EQUITY_MASTER' -or $m.localUniverseVerified -ne $false){throw 'REPORT_MAPPING_REJECTED'}
+  $safe.quoteMapping=@{symbol=[string]$m.symbol;securityId=[int]$m.securityId;exchange='NSE';series='EQ';segment='E';instrumentType='ES';source='PAYTM_PUBLIC_EQUITY_MASTER';sha256=[string]$m.sha256;localUniverseVerified=$false}
+ }
  if($v.PSObject.Properties['quoteSamples']){
   if(@($v.quoteSamples).Count -gt 3){throw 'REPORT_FIELD_REJECTED'}
   $safe.quoteSamples=@($v.quoteSamples|ForEach-Object {

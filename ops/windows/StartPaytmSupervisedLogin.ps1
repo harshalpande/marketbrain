@@ -2,12 +2,14 @@
 #Requires -RunAsAdministrator
 [CmdletBinding()]param(
  [switch]$TestQuotes,
+ [ValidatePattern('^[A-Z0-9][A-Z0-9&-]{0,29}$')][string]$QuoteSymbol,
  [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
  [string]$OutputDirectory='C:\MarketBrainData\Review')
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/PaytmClockLogin.ps1"
 . "$PSScriptRoot/PaytmGatewayKeyCustody.ps1"
+. "$PSScriptRoot/PaytmQuoteMapping.ps1"
 $id=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $null=New-Item -ItemType Directory -Force -Path $OutputDirectory
 $path=Join-Path $OutputDirectory "paytm-supervised-login-$id.json"
@@ -26,6 +28,15 @@ function Invoke-LocalSupervised([string]$Command,$Body=$null) {
 }
 try {
  Save-SupervisedReport
+ if($QuoteSymbol){
+  if(-not $TestQuotes -or $PSBoundParameters.ContainsKey('QuoteSecurityId')){throw 'SUPERVISED_MAPPING_ARGUMENT_CONFLICT'}
+  $report.stage='INSTRUMENT_MAPPING';Save-SupervisedReport
+  Write-Host '[5%] Resolving the selected NSE EQ symbol from the public Paytm master (25-second limit).'
+  $report.quoteMapping=Get-PaytmQuoteMapping -Symbol $QuoteSymbol
+  $QuoteSecurityId=$report.quoteMapping.securityId
+  Write-Host "Provider mapping: $QuoteSymbol -> NSE:$QuoteSecurityId`:EQUITY. Local Nifty universe match remains pending."
+  Save-SupervisedReport
+ }
  Write-Host '[10%] Supervised PAPER login. App credentials stay on this laptop; no order operations.'
  $report.stage='APPLICATION';Save-SupervisedReport
  $headers=@{'X-MarketBrain-Paper-Read-Token'=(Read-LocalSecret 'Existing private paper read token');'X-MarketBrain-Paytm-Supervised'='supervised-paper'}
@@ -91,7 +102,7 @@ try {
  $report.status='SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING'
  if($TestQuotes){
   $report.stage='QUOTES';$report.quoteSamples=@();Save-SupervisedReport
-  Write-Host '[80%] Reading three NSE EQUITY quote samples, five seconds apart. Security ID is a provider diagnostic, not a verified company mapping.'
+  Write-Host '[80%] Reading three NSE EQUITY quote samples, five seconds apart. Diagnostic only; local universe integration remains pending.'
   for($sample=1;$sample -le 3;$sample++){
    if($sample -gt 1){Start-Sleep -Seconds 5}
    $quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}
