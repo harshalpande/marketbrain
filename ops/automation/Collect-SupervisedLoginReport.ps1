@@ -28,6 +28,11 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['callbackReplay']){
+  $x=$v.callbackReplay
+  if($x.requested -isnot [bool] -or $x.verified -isnot [bool] -or $x.exchangeAttempts -ne 1){throw 'REPORT_REPLAY_REJECTED'}
+  $safe.callbackReplay=@{requested=$x.requested;verified=$x.verified;exchangeAttempts=1}
+ }
  if($v.PSObject.Properties['sessionRestart']){
   $x=$v.sessionRestart
   if($x.status -cnotmatch '^[A-Z_]{1,100}$' -or ($x.failure -and $x.failure -cnotmatch '^SUPERVISED_[A-Z_]{1,100}$') -or $x.ordersEnabled -ne $false){throw 'REPORT_RESTART_REJECTED'}

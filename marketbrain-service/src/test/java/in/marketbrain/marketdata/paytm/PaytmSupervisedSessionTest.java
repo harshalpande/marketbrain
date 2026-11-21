@@ -42,6 +42,30 @@ class PaytmSupervisedSessionTest {
         var browser=session.browser(URI.create(url).getQuery().substring(5));
         session.callback("state="+browser.location().getQuery().split("state=")[1]+"&requestToken=test",browser.binding());
     }
+    @Test void optInReplayConsumesSameCallbackOnlyOnceAndDoesNotRetainIt(){
+        var session=create();
+        var url=session.start("key","secret",vps.toEpochMilli(),true);
+        var browser=session.browser(URI.create(url).getQuery().substring(5));
+        var query="success=true&state="+browser.location().getQuery().split("state=")[1]+"&requestToken=private-value";
+        session.completeCallback(query,browser.binding());
+        assertThat(session.status().get("callbackReplay")).isEqualTo(java.util.Map.of("requested",true,"verified",true,"exchangeAttempts",1));
+        assertThat(exchanges).isEqualTo(1);assertThat(reads).isEqualTo(1);
+        assertThat(session.status().get("readAccessVerified")).isEqualTo(true);
+        assertThat(session.status().toString()).doesNotContain("private-value",browser.binding());
+        assertThatThrownBy(()->session.completeCallback(query,browser.binding())).hasMessage("SUPERVISED_CALLBACK_REJECTED");
+        assertThat(exchanges).isEqualTo(1);
+        session.close();session.start("key","secret",vps.toEpochMilli());
+        assertThat(session.status().get("callbackReplay")).isEqualTo(java.util.Map.of("requested",false,"verified",false,"exchangeAttempts",0));
+    }
+    @Test void replayProbeCannotReportSuccessWhenProviderReadFails(){
+        var session=create();fail=true;
+        var url=session.start("key","secret",vps.toEpochMilli(),true);
+        var browser=session.browser(URI.create(url).getQuery().substring(5));
+        var query="success=true&state="+browser.location().getQuery().split("state=")[1]+"&requestToken=test";
+        assertThatThrownBy(()->session.completeCallback(query,browser.binding())).hasMessage("PAYTM_HTTP_401");
+        assertThat(session.status().get("callbackReplay")).isEqualTo(java.util.Map.of("requested",true,"verified",false,"exchangeAttempts",1));
+        assertThat(session.status().get("status")).isEqualTo("LOCKED");
+    }
     @Test void quoteRequiresLoginIsBoundedAndStopsOnProviderError() {
         var session=create();
         assertThatThrownBy(()->session.quote(3456)).hasMessage("SUPERVISED_SESSION_LOCKED");

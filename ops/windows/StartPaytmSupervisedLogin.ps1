@@ -4,6 +4,7 @@
  [switch]$TestQuotes,
  [switch]$TestSessionExpiry,
  [switch]$TestSessionRestart,
+ [switch]$TestCallbackReplay,
  [ValidatePattern('^[A-Z0-9][A-Z0-9&-]{0,29}$')][string]$QuoteSymbol,
  [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
@@ -95,7 +96,7 @@ try {
  # User accepts VPS accuracy for this supervised prototype. NTP flag is recorded, not a gate.
  $report.stage='LOGIN';Save-SupervisedReport
  $loginStarted=$true
- $start=Invoke-LocalSupervised 'start' @{apiKey=$apiKey;apiSecret=$apiSecret;vpsEpochMilliseconds=$clock.epochMilliseconds}
+ $start=Invoke-LocalSupervised 'start' @{apiKey=$apiKey;apiSecret=$apiSecret;vpsEpochMilliseconds=$clock.epochMilliseconds;verifyCallbackReplay=[bool]$TestCallbackReplay}
  $apiKey=$null;$apiSecret=$null
  if($start.browserUrl -cnotmatch '^http://127\.0\.0\.1:8080/paytm/supervised/browser\?code=[A-Za-z0-9_-]{43}$'){throw 'SUPERVISED_BROWSER_URL_REJECTED'}
  Start-Process $start.browserUrl
@@ -112,6 +113,12 @@ try {
   if($state.status -eq 'LOCKED'){$report.providerFailure=[string]$state.failure;throw 'SUPERVISED_PROVIDER_OR_SESSION_FAILURE'}
  }while($wait.Elapsed.TotalSeconds -lt 600)
  if(-not $report.readAccessVerified){throw 'SUPERVISED_LOGIN_TIMEOUT'}
+ if($TestCallbackReplay){
+  $v=$state.callbackReplay
+  if($v.requested -ne $true -or $v.verified -ne $true -or $v.exchangeAttempts -ne 1){throw 'SUPERVISED_REPLAY_VERIFICATION_FAILED'}
+  $report.callbackReplay=@{requested=$true;verified=$true;exchangeAttempts=1};Save-SupervisedReport
+  Write-Host '[70%] Same callback rejected on repeated handler consumption; exactly one token exchange attempted.'
+ }
  $report.status='SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING'
  if($TestQuotes){
   $report.stage='QUOTES';$report.quoteSamples=@();Save-SupervisedReport

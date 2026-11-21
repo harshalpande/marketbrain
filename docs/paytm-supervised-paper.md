@@ -339,3 +339,25 @@ authority revocation, graceful container restart and fresh owner relogin; not
 broker-side token revocation, refresh, mobile login or abrupt power loss.
 G4 now80%, total18/30=60%. Successful callback replay remains G4.3 pending;
 quotes remain stale so fresh-data acceptance is still open.
+
+## Successful callback handler replay verification
+
+After deploying, pass -TestCallbackReplay to the supervised login launcher.
+The authenticated local start request explicitly enables verifyCallbackReplay
+(default false). During the original successful callback request, the session
+handler is invoked again with the same query and binding while holding the
+session lock. Require SUPERVISED_CALLBACK_REJECTED, unchanged exchange-attempt
+count of one, and READ_ACCESS_VERIFIED; otherwise lock and fail the check.
+The original request values remain local variables only and are never persisted
+or put in status/reports. Status adds only requested/verified booleans and a
+count. Starting a new session resets all three. Provider failures cannot mark
+replay verified. Existing HTTP response clearing of the cookie is unchanged.
+
+This is in-process successful-callback handler replay, not a second incoming
+browser request. Combine it with the separately accepted HTTP boundary and
+cancelled-callback checks when evaluating G4.3; do not imply new HTTP transport
+replay evidence. One owner login is required. Optional mapped quote samples may
+run in the same session, but stale quotes still do not establish G5 freshness.
+No restart or 20-minute wait is needed. Rebuild once via the guarded deployment
+script because Java has changed. The queue collects whitelisted replay evidence
+from the normal compact report after the owner completes login.

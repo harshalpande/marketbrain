@@ -25,13 +25,13 @@ public final class PaytmSupervisedController {
             throw new IllegalStateException("SUPERVISED_CONFIGURATION_REJECTED");
         this.token = token;
     }
-    public record Start(String apiKey, String apiSecret, long vpsEpochMilliseconds) {
+    public record Start(String apiKey, String apiSecret, long vpsEpochMilliseconds, boolean verifyCallbackReplay) {
         @Override public String toString() { return "SupervisedStart[REDACTED]"; }
     }
     @PostMapping("/api/v1/paytm/supervised/start")
     public ResponseEntity<?> start(@RequestBody Start body, HttpServletRequest request) {
         if (!authorized(request)) return response(401).body(Map.of("status","UNAUTHORIZED"));
-        try { return response(200).body(Map.of("browserUrl",session.start(body.apiKey(), body.apiSecret(), body.vpsEpochMilliseconds()),"ordersEnabled",false)); }
+        try { return response(200).body(Map.of("browserUrl",session.start(body.apiKey(), body.apiSecret(), body.vpsEpochMilliseconds(),body.verifyCallbackReplay()),"ordersEnabled",false)); }
         catch (RuntimeException e) { return response(400).body(Map.of("status","SUPERVISED_START_REJECTED")); }
     }
     @PostMapping("/api/v1/paytm/supervised/{command:status|lock}")
@@ -65,7 +65,7 @@ public final class PaytmSupervisedController {
             var cookies = request.getCookies();
             var matches = cookies == null ? List.<jakarta.servlet.http.Cookie>of() : Arrays.stream(cookies).filter(c -> COOKIE.equals(c.getName())).toList();
             if (matches.size()!=1) throw new IllegalArgumentException();
-            session.callback(request.getQueryString(), matches.getFirst().getValue());
+            session.completeCallback(request.getQueryString(), matches.getFirst().getValue());
             return response(200).header("Set-Cookie",cookie("",0)).body("Paytm read access verified. No orders enabled. Return to PowerShell.");
         } catch (RuntimeException e) {
             return response(400).header("Set-Cookie",cookie("",0)).body("Paytm login/read check failed. No orders enabled. Return to PowerShell.");

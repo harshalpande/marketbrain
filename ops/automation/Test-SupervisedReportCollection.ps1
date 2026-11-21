@@ -12,6 +12,7 @@ try {
  $fixture.universeMatch=@{symbol='RELIANCE';status='LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED';snapshotId='11111111-1111-1111-1111-111111111111';observedOn='2026-09-18';isin='INE002A01018';instrumentId=1;snapshotMatched=$true;currentMembershipVerified=$false;providerIsinVerified=$false;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.sessionExpiry=@{status='AUTHENTICATED_EXPIRY_PASSED_RELOGIN_RESTART_PENDING';failure=$null;elapsedSeconds=900;passed=$true;authenticatedBeforeWait=$true;quoteLimitRejected=$true;expiryObserved=$true;postExpiryQuoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.sessionRestart=@{status='AUTHENTICATED_RESTART_PASSED_RELOGIN_PENDING';failure=$null;elapsedSeconds=30;passed=$true;authenticatedBeforeRestart=$true;restartAttempted=$true;sameContainer=$true;startChanged=$true;lockedAfterRestart=$true;quoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
+ $fixture.callbackReplay=@{requested=$true;verified=$true;exchangeAttempts=1;secret='MUST_NOT_LEAVE'}
  [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
  & $script -ResultPath $output -Mode Observe
  $text=[IO.File]::ReadAllText($output);$r=$text|ConvertFrom-Json
@@ -22,6 +23,8 @@ try {
  $fixture.Remove('sessionExpiry')
  if(-not $r.report.sessionRestart.quoteRejected -or -not $r.report.sessionRestart.passed){throw 'RESTART_REPORT_FIXTURE_FAILED'}
  $fixture.Remove('sessionRestart')
+ if(-not $r.report.callbackReplay.verified -or $r.report.callbackReplay.exchangeAttempts -ne 1){throw 'REPLAY_REPORT_FIXTURE_FAILED'}
+ $fixture.Remove('callbackReplay')
  $fixture.Remove('quoteMapping')
  $fixture.Remove('universeMatch')
  $fixture.Remove('quoteSamples');$fixture.quotesTested=$false

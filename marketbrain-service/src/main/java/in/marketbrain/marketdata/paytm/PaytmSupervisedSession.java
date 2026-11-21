@@ -22,6 +22,8 @@ public final class PaytmSupervisedSession implements AutoCloseable {
     private String state = "LOCKED";
     private String failure = "NONE";
     private int quoteCalls;
+    private boolean verifyReplay, replayVerified;
+    private int exchangeAttempts;
     private Instant nextQuote;
     public PaytmSupervisedSession(PaytmSupervisedClient client) {
         this(new Broker() {
@@ -34,12 +36,16 @@ public final class PaytmSupervisedSession implements AutoCloseable {
         this.broker = broker; this.clockFactory = clockFactory;
     }
     public synchronized String start(String apiKey, String apiSecret, long vpsEpochMillis) {
+        return start(apiKey,apiSecret,vpsEpochMillis,false);
+    }
+    public synchronized String start(String apiKey, String apiSecret, long vpsEpochMillis, boolean verifyCallbackReplay) {
         if (apiKey == null || !apiKey.matches("[A-Za-z0-9_-]{1,256}") || apiSecret == null
                 || !apiSecret.matches("[A-Za-z0-9_./+=-]{1,4096}")
                 || vpsEpochMillis < 1577836800000L || vpsEpochMillis > 4102444800000L)
             throw new IllegalArgumentException("SUPERVISED_INPUT_INVALID");
         close();
         failure = "NONE";
+        verifyReplay=verifyCallbackReplay;replayVerified=false;exchangeAttempts=0;
         clock = clockFactory.apply(Instant.ofEpochMilli(vpsEpochMillis));
         preparation = new PaytmLoginPreparation(clock);
         challenge = preparation.begin();
@@ -74,6 +80,7 @@ public final class PaytmSupervisedSession implements AutoCloseable {
             throw e;
         }
         try {
+            exchangeAttempts++;
             readToken = broker.exchange(key, secret, requestToken);
             alive();
             broker.verifyRead(readToken);
@@ -84,11 +91,25 @@ public final class PaytmSupervisedSession implements AutoCloseable {
         }
         finally { key = null; secret = null; challenge = null; preparation = null; }
     }
+    /** Opt-in verification within the original request; callback values are never retained. */
+    public synchronized void completeCallback(String query,String binding) {
+        callback(query,binding);
+        if(!verifyReplay)return;
+        int before=exchangeAttempts;
+        boolean rejected=false;
+        try { callback(query,binding); }
+        catch(IllegalArgumentException e){rejected="SUPERVISED_CALLBACK_REJECTED".equals(e.getMessage());}
+        if(!rejected || exchangeAttempts!=before || before!=1 || !"READ_ACCESS_VERIFIED".equals(state)){
+            failure="SUPERVISED_REPLAY_VERIFICATION_FAILED";close();throw new IllegalStateException(failure);
+        }
+        replayVerified=true;
+    }
     public synchronized Map<String,Object> status() {
         if (clock != null) { try { alive(); } catch (IllegalStateException ignored) { } }
         return Map.of("status", state, "readAccessVerified", "READ_ACCESS_VERIFIED".equals(state),
                 "clockSource", "VPS_ANCHORED_MONOTONIC", "vpsAccuracyAssumed", true,
-                "windowsClockGate", false, "ordersEnabled", false, "failure", failure);
+                "windowsClockGate", false, "ordersEnabled", false, "failure", failure,
+                "callbackReplay",Map.of("requested",verifyReplay,"verified",replayVerified,"exchangeAttempts",exchangeAttempts));
     }
     public synchronized Map<String,Object> quote(int securityId) {
         alive();
