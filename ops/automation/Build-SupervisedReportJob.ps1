@@ -5,12 +5,23 @@ $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Collect-SupervisedLogin
 $probe=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedBoundaryProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedUniverseProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedLifecycleProbe.ps1'))
+$probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmQuoteBatch.ps1'))
+$fixtures=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/TestPaytmQuoteBatch.ps1'))
+$fixtures=($fixtures -split '\r?\n'|Where-Object {$_ -notmatch '^#Requires|^\. |^Write-Host'}) -join "`n"
+$probe+="`nfunction Invoke-SupervisedQuoteFixtures {`ntry {`n"+$fixtures+@'
+
+ return @{test='POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES';passed=$true;fixtureCount=8;brokerCalls=0;ordersEnabled=$false}
+}catch{return @{test='POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES';passed=$false;fixtureCount=8;failure='QUOTE_FIXTURE_FAILED';brokerCalls=0;ordersEnabled=$false}}
+}
+'@
 $insertion=$probe+@'
 
 if($Mode -eq 'FailureFixture'){
  $boundary=Invoke-SupervisedBoundaryProbe
- [IO.File]::WriteAllText($ResultPath,($boundary|ConvertTo-Json -Depth 6))
- if(-not $boundary.passed){exit 1}
+ $quality=Invoke-SupervisedQuoteFixtures
+ $batch=@{test='BOUNDARY_AND_SYNTHETIC_QUOTE_VALIDATION';passed=($boundary.passed -and $quality.passed);boundary=$boundary;quoteFixtures=$quality;ordersEnabled=$false}
+ [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
+ if(-not $batch.passed){exit 1}
  exit 0
 }
 if($Mode -eq 'Apply'){

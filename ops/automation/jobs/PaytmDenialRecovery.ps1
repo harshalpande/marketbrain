@@ -144,10 +144,54 @@ function Invoke-SupervisedLifecycleProbe {
  return $r
 }
 
+function Get-PaytmQuoteBatchAssessment {
+ param([object[]]$Samples,[int]$SecurityId,[switch]$RequireFresh)
+ if($Samples.Count -ne 3){throw 'SUPERVISED_QUOTE_BATCH_COUNT'}
+ $fresh=0;$stale=0;$missing=0;$lastObserved=0
+ foreach($q in $Samples){
+  if($q.ordersEnabled -ne $false -or $q.fresh -isnot [bool]){throw 'SUPERVISED_QUOTE_BATCH_SCOPE'}
+  if($q.status -eq 'NO_QUOTE'){if($q.fresh){throw 'SUPERVISED_QUOTE_BATCH_INVALID'};$missing++;continue}
+  if($q.status -notin @('FRESH_QUOTE_OBSERVED','STALE_QUOTE') -or $q.securityId -ne $SecurityId -or $q.exchange -cne 'NSE' -or $q.scripType -cne 'EQUITY' -or $q.timestampEpoch -cne 'PAYTM_1980_SECONDS'){throw 'SUPERVISED_QUOTE_BATCH_IDENTITY'}
+  foreach($n in @('observedEpochMilliseconds','tradeEpochMilliseconds','ageMilliseconds','lastPrice')){
+   if($null -eq $q.$n -or $q.$n -is [string] -or $q.$n -is [bool]){throw 'SUPERVISED_QUOTE_BATCH_INVALID'}
+  }
+  if($q.lastPrice -le 0 -or $q.observedEpochMilliseconds -le $lastObserved -or $q.ageMilliseconds -lt 0 -or ($q.observedEpochMilliseconds-$q.tradeEpochMilliseconds) -ne $q.ageMilliseconds){throw 'SUPERVISED_QUOTE_BATCH_INVALID'}
+  $lastObserved=$q.observedEpochMilliseconds
+  if($q.status -eq 'FRESH_QUOTE_OBSERVED'){
+   if(-not $q.fresh -or $q.ageMilliseconds -gt 15000){throw 'SUPERVISED_QUOTE_BATCH_FALSE_FRESH'};$fresh++
+  }else{if($q.fresh -or $q.ageMilliseconds -le 15000){throw 'SUPERVISED_QUOTE_BATCH_FALSE_STALE'};$stale++}
+ }
+ return @{status=$(if($fresh -eq 3){'THREE_FRESH_MAPPED_QUOTES'}else{'FRESHNESS_PENDING'});passed=($fresh -eq 3);freshCount=$fresh;staleCount=$stale;missingCount=$missing;sampleCount=3;securityId=$SecurityId;strictFreshRequired=[bool]$RequireFresh;ordersEnabled=$false}
+}
+
+function Invoke-SupervisedQuoteFixtures {
+try {
+$ErrorActionPreference='Stop'
+function Samples {
+ @(1..3|ForEach-Object {@{status='FRESH_QUOTE_OBSERVED';fresh=$true;ordersEnabled=$false;securityId=2885;exchange='NSE';scripType='EQUITY';timestampEpoch='PAYTM_1980_SECONDS';observedEpochMilliseconds=(20000+$_*5000);tradeEpochMilliseconds=(20000+$_*5000-100);ageMilliseconds=100;lastPrice=1377.5}})
+}
+$s=Samples;$r=Get-PaytmQuoteBatchAssessment $s 2885 -RequireFresh
+if(-not $r.passed -or $r.freshCount -ne 3){throw 'FRESH_FIXTURE_FAILED'}
+$s=Samples;foreach($q in $s){$q.status='STALE_QUOTE';$q.fresh=$false;$q.tradeEpochMilliseconds=1;$q.ageMilliseconds=$q.observedEpochMilliseconds-1}
+if((Get-PaytmQuoteBatchAssessment $s 2885 -RequireFresh).passed){throw 'STALE_ACCEPTED'}
+$s=@(1..3|ForEach-Object {@{status='NO_QUOTE';fresh=$false;ordersEnabled=$false}})
+if((Get-PaytmQuoteBatchAssessment $s 2885 -RequireFresh).missingCount -ne 3){throw 'MISSING_FIXTURE_FAILED'}
+foreach($case in @('identity','age','price','duplicate','falseFresh')){
+ $s=Samples
+ switch($case){identity{$s[0].securityId=1};age{$s[0].ageMilliseconds=1};price{$s[0].lastPrice=0};duplicate{$s[1]=$s[0]};falseFresh{$s[0].ageMilliseconds=20000;$s[0].tradeEpochMilliseconds=$s[0].observedEpochMilliseconds-20000}}
+ $failed=$false;try{$null=Get-PaytmQuoteBatchAssessment $s 2885 -RequireFresh}catch{$failed=$true}
+ if(-not $failed){throw "NEGATIVE_NOT_CAUGHT_$case"}
+}
+
+ return @{test='POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES';passed=$true;fixtureCount=8;brokerCalls=0;ordersEnabled=$false}
+}catch{return @{test='POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES';passed=$false;fixtureCount=8;failure='QUOTE_FIXTURE_FAILED';brokerCalls=0;ordersEnabled=$false}}
+}
 if($Mode -eq 'FailureFixture'){
  $boundary=Invoke-SupervisedBoundaryProbe
- [IO.File]::WriteAllText($ResultPath,($boundary|ConvertTo-Json -Depth 6))
- if(-not $boundary.passed){exit 1}
+ $quality=Invoke-SupervisedQuoteFixtures
+ $batch=@{test='BOUNDARY_AND_SYNTHETIC_QUOTE_VALIDATION';passed=($boundary.passed -and $quality.passed);boundary=$boundary;quoteFixtures=$quality;ordersEnabled=$false}
+ [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
+ if(-not $batch.passed){exit 1}
  exit 0
 }
 if($Mode -eq 'Apply'){

@@ -376,3 +376,11 @@ permission to relax freshness or repeat completed login lifecycle tests.
 Eight local fixtures cover fresh, stale, missing, wrong identity, inconsistent
 age, invalid price, repeated observation and false freshness. Collector returns
 only whitelisted counts/status. Runtime fresh acceptance remains pending.
+
+FailureFixture queue mode now combines the seven existing HTTP rejection checks
+with eight synthetic PowerShell quote-validator fixtures (same source as the
+local fixture script). No credentials, session start, provider calls or writes.
+These validate the launcher acceptance logic on the spare host, not malformed
+provider responses traversing Java; they do not alone close G5.3. Keep actual
+fresh-market evidence separate. A strict stale-data rejection is expected to
+produce SUPERVISED_FRESH_QUOTES_NOT_OBSERVED and preserve all three samples.
