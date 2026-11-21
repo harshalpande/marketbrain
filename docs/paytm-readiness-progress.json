@@ -204,7 +204,7 @@
         {
           "id": "G4.5",
           "goal": "Expiry, revocation, restart and relogin behavior accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-supervised-lifecycle-accepted-20261121.json"
         }
       ]
     },

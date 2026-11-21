@@ -330,3 +330,12 @@ StartPaytmSupervisedLogin.ps1 -TestQuotes -QuoteSymbol RELIANCE without either
 lifecycle switch to establish fresh login after restart. No rebuild required.
 Capture and review that result before accepting the full lifecycle checkpoint.
 Freshness and successful-callback replay acceptance remain separate.
+
+
+G4.5 accepted on 21 November after fresh relogin run
+61fc7071189e42c69192a5411aa0726e (89.392s), read/quotes recovered and final
+lock/gateway cleanup passed. Scope is supervised application expiry, local
+authority revocation, graceful container restart and fresh owner relogin; not
+broker-side token revocation, refresh, mobile login or abrupt power loss.
+G4 now80%, total18/30=60%. Successful callback replay remains G4.3 pending;
+quotes remain stale so fresh-data acceptance is still open.
