@@ -1,0 +1,88 @@
+{
+    "date":  "2026-11-21",
+    "jobId":  "3d9455dd-53e3-48b9-aba9-b5da15e7d9be",
+    "revision":  "8c3b7958b9352c0bdb0678c25c3fd572f02931ed",
+    "report":  {
+                   "runId":  "a519f267277540fe8022526066ad7281",
+                   "ordersEnabled":  false,
+                   "status":  "SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING",
+                   "stage":  "QUOTES",
+                   "failure":  "",
+                   "providerFailure":  "NONE",
+                   "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                   "applicationState":  "READ_ACCESS_VERIFIED",
+                   "readAccessVerified":  true,
+                   "quotesTested":  true,
+                   "windowsClockGate":  false,
+                   "vpsAccuracyAssumed":  true,
+                   "cleanup":  [
+                                   "APPLICATION_LOCKED",
+                                   "GATEWAY_STOPPED_DISABLED"
+                               ],
+                   "elapsedSeconds":  109.864311,
+                   "quoteMapping":  {
+                                        "segment":  "E",
+                                        "source":  "PAYTM_PUBLIC_EQUITY_MASTER",
+                                        "series":  "EQ",
+                                        "exchange":  "NSE",
+                                        "instrumentType":  "ES",
+                                        "securityId":  2885,
+                                        "localUniverseVerified":  false,
+                                        "sha256":  "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+                                        "symbol":  "RELIANCE"
+                                    },
+                   "quoteSamples":  [
+                                        {
+                                            "status":  "STALE_QUOTE",
+                                            "exchange":  "NSE",
+                                            "scripType":  "EQUITY",
+                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                            "securityId":  2885.0,
+                                            "observedEpochMilliseconds":  1795242888942.0,
+                                            "rawTradeTime":  1479637779.0,
+                                            "tradeEpochMilliseconds":  1795170579000.0,
+                                            "ageMilliseconds":  72309942.0,
+                                            "lastPrice":  1377.5,
+                                            "fresh":  false,
+                                            "mappingVerified":  false,
+                                            "ordersEnabled":  false
+                                        },
+                                        {
+                                            "status":  "STALE_QUOTE",
+                                            "exchange":  "NSE",
+                                            "scripType":  "EQUITY",
+                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                            "securityId":  2885.0,
+                                            "observedEpochMilliseconds":  1795242894070.0,
+                                            "rawTradeTime":  1479637779.0,
+                                            "tradeEpochMilliseconds":  1795170579000.0,
+                                            "ageMilliseconds":  72315070.0,
+                                            "lastPrice":  1377.5,
+                                            "fresh":  false,
+                                            "mappingVerified":  false,
+                                            "ordersEnabled":  false
+                                        },
+                                        {
+                                            "status":  "STALE_QUOTE",
+                                            "exchange":  "NSE",
+                                            "scripType":  "EQUITY",
+                                            "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                            "securityId":  2885.0,
+                                            "observedEpochMilliseconds":  1795242899308.0,
+                                            "rawTradeTime":  1479637779.0,
+                                            "tradeEpochMilliseconds":  1795170579000.0,
+                                            "ageMilliseconds":  72320308.0,
+                                            "lastPrice":  1377.5,
+                                            "fresh":  false,
+                                            "mappingVerified":  false,
+                                            "ordersEnabled":  false
+                                        }
+                                    ]
+               },
+    "assessment":  "PROVIDER_MAPPING_AND_STALE_QUOTE_CAPTURE_ACCEPTED",
+    "limitations":  [
+                        "Local universe matching pending",
+                        "Market-hours freshness pending",
+                        "Full G5 checkpoint set not completed"
+                    ]
+}

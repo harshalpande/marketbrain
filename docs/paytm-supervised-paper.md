@@ -176,3 +176,37 @@ Then batch the remaining callback/lifecycle negatives and quote failure cases;
 finally integrate the real quote into the combined Telegram ACCEPT/REJECT/expiry/
 duplicate/unauthorized review test. G6 acceptance records review only. Paper
 reservations, fills, costs and P&L integration follow; live orders remain disabled.
+
+## Approved mobile authorization requirement (21 November 2026)
+
+When broker login or holdings authorization is required, Telegram presents an
+Authorization required button. The user completes OTP/TPIN on the official
+Paytm/CDSL page on their phone, not in Telegram. MarketBrain verifies the
+provider result and rechecks request expiry, quote freshness, account state and
+risk before continuing. Expired approvals are not replayed after authorization.
+This is approved future scope, not implemented functionality.
+
+Schedule this in G4 session/mobile callback work, before enabling unattended
+broker operation; holdings authorization is additionally a pre-live SELL gate.
+Keep G6 paper review separate: paper fills do not require broker authorization.
+Provider-supported phone callback/redirect and eDIS completion contracts remain
+to be verified. The current localhost callback works only in the spare laptop's
+browser. Do not expose it unchanged or collect OTPs through the bot. Use an
+opaque, short-lived, single-use owner-bound link; validate callback/state,
+reject replay, keep tokens server-side, and notify only sanitized outcomes.
+
+Acceptance: successful phone login/authorization, wrong-owner/expired/replayed
+link rejection, cancellation, provider failure and timeout, pending-request
+expiry during authorization, and fresh revalidation after completion. No promise
+of permanent login; session expiry and provider authorization remain respected.
+
+## Automated application boundary batch
+
+The reviewed queue job paytm-denial-recovery in FailureFixture mode now runs
+seven fixed loopback checks: status and quote reject missing/wrong tokens,
+cookie-less callback and repetition reject, and invalid browser code rejects.
+It uses no real credentials, does not create/lock sessions or change tasks, and
+cannot contact broker endpoints. Each call is bounded to eight seconds. Report
+includes only expected/actual HTTP codes, no-store and pass/fail. Observe mode
+continues collecting the latest compact login/quote report. These are partial
+runtime boundary evidence, not valid-cookie replay, expiry or restart proof.
