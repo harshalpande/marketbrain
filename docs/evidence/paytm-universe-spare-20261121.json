@@ -1,0 +1,245 @@
+{
+    "date":  "2026-11-21",
+    "status":  "DEPLOYMENT_SAVED_UNIVERSE_AND_BOUNDARIES_ACCEPTED",
+    "scope":  "Saved snapshot corroboration only; current membership and provider ISIN not verified",
+    "jobs":  [
+                 {
+                     "id":  "23b8358c-a26d-477c-907d-00c5a3b7a168",
+                     "kind":  "paytm-denial-recovery",
+                     "state":  "SUCCEEDED",
+                     "created":  1795248335.071039,
+                     "updated":  1795248340.213182,
+                     "result":  {
+                                    "passed":  true,
+                                    "revision":  "30e10aa7b0ade084626d73d5974888e55a6702e0",
+                                    "stdoutCharacters":  0,
+                                    "stderrCharacters":  0,
+                                    "exitCode":  0,
+                                    "timedOut":  false,
+                                    "sourceSha256":  "39D82DB788FEBEEBFD34B34B46E0E9C4BD3BEE8305189D36E726674FBFC45B2A",
+                                    "elapsedSeconds":  2.5529096,
+                                    "ordersEnabled":  false,
+                                    "evidence":  {
+                                                     "version":  1,
+                                                     "test":  "SUPERVISED_LOGIN_REPORT_COLLECTION",
+                                                     "passed":  true,
+                                                     "ordersEnabled":  false,
+                                                     "failure":  null,
+                                                     "report":  {
+                                                                    "runId":  "9ec17dd30c1f45fda2c206c26a990f71",
+                                                                    "ordersEnabled":  false,
+                                                                    "status":  "SUPERVISED_DEPLOYMENT_PASSED_LOGIN_PENDING",
+                                                                    "stage":  "HEALTH",
+                                                                    "failure":  "",
+                                                                    "providerFailure":  "",
+                                                                    "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                                                                    "applicationState":  "",
+                                                                    "readAccessVerified":  false,
+                                                                    "quotesTested":  false,
+                                                                    "windowsClockGate":  false,
+                                                                    "vpsAccuracyAssumed":  true,
+                                                                    "cleanup":  [
+                                                                                    "PROCESS_ENVIRONMENT_RESTORED"
+                                                                                ],
+                                                                    "elapsedSeconds":  126.3544289,
+                                                                    "deploymentAttempted":  true,
+                                                                    "commands":  [
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.0750249,
+                                                                                         "stage":  "CONTEXT",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.073607,
+                                                                                         "stage":  "ENDPOINT",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.1311624,
+                                                                                         "stage":  "DISCOVERY",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.2681814,
+                                                                                         "stage":  "INSPECT",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.641109,
+                                                                                         "stage":  "PLAN",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  87.6500002,
+                                                                                         "stage":  "BUILD",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.159552,
+                                                                                         "stage":  "IMAGE",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.0938723,
+                                                                                         "stage":  "BASELINE",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  20.5042147,
+                                                                                         "stage":  "DEPLOY",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.7541628,
+                                                                                         "stage":  "NEW_CONTAINER",
+                                                                                         "exitCode":  0
+                                                                                     },
+                                                                                     {
+                                                                                         "elapsedSeconds":  0.1252328,
+                                                                                         "stage":  "VERIFY",
+                                                                                         "exitCode":  0
+                                                                                     }
+                                                                                 ]
+                                                                },
+                                                     "sourceFile":  "paytm-supervised-deployment-9ec17dd30c1f45fda2c206c26a990f71.json",
+                                                     "status":  "REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED"
+                                                 }
+                                },
+                     "spec":  {
+                                  "revision":  "30e10aa7b0ade084626d73d5974888e55a6702e0",
+                                  "mode":  "Observe",
+                                  "sha256":  "39D82DB788FEBEEBFD34B34B46E0E9C4BD3BEE8305189D36E726674FBFC45B2A"
+                              }
+                 },
+                 {
+                     "id":  "8d089fc0-8e91-4d17-80c7-d7558a3fad2e",
+                     "kind":  "paytm-denial-recovery",
+                     "state":  "SUCCEEDED",
+                     "created":  1795248353.3355944,
+                     "updated":  1795248364.148152,
+                     "result":  {
+                                    "passed":  true,
+                                    "revision":  "30e10aa7b0ade084626d73d5974888e55a6702e0",
+                                    "stdoutCharacters":  0,
+                                    "stderrCharacters":  0,
+                                    "exitCode":  0,
+                                    "timedOut":  false,
+                                    "sourceSha256":  "39D82DB788FEBEEBFD34B34B46E0E9C4BD3BEE8305189D36E726674FBFC45B2A",
+                                    "elapsedSeconds":  2.8125668,
+                                    "ordersEnabled":  false,
+                                    "evidence":  {
+                                                     "version":  1,
+                                                     "test":  "SUPERVISED_SAVED_UNIVERSE_PROBE",
+                                                     "passed":  true,
+                                                     "ordersEnabled":  false,
+                                                     "brokerCredentialsUsed":  false,
+                                                     "failure":  null,
+                                                     "universeMatch":  {
+                                                                           "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                                                           "snapshotMatched":  true,
+                                                                           "ordersEnabled":  false,
+                                                                           "instrumentId":  1202,
+                                                                           "isin":  "INE002A01018",
+                                                                           "symbol":  "RELIANCE",
+                                                                           "observedOn":  "2026-09-02",
+                                                                           "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                                           "currentMembershipVerified":  false,
+                                                                           "providerIsinVerified":  false
+                                                                       }
+                                                 }
+                                },
+                     "spec":  {
+                                  "revision":  "30e10aa7b0ade084626d73d5974888e55a6702e0",
+                                  "mode":  "Apply",
+                                  "sha256":  "39D82DB788FEBEEBFD34B34B46E0E9C4BD3BEE8305189D36E726674FBFC45B2A"
+                              }
+                 },
+                 {
+                     "id":  "02efd594-2a43-404d-b46f-8850b5c38406",
+                     "kind":  "paytm-denial-recovery",
+                     "state":  "SUCCEEDED",
+                     "created":  1795248375.430863,
+                     "updated":  1795248386.5243034,
+                     "result":  {
+                                    "passed":  true,
+                                    "revision":  "30e10aa7b0ade084626d73d5974888e55a6702e0",
+                                    "stdoutCharacters":  0,
+                                    "stderrCharacters":  0,
+                                    "exitCode":  0,
+                                    "timedOut":  false,
+                                    "sourceSha256":  "39D82DB788FEBEEBFD34B34B46E0E9C4BD3BEE8305189D36E726674FBFC45B2A",
+                                    "elapsedSeconds":  1.3137789,
+                                    "ordersEnabled":  false,
+                                    "evidence":  {
+                                                     "version":  1,
+                                                     "checks":  [
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "STATUS_MISSING_TOKEN",
+                                                                        "expectedStatus":  401,
+                                                                        "actualStatus":  401,
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "STATUS_WRONG_TOKEN",
+                                                                        "expectedStatus":  401,
+                                                                        "actualStatus":  401,
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "QUOTE_MISSING_TOKEN",
+                                                                        "expectedStatus":  401,
+                                                                        "actualStatus":  401,
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "QUOTE_WRONG_TOKEN",
+                                                                        "expectedStatus":  401,
+                                                                        "actualStatus":  401,
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "CALLBACK_WITHOUT_COOKIE",
+                                                                        "expectedStatus":  400,
+                                                                        "actualStatus":  400,
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "CALLBACK_REPEAT_WITHOUT_COOKIE",
+                                                                        "expectedStatus":  400,
+                                                                        "actualStatus":  400,
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "noStore":  true,
+                                                                        "name":  "BROWSER_INVALID_CODE",
+                                                                        "expectedStatus":  400,
+                                                                        "actualStatus":  400,
+                                                                        "passed":  true
+                                                                    }
+                                                                ],
+                                                     "status":  "BOUNDARY_PROBES_PASSED_CALLBACK_LIFECYCLE_PENDING",
+                                                     "ordersEnabled":  false,
+                                                     "sessionCreated":  false,
+                                                     "test":  "SUPERVISED_APPLICATION_BOUNDARY_PROBES",
+                                                     "elapsedSeconds":  0.3144337,
+                                                     "passed":  true,
+                                                     "brokerCredentialsUsed":  false
+                                                 }
+                                },
+                     "spec":  {
+                                  "revision":  "30e10aa7b0ade084626d73d5974888e55a6702e0",
+                                  "sha256":  "39D82DB788FEBEEBFD34B34B46E0E9C4BD3BEE8305189D36E726674FBFC45B2A",
+                                  "mode":  "FailureFixture"
+                              }
+                 }
+             ],
+    "acceptedCheckpoints":  17,
+    "totalCheckpoints":  30,
+    "ordersEnabled":  false
+}

@@ -244,3 +244,10 @@ Tests cover authenticated expiry, relogin, obsolete callback bindings and a new
 application instance starting locked. These are local fixtures; spare runtime
 expiry/restart and market-hours freshness acceptance are still pending. G1-G6
 checkpoint percentages do not change from this preparation alone.
+
+Spare acceptance on 21 November: guarded deployment passed (126.354s); the
+automatic universe probe matched RELIANCE / INE002A01018 against the saved
+2026-09-02 snapshot. All seven post-deployment rejection probes passed.
+No new broker login or order was needed. This supersedes deployment/database
+pending above; current membership, provider ISIN equivalence, market-hours
+freshness and runtime valid-session lifecycle acceptance remain pending.
