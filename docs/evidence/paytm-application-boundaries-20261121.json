@@ -1,0 +1,75 @@
+{
+    "date":  "2026-11-21",
+    "jobId":  "73838720-3697-4df6-b4a5-7d2feebd0799",
+    "revision":  "b02a1c9376af6abf4727183e53336d2188bbeba0",
+    "sourceSha256":  "85EE91AB779FA5CDC526F734FE38149F792C28FD16C9D1E5F85F2488306E20FB",
+    "evidence":  {
+                     "test":  "SUPERVISED_APPLICATION_BOUNDARY_PROBES",
+                     "sessionCreated":  false,
+                     "status":  "BOUNDARY_PROBES_PASSED_CALLBACK_LIFECYCLE_PENDING",
+                     "version":  1,
+                     "ordersEnabled":  false,
+                     "elapsedSeconds":  0.5830854,
+                     "passed":  true,
+                     "checks":  [
+                                    {
+                                        "actualStatus":  401,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  401,
+                                        "name":  "STATUS_MISSING_TOKEN"
+                                    },
+                                    {
+                                        "actualStatus":  401,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  401,
+                                        "name":  "STATUS_WRONG_TOKEN"
+                                    },
+                                    {
+                                        "actualStatus":  401,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  401,
+                                        "name":  "QUOTE_MISSING_TOKEN"
+                                    },
+                                    {
+                                        "actualStatus":  401,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  401,
+                                        "name":  "QUOTE_WRONG_TOKEN"
+                                    },
+                                    {
+                                        "actualStatus":  400,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  400,
+                                        "name":  "CALLBACK_WITHOUT_COOKIE"
+                                    },
+                                    {
+                                        "actualStatus":  400,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  400,
+                                        "name":  "CALLBACK_REPEAT_WITHOUT_COOKIE"
+                                    },
+                                    {
+                                        "actualStatus":  400,
+                                        "noStore":  true,
+                                        "passed":  true,
+                                        "expectedStatus":  400,
+                                        "name":  "BROWSER_INVALID_CODE"
+                                    }
+                                ],
+                     "brokerCredentialsUsed":  false
+                 },
+    "checkpointChange":  "NONE",
+    "remaining":  [
+                      "Valid owner-cookie replay/binding runtime test",
+                      "Session expiry/restart/relogin runtime test",
+                      "Fresh market-hours quotes",
+                      "Local Nifty universe integration",
+                      "Combined Telegram review"
+                  ]
+}

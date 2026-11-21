@@ -210,3 +210,6 @@ cannot contact broker endpoints. Each call is bounded to eight seconds. Report
 includes only expected/actual HTTP codes, no-store and pass/fail. Observe mode
 continues collecting the latest compact login/quote report. These are partial
 runtime boundary evidence, not valid-cookie replay, expiry or restart proof.
+Runtime result: all seven boundary checks accepted on spare through job
+73838720-3697-4df6-b4a5-7d2feebd0799; 0.583 seconds for probes. No manual
+script/report transfer was needed. Remaining valid-session cases are unchanged.
