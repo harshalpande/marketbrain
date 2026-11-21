@@ -1,0 +1,236 @@
+{
+    "date":  "2026-11-21",
+    "status":  "STALE_DATA_REJECTED_SYNTHETIC_VALIDATION_PASSED",
+    "acceptedCheckpoints":  19,
+    "jobs":  [
+                 {
+                     "id":  "ff16cdcd-be9c-48c6-9c5e-69c82c9286f7",
+                     "kind":  "paytm-denial-recovery",
+                     "state":  "SUCCEEDED",
+                     "created":  1795262172.8230267,
+                     "updated":  1795262183.790412,
+                     "result":  {
+                                    "passed":  true,
+                                    "revision":  "4a0a0f46ce1dd1abe45d47637017f3738da5d0a2",
+                                    "stdoutCharacters":  0,
+                                    "stderrCharacters":  0,
+                                    "exitCode":  0,
+                                    "timedOut":  false,
+                                    "sourceSha256":  "47CFA60F18F692D7F1157FCFDA51FE01ED39C70BEF35439D94AABC45D926C7F3",
+                                    "elapsedSeconds":  1.3230899,
+                                    "ordersEnabled":  false,
+                                    "evidence":  {
+                                                     "version":  1,
+                                                     "test":  "SUPERVISED_LOGIN_REPORT_COLLECTION",
+                                                     "passed":  true,
+                                                     "ordersEnabled":  false,
+                                                     "failure":  null,
+                                                     "report":  {
+                                                                    "runId":  "d8b1696af8ab421da9d4be90492e9879",
+                                                                    "ordersEnabled":  false,
+                                                                    "status":  "REVIEW_REQUIRED",
+                                                                    "stage":  "QUOTES",
+                                                                    "failure":  "SUPERVISED_FRESH_QUOTES_NOT_OBSERVED",
+                                                                    "providerFailure":  "NONE",
+                                                                    "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                                                                    "applicationState":  "READ_ACCESS_VERIFIED",
+                                                                    "readAccessVerified":  true,
+                                                                    "quotesTested":  true,
+                                                                    "windowsClockGate":  false,
+                                                                    "vpsAccuracyAssumed":  true,
+                                                                    "cleanup":  [
+                                                                                    "APPLICATION_LOCKED",
+                                                                                    "GATEWAY_STOPPED_DISABLED"
+                                                                                ],
+                                                                    "elapsedSeconds":  182.7857781,
+                                                                    "quoteBatch":  {
+                                                                                       "passed":  false,
+                                                                                       "staleCount":  3,
+                                                                                       "ordersEnabled":  false,
+                                                                                       "missingCount":  0,
+                                                                                       "securityId":  2885,
+                                                                                       "sampleCount":  3,
+                                                                                       "status":  "FRESHNESS_PENDING",
+                                                                                       "freshCount":  0,
+                                                                                       "strictFreshRequired":  true
+                                                                                   },
+                                                                    "universeMatch":  {
+                                                                                          "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                                                                          "snapshotMatched":  true,
+                                                                                          "ordersEnabled":  false,
+                                                                                          "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                                                          "symbol":  "RELIANCE",
+                                                                                          "observedOn":  "2026-09-02",
+                                                                                          "instrumentId":  1202,
+                                                                                          "isin":  "INE002A01018",
+                                                                                          "currentMembershipVerified":  false,
+                                                                                          "providerIsinVerified":  false
+                                                                                      },
+                                                                    "quoteMapping":  {
+                                                                                         "localUniverseVerified":  false,
+                                                                                         "series":  "EQ",
+                                                                                         "securityId":  2885,
+                                                                                         "symbol":  "RELIANCE",
+                                                                                         "segment":  "E",
+                                                                                         "sha256":  "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+                                                                                         "instrumentType":  "ES",
+                                                                                         "source":  "PAYTM_PUBLIC_EQUITY_MASTER",
+                                                                                         "exchange":  "NSE"
+                                                                                     },
+                                                                    "quoteSamples":  [
+                                                                                         {
+                                                                                             "status":  "STALE_QUOTE",
+                                                                                             "exchange":  "NSE",
+                                                                                             "scripType":  "EQUITY",
+                                                                                             "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                                                             "securityId":  2885.0,
+                                                                                             "observedEpochMilliseconds":  1795262099944.0,
+                                                                                             "rawTradeTime":  1479637779.0,
+                                                                                             "tradeEpochMilliseconds":  1795170579000.0,
+                                                                                             "ageMilliseconds":  91520944.0,
+                                                                                             "lastPrice":  1377.5,
+                                                                                             "fresh":  false,
+                                                                                             "mappingVerified":  false,
+                                                                                             "ordersEnabled":  false
+                                                                                         },
+                                                                                         {
+                                                                                             "status":  "STALE_QUOTE",
+                                                                                             "exchange":  "NSE",
+                                                                                             "scripType":  "EQUITY",
+                                                                                             "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                                                             "securityId":  2885.0,
+                                                                                             "observedEpochMilliseconds":  1795262105107.0,
+                                                                                             "rawTradeTime":  1479637779.0,
+                                                                                             "tradeEpochMilliseconds":  1795170579000.0,
+                                                                                             "ageMilliseconds":  91526107.0,
+                                                                                             "lastPrice":  1377.5,
+                                                                                             "fresh":  false,
+                                                                                             "mappingVerified":  false,
+                                                                                             "ordersEnabled":  false
+                                                                                         },
+                                                                                         {
+                                                                                             "status":  "STALE_QUOTE",
+                                                                                             "exchange":  "NSE",
+                                                                                             "scripType":  "EQUITY",
+                                                                                             "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                                                             "securityId":  2885.0,
+                                                                                             "observedEpochMilliseconds":  1795262110251.0,
+                                                                                             "rawTradeTime":  1479637779.0,
+                                                                                             "tradeEpochMilliseconds":  1795170579000.0,
+                                                                                             "ageMilliseconds":  91531251.0,
+                                                                                             "lastPrice":  1377.5,
+                                                                                             "fresh":  false,
+                                                                                             "mappingVerified":  false,
+                                                                                             "ordersEnabled":  false
+                                                                                         }
+                                                                                     ]
+                                                                },
+                                                     "sourceFile":  "paytm-supervised-login-d8b1696af8ab421da9d4be90492e9879.json",
+                                                     "status":  "REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED"
+                                                 }
+                                },
+                     "spec":  {
+                                  "sha256":  "47CFA60F18F692D7F1157FCFDA51FE01ED39C70BEF35439D94AABC45D926C7F3",
+                                  "revision":  "4a0a0f46ce1dd1abe45d47637017f3738da5d0a2",
+                                  "mode":  "Observe"
+                              }
+                 },
+                 {
+                     "id":  "f5e242fa-b825-4b85-86f8-550c86073fcf",
+                     "kind":  "paytm-denial-recovery",
+                     "state":  "SUCCEEDED",
+                     "created":  1795262268.3191867,
+                     "updated":  1795262279.084169,
+                     "result":  {
+                                    "passed":  true,
+                                    "revision":  "94c72bd3ed7b0ebbccece12a0e1a1519fd28d858",
+                                    "stdoutCharacters":  0,
+                                    "stderrCharacters":  0,
+                                    "exitCode":  0,
+                                    "timedOut":  false,
+                                    "sourceSha256":  "1797F46E9315F6118A1B22069F1A067EA4064D6BE78761FBFC55E70B110F2E18",
+                                    "elapsedSeconds":  1.8382283,
+                                    "ordersEnabled":  false,
+                                    "evidence":  {
+                                                     "test":  "BOUNDARY_AND_SYNTHETIC_QUOTE_VALIDATION",
+                                                     "ordersEnabled":  false,
+                                                     "quoteFixtures":  {
+                                                                           "test":  "POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES",
+                                                                           "ordersEnabled":  false,
+                                                                           "brokerCalls":  0,
+                                                                           "passed":  true,
+                                                                           "fixtureCount":  8
+                                                                       },
+                                                     "passed":  true,
+                                                     "boundary":  {
+                                                                      "test":  "SUPERVISED_APPLICATION_BOUNDARY_PROBES",
+                                                                      "passed":  true,
+                                                                      "checks":  [
+                                                                                     {
+                                                                                         "expectedStatus":  401,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "STATUS_MISSING_TOKEN",
+                                                                                         "actualStatus":  401,
+                                                                                         "passed":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "expectedStatus":  401,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "STATUS_WRONG_TOKEN",
+                                                                                         "actualStatus":  401,
+                                                                                         "passed":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "expectedStatus":  401,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "QUOTE_MISSING_TOKEN",
+                                                                                         "actualStatus":  401,
+                                                                                         "passed":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "expectedStatus":  401,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "QUOTE_WRONG_TOKEN",
+                                                                                         "actualStatus":  401,
+                                                                                         "passed":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "expectedStatus":  400,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "CALLBACK_WITHOUT_COOKIE",
+                                                                                         "actualStatus":  400,
+                                                                                         "passed":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "expectedStatus":  400,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "CALLBACK_REPEAT_WITHOUT_COOKIE",
+                                                                                         "actualStatus":  400,
+                                                                                         "passed":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "expectedStatus":  400,
+                                                                                         "noStore":  true,
+                                                                                         "name":  "BROWSER_INVALID_CODE",
+                                                                                         "actualStatus":  400,
+                                                                                         "passed":  true
+                                                                                     }
+                                                                                 ],
+                                                                      "brokerCredentialsUsed":  false,
+                                                                      "status":  "BOUNDARY_PROBES_PASSED_CALLBACK_LIFECYCLE_PENDING",
+                                                                      "version":  1,
+                                                                      "sessionCreated":  false,
+                                                                      "elapsedSeconds":  0.2413428,
+                                                                      "ordersEnabled":  false
+                                                                  }
+                                                 }
+                                },
+                     "spec":  {
+                                  "mode":  "FailureFixture",
+                                  "revision":  "94c72bd3ed7b0ebbccece12a0e1a1519fd28d858",
+                                  "sha256":  "1797F46E9315F6118A1B22069F1A067EA4064D6BE78761FBFC55E70B110F2E18"
+                              }
+                 }
+             ],
+    "ordersEnabled":  false
+}
