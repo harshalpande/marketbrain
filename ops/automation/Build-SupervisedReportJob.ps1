@@ -4,6 +4,7 @@ $ErrorActionPreference='Stop'
 $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Collect-SupervisedLoginReport.ps1'))
 $probe=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedBoundaryProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedGatewayObservation.ps1'))
+$probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedGatewayStartupProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedUniverseProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedLifecycleProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmQuoteBatch.ps1'))
@@ -34,6 +35,7 @@ if($Mode -eq 'Apply'){
  if(-not $universe.passed){exit 1}
  $lifecycle=Invoke-SupervisedLifecycleProbe
  $batch=@{test='SUPERVISED_UNIVERSE_AND_LIFECYCLE';passed=$lifecycle.passed;ordersEnabled=$false;universe=$universe;lifecycle=$lifecycle}
+ if($lifecycle.passed -and $lifecycle.finalLocked){$batch.gatewayStartup=Invoke-SupervisedGatewayStartupProbe;$batch.passed=$batch.gatewayStartup.passed}
  [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
  if(-not $lifecycle.passed){exit 1}
  exit 0
