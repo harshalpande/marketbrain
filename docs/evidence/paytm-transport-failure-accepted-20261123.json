@@ -1,0 +1,117 @@
+{
+  "id": "a6853b60-bdd6-49ee-bed7-729f70c4afb6",
+  "kind": "paytm-denial-recovery",
+  "state": "SUCCEEDED",
+  "created": 1795417703.3535106,
+  "updated": 1795417711.6188416,
+  "result": {
+    "stdoutCharacters": 0,
+    "timedOut": false,
+    "passed": true,
+    "sourceSha256": "DE92B89D6AC2F17D149A25868664CD7CD14978ADB21880837F90D392FBC154B7",
+    "ordersEnabled": false,
+    "exitCode": 0,
+    "evidence": {
+      "version": 1,
+      "test": "SUPERVISED_LOGIN_REPORT_COLLECTION",
+      "passed": true,
+      "ordersEnabled": false,
+      "failure": null,
+      "report": {
+        "runId": "ab5f6bf7fd994abcb77202ae26f554fa",
+        "ordersEnabled": false,
+        "status": "TRANSPORT_FAILURE_PASSED_RELOGIN_PENDING",
+        "stage": "TRANSPORT_FAILURE",
+        "failure": "",
+        "providerFailure": "NONE",
+        "clockSource": "VPS_ANCHORED_MONOTONIC",
+        "applicationState": "READ_ACCESS_VERIFIED",
+        "readAccessVerified": true,
+        "quotesTested": true,
+        "windowsClockGate": false,
+        "vpsAccuracyAssumed": true,
+        "cleanup": [
+          "APPLICATION_LOCKED",
+          "GATEWAY_STOPPED_DISABLED"
+        ],
+        "elapsedSeconds": 110.6072901,
+        "transportFailure": {
+          "status": "TRANSPORT_FAILURE_PASSED_RELOGIN_PENDING",
+          "failure": "",
+          "elapsedSeconds": 8.7616219,
+          "ordersEnabled": false,
+          "passed": true,
+          "gatewayStopped": true,
+          "transportRejected": true,
+          "sessionLocked": true,
+          "subsequentQuoteRejected": true
+        },
+        "universeMatch": {
+          "status": "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+          "snapshotMatched": true,
+          "ordersEnabled": false,
+          "observedOn": "2026-09-02",
+          "snapshotId": "68117add-3ebe-4681-82fc-ff5613ecd869",
+          "symbol": "RELIANCE",
+          "isin": "INE002A01018",
+          "instrumentId": 1202,
+          "currentMembershipVerified": false,
+          "providerIsinVerified": false
+        },
+        "quoteMapping": {
+          "segment": "E",
+          "source": "PAYTM_PUBLIC_EQUITY_MASTER",
+          "symbol": "RELIANCE",
+          "instrumentType": "ES",
+          "securityId": 2885,
+          "exchange": "NSE",
+          "localUniverseVerified": false,
+          "sha256": "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+          "series": "EQ"
+        },
+        "quoteSamples": [
+          {
+            "status": "FRESH_QUOTE_OBSERVED",
+            "exchange": "NSE",
+            "scripType": "EQUITY",
+            "timestampEpoch": "PAYTM_1980_SECONDS",
+            "securityId": 2885.0,
+            "observedEpochMilliseconds": 1795417407837.0,
+            "rawTradeTime": 1479884604.0,
+            "tradeEpochMilliseconds": 1795417404000.0,
+            "ageMilliseconds": 3837.0,
+            "lastPrice": 1356.4,
+            "fresh": true,
+            "mappingVerified": false,
+            "ordersEnabled": false
+          },
+          {
+            "status": "FRESH_QUOTE_OBSERVED",
+            "exchange": "NSE",
+            "scripType": "EQUITY",
+            "timestampEpoch": "PAYTM_1980_SECONDS",
+            "securityId": 2885.0,
+            "observedEpochMilliseconds": 1795417413037.0,
+            "rawTradeTime": 1479884607.0,
+            "tradeEpochMilliseconds": 1795417407000.0,
+            "ageMilliseconds": 6037.0,
+            "lastPrice": 1356.4,
+            "fresh": true,
+            "mappingVerified": false,
+            "ordersEnabled": false
+          }
+        ]
+      },
+      "sourceFile": "paytm-supervised-login-ab5f6bf7fd994abcb77202ae26f554fa.json",
+      "status": "REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED"
+    },
+    "revision": "726a86288c06a771cb7cf9bcb1b51b8db6165312",
+    "elapsedSeconds": 2.278332,
+    "stderrCharacters": 0
+  },
+  "spec": {
+    "revision": "726a86288c06a771cb7cf9bcb1b51b8db6165312",
+    "sha256": "DE92B89D6AC2F17D149A25868664CD7CD14978ADB21880837F90D392FBC154B7",
+    "mode": "Observe"
+  }
+}
