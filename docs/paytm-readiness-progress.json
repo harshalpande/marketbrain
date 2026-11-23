@@ -230,7 +230,7 @@
         {
           "id": "G5.4",
           "goal": "Provider error, rate-limit and reconnect behavior accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-error-reconnect-accepted-20261123.json"
         },
         {
           "id": "G5.5",

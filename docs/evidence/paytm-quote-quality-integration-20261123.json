@@ -1,0 +1,35 @@
+﻿{
+    "date":  "2026-11-23",
+    "status":  "LOCAL_QUOTE_QUALITY_INTEGRATION_PASSED",
+    "network":  "MOCKED_HTTP_RESPONSES",
+    "layers":  [
+                   "PaytmSupervisedClient JSON parsing",
+                   "PaytmSupervisedSession",
+                   "PaytmQuoteProbe"
+               ],
+    "newCases":  14,
+    "targetedSuiteTests":  30,
+    "failures":  0,
+    "errors":  0,
+    "skipped":  0,
+    "cases":  [
+                  "stale",
+                  "future",
+                  "notFound",
+                  "wrongId",
+                  "wrongMode",
+                  "duplicate",
+                  "missingPrice",
+                  "negativePrice",
+                  "textPrice",
+                  "missingTime",
+                  "millisTime",
+                  "error",
+                  "invalidJson",
+                  "emptyBody"
+              ],
+    "noExtraNetworkCallsVerified":  true,
+    "readTokenOnlyVerified":  true,
+    "ordersEnabled":  false,
+    "runtimeMalformedProviderTested":  false
+}

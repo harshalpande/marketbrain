@@ -1,0 +1,132 @@
+{
+  "id": "2bcb41cc-79de-44aa-9731-b92f514ac73a",
+  "kind": "paytm-denial-recovery",
+  "state": "SUCCEEDED",
+  "created": 1795425556.022992,
+  "updated": 1795425565.8150752,
+  "result": {
+    "stdoutCharacters": 0,
+    "timedOut": false,
+    "passed": true,
+    "sourceSha256": "DE92B89D6AC2F17D149A25868664CD7CD14978ADB21880837F90D392FBC154B7",
+    "ordersEnabled": false,
+    "exitCode": 0,
+    "evidence": {
+      "version": 1,
+      "test": "SUPERVISED_LOGIN_REPORT_COLLECTION",
+      "passed": true,
+      "ordersEnabled": false,
+      "failure": null,
+      "report": {
+        "runId": "199940249c5e43c2b19a663303245383",
+        "ordersEnabled": false,
+        "status": "SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING",
+        "stage": "QUOTES",
+        "failure": "",
+        "providerFailure": "NONE",
+        "clockSource": "VPS_ANCHORED_MONOTONIC",
+        "applicationState": "READ_ACCESS_VERIFIED",
+        "readAccessVerified": true,
+        "quotesTested": true,
+        "windowsClockGate": false,
+        "vpsAccuracyAssumed": true,
+        "cleanup": [
+          "APPLICATION_LOCKED",
+          "GATEWAY_STOPPED_DISABLED"
+        ],
+        "elapsedSeconds": 94.9829393,
+        "quoteBatch": {
+          "strictFreshRequired": true,
+          "passed": true,
+          "status": "THREE_FRESH_MAPPED_QUOTES",
+          "securityId": 2885,
+          "freshCount": 3,
+          "missingCount": 0,
+          "ordersEnabled": false,
+          "sampleCount": 3,
+          "staleCount": 0
+        },
+        "universeMatch": {
+          "status": "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+          "snapshotMatched": true,
+          "ordersEnabled": false,
+          "isin": "INE002A01018",
+          "symbol": "RELIANCE",
+          "instrumentId": 1202,
+          "snapshotId": "68117add-3ebe-4681-82fc-ff5613ecd869",
+          "observedOn": "2026-09-02",
+          "currentMembershipVerified": false,
+          "providerIsinVerified": false
+        },
+        "quoteMapping": {
+          "localUniverseVerified": false,
+          "source": "PAYTM_PUBLIC_EQUITY_MASTER",
+          "instrumentType": "ES",
+          "sha256": "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+          "exchange": "NSE",
+          "segment": "E",
+          "series": "EQ",
+          "securityId": 2885,
+          "symbol": "RELIANCE"
+        },
+        "quoteSamples": [
+          {
+            "status": "FRESH_QUOTE_OBSERVED",
+            "exchange": "NSE",
+            "scripType": "EQUITY",
+            "timestampEpoch": "PAYTM_1980_SECONDS",
+            "securityId": 2885.0,
+            "observedEpochMilliseconds": 1795425475353.0,
+            "rawTradeTime": 1479892674.0,
+            "tradeEpochMilliseconds": 1795425474000.0,
+            "ageMilliseconds": 1353.0,
+            "lastPrice": 1351.6,
+            "fresh": true,
+            "mappingVerified": false,
+            "ordersEnabled": false
+          },
+          {
+            "status": "FRESH_QUOTE_OBSERVED",
+            "exchange": "NSE",
+            "scripType": "EQUITY",
+            "timestampEpoch": "PAYTM_1980_SECONDS",
+            "securityId": 2885.0,
+            "observedEpochMilliseconds": 1795425480587.0,
+            "rawTradeTime": 1479892680.0,
+            "tradeEpochMilliseconds": 1795425480000.0,
+            "ageMilliseconds": 587.0,
+            "lastPrice": 1351.7,
+            "fresh": true,
+            "mappingVerified": false,
+            "ordersEnabled": false
+          },
+          {
+            "status": "FRESH_QUOTE_OBSERVED",
+            "exchange": "NSE",
+            "scripType": "EQUITY",
+            "timestampEpoch": "PAYTM_1980_SECONDS",
+            "securityId": 2885.0,
+            "observedEpochMilliseconds": 1795425485817.0,
+            "rawTradeTime": 1479892685.0,
+            "tradeEpochMilliseconds": 1795425485000.0,
+            "ageMilliseconds": 817.0,
+            "lastPrice": 1351.7,
+            "fresh": true,
+            "mappingVerified": false,
+            "ordersEnabled": false
+          }
+        ]
+      },
+      "sourceFile": "paytm-supervised-login-199940249c5e43c2b19a663303245383.json",
+      "status": "REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED"
+    },
+    "revision": "5c82aed894cbc3de9552bf8da227dcb42a9e1298",
+    "elapsedSeconds": 2.1822622,
+    "stderrCharacters": 0
+  },
+  "spec": {
+    "sha256": "DE92B89D6AC2F17D149A25868664CD7CD14978ADB21880837F90D392FBC154B7",
+    "mode": "Observe",
+    "revision": "5c82aed894cbc3de9552bf8da227dcb42a9e1298"
+  }
+}

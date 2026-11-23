@@ -1,0 +1,21 @@
+﻿{
+    "date":  "2026-11-23",
+    "checkpoint":  "G5.4",
+    "status":  "SUPERVISED_ERROR_AND_RECONNECT_ACCEPTED",
+    "scope":  "Supervised read-only session: fail closed; manual owner relogin, no automatic retries",
+    "runtimeEvidence":  [
+                            "paytm-transport-failure-accepted-20261123.json",
+                            "paytm-post-failure-relogin-20261123.json"
+                        ],
+    "localEvidence":  "paytm-quote-recovery-local-20261123.json",
+    "realGatewayLossAndRelogin":  true,
+    "simulatedHttpCases":  [
+                               401,
+                               429,
+                               503
+                           ],
+    "simulatedTimeout":  true,
+    "actualProviderRateLimitInduced":  false,
+    "unattendedReconnectAccepted":  false,
+    "ordersEnabled":  false
+}
