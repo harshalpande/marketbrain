@@ -238,6 +238,12 @@ try{
   if(($x.freshCount+$x.staleCount+$x.missingCount) -ne 3 -or [string]$x.securityId -cnotmatch '^[1-9][0-9]{0,7}$'){throw 'REPORT_BATCH_REJECTED'}
   $safe.quoteBatch=@{status=$x.status;passed=$x.passed;strictFreshRequired=$x.strictFreshRequired;sampleCount=3;freshCount=[int]$x.freshCount;staleCount=[int]$x.staleCount;missingCount=[int]$x.missingCount;securityId=[int]$x.securityId;ordersEnabled=$false}
  }
+ if($v.PSObject.Properties['transportFailure']){
+  $x=$v.transportFailure
+  if($x.status -cnotmatch '^[A-Z_]{1,100}$' -or ($x.failure -and $x.failure -cnotmatch '^SUPERVISED_[A-Z_]{1,100}$') -or $x.ordersEnabled -ne $false){throw 'REPORT_TRANSPORT_REJECTED'}
+  $safe.transportFailure=[ordered]@{status=[string]$x.status;failure=[string]$x.failure;elapsedSeconds=[double]$x.elapsedSeconds;ordersEnabled=$false}
+  foreach($n in @('passed','gatewayStopped','transportRejected','sessionLocked','subsequentQuoteRejected')){if($x.$n -isnot [bool]){throw 'REPORT_TRANSPORT_REJECTED'};$safe.transportFailure[$n]=$x.$n}
+ }
  if($v.PSObject.Properties['callbackReplay']){
   $x=$v.callbackReplay
   if($x.requested -isnot [bool] -or $x.verified -isnot [bool] -or $x.exchangeAttempts -ne 1){throw 'REPORT_REPLAY_REJECTED'}

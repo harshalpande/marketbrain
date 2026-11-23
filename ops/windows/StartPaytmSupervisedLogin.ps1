@@ -6,6 +6,7 @@
  [switch]$TestSessionExpiry,
  [switch]$TestSessionRestart,
  [switch]$TestCallbackReplay,
+ [switch]$TestTransportFailure,
  [ValidatePattern('^[A-Z0-9][A-Z0-9&-]{0,29}$')][string]$QuoteSymbol,
  [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
@@ -17,6 +18,7 @@ $ErrorActionPreference='Stop'
 . "$PSScriptRoot/PaytmQuoteBatch.ps1"
 . "$PSScriptRoot/PaytmAuthenticatedExpiry.ps1"
 . "$PSScriptRoot/PaytmAuthenticatedRestart.ps1"
+. "$PSScriptRoot/PaytmTransportFailure.ps1"
 $id=[guid]::NewGuid().ToString('N');$timer=[Diagnostics.Stopwatch]::StartNew()
 $null=New-Item -ItemType Directory -Force -Path $OutputDirectory
 $path=Join-Path $OutputDirectory "paytm-supervised-login-$id.json"
@@ -28,6 +30,18 @@ function Save-SupervisedReport {
  [IO.File]::Move(($path+'.tmp'),$path,$true)
 }
 function Read-LocalSecret([string]$Prompt) { $s=Read-Host $Prompt -AsSecureString;try{[Net.NetworkCredential]::new('',$s).Password}finally{$s.Dispose()} }
+function Stop-SupervisedGateway {
+ # Final cleanup may follow an already successful fault-test stop.
+ $current=Get-ScheduledTask -TaskName $taskName
+ if($current.State -ne 'Disabled'){Stop-ScheduledTask -TaskName $taskName;$null=Disable-ScheduledTask -TaskName $taskName}
+ $stop=[Diagnostics.Stopwatch]::StartNew()
+ do{
+  $listeners=@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()|Where-Object Port -EQ 18889)
+  if((Get-ScheduledTask -TaskName $taskName).State -eq 'Disabled' -and -not $listeners.Count){return $true}
+  Start-Sleep -Seconds 1
+ }while($stop.Elapsed.TotalSeconds -lt 30)
+ return $false
+}
 function Invoke-LocalSupervised([string]$Command,$Body=$null) {
  $p=@{Uri="http://127.0.0.1:8080/api/v1/paytm/supervised/$Command";Method='Post';Headers=$headers;NoProxy=$true;TimeoutSec=40}
  if($null -ne $Body){$p.ContentType='application/json';$p.Body=($Body|ConvertTo-Json -Compress)}
@@ -35,6 +49,7 @@ function Invoke-LocalSupervised([string]$Command,$Body=$null) {
 }
 try {
  Save-SupervisedReport
+ if($TestTransportFailure -and (-not $TestQuotes -or -not $QuoteSymbol -or $RequireFreshQuotes -or $TestSessionExpiry -or $TestSessionRestart)){throw 'SUPERVISED_TRANSPORT_ARGUMENT_CONFLICT'}
  if($RequireFreshQuotes -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_FRESH_REQUIRES_MAPPED_QUOTES'}
  if($TestSessionExpiry -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_EXPIRY_REQUIRES_MAPPED_QUOTES'}
  if($TestSessionRestart -and ($TestSessionExpiry -or -not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_RESTART_REQUIRES_MAPPED_QUOTES_NO_EXPIRY'}
@@ -125,21 +140,29 @@ try {
  $report.status='SUPERVISED_LOGIN_READ_PASSED_QUOTES_PENDING'
  if($TestQuotes){
   $report.stage='QUOTES';$report.quoteSamples=@();Save-SupervisedReport
-  Write-Host '[80%] Reading three NSE EQUITY quote samples, five seconds apart. Diagnostic only; current membership remains unverified.'
-  for($sample=1;$sample -le 3;$sample++){
+  $sampleCount=if($TestTransportFailure){2}else{3}
+  Write-Host "[80%] Reading $sampleCount NSE EQUITY quote samples, five seconds apart. Diagnostic only; current membership remains unverified."
+  for($sample=1;$sample -le $sampleCount;$sample++){
    if($sample -gt 1){Start-Sleep -Seconds 5}
    $quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}
    if($quote.ordersEnabled -ne $false -or $quote.status -cnotmatch '^[A-Z0-9_]{1,100}$'){throw 'SUPERVISED_QUOTE_RESPONSE_INVALID'}
    $report.quoteSamples+= $quote;$report.quotesTested=$true;Save-SupervisedReport
-   Write-Host "  Quote $sample/3: $($quote.status)"
-   Write-Progress -Activity 'Supervised Paytm login' -PercentComplete (80+5*$sample) -Status "Quote $sample/3: $($quote.status)"
+   Write-Host "  Quote $sample/${sampleCount}: $($quote.status)"
+   Write-Progress -Activity 'Supervised Paytm login' -PercentComplete (80+5*$sample) -Status "Quote $sample/${sampleCount}: $($quote.status)"
    if($quote.status -notin @('FRESH_QUOTE_OBSERVED','STALE_QUOTE','NO_QUOTE')){throw 'SUPERVISED_QUOTE_REVIEW_REQUIRED'}
   }
   $fresh=@($report.quoteSamples|Where-Object fresh -EQ $true).Count
-  $report.quoteBatch=Get-PaytmQuoteBatchAssessment -Samples $report.quoteSamples -SecurityId $QuoteSecurityId -RequireFresh:$RequireFreshQuotes
+  if(-not $TestTransportFailure){$report.quoteBatch=Get-PaytmQuoteBatchAssessment -Samples $report.quoteSamples -SecurityId $QuoteSecurityId -RequireFresh:$RequireFreshQuotes}
   Save-SupervisedReport
   if($RequireFreshQuotes -and -not $report.quoteBatch.passed){throw 'SUPERVISED_FRESH_QUOTES_NOT_OBSERVED'}
   $report.status=if($fresh -eq 3){'SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING'}else{'SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING'}
+ }
+ if($TestTransportFailure){
+  $report.stage='TRANSPORT_FAILURE';Save-SupervisedReport
+  Write-Host '[95%] Stopping the gateway deliberately; checking transport failure, session lock and subsequent read denial.'
+  $result=Test-PaytmTransportFailure -SecurityId $QuoteSecurityId -Request {param($command,$body) Invoke-LocalSupervised $command $body} -StopGateway {Stop-SupervisedGateway} -Checkpoint {param($progress) $report.transportFailure=$progress;Save-SupervisedReport}
+  if(-not $result.passed){throw $result.failure}
+  $report.status=$result.status;Save-SupervisedReport
  }
  if($TestSessionExpiry){
   $report.stage='AUTHENTICATED_EXPIRY';Save-SupervisedReport
@@ -161,14 +184,7 @@ try {
 }finally{
  if($loginStarted){try{$locked=Invoke-LocalSupervised 'lock';if($locked.status -ne 'LOCKED'){throw 'lock'};$report.cleanup+='APPLICATION_LOCKED'}catch{$report.cleanup+='APPLICATION_LOCK_FAILED'}}
  if($gatewayStarted){try{
-  Stop-ScheduledTask -TaskName $taskName;$null=Disable-ScheduledTask -TaskName $taskName
-  $stop=[Diagnostics.Stopwatch]::StartNew()
-  do{
-   $listeners=@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()|Where-Object Port -EQ 18889)
-   if((Get-ScheduledTask -TaskName $taskName).State -eq 'Disabled' -and -not $listeners.Count){break}
-   Start-Sleep -Seconds 1
-  }while($stop.Elapsed.TotalSeconds -lt 30)
-  if($listeners.Count -or (Get-ScheduledTask -TaskName $taskName).State -ne 'Disabled'){throw 'cleanup'}
+  if(-not (Stop-SupervisedGateway)){throw 'cleanup'}
   $report.cleanup+='GATEWAY_STOPPED_DISABLED'
  }catch{$report.cleanup+='GATEWAY_STOP_FAILED'}}
  if($known -and (Test-Path -LiteralPath $known)){Remove-Item -LiteralPath $known -Force}

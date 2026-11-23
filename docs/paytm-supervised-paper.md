@@ -398,3 +398,9 @@ local engineering evidence only; no actual provider errors are induced.
 
 Local result:64 targeted Java tests passed, including all four new client/session
 recovery cases. Mocked transport only; no runtime fault acceptance claimed.
+
+## 23 November: controlled transport failure (runtime acceptance pending)
+
+Run StartPaytmSupervisedLogin.ps1 -TestQuotes -QuoteSymbol RELIANCE -TestTransportFailure on the spare laptop in elevated PowerShell 7. No rebuild is needed. The owner completes normal local login. The batch reads two samples, stops/disables the existing supervised gateway, waits five seconds, and checks the third quote returns PAYTM_TRANSPORT_OR_JSON_FAILED. It then requires a locked session and a subsequent SUPERVISED_SESSION_LOCKED response. Final cleanup still locks the app and verifies the gateway is stopped/disabled. This mode cannot combine with strict three-fresh-sample, expiry or restart tests. Stale/no-quote baselines are permitted because this tests transport failure, not new freshness acceptance.
+
+Expected status: TRANSPORT_FAILURE_PASSED_RELOGIN_PENDING. Credentials remain local; the compact report supports automatic collection. Local seven-case failure-path fixtures and collector/artifact checks passed. This proves neither provider HTTP rate-limit behavior nor reconnection; fresh login recovery and remaining G5 integration remain pending. Readiness unchanged: G1/G2/G4 100%, G3 80%, G5 20%, G6 0%, 20/30 accepted checkpoints.
