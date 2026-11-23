@@ -164,6 +164,57 @@ function Get-PaytmQuoteBatchAssessment {
  return @{status=$(if($fresh -eq 3){'THREE_FRESH_MAPPED_QUOTES'}else{'FRESHNESS_PENDING'});passed=($fresh -eq 3);freshCount=$fresh;staleCount=$stale;missingCount=$missing;sampleCount=3;securityId=$SecurityId;strictFreshRequired=[bool]$RequireFresh;ordersEnabled=$false}
 }
 
+
+function Resolve-PaytmQuoteMappingFromCsv {
+ param([Parameter(Mandatory)][string]$Csv,[Parameter(Mandatory)][string]$Symbol,[Parameter(Mandatory)][string]$Sha256)
+ if($Symbol -cnotmatch '^[A-Z0-9][A-Z0-9&-]{0,29}$' -or $Sha256 -cnotmatch '^[A-F0-9]{64}$'){throw 'SUPERVISED_MAPPING_INPUT_INVALID'}
+ if([Text.Encoding]::UTF8.GetByteCount($Csv) -gt 4194304){throw 'SUPERVISED_MAPPING_TOO_LARGE'}
+ $rows=@(ConvertFrom-Csv -InputObject $Csv -ErrorAction Stop)
+ if($rows.Count -eq 0 -or $rows.Count -gt 30000){throw 'SUPERVISED_MAPPING_ROWS_INVALID'}
+ foreach($name in @('security_id','symbol','exchange','series','segment','instrument_type')){
+  if(-not $rows[0].PSObject.Properties[$name]){throw 'SUPERVISED_MAPPING_SCHEMA_INVALID'}
+ }
+ $matchingRows=@($rows|Where-Object {$_.symbol -ceq $Symbol -and $_.exchange -ceq 'NSE' -and $_.series -ceq 'EQ' -and $_.segment -ceq 'E' -and $_.instrument_type -ceq 'ES'})
+ if($matchingRows.Count -ne 1 -or $matchingRows[0].security_id -cnotmatch '^[1-9][0-9]{0,7}$'){throw 'SUPERVISED_MAPPING_NOT_UNIQUE'}
+ $id=$matchingRows[0].security_id
+ if(@($rows|Where-Object {$_.exchange -ceq 'NSE' -and $_.security_id -ceq $id}).Count -ne 1){throw 'SUPERVISED_MAPPING_ID_CONFLICT'}
+ return [ordered]@{symbol=$Symbol;securityId=[int]$id;exchange='NSE';series='EQ';segment='E';instrumentType='ES';source='PAYTM_PUBLIC_EQUITY_MASTER';sha256=$Sha256;localUniverseVerified=$false}
+}
+function Get-PaytmQuoteMapping {
+ param([Parameter(Mandatory)][string]$Symbol)
+ # Public reference data only. No broker credentials; no fallback URL or redirects.
+ $handler=[Net.Http.HttpClientHandler]::new();$handler.AllowAutoRedirect=$false
+ $client=[Net.Http.HttpClient]::new($handler);$client.Timeout=[TimeSpan]::FromSeconds(25);$client.MaxResponseContentBufferSize=4194304
+ $response=$null
+ try {
+  $response=$client.GetAsync('https://developer.paytmmoney.com/data/v1/scrips/equity_security_master.csv').GetAwaiter().GetResult()
+  if([int]$response.StatusCode -ne 200){throw 'SUPERVISED_MAPPING_DOWNLOAD_FAILED'}
+  $bytes=$response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+  $hash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))
+  $csv=[Text.UTF8Encoding]::new($false,$true).GetString($bytes).TrimStart([char]0xFEFF)
+  Resolve-PaytmQuoteMappingFromCsv -Csv $csv -Symbol $Symbol -Sha256 $hash
+ } catch {
+  if($_.Exception.Message -cmatch '^SUPERVISED_MAPPING_[A-Z_]+$'){throw}
+  throw 'SUPERVISED_MAPPING_DOWNLOAD_OR_PARSE_FAILED'
+ } finally {if($response){$response.Dispose()};$client.Dispose();$handler.Dispose()}
+}
+
+# Public master plus existing saved-universe endpoint. No broker login or writes.
+function Invoke-SupervisedIdentityProbe {
+ $r=[ordered]@{test='PROVIDER_AND_SAVED_UNIVERSE_IDENTITY';passed=$false;ordersEnabled=$false;currentMembershipVerified=$false;providerIsinVerified=$false;failure=$null}
+ try{
+  $m=Get-PaytmQuoteMapping -Symbol RELIANCE
+  $u=Invoke-SupervisedUniverseProbe
+  if(-not $u.passed -or $u.universeMatch.symbol -cne $m.symbol -or $m.exchange -cne 'NSE' -or $m.series -cne 'EQ' -or $m.instrumentType -cne 'ES'){throw 'IDENTITY_CORROBORATION_FAILED'}
+  # Explicit fields only: no raw CSV, local token, or unknown provider values.
+  if($m.symbol -cne 'RELIANCE' -or [string]$m.securityId -cnotmatch '^[1-9][0-9]{0,7}$' -or $m.sha256 -cnotmatch '^[A-F0-9]{64}$'){throw 'IDENTITY_MAPPING_REJECTED'}
+  $r.mapping=@{symbol=$m.symbol;securityId=[int]$m.securityId;exchange='NSE';series='EQ';sha256=$m.sha256;source='PAYTM_PUBLIC_EQUITY_MASTER'}
+  $r.savedUniverse=$u.universeMatch
+  $r.passed=$true;$r.status='SYMBOL_CORROBORATED_FULL_IDENTITY_PENDING'
+ }catch{$r.status='REVIEW_REQUIRED';$r.failure='IDENTITY_PROBE_FAILED'}
+ return $r
+}
+
 function Invoke-SupervisedQuoteFixtures {
 try {
 $ErrorActionPreference='Stop'
@@ -189,7 +240,8 @@ foreach($case in @('identity','age','price','duplicate','falseFresh')){
 if($Mode -eq 'FailureFixture'){
  $boundary=Invoke-SupervisedBoundaryProbe
  $quality=Invoke-SupervisedQuoteFixtures
- $batch=@{test='BOUNDARY_AND_SYNTHETIC_QUOTE_VALIDATION';passed=($boundary.passed -and $quality.passed);boundary=$boundary;quoteFixtures=$quality;ordersEnabled=$false}
+ $identity=Invoke-SupervisedIdentityProbe
+ $batch=@{test='BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY';passed=($boundary.passed -and $quality.passed -and $identity.passed);boundary=$boundary;quoteFixtures=$quality;identity=$identity;ordersEnabled=$false}
  [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
  if(-not $batch.passed){exit 1}
  exit 0

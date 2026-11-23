@@ -1,0 +1,16 @@
+﻿{
+    "noExtraRequests":  true,
+    "powershellIdentityFixtures":  4,
+    "providerNetwork":  "SIMULATED",
+    "mappingFixtures":  8,
+    "readTokenOnly":  true,
+    "springWiringChecked":  true,
+    "status":  "HTTP_QUOTE_BOUNDARY_LOCAL_PASSED",
+    "newHttpScenarios":  7,
+    "ordersEnabled":  false,
+    "javaTests":  47,
+    "runtimeAcceptance":  false,
+    "date":  "2026-11-23",
+    "realControllerSessionClientParser":  true,
+    "callerQuoteClaimsIgnored":  true
+}

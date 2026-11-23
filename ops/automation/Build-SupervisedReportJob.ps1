@@ -6,6 +6,8 @@ $probe=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedBoundaryProbe.
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedUniverseProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedLifecycleProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmQuoteBatch.ps1'))
+$probe+="`n"+([IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmQuoteMapping.ps1')) -replace '(?m)^#Requires[^\r\n]*','')
+$probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedIdentityProbe.ps1'))
 $fixtures=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/TestPaytmQuoteBatch.ps1'))
 $fixtures=($fixtures -split '\r?\n'|Where-Object {$_ -notmatch '^#Requires|^\. |^Write-Host'}) -join "`n"
 $probe+="`nfunction Invoke-SupervisedQuoteFixtures {`ntry {`n"+$fixtures+@'
@@ -19,7 +21,8 @@ $insertion=$probe+@'
 if($Mode -eq 'FailureFixture'){
  $boundary=Invoke-SupervisedBoundaryProbe
  $quality=Invoke-SupervisedQuoteFixtures
- $batch=@{test='BOUNDARY_AND_SYNTHETIC_QUOTE_VALIDATION';passed=($boundary.passed -and $quality.passed);boundary=$boundary;quoteFixtures=$quality;ordersEnabled=$false}
+ $identity=Invoke-SupervisedIdentityProbe
+ $batch=@{test='BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY';passed=($boundary.passed -and $quality.passed -and $identity.passed);boundary=$boundary;quoteFixtures=$quality;identity=$identity;ordersEnabled=$false}
  [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
  if(-not $batch.passed){exit 1}
  exit 0

@@ -15,15 +15,22 @@ import org.springframework.web.bind.annotation.*;
 @ConditionalOnProperty(name="marketbrain.paytm-supervised.enabled", havingValue="true")
 public final class PaytmSupervisedController {
     private static final String COOKIE = "marketbrain_paytm_supervised";
-    private final PaytmSupervisedClient client = new PaytmSupervisedClient();
-    private final PaytmSupervisedSession session = new PaytmSupervisedSession(client);
+    private final PaytmSupervisedClient client;
+    private final PaytmSupervisedSession session;
     private final String token;
+    @org.springframework.beans.factory.annotation.Autowired
     public PaytmSupervisedController(@Value("${marketbrain.paper.read-token:}") String token,
             @Value("${marketbrain.execution-mode:PAPER}") String mode,
             @Value("${marketbrain.paytm-auth.rehearsal.enabled:false}") boolean rehearsal) {
+        this(token,mode,rehearsal,null);
+    }
+    // Package-private seam for full HTTP boundary tests with a simulated provider.
+    PaytmSupervisedController(String token,String mode,boolean rehearsal,PaytmSupervisedClient suppliedClient) {
         if (!"PAPER".equals(mode) || rehearsal || token == null || !token.matches("[A-Za-z0-9_-]{32,128}"))
             throw new IllegalStateException("SUPERVISED_CONFIGURATION_REJECTED");
         this.token = token;
+        this.client=suppliedClient==null?new PaytmSupervisedClient():suppliedClient;
+        this.session=new PaytmSupervisedSession(client);
     }
     public record Start(String apiKey, String apiSecret, long vpsEpochMilliseconds, boolean verifyCallbackReplay) {
         @Override public String toString() { return "SupervisedStart[REDACTED]"; }
