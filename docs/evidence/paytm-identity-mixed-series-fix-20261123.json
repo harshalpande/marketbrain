@@ -1,0 +1,25 @@
+﻿{
+    "javaTests":  35,
+    "sourceSha256":  {
+                         "constituents":  "31B764A95CC03AD1D7DDB6C42340DE9125ED2C78B3D436BF0DBC8440E4E38C5E",
+                         "provider":  "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E"
+                     },
+    "oldParserRejectedSeries":  "RR",
+    "productionJavaPublicFetchResolved":  true,
+    "securityId":  2885,
+    "spareFixAccepted":  false,
+    "sourceFailureReproduced":  true,
+    "isin":  "INE002A01018",
+    "symbol":  "RELIANCE",
+    "status":  "MIXED_SERIES_REVIEW_IDENTITY_FIXED_LOCALLY",
+    "oldParserFailureLine":  62,
+    "ordersEnabled":  false,
+    "sourceCounts":  {
+                         "BE":  2,
+                         "EQ":  496,
+                         "RR":  3
+                     },
+    "actualPublicFilesResolved":  true,
+    "date":  "2026-11-23",
+    "historicalImportPolicyChanged":  false
+}

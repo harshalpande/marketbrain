@@ -156,7 +156,10 @@ try {
      }
     }
     $report.identityBinding=$bound;Save-SupervisedReport
-    if($bound.status -ne 'IDENTITY_BOUND_FRESH_QUOTE' -or $bound.reviewEligible -ne $true -or $bound.ordersEnabled -ne $false -or $bound.identity.symbol -cne $QuoteSymbol -or $bound.identity.securityId -ne $QuoteSecurityId){throw 'SUPERVISED_IDENTITY_QUOTE_NOT_ELIGIBLE'}
+    if($bound.status -ne 'IDENTITY_BOUND_FRESH_QUOTE' -or $bound.reviewEligible -ne $true -or $bound.ordersEnabled -ne $false -or $bound.identity.symbol -cne $QuoteSymbol -or $bound.identity.securityId -ne $QuoteSecurityId){
+     if($bound.quote){$report.quoteSamples+=$bound.quote;$report.quotesTested=$true;Save-SupervisedReport}
+     throw 'SUPERVISED_IDENTITY_QUOTE_NOT_ELIGIBLE'
+    }
     $quote=$bound.quote
    }else{$quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}}
    if($quote.ordersEnabled -ne $false -or $quote.status -cnotmatch '^[A-Z0-9_]{1,100}$'){throw 'SUPERVISED_QUOTE_RESPONSE_INVALID'}

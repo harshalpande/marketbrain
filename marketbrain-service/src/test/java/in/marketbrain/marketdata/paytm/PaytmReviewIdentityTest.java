@@ -47,4 +47,28 @@ class PaytmReviewIdentityTest {
         assertThatThrownBy(()->PaytmReviewIdentity.fields("a,\"b")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(()->PaytmReviewIdentity.fields("\"a\"x,b")).isInstanceOf(IllegalArgumentException.class);
     }
+    @ParameterizedTest @ValueSource(strings={"RR","BE"})
+    void unrelatedOtherSeriesDoNotRejectRequestedEqMember(String series){
+        String mixed=members().replace("S1,EQ,","S1,"+series+",");
+        assertThat(source(master(),mixed).resolve("RELIANCE",local()).securityId()).isEqualTo(2885);
+        String requested=members().replace("RELIANCE,EQ,","RELIANCE,"+series+",");
+        assertThatThrownBy(()->source(master(),requested).resolve("RELIANCE",local())).hasMessage("PAYTM_IDENTITY_NIFTY_PARSE_FAILED");
+    }
+    @ParameterizedTest @ValueSource(strings={"duplicateSymbol","duplicateIsin","invalidIsin","badWidth"})
+    void mixedSeriesStillValidatesAllRows(String defect){
+        String csv=members().replace("S1,EQ,","S1,RR,");
+        csv=switch(defect){
+            case "duplicateSymbol" -> csv.replace("S2,EQ,","S1,EQ,");
+            case "duplicateIsin" -> csv.replace("INE000000002","INE000000001");
+            case "invalidIsin" -> csv.replace("INE000000001","INVALID");
+            default -> csv.replace("S1,RR,","S1,RR,extra,");
+        };
+        var resolver=source(master(),csv);
+        assertThatThrownBy(()->resolver.resolve("RELIANCE",local())).hasMessage("PAYTM_IDENTITY_NIFTY_PARSE_FAILED");
+    }
+    @Test void distinguishesDownloadAndMatchFailuresWithoutLeakingSourceDetails(){
+        assertThatThrownBy(()->new PaytmReviewIdentity(uri->{throw new Exception("PRIVATE");}).resolve("RELIANCE",local())).hasMessage("PAYTM_IDENTITY_PAYTM_DOWNLOAD_FAILED");
+        assertThatThrownBy(()->new PaytmReviewIdentity(uri->{if(uri.equals(PaytmReviewIdentity.NIFTY))throw new Exception("PRIVATE");return master().getBytes(StandardCharsets.UTF_8);}).resolve("RELIANCE",local())).hasMessage("PAYTM_IDENTITY_NIFTY_DOWNLOAD_FAILED");
+        assertThatThrownBy(()->source(master(),members().replace("INE002A01018","INE009A01021")).resolve("RELIANCE",local())).hasMessage("PAYTM_IDENTITY_ISIN_MATCH_FAILED");
+    }
 }

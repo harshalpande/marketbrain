@@ -1,0 +1,80 @@
+{
+  "id": "b5db108b-9427-4a85-8769-29ded01180fc",
+  "kind": "paytm-denial-recovery",
+  "state": "SUCCEEDED",
+  "created": 1795439043.7477326,
+  "updated": 1795439057.035451,
+  "result": {
+    "stdoutCharacters": 0,
+    "timedOut": false,
+    "passed": true,
+    "sourceSha256": "F7B14A575214A4CA45DEC825EB9EF38C1E327CE510B6CEA25472D8693B64D20E",
+    "ordersEnabled": false,
+    "exitCode": 0,
+    "evidence": {
+      "version": 1,
+      "test": "SUPERVISED_LOGIN_REPORT_COLLECTION",
+      "passed": true,
+      "ordersEnabled": false,
+      "failure": null,
+      "report": {
+        "runId": "4c4c8c75ca8141d2b2dfccc86a91ac4a",
+        "ordersEnabled": false,
+        "status": "REVIEW_REQUIRED",
+        "stage": "QUOTES",
+        "failure": "SUPERVISED_IDENTITY_QUOTE_NOT_ELIGIBLE",
+        "providerFailure": "NONE",
+        "clockSource": "VPS_ANCHORED_MONOTONIC",
+        "applicationState": "READ_ACCESS_VERIFIED",
+        "readAccessVerified": true,
+        "quotesTested": false,
+        "windowsClockGate": false,
+        "vpsAccuracyAssumed": true,
+        "cleanup": [
+          "APPLICATION_LOCKED",
+          "GATEWAY_STOPPED_DISABLED"
+        ],
+        "elapsedSeconds": 105.0217799,
+        "identityBinding": {
+          "status": "PAYTM_IDENTITY_SOURCE_OR_MATCH_FAILED",
+          "reviewEligible": false,
+          "ordersEnabled": false
+        },
+        "universeMatch": {
+          "status": "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+          "snapshotMatched": true,
+          "ordersEnabled": false,
+          "observedOn": "2026-09-02",
+          "symbol": "RELIANCE",
+          "isin": "INE002A01018",
+          "instrumentId": 1202,
+          "snapshotId": "68117add-3ebe-4681-82fc-ff5613ecd869",
+          "currentMembershipVerified": false,
+          "providerIsinVerified": false
+        },
+        "quoteMapping": {
+          "localUniverseVerified": false,
+          "securityId": 2885,
+          "instrumentType": "ES",
+          "source": "PAYTM_PUBLIC_EQUITY_MASTER",
+          "series": "EQ",
+          "exchange": "NSE",
+          "segment": "E",
+          "sha256": "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E",
+          "symbol": "RELIANCE"
+        },
+        "quoteSamples": []
+      },
+      "sourceFile": "paytm-supervised-login-4c4c8c75ca8141d2b2dfccc86a91ac4a.json",
+      "status": "REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED"
+    },
+    "revision": "c851d346de6714b29468122b2bb77e13d21efe53",
+    "elapsedSeconds": 3.7577349,
+    "stderrCharacters": 0
+  },
+  "spec": {
+    "mode": "Observe",
+    "sha256": "F7B14A575214A4CA45DEC825EB9EF38C1E327CE510B6CEA25472D8693B64D20E",
+    "revision": "c851d346de6714b29468122b2bb77e13d21efe53"
+  }
+}
