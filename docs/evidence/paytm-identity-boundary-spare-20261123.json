@@ -1,0 +1,125 @@
+{
+  "id": "4bff954f-f90e-4965-b7db-437a6f5d9526",
+  "kind": "paytm-denial-recovery",
+  "state": "SUCCEEDED",
+  "created": 1795429526.160549,
+  "updated": 1795429544.9126437,
+  "result": {
+    "stdoutCharacters": 0,
+    "timedOut": false,
+    "passed": true,
+    "sourceSha256": "4187198C3CCC023A7291E511B6F96344F6E3679FBA0AE0EF67B639D64B8B9A85",
+    "ordersEnabled": false,
+    "exitCode": 0,
+    "evidence": {
+      "passed": true,
+      "quoteFixtures": {
+        "ordersEnabled": false,
+        "brokerCalls": 0,
+        "test": "POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES",
+        "fixtureCount": 8,
+        "passed": true
+      },
+      "ordersEnabled": false,
+      "identity": {
+        "test": "PROVIDER_AND_SAVED_UNIVERSE_IDENTITY",
+        "passed": true,
+        "ordersEnabled": false,
+        "currentMembershipVerified": false,
+        "providerIsinVerified": false,
+        "failure": null,
+        "mapping": {
+          "symbol": "RELIANCE",
+          "exchange": "NSE",
+          "securityId": 2885,
+          "series": "EQ",
+          "source": "PAYTM_PUBLIC_EQUITY_MASTER",
+          "sha256": "56C7E7BAF789F7669E347A699BA7D1984318A5A980D130F5BD596D09F0FCF20E"
+        },
+        "savedUniverse": {
+          "status": "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+          "snapshotMatched": true,
+          "ordersEnabled": false,
+          "instrumentId": 1202,
+          "symbol": "RELIANCE",
+          "isin": "INE002A01018",
+          "observedOn": "2026-09-02",
+          "snapshotId": "68117add-3ebe-4681-82fc-ff5613ecd869",
+          "currentMembershipVerified": false,
+          "providerIsinVerified": false
+        },
+        "status": "SYMBOL_CORROBORATED_FULL_IDENTITY_PENDING"
+      },
+      "test": "BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY",
+      "boundary": {
+        "ordersEnabled": false,
+        "checks": [
+          {
+            "actualStatus": 401,
+            "passed": true,
+            "name": "STATUS_MISSING_TOKEN",
+            "expectedStatus": 401,
+            "noStore": true
+          },
+          {
+            "actualStatus": 401,
+            "passed": true,
+            "name": "STATUS_WRONG_TOKEN",
+            "expectedStatus": 401,
+            "noStore": true
+          },
+          {
+            "actualStatus": 401,
+            "passed": true,
+            "name": "QUOTE_MISSING_TOKEN",
+            "expectedStatus": 401,
+            "noStore": true
+          },
+          {
+            "actualStatus": 401,
+            "passed": true,
+            "name": "QUOTE_WRONG_TOKEN",
+            "expectedStatus": 401,
+            "noStore": true
+          },
+          {
+            "actualStatus": 400,
+            "passed": true,
+            "name": "CALLBACK_WITHOUT_COOKIE",
+            "expectedStatus": 400,
+            "noStore": true
+          },
+          {
+            "actualStatus": 400,
+            "passed": true,
+            "name": "CALLBACK_REPEAT_WITHOUT_COOKIE",
+            "expectedStatus": 400,
+            "noStore": true
+          },
+          {
+            "actualStatus": 400,
+            "passed": true,
+            "name": "BROWSER_INVALID_CODE",
+            "expectedStatus": 400,
+            "noStore": true
+          }
+        ],
+        "test": "SUPERVISED_APPLICATION_BOUNDARY_PROBES",
+        "brokerCredentialsUsed": false,
+        "version": 1,
+        "status": "BOUNDARY_PROBES_PASSED_CALLBACK_LIFECYCLE_PENDING",
+        "elapsedSeconds": 0.2446496,
+        "sessionCreated": false,
+        "passed": true
+      }
+    },
+    "revision": "4c550b212ce76b802820c9d0417779465beea4e0",
+    "elapsedSeconds": 12.8096553,
+    "stderrCharacters": 0
+  },
+  "spec": {
+    "mode": "FailureFixture",
+    "revision": "4c550b212ce76b802820c9d0417779465beea4e0",
+    "sha256": "4187198C3CCC023A7291E511B6F96344F6E3679FBA0AE0EF67B639D64B8B9A85"
+  }
+}
