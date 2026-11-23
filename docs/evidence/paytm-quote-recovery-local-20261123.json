@@ -1,0 +1,16 @@
+{
+    "ordersEnabled":  false,
+    "newReadTokenAfterReloginVerified":  true,
+    "actualProviderFaultsTested":  false,
+    "network":  "MOCKED",
+    "noAutomaticRetryVerified":  true,
+    "javaTests":  64,
+    "date":  "2026-11-23",
+    "status":  "LOCAL_CLIENT_SESSION_FAULT_RECOVERY_PASSED",
+    "newCases":  [
+                     "HTTP_401",
+                     "HTTP_429",
+                     "HTTP_503",
+                     "TIMEOUT"
+                 ]
+}

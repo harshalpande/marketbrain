@@ -220,7 +220,7 @@
         {
           "id": "G5.2",
           "goal": "Actual fresh timestamped market-hours quote retrieval accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-fresh-quotes-accepted-20261123.json"
         },
         {
           "id": "G5.3",

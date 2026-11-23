@@ -384,3 +384,17 @@ These validate the launcher acceptance logic on the spare host, not malformed
 provider responses traversing Java; they do not alone close G5.3. Keep actual
 fresh-market evidence separate. A strict stale-data rejection is expected to
 produce SUPERVISED_FRESH_QUOTES_NOT_OBSERVED and preserve all three samples.
+
+
+23 November: G5.2 accepted from run45855f882f2b44a6af41a54e4b4b810c: three
+RELIANCE quotes at1356.80, ages4993/3216/3677ms, strict batch and cleanup passed.
+This is fresh quote retrieval, not full current-universe/provider-ISIN mapping,
+no-fallback integration or unattended clock reliability acceptance. G5 now20%,
+total20/30=66.7%. No repeat of this successful run is needed.
+Next failure-recovery coverage uses the production Java client/session with a
+mocked network:401,429,503 and timeout must lock authority without retry; a
+new owner login must use the new read token and recover quote access. It is
+local engineering evidence only; no actual provider errors are induced.
+
+Local result:64 targeted Java tests passed, including all four new client/session
+recovery cases. Mocked transport only; no runtime fault acceptance claimed.
