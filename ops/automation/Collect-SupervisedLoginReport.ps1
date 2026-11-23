@@ -107,6 +107,10 @@ try{
   })
  }
  $result.report=$safe;$result.sourceFile=$file.Name;$result.passed=$true
+ if($safe.stage -eq 'GATEWAY'){
+  if(-not (Get-Command Get-SupervisedGatewayTaskObservation -ErrorAction SilentlyContinue)){. "$PSScriptRoot/SupervisedGatewayObservation.ps1"}
+  $result.gatewayTaskObservation=Get-SupervisedGatewayTaskObservation
+ }
  $result.status='REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED'
 }catch{$result.failure=if($_.Exception.Message -cmatch '^[A-Z_]+$'){$_.Exception.Message}else{'REPORT_COLLECTION_FAILED'}}
 [IO.File]::WriteAllText($ResultPath,($result|ConvertTo-Json -Depth 6))
