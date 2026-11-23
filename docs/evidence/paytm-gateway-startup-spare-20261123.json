@@ -1,0 +1,121 @@
+{
+    "date":  "2026-11-23",
+    "jobId":  "aea419bb-fb75-4250-9f53-6ebb9561b984",
+    "revision":  "6c97e8cee314ac3995469cd412ef701a62ed8eeb",
+    "elapsedSeconds":  19.0231916,
+    "gatewayStartup":  {
+                           "before":  {
+                                          "batteries":  [
+                                                            {
+                                                                "batteryStatus":  2,
+                                                                "estimatedChargeRemaining":  97
+                                                            }
+                                                        ],
+                                          "taskChanged":  false,
+                                          "eventLogEnabled":  false,
+                                          "task":  {
+                                                       "settings":  {
+                                                                        "StopIfGoingOnBatteries":  false,
+                                                                        "Enabled":  false,
+                                                                        "DisallowStartIfOnBatteries":  false,
+                                                                        "StartWhenAvailable":  false,
+                                                                        "RunOnlyIfNetworkAvailable":  false,
+                                                                        "RunOnlyIfIdle":  false,
+                                                                        "AllowDemandStart":  true
+                                                                    },
+                                                       "lastTaskResult":  0,
+                                                       "multipleInstances":  "IgnoreNew",
+                                                       "state":  "Disabled",
+                                                       "lastRunTime":  "2026-11-23T21:16:46.0000000+05:30",
+                                                       "idle":  {
+                                                                    "restartOnIdle":  false,
+                                                                    "stopOnIdleEnd":  true
+                                                                },
+                                                       "missedRuns":  0,
+                                                       "executionTimeLimit":  "PT0S"
+                                                   },
+                                          "readOnly":  true,
+                                          "ordersEnabled":  false
+                                      },
+                           "samples":  [
+                                           {
+                                               "phase":  "TRANSPORT_READY",
+                                               "newInstance":  false,
+                                               "taskResult":  267009,
+                                               "sequence":  64,
+                                               "taskState":  "Running",
+                                               "seconds":  2.87
+                                           },
+                                           {
+                                               "phase":  "CONNECTING",
+                                               "newInstance":  true,
+                                               "taskResult":  267009,
+                                               "sequence":  1,
+                                               "taskState":  "Running",
+                                               "seconds":  5.69
+                                           },
+                                           {
+                                               "phase":  "TRANSPORT_READY",
+                                               "newInstance":  true,
+                                               "taskResult":  267009,
+                                               "sequence":  4,
+                                               "taskState":  "Running",
+                                               "seconds":  8.59
+                                           },
+                                           {
+                                               "phase":  "TRANSPORT_READY",
+                                               "newInstance":  true,
+                                               "taskResult":  267009,
+                                               "sequence":  6,
+                                               "taskState":  "Running",
+                                               "seconds":  11.39
+                                           }
+                                       ],
+                           "beforeCleanup":  {
+                                                 "batteries":  [
+                                                                   {
+                                                                       "batteryStatus":  2,
+                                                                       "estimatedChargeRemaining":  97
+                                                                   }
+                                                               ],
+                                                 "taskChanged":  false,
+                                                 "eventLogEnabled":  false,
+                                                 "task":  {
+                                                              "settings":  {
+                                                                               "StopIfGoingOnBatteries":  false,
+                                                                               "Enabled":  true,
+                                                                               "DisallowStartIfOnBatteries":  false,
+                                                                               "StartWhenAvailable":  false,
+                                                                               "RunOnlyIfNetworkAvailable":  false,
+                                                                               "RunOnlyIfIdle":  false,
+                                                                               "AllowDemandStart":  true
+                                                                           },
+                                                              "lastTaskResult":  267009,
+                                                              "multipleInstances":  "IgnoreNew",
+                                                              "state":  "Running",
+                                                              "lastRunTime":  "2026-11-23T22:57:27.0000000+05:30",
+                                                              "idle":  {
+                                                                           "restartOnIdle":  false,
+                                                                           "stopOnIdleEnd":  true
+                                                                       },
+                                                              "missedRuns":  0,
+                                                              "executionTimeLimit":  "PT0S"
+                                                          },
+                                                 "readOnly":  true,
+                                                 "ordersEnabled":  false
+                                             },
+                           "cleanupPassed":  true,
+                           "brokerCredentialsUsed":  false,
+                           "started":  true,
+                           "ordersEnabled":  false,
+                           "test":  "SUPERVISED_GATEWAY_STARTUP",
+                           "passed":  true,
+                           "failure":  null
+                       },
+    "lifecyclePassed":  true,
+    "lifecycleChecks":  14,
+    "finalLocked":  true,
+    "ordersEnabled":  false,
+    "earlierTimeoutCause":  "UNCONFIRMED_NOT_REPRODUCED",
+    "readinessPercent":  70
+}

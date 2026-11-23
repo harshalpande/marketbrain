@@ -91,14 +91,21 @@ try {
  $null=Enable-ScheduledTask -TaskName $taskName
  Start-ScheduledTask -TaskName $taskName
  $wait=[Diagnostics.Stopwatch]::StartNew();$ready=$false
+ $report.gatewayStartup=@{samples=@();ready=$false}
  do {
   Start-Sleep -Seconds 1
   $v=Get-Content "$gatewayWork/status.json" -Raw|ConvertFrom-Json
+  $taskState=[string](Get-ScheduledTask -TaskName $taskName).State
+  $taskResult=[long](Get-ScheduledTaskInfo -TaskName $taskName).LastTaskResult
+  $phase=if([string]$v.phase -cmatch '^[A-Z_]{1,60}$'){[string]$v.phase}else{'INVALID'}
+  $report.gatewayStartup.samples=@($report.gatewayStartup.samples|Select-Object -Last 19)+@(@{seconds=[math]::Round($wait.Elapsed.TotalSeconds,2);newInstance=($v.instanceId -ne $previous);phase=$phase;sequence=[long]$v.sequence;taskState=$taskState;taskResult=$taskResult})
+  Save-SupervisedReport
   if($v.instanceId -ne $previous -and $v.phase -eq 'BLOCKED'){throw 'SUPERVISED_GATEWAY_BLOCKED'}
   if($v.instanceId -ne $previous -and $v.phase -eq 'TRANSPORT_READY' -and $v.ordersEnabled -eq $false){$ready=$true;break}
   Write-Progress -Activity 'Supervised Paytm login' -PercentComplete 20 -Status "Starting gateway: $([int]$wait.Elapsed.TotalSeconds)/60 seconds"
  }while($wait.Elapsed.TotalSeconds -lt 60)
  if(-not $ready){throw 'SUPERVISED_GATEWAY_TIMEOUT'}
+ $report.gatewayStartup.ready=$true;Save-SupervisedReport
  Write-Host '[35%] Enter app credentials locally, then read VPS time over pinned SSH.'
  $apiKey=Read-LocalSecret 'Paytm developer app API key'
  $apiSecret=Read-LocalSecret 'Paytm developer app API secret'

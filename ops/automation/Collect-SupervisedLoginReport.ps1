@@ -28,6 +28,14 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['gatewayStartup']){
+  $g=$v.gatewayStartup
+  if($g.ready -isnot [bool] -or @($g.samples).Count -gt 20){throw 'REPORT_GATEWAY_REJECTED'}
+  $safe.gatewayStartup=@{ready=$g.ready;samples=@($g.samples|ForEach-Object {
+   if($_.phase -cnotmatch '^[A-Z_]{1,60}$' -or $_.taskState -cnotin @('Unknown','Disabled','Queued','Ready','Running') -or $_.newInstance -isnot [bool]){throw 'REPORT_GATEWAY_REJECTED'}
+   @{seconds=[double]$_.seconds;newInstance=$_.newInstance;phase=[string]$_.phase;sequence=[long]$_.sequence;taskState=[string]$_.taskState;taskResult=[long]$_.taskResult}
+  })}
+ }
  if($v.PSObject.Properties['identityBinding']){
   $b=$v.identityBinding
   if($b.status -cnotmatch '^[A-Z0-9_]{1,100}$' -or $b.reviewEligible -isnot [bool] -or $b.ordersEnabled -ne $false){throw 'REPORT_IDENTITY_REJECTED'}
