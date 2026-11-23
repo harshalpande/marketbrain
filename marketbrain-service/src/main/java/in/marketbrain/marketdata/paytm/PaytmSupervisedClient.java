@@ -72,6 +72,9 @@ public final class PaytmSupervisedClient implements AutoCloseable {
     @Override public void close() { client.shutdownNow(); }
 
     static final class BoundedBody implements HttpResponse.BodySubscriber<byte[]> {
+        private final int limit;
+        BoundedBody(){this(262144);}
+        BoundedBody(int limit){this.limit=limit;}
         private final java.util.concurrent.CompletableFuture<byte[]> result = new java.util.concurrent.CompletableFuture<>();
         private final java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
         private java.util.concurrent.Flow.Subscription subscription;
@@ -79,7 +82,7 @@ public final class PaytmSupervisedClient implements AutoCloseable {
         public void onSubscribe(java.util.concurrent.Flow.Subscription s) { subscription = s; s.request(1); }
         public void onNext(List<java.nio.ByteBuffer> chunks) {
             for (var chunk : chunks) {
-                if (chunk.remaining() > 262144 - bytes.size()) {
+                if (chunk.remaining() > limit - bytes.size()) {
                     subscription.cancel(); result.completeExceptionally(new java.io.IOException("PAYTM_RESPONSE_TOO_LARGE")); return;
                 }
                 byte[] part = new byte[chunk.remaining()]; chunk.get(part); bytes.writeBytes(part);

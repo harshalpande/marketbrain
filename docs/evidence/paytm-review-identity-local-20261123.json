@@ -1,0 +1,17 @@
+﻿{
+    "newControllerCases":  8,
+    "identityBasis":  "UNIQUE_NSE_EQ_SYMBOL_BRIDGE_WITH_OFFICIAL_LOCAL_ISIN_EQUALITY",
+    "runtimeAccepted":  false,
+    "marketMembershipScope":  "LATEST_PUBLISHED_FILE",
+    "publicReferenceSources":  "FIXED_PAYTM_MASTER_AND_NIFTY_CONSTITUENTS",
+    "deploymentFixtures":  12,
+    "providerIsinCompared":  false,
+    "springWiringVerified":  true,
+    "targetedJavaTests":  76,
+    "status":  "REVIEW_IDENTITY_BINDING_LOCAL_PASSED",
+    "ordersEnabled":  false,
+    "newIdentityCases":  15,
+    "databaseWrites":  0,
+    "date":  "2026-11-23",
+    "reportCollectorVerified":  true
+}

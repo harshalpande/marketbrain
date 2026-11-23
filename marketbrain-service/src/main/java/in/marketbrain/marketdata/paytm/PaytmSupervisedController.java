@@ -48,6 +48,8 @@ public final class PaytmSupervisedController {
         return response(200).body(session.status());
     }
     public record QuoteRequest(int securityId) { }
+    boolean hasReadSession(){return Boolean.TRUE.equals(session.status().get("readAccessVerified"));}
+    Map<String,Object> readBoundQuote(int securityId){return session.quote(securityId);}
     @PostMapping("/api/v1/paytm/supervised/quote")
     public ResponseEntity<?> quote(@RequestBody QuoteRequest body, HttpServletRequest request) {
         if (!authorized(request)) return response(401).body(Map.of("status","UNAUTHORIZED"));

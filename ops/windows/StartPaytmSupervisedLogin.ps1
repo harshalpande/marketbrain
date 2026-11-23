@@ -7,6 +7,7 @@
  [switch]$TestSessionRestart,
  [switch]$TestCallbackReplay,
  [switch]$TestTransportFailure,
+ [switch]$BindReviewIdentity,
  [ValidatePattern('^[A-Z0-9][A-Z0-9&-]{0,29}$')][string]$QuoteSymbol,
  [ValidateRange(1,99999999)][int]$QuoteSecurityId=3456,
  [string]$ClockKeyPath,
@@ -44,11 +45,13 @@ function Stop-SupervisedGateway {
 }
 function Invoke-LocalSupervised([string]$Command,$Body=$null) {
  $p=@{Uri="http://127.0.0.1:8080/api/v1/paytm/supervised/$Command";Method='Post';Headers=$headers;NoProxy=$true;TimeoutSec=40}
+ if($Command -eq 'review-quote'){$p.TimeoutSec=60}
  if($null -ne $Body){$p.ContentType='application/json';$p.Body=($Body|ConvertTo-Json -Compress)}
  Invoke-RestMethod @p
 }
 try {
  Save-SupervisedReport
+ if($BindReviewIdentity -and (-not $TestQuotes -or -not $QuoteSymbol -or -not $RequireFreshQuotes -or $TestTransportFailure -or $TestSessionExpiry -or $TestSessionRestart)){throw 'SUPERVISED_IDENTITY_ARGUMENT_CONFLICT'}
  if($TestTransportFailure -and (-not $TestQuotes -or -not $QuoteSymbol -or $RequireFreshQuotes -or $TestSessionExpiry -or $TestSessionRestart)){throw 'SUPERVISED_TRANSPORT_ARGUMENT_CONFLICT'}
  if($RequireFreshQuotes -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_FRESH_REQUIRES_MAPPED_QUOTES'}
  if($TestSessionExpiry -and (-not $TestQuotes -or -not $QuoteSymbol)){throw 'SUPERVISED_EXPIRY_REQUIRES_MAPPED_QUOTES'}
@@ -144,7 +147,18 @@ try {
   Write-Host "[80%] Reading $sampleCount NSE EQUITY quote samples, five seconds apart. Diagnostic only; current membership remains unverified."
   for($sample=1;$sample -le $sampleCount;$sample++){
    if($sample -gt 1){Start-Sleep -Seconds 5}
-   $quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}
+   if($BindReviewIdentity){
+    Write-Host "  Resolving server identity and quote $sample (up to 60 seconds)."
+    $bound=Invoke-LocalSupervised 'review-quote' @{symbol=$QuoteSymbol}
+    if($sample -gt 1 -and $bound.identity -and $report.identityBinding.identity){
+     foreach($field in @('symbol','securityId','instrumentId','isin','snapshotId','snapshotDate','providerSha256','constituentSha256')){
+      if([string]$bound.identity.$field -cne [string]$report.identityBinding.identity.$field){throw 'SUPERVISED_IDENTITY_CHANGED_DURING_BATCH'}
+     }
+    }
+    $report.identityBinding=$bound;Save-SupervisedReport
+    if($bound.status -ne 'IDENTITY_BOUND_FRESH_QUOTE' -or $bound.reviewEligible -ne $true -or $bound.ordersEnabled -ne $false -or $bound.identity.symbol -cne $QuoteSymbol -or $bound.identity.securityId -ne $QuoteSecurityId){throw 'SUPERVISED_IDENTITY_QUOTE_NOT_ELIGIBLE'}
+    $quote=$bound.quote
+   }else{$quote=Invoke-LocalSupervised 'quote' @{securityId=$QuoteSecurityId}}
    if($quote.ordersEnabled -ne $false -or $quote.status -cnotmatch '^[A-Z0-9_]{1,100}$'){throw 'SUPERVISED_QUOTE_RESPONSE_INVALID'}
    $report.quoteSamples+= $quote;$report.quotesTested=$true;Save-SupervisedReport
    Write-Host "  Quote $sample/${sampleCount}: $($quote.status)"

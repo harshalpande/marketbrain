@@ -28,6 +28,17 @@ try{
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_ -cnotmatch '^[A-Z_]{1,80}$'){throw 'REPORT_FIELD_REJECTED'};$_})
  $safe.elapsedSeconds=[double]$v.elapsedSeconds
+ if($v.PSObject.Properties['identityBinding']){
+  $b=$v.identityBinding
+  if($b.status -cnotmatch '^[A-Z0-9_]{1,100}$' -or $b.reviewEligible -isnot [bool] -or $b.ordersEnabled -ne $false){throw 'REPORT_IDENTITY_REJECTED'}
+  $safe.identityBinding=@{status=$b.status;reviewEligible=$b.reviewEligible;ordersEnabled=$false}
+  if($b.PSObject.Properties['identity']){
+   $x=$b.identity;$safe.identityBinding.identity=@{}
+   $patterns=@{symbol='^[A-Z0-9][A-Z0-9&-]{0,29}$';securityId='^[1-9][0-9]{0,7}$';instrumentId='^[1-9][0-9]{0,18}$';isin='^[A-Z]{2}[A-Z0-9]{9}[0-9]$';snapshotId='^[a-f0-9-]{36}$';snapshotDate='^[0-9]{4}-[0-9]{2}-[0-9]{2}$';providerSha256='^[A-F0-9]{64}$';constituentSha256='^[A-F0-9]{64}$';basis='^UNIQUE_NSE_EQ_SYMBOL_BRIDGE$';membershipScope='^LATEST_PUBLISHED_FILE$'}
+   foreach($n in $patterns.Keys){if([string]$x.$n -cnotmatch $patterns[$n]){throw 'REPORT_IDENTITY_REJECTED'};$safe.identityBinding.identity[$n]=$x.$n}
+   if($x.providerIsinVerified -ne $false){throw 'REPORT_IDENTITY_REJECTED'};$safe.identityBinding.identity.providerIsinVerified=$false
+  }
+ }
  if($v.PSObject.Properties['quoteBatch']){
   $x=$v.quoteBatch
   if($x.status -notin @('THREE_FRESH_MAPPED_QUOTES','FRESHNESS_PENDING') -or $x.passed -isnot [bool] -or $x.strictFreshRequired -isnot [bool] -or $x.ordersEnabled -ne $false -or $x.sampleCount -ne 3){throw 'REPORT_BATCH_REJECTED'}

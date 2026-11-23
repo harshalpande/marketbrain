@@ -13,6 +13,7 @@ try {
  $fixture.sessionExpiry=@{status='AUTHENTICATED_EXPIRY_PASSED_RELOGIN_RESTART_PENDING';failure=$null;elapsedSeconds=900;passed=$true;authenticatedBeforeWait=$true;quoteLimitRejected=$true;expiryObserved=$true;postExpiryQuoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.sessionRestart=@{status='AUTHENTICATED_RESTART_PASSED_RELOGIN_PENDING';failure=$null;elapsedSeconds=30;passed=$true;authenticatedBeforeRestart=$true;restartAttempted=$true;sameContainer=$true;startChanged=$true;lockedAfterRestart=$true;quoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.callbackReplay=@{requested=$true;verified=$true;exchangeAttempts=1;secret='MUST_NOT_LEAVE'}
+ $fixture.identityBinding=@{status='IDENTITY_BOUND_FRESH_QUOTE';reviewEligible=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE';identity=@{symbol='RELIANCE';securityId=2885;instrumentId=1202;isin='INE002A01018';snapshotId=('a'*8+'-aaaa-aaaa-aaaa-'+('a'*12));snapshotDate='2026-09-02';providerSha256=('A'*64);constituentSha256=('B'*64);basis='UNIQUE_NSE_EQ_SYMBOL_BRIDGE';membershipScope='LATEST_PUBLISHED_FILE';providerIsinVerified=$false;secret='MUST_NOT_LEAVE'}}
  $fixture.transportFailure=@{status='TRANSPORT_FAILURE_PASSED_RELOGIN_PENDING';failure=$null;elapsedSeconds=5;passed=$true;gatewayStopped=$true;transportRejected=$true;sessionLocked=$true;subsequentQuoteRejected=$true;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  $fixture.quoteBatch=@{status='FRESHNESS_PENDING';passed=$false;strictFreshRequired=$true;sampleCount=3;freshCount=0;staleCount=3;missingCount=0;securityId=2885;ordersEnabled=$false;secret='MUST_NOT_LEAVE'}
  [IO.File]::WriteAllText($file,($fixture|ConvertTo-Json -Depth 6))
@@ -27,6 +28,8 @@ try {
  $fixture.Remove('sessionRestart')
  if(-not $r.report.callbackReplay.verified -or $r.report.callbackReplay.exchangeAttempts -ne 1){throw 'REPLAY_REPORT_FIXTURE_FAILED'}
  $fixture.Remove('callbackReplay')
+ if(-not $r.report.identityBinding.reviewEligible -or $r.report.identityBinding.identity.securityId -ne 2885){throw 'IDENTITY_REPORT_FIXTURE_FAILED'}
+ $fixture.Remove('identityBinding')
  if(-not $r.report.transportFailure.passed -or -not $r.report.transportFailure.subsequentQuoteRejected){throw 'TRANSPORT_REPORT_FIXTURE_FAILED'}
  $fixture.Remove('transportFailure')
  if($r.report.quoteBatch.passed -or $r.report.quoteBatch.staleCount -ne 3 -or -not $r.report.quoteBatch.strictFreshRequired){throw 'BATCH_REPORT_FIXTURE_FAILED'}

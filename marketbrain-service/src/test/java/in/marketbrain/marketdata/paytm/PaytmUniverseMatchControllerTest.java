@@ -23,8 +23,16 @@ class PaytmUniverseMatchControllerTest {
     @Test void unauthorizedAndInvalidSymbolsCannotQueryDatabase()throws Exception{
         DataSource ds=mock(DataSource.class);String token="a".repeat(40);
         var guard=new PaytmSupervisedController(token,"PAPER",false);
+        var controller=new PaytmUniverseMatchController(guard,new JdbcTemplate(ds));
         try{
-            var mvc=MockMvcBuilders.standaloneSetup(new PaytmUniverseMatchController(guard,new JdbcTemplate(ds))).build();
+            var mvc=MockMvcBuilders.standaloneSetup(controller).build();
+            mvc.perform(post("/api/v1/paytm/supervised/review-quote").header("Host","127.0.0.1:8080")
+                .contentType("application/json").content("{\"symbol\":\"RELIANCE\"}")).andExpect(status().isUnauthorized());
+            mvc.perform(post("/api/v1/paytm/supervised/review-quote").header("Host","127.0.0.1:8080")
+                .header("X-MarketBrain-Paper-Read-Token",token).header("X-MarketBrain-Paytm-Supervised","supervised-paper")
+                .contentType("application/json").content("{\"symbol\":\"RELIANCE\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUPERVISED_SESSION_LOCKED"))
+                .andExpect(jsonPath("$.reviewEligible").value(false));
             mvc.perform(post("/api/v1/paytm/supervised/universe-match").header("Host","127.0.0.1:8080")
                 .contentType("application/json").content("{\"symbol\":\"RELIANCE\"}")).andExpect(status().isUnauthorized());
             mvc.perform(post("/api/v1/paytm/supervised/universe-match").header("Host","127.0.0.1:8080")
@@ -32,6 +40,6 @@ class PaytmUniverseMatchControllerTest {
                 .contentType("application/json").content("{\"symbol\":\"bad input\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.snapshotMatched").value(false)).andExpect(header().string("Cache-Control","no-store"));
             verifyNoInteractions(ds);
-        }finally{guard.shutdown();}
+        }finally{controller.shutdown();guard.shutdown();}
     }
 }
