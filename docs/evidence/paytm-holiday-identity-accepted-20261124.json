@@ -1,0 +1,407 @@
+{
+    "date":  "2026-11-24",
+    "acceptedCheckpoint":  "G5.1",
+    "scope":  "RELIANCE_NSE_EQ_SUPERVISED_PILOT",
+    "basis":  "Authenticated identity-bound provider quote plus official latest-published constituent/local ISIN symbol bridge",
+    "limitations":  [
+                        "Not all Nifty500 instruments or all account segments",
+                        "Paytm master has no direct ISIN field; unique NSE EQ symbol bridge used",
+                        "Latest published constituent file, not a claim of same-day publication",
+                        "Fresh identity-bound acceptance pending open market",
+                        "Missing/malformed provider responses tested locally with simulated HTTP, not induced against broker"
+                    ],
+    "holidaySource":  "https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf",
+    "loginReport":  {
+                        "runId":  "6946eea1cbe94a7c969c080a166450f9",
+                        "ordersEnabled":  false,
+                        "status":  "REVIEW_REQUIRED",
+                        "stage":  "QUOTES",
+                        "failure":  "SUPERVISED_IDENTITY_QUOTE_NOT_ELIGIBLE",
+                        "providerFailure":  "NONE",
+                        "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                        "applicationState":  "READ_ACCESS_VERIFIED",
+                        "readAccessVerified":  true,
+                        "quotesTested":  true,
+                        "windowsClockGate":  false,
+                        "vpsAccuracyAssumed":  true,
+                        "cleanup":  [
+                                        "APPLICATION_LOCKED",
+                                        "GATEWAY_STOPPED_DISABLED"
+                                    ],
+                        "elapsedSeconds":  150.9942378,
+                        "gatewayStartup":  {
+                                               "ready":  true,
+                                               "samples":  [
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  2.7,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  5.36,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  7.99,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  10.8,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  13.46,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  16.15,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  18.77,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  21.54,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  24.29,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  27.04,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  29.94,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  32.64,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  35.47,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  38.2,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  8,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  40.56,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  false,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  1,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  43.39,
+                                                                   "phase":  "CONNECTING",
+                                                                   "newInstance":  true,
+                                                                   "taskResult":  267009
+                                                               },
+                                                               {
+                                                                   "sequence":  3,
+                                                                   "taskState":  "Running",
+                                                                   "seconds":  46.07,
+                                                                   "phase":  "TRANSPORT_READY",
+                                                                   "newInstance":  true,
+                                                                   "taskResult":  267009
+                                                               }
+                                                           ]
+                                           },
+                        "identityBinding":  {
+                                                "reviewEligible":  false,
+                                                "ordersEnabled":  false,
+                                                "status":  "IDENTITY_BOUND_QUOTE_REJECTED",
+                                                "identity":  {
+                                                                 "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                                 "instrumentId":  1202,
+                                                                 "providerIsinVerified":  false,
+                                                                 "symbol":  "RELIANCE",
+                                                                 "membershipScope":  "LATEST_PUBLISHED_FILE",
+                                                                 "providerSha256":  "672B3146025A027E6D2A56E3FB8B614C7399FF973BE9FE301C68E604F98971EB",
+                                                                 "constituentSha256":  "31B764A95CC03AD1D7DDB6C42340DE9125ED2C78B3D436BF0DBC8440E4E38C5E",
+                                                                 "securityId":  2885,
+                                                                 "snapshotDate":  "2026-09-02",
+                                                                 "basis":  "UNIQUE_NSE_EQ_SYMBOL_BRIDGE",
+                                                                 "isin":  "INE002A01018"
+                                                             }
+                                            },
+                        "universeMatch":  {
+                                              "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                              "snapshotMatched":  true,
+                                              "ordersEnabled":  false,
+                                              "symbol":  "RELIANCE",
+                                              "isin":  "INE002A01018",
+                                              "observedOn":  "2026-09-02",
+                                              "instrumentId":  1202,
+                                              "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                              "currentMembershipVerified":  false,
+                                              "providerIsinVerified":  false
+                                          },
+                        "quoteMapping":  {
+                                             "sha256":  "672B3146025A027E6D2A56E3FB8B614C7399FF973BE9FE301C68E604F98971EB",
+                                             "instrumentType":  "ES",
+                                             "symbol":  "RELIANCE",
+                                             "localUniverseVerified":  false,
+                                             "securityId":  2885,
+                                             "segment":  "E",
+                                             "series":  "EQ",
+                                             "exchange":  "NSE",
+                                             "source":  "PAYTM_PUBLIC_EQUITY_MASTER"
+                                         },
+                        "quoteSamples":  [
+                                             {
+                                                 "status":  "STALE_QUOTE",
+                                                 "exchange":  "NSE",
+                                                 "scripType":  "EQUITY",
+                                                 "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                                 "securityId":  2885.0,
+                                                 "observedEpochMilliseconds":  1795493795685.0,
+                                                 "rawTradeTime":  1479896983.0,
+                                                 "tradeEpochMilliseconds":  1795429783000.0,
+                                                 "ageMilliseconds":  64012685.0,
+                                                 "lastPrice":  1351.0,
+                                                 "fresh":  false,
+                                                 "mappingVerified":  false,
+                                                 "ordersEnabled":  false
+                                             }
+                                         ]
+                    },
+    "batchJobId":  "40a52616-fede-4a55-8847-ba81e54e0f05",
+    "batchRevision":  "b2a776eba12c186b7b010b0ff58653c6736f1640",
+    "batchElapsedSeconds":  7.8908943,
+    "batch":  {
+                  "passed":  true,
+                  "identity":  {
+                                   "test":  "PROVIDER_AND_SAVED_UNIVERSE_IDENTITY",
+                                   "passed":  true,
+                                   "ordersEnabled":  false,
+                                   "currentMembershipVerified":  false,
+                                   "providerIsinVerified":  false,
+                                   "failure":  null,
+                                   "mapping":  {
+                                                   "series":  "EQ",
+                                                   "source":  "PAYTM_PUBLIC_EQUITY_MASTER",
+                                                   "symbol":  "RELIANCE",
+                                                   "securityId":  2885,
+                                                   "sha256":  "672B3146025A027E6D2A56E3FB8B614C7399FF973BE9FE301C68E604F98971EB",
+                                                   "exchange":  "NSE"
+                                               },
+                                   "savedUniverse":  {
+                                                         "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                                         "snapshotMatched":  true,
+                                                         "ordersEnabled":  false,
+                                                         "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                         "instrumentId":  1202,
+                                                         "isin":  "INE002A01018",
+                                                         "observedOn":  "2026-09-02",
+                                                         "symbol":  "RELIANCE",
+                                                         "currentMembershipVerified":  false,
+                                                         "providerIsinVerified":  false
+                                                     },
+                                   "status":  "SYMBOL_CORROBORATED_FULL_IDENTITY_PENDING"
+                               },
+                  "boundary":  {
+                                   "version":  1,
+                                   "status":  "BOUNDARY_PROBES_PASSED_CALLBACK_LIFECYCLE_PENDING",
+                                   "passed":  true,
+                                   "ordersEnabled":  false,
+                                   "elapsedSeconds":  0.3701551,
+                                   "checks":  [
+                                                  {
+                                                      "expectedStatus":  401,
+                                                      "actualStatus":  401,
+                                                      "passed":  true,
+                                                      "name":  "STATUS_MISSING_TOKEN",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  401,
+                                                      "actualStatus":  401,
+                                                      "passed":  true,
+                                                      "name":  "STATUS_WRONG_TOKEN",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  401,
+                                                      "actualStatus":  401,
+                                                      "passed":  true,
+                                                      "name":  "QUOTE_MISSING_TOKEN",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  401,
+                                                      "actualStatus":  401,
+                                                      "passed":  true,
+                                                      "name":  "QUOTE_WRONG_TOKEN",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  401,
+                                                      "actualStatus":  401,
+                                                      "passed":  true,
+                                                      "name":  "REVIEW_QUOTE_MISSING_TOKEN",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  401,
+                                                      "actualStatus":  401,
+                                                      "passed":  true,
+                                                      "name":  "REVIEW_QUOTE_WRONG_TOKEN",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  400,
+                                                      "actualStatus":  400,
+                                                      "passed":  true,
+                                                      "name":  "CALLBACK_WITHOUT_COOKIE",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  400,
+                                                      "actualStatus":  400,
+                                                      "passed":  true,
+                                                      "name":  "CALLBACK_REPEAT_WITHOUT_COOKIE",
+                                                      "noStore":  true
+                                                  },
+                                                  {
+                                                      "expectedStatus":  400,
+                                                      "actualStatus":  400,
+                                                      "passed":  true,
+                                                      "name":  "BROWSER_INVALID_CODE",
+                                                      "noStore":  true
+                                                  }
+                                              ],
+                                   "test":  "SUPERVISED_APPLICATION_BOUNDARY_PROBES",
+                                   "brokerCredentialsUsed":  false,
+                                   "sessionCreated":  false
+                               },
+                  "ordersEnabled":  false,
+                  "quoteFixtures":  {
+                                        "ordersEnabled":  false,
+                                        "passed":  true,
+                                        "test":  "POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES",
+                                        "fixtureCount":  8,
+                                        "brokerCalls":  0
+                                    },
+                  "test":  "BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY",
+                  "reviewBoundary":  {
+                                         "finalLocked":  true,
+                                         "sessionCreated":  false,
+                                         "passed":  true,
+                                         "checks":  [
+                                                        {
+                                                            "expectedStatus":  200,
+                                                            "actualStatus":  200,
+                                                            "passed":  true,
+                                                            "name":  "REVIEW_NONE"
+                                                        },
+                                                        {
+                                                            "expectedStatus":  401,
+                                                            "actualStatus":  401,
+                                                            "passed":  true,
+                                                            "name":  "REVIEW_ORIGIN"
+                                                        },
+                                                        {
+                                                            "expectedStatus":  401,
+                                                            "actualStatus":  401,
+                                                            "passed":  true,
+                                                            "name":  "REVIEW_FORWARDED"
+                                                        },
+                                                        {
+                                                            "expectedStatus":  401,
+                                                            "actualStatus":  401,
+                                                            "passed":  true,
+                                                            "name":  "REVIEW_X_FORWARDED_FOR"
+                                                        },
+                                                        {
+                                                            "expectedStatus":  401,
+                                                            "actualStatus":  401,
+                                                            "passed":  true,
+                                                            "name":  "REVIEW_X_FORWARDED_HOST"
+                                                        },
+                                                        {
+                                                            "expectedStatus":  401,
+                                                            "actualStatus":  401,
+                                                            "passed":  true,
+                                                            "name":  "REVIEW_X_FORWARDED_PROTO"
+                                                        }
+                                                    ],
+                                         "ordersEnabled":  false,
+                                         "failure":  null,
+                                         "test":  "DEPLOYED_REVIEW_QUOTE_BOUNDARY"
+                                     }
+              },
+    "localJavaTests":  {
+                           "providerResponses":  "SIMULATED_HTTP",
+                           "errors":  0,
+                           "skipped":  0,
+                           "total":  51,
+                           "failures":  0
+                       },
+    "ordersEnabled":  false,
+    "acceptedCheckpoints":  22,
+    "totalCheckpoints":  30
+}

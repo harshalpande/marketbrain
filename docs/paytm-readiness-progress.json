@@ -215,7 +215,8 @@
         {
           "id": "G5.1",
           "goal": "Instrument mapping and data entitlement verified",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-holiday-identity-accepted-20261124.json",
+          "prerequisiteStatus": "Accepted for supervised RELIANCE NSE EQ pilot: authenticated provider response bound through unique symbol bridge to official latest-published constituent ISIN and local snapshot. Not all500/segments, direct provider ISIN or same-day membership publication. Fresh bound batch remains pending; G5.3 and G5.5 remain open."
         },
         {
           "id": "G5.2",
