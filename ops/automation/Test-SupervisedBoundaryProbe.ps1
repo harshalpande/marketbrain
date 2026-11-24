@@ -12,8 +12,8 @@ function Invoke-WebRequest {
  return @{StatusCode=$code;Headers=@{'Cache-Control'=@('no-store')}}
 }
 $r=Invoke-SupervisedBoundaryProbe
-if(-not $r.passed -or $r.checks.Count -ne 7 -or $script:calls -ne 7){throw 'PROBE_POSITIVE_FIXTURE_FAILED'}
+if(-not $r.passed -or $r.checks.Count -ne 9 -or $script:calls -ne 9){throw 'PROBE_POSITIVE_FIXTURE_FAILED'}
 $script:bad=$true;$script:calls=0
 $r=Invoke-SupervisedBoundaryProbe
 if($r.passed -or $r.checks[0].passed){throw 'PROBE_UNEXPECTED_SUCCESS_NOT_CAUGHT'}
-Write-Host 'SUPERVISED_BOUNDARY_7_CASES_AND_FAILURE_FIXTURE_PASSED'
+Write-Host 'SUPERVISED_BOUNDARY_9_CASES_AND_FAILURE_FIXTURE_PASSED'

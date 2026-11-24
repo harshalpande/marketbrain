@@ -24,7 +24,8 @@ if($Mode -eq 'FailureFixture'){
  $boundary=Invoke-SupervisedBoundaryProbe
  $quality=Invoke-SupervisedQuoteFixtures
  $identity=Invoke-SupervisedIdentityProbe
- $batch=@{test='BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY';passed=($boundary.passed -and $quality.passed -and $identity.passed);boundary=$boundary;quoteFixtures=$quality;identity=$identity;ordersEnabled=$false}
+ $review=Invoke-SupervisedReviewBoundaryProbe
+ $batch=@{test='BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY';passed=($boundary.passed -and $quality.passed -and $identity.passed -and $review.passed);boundary=$boundary;quoteFixtures=$quality;identity=$identity;reviewBoundary=$review;ordersEnabled=$false}
  [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
  if(-not $batch.passed){exit 1}
  exit 0
