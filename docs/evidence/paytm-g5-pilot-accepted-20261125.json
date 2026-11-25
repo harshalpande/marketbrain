@@ -1,0 +1,539 @@
+{
+    "date":  "2026-11-25",
+    "acceptedCheckpoints":  [
+                                "G5.3",
+                                "G5.5"
+                            ],
+    "scope":  "SUPERVISED_RELIANCE_NSE_EQ_PILOT",
+    "freshRun":  {
+                     "runId":  "100d613932d3441cb5219c75acfc4c58",
+                     "ordersEnabled":  false,
+                     "status":  "SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING",
+                     "stage":  "QUOTES",
+                     "failure":  "",
+                     "providerFailure":  "NONE",
+                     "clockSource":  "VPS_ANCHORED_MONOTONIC",
+                     "applicationState":  "READ_ACCESS_VERIFIED",
+                     "readAccessVerified":  true,
+                     "quotesTested":  true,
+                     "windowsClockGate":  false,
+                     "vpsAccuracyAssumed":  true,
+                     "cleanup":  [
+                                     "APPLICATION_LOCKED",
+                                     "GATEWAY_STOPPED_DISABLED"
+                                 ],
+                     "elapsedSeconds":  146.417185,
+                     "gatewayStartup":  {
+                                            "samples":  [
+                                                            {
+                                                                "newInstance":  false,
+                                                                "phase":  "TRANSPORT_READY",
+                                                                "taskResult":  267009,
+                                                                "sequence":  59,
+                                                                "taskState":  "Running",
+                                                                "seconds":  2.84
+                                                            },
+                                                            {
+                                                                "newInstance":  false,
+                                                                "phase":  "TRANSPORT_READY",
+                                                                "taskResult":  267009,
+                                                                "sequence":  59,
+                                                                "taskState":  "Running",
+                                                                "seconds":  5.65
+                                                            },
+                                                            {
+                                                                "newInstance":  false,
+                                                                "phase":  "TRANSPORT_READY",
+                                                                "taskResult":  267009,
+                                                                "sequence":  59,
+                                                                "taskState":  "Running",
+                                                                "seconds":  8.32
+                                                            },
+                                                            {
+                                                                "newInstance":  false,
+                                                                "phase":  "TRANSPORT_READY",
+                                                                "taskResult":  267009,
+                                                                "sequence":  59,
+                                                                "taskState":  "Running",
+                                                                "seconds":  11.16
+                                                            },
+                                                            {
+                                                                "newInstance":  true,
+                                                                "phase":  "CONNECTING",
+                                                                "taskResult":  267009,
+                                                                "sequence":  1,
+                                                                "taskState":  "Running",
+                                                                "seconds":  14.02
+                                                            },
+                                                            {
+                                                                "newInstance":  true,
+                                                                "phase":  "CONNECTING",
+                                                                "taskResult":  267009,
+                                                                "sequence":  1,
+                                                                "taskState":  "Running",
+                                                                "seconds":  16.74
+                                                            },
+                                                            {
+                                                                "newInstance":  true,
+                                                                "phase":  "TRANSPORT_READY",
+                                                                "taskResult":  267009,
+                                                                "sequence":  4,
+                                                                "taskState":  "Running",
+                                                                "seconds":  19.18
+                                                            }
+                                                        ],
+                                            "ready":  true
+                                        },
+                     "identityBinding":  {
+                                             "identity":  {
+                                                              "membershipScope":  "LATEST_PUBLISHED_FILE",
+                                                              "isin":  "INE002A01018",
+                                                              "instrumentId":  1202,
+                                                              "snapshotDate":  "2026-09-02",
+                                                              "symbol":  "RELIANCE",
+                                                              "providerIsinVerified":  false,
+                                                              "securityId":  2885,
+                                                              "providerSha256":  "672B3146025A027E6D2A56E3FB8B614C7399FF973BE9FE301C68E604F98971EB",
+                                                              "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                              "constituentSha256":  "31B764A95CC03AD1D7DDB6C42340DE9125ED2C78B3D436BF0DBC8440E4E38C5E",
+                                                              "basis":  "UNIQUE_NSE_EQ_SYMBOL_BRIDGE"
+                                                          },
+                                             "reviewEligible":  true,
+                                             "status":  "IDENTITY_BOUND_FRESH_QUOTE",
+                                             "ordersEnabled":  false
+                                         },
+                     "quoteBatch":  {
+                                        "missingCount":  0,
+                                        "ordersEnabled":  false,
+                                        "freshCount":  3,
+                                        "staleCount":  0,
+                                        "status":  "THREE_FRESH_MAPPED_QUOTES",
+                                        "securityId":  2885,
+                                        "passed":  true,
+                                        "strictFreshRequired":  true,
+                                        "sampleCount":  3
+                                    },
+                     "universeMatch":  {
+                                           "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                           "snapshotMatched":  true,
+                                           "ordersEnabled":  false,
+                                           "symbol":  "RELIANCE",
+                                           "isin":  "INE002A01018",
+                                           "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                           "observedOn":  "2026-09-02",
+                                           "instrumentId":  1202,
+                                           "currentMembershipVerified":  false,
+                                           "providerIsinVerified":  false
+                                       },
+                     "quoteMapping":  {
+                                          "segment":  "E",
+                                          "exchange":  "NSE",
+                                          "sha256":  "672B3146025A027E6D2A56E3FB8B614C7399FF973BE9FE301C68E604F98971EB",
+                                          "symbol":  "RELIANCE",
+                                          "series":  "EQ",
+                                          "securityId":  2885,
+                                          "source":  "PAYTM_PUBLIC_EQUITY_MASTER",
+                                          "localUniverseVerified":  false,
+                                          "instrumentType":  "ES"
+                                      },
+                     "quoteSamples":  [
+                                          {
+                                              "status":  "FRESH_QUOTE_OBSERVED",
+                                              "exchange":  "NSE",
+                                              "scripType":  "EQUITY",
+                                              "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                              "securityId":  2885.0,
+                                              "observedEpochMilliseconds":  1795582092492.0,
+                                              "rawTradeTime":  1480049291.0,
+                                              "tradeEpochMilliseconds":  1795582091000.0,
+                                              "ageMilliseconds":  1492.0,
+                                              "lastPrice":  1375.6,
+                                              "fresh":  true,
+                                              "mappingVerified":  false,
+                                              "ordersEnabled":  false
+                                          },
+                                          {
+                                              "status":  "FRESH_QUOTE_OBSERVED",
+                                              "exchange":  "NSE",
+                                              "scripType":  "EQUITY",
+                                              "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                              "securityId":  2885.0,
+                                              "observedEpochMilliseconds":  1795582098250.0,
+                                              "rawTradeTime":  1480049297.0,
+                                              "tradeEpochMilliseconds":  1795582097000.0,
+                                              "ageMilliseconds":  1250.0,
+                                              "lastPrice":  1376.0,
+                                              "fresh":  true,
+                                              "mappingVerified":  false,
+                                              "ordersEnabled":  false
+                                          },
+                                          {
+                                              "status":  "FRESH_QUOTE_OBSERVED",
+                                              "exchange":  "NSE",
+                                              "scripType":  "EQUITY",
+                                              "timestampEpoch":  "PAYTM_1980_SECONDS",
+                                              "securityId":  2885.0,
+                                              "observedEpochMilliseconds":  1795582103880.0,
+                                              "rawTradeTime":  1480049302.0,
+                                              "tradeEpochMilliseconds":  1795582102000.0,
+                                              "ageMilliseconds":  1880.0,
+                                              "lastPrice":  1376.0,
+                                              "fresh":  true,
+                                              "mappingVerified":  false,
+                                              "ordersEnabled":  false
+                                          }
+                                      ]
+                 },
+    "freshCollectionJob":  "4aaf8537-2028-43bc-877c-ba78d3a6b63d",
+    "qualityJob":  "4c13f9ee-3e49-4a7c-8899-80f32f5f10a5",
+    "qualityRevision":  "5f487708a5821cac245224abf239b15789272192",
+    "qualityElapsedSeconds":  28.3211298,
+    "qualityEvidence":  {
+                            "ordersEnabled":  false,
+                            "boundary":  {
+                                             "brokerCredentialsUsed":  false,
+                                             "version":  1,
+                                             "sessionCreated":  false,
+                                             "elapsedSeconds":  0.3959434,
+                                             "status":  "BOUNDARY_PROBES_PASSED_CALLBACK_LIFECYCLE_PENDING",
+                                             "passed":  true,
+                                             "test":  "SUPERVISED_APPLICATION_BOUNDARY_PROBES",
+                                             "checks":  [
+                                                            {
+                                                                "name":  "STATUS_MISSING_TOKEN",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  401,
+                                                                "passed":  true,
+                                                                "actualStatus":  401
+                                                            },
+                                                            {
+                                                                "name":  "STATUS_WRONG_TOKEN",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  401,
+                                                                "passed":  true,
+                                                                "actualStatus":  401
+                                                            },
+                                                            {
+                                                                "name":  "QUOTE_MISSING_TOKEN",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  401,
+                                                                "passed":  true,
+                                                                "actualStatus":  401
+                                                            },
+                                                            {
+                                                                "name":  "QUOTE_WRONG_TOKEN",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  401,
+                                                                "passed":  true,
+                                                                "actualStatus":  401
+                                                            },
+                                                            {
+                                                                "name":  "REVIEW_QUOTE_MISSING_TOKEN",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  401,
+                                                                "passed":  true,
+                                                                "actualStatus":  401
+                                                            },
+                                                            {
+                                                                "name":  "REVIEW_QUOTE_WRONG_TOKEN",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  401,
+                                                                "passed":  true,
+                                                                "actualStatus":  401
+                                                            },
+                                                            {
+                                                                "name":  "CALLBACK_WITHOUT_COOKIE",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  400,
+                                                                "passed":  true,
+                                                                "actualStatus":  400
+                                                            },
+                                                            {
+                                                                "name":  "CALLBACK_REPEAT_WITHOUT_COOKIE",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  400,
+                                                                "passed":  true,
+                                                                "actualStatus":  400
+                                                            },
+                                                            {
+                                                                "name":  "BROWSER_INVALID_CODE",
+                                                                "noStore":  true,
+                                                                "expectedStatus":  400,
+                                                                "passed":  true,
+                                                                "actualStatus":  400
+                                                            }
+                                                        ],
+                                             "ordersEnabled":  false
+                                         },
+                            "quoteFixtures":  {
+                                                  "passed":  true,
+                                                  "ordersEnabled":  false,
+                                                  "brokerCalls":  0,
+                                                  "test":  "POWERSHELL_QUOTE_VALIDATOR_SYNTHETIC_FIXTURES",
+                                                  "fixtureCount":  8
+                                              },
+                            "test":  "BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY",
+                            "deployedQuality":  {
+                                                    "ordersEnabled":  false,
+                                                    "brokerCredentialsUsed":  false,
+                                                    "failure":  null,
+                                                    "elapsedSeconds":  18.2643266,
+                                                    "scope":  "COPIED_DEPLOYED_CLIENT_ASSESSOR_SIMULATED_HTTP_NATIVE_JVM",
+                                                    "test":  "COPIED_DEPLOYED_QUOTE_QUALITY",
+                                                    "stage":  "COMPLETE",
+                                                    "artifactSha256":  "fd7172058503ba9e9b2b816f151b5b89a886fde5841b5cc060f827f24ec2c3c0",
+                                                    "cleanupPassed":  true,
+                                                    "passed":  true,
+                                                    "applicationChanged":  false,
+                                                    "assessorSha256":  "39f90bf891d87d75f2bd11b87a31db27c53146c4c87607ceef41c882ab7336da",
+                                                    "checks":  [
+                                                                   {
+                                                                       "name":  "fresh",
+                                                                       "actual":  "FRESH_QUOTE_OBSERVED",
+                                                                       "passed":  true,
+                                                                       "expected":  "FRESH_QUOTE_OBSERVED"
+                                                                   },
+                                                                   {
+                                                                       "name":  "exact15Seconds",
+                                                                       "actual":  "FRESH_QUOTE_OBSERVED",
+                                                                       "passed":  true,
+                                                                       "expected":  "FRESH_QUOTE_OBSERVED"
+                                                                   },
+                                                                   {
+                                                                       "name":  "stale",
+                                                                       "actual":  "STALE_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "STALE_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "future",
+                                                                       "actual":  "FUTURE_TIMESTAMP",
+                                                                       "passed":  true,
+                                                                       "expected":  "FUTURE_TIMESTAMP"
+                                                                   },
+                                                                   {
+                                                                       "name":  "notFound",
+                                                                       "actual":  "NO_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "NO_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "wrongId",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "textId",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "wrongMode",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "textFound",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "missingPrice",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "textPrice",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "zeroPrice",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "negativePrice",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "excessivePrice",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "missingTime",
+                                                                       "actual":  "MISSING_OR_INVALID_TIMESTAMP",
+                                                                       "passed":  true,
+                                                                       "expected":  "MISSING_OR_INVALID_TIMESTAMP"
+                                                                   },
+                                                                   {
+                                                                       "name":  "textTime",
+                                                                       "actual":  "MISSING_OR_INVALID_TIMESTAMP",
+                                                                       "passed":  true,
+                                                                       "expected":  "MISSING_OR_INVALID_TIMESTAMP"
+                                                                   },
+                                                                   {
+                                                                       "name":  "millisecondsTime",
+                                                                       "actual":  "MISSING_OR_INVALID_TIMESTAMP",
+                                                                       "passed":  true,
+                                                                       "expected":  "MISSING_OR_INVALID_TIMESTAMP"
+                                                                   },
+                                                                   {
+                                                                       "name":  "overflowTime",
+                                                                       "actual":  "MISSING_OR_INVALID_TIMESTAMP",
+                                                                       "passed":  true,
+                                                                       "expected":  "MISSING_OR_INVALID_TIMESTAMP"
+                                                                   },
+                                                                   {
+                                                                       "name":  "duplicate",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "emptyData",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "missingData",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "providerError",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "nullReply",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "arrayReply",
+                                                                       "actual":  "MALFORMED_QUOTE",
+                                                                       "passed":  true,
+                                                                       "expected":  "MALFORMED_QUOTE"
+                                                                   },
+                                                                   {
+                                                                       "name":  "invalidJson",
+                                                                       "actual":  "PAYTM_TRANSPORT_OR_JSON_FAILED",
+                                                                       "passed":  true,
+                                                                       "expected":  "PAYTM_TRANSPORT_OR_JSON_FAILED"
+                                                                   }
+                                                               ]
+                                                },
+                            "reviewBoundary":  {
+                                                   "finalLocked":  true,
+                                                   "passed":  true,
+                                                   "sessionCreated":  false,
+                                                   "ordersEnabled":  false,
+                                                   "failure":  null,
+                                                   "checks":  [
+                                                                  {
+                                                                      "name":  "REVIEW_NONE",
+                                                                      "expectedStatus":  200,
+                                                                      "passed":  true,
+                                                                      "actualStatus":  200
+                                                                  },
+                                                                  {
+                                                                      "name":  "REVIEW_ORIGIN",
+                                                                      "expectedStatus":  401,
+                                                                      "passed":  true,
+                                                                      "actualStatus":  401
+                                                                  },
+                                                                  {
+                                                                      "name":  "REVIEW_FORWARDED",
+                                                                      "expectedStatus":  401,
+                                                                      "passed":  true,
+                                                                      "actualStatus":  401
+                                                                  },
+                                                                  {
+                                                                      "name":  "REVIEW_X_FORWARDED_FOR",
+                                                                      "expectedStatus":  401,
+                                                                      "passed":  true,
+                                                                      "actualStatus":  401
+                                                                  },
+                                                                  {
+                                                                      "name":  "REVIEW_X_FORWARDED_HOST",
+                                                                      "expectedStatus":  401,
+                                                                      "passed":  true,
+                                                                      "actualStatus":  401
+                                                                  },
+                                                                  {
+                                                                      "name":  "REVIEW_X_FORWARDED_PROTO",
+                                                                      "expectedStatus":  401,
+                                                                      "passed":  true,
+                                                                      "actualStatus":  401
+                                                                  }
+                                                              ],
+                                                   "test":  "DEPLOYED_REVIEW_QUOTE_BOUNDARY"
+                                               },
+                            "passed":  true,
+                            "identity":  {
+                                             "test":  "PROVIDER_AND_SAVED_UNIVERSE_IDENTITY",
+                                             "passed":  true,
+                                             "ordersEnabled":  false,
+                                             "currentMembershipVerified":  false,
+                                             "providerIsinVerified":  false,
+                                             "failure":  null,
+                                             "mapping":  {
+                                                             "sha256":  "672B3146025A027E6D2A56E3FB8B614C7399FF973BE9FE301C68E604F98971EB",
+                                                             "securityId":  2885,
+                                                             "source":  "PAYTM_PUBLIC_EQUITY_MASTER",
+                                                             "exchange":  "NSE",
+                                                             "series":  "EQ",
+                                                             "symbol":  "RELIANCE"
+                                                         },
+                                             "savedUniverse":  {
+                                                                   "status":  "LOCAL_SNAPSHOT_SYMBOL_ISIN_MATCHED",
+                                                                   "snapshotMatched":  true,
+                                                                   "ordersEnabled":  false,
+                                                                   "observedOn":  "2026-09-02",
+                                                                   "symbol":  "RELIANCE",
+                                                                   "snapshotId":  "68117add-3ebe-4681-82fc-ff5613ecd869",
+                                                                   "instrumentId":  1202,
+                                                                   "isin":  "INE002A01018",
+                                                                   "currentMembershipVerified":  false,
+                                                                   "providerIsinVerified":  false
+                                                               },
+                                             "status":  "SYMBOL_CORROBORATED_FULL_IDENTITY_PENDING"
+                                         }
+                        },
+    "acceptanceBasis":  [
+                            "G5.3: actual deployed stale rejection on holiday, actual fresh retrieval today, copied deployed client and assessor with25 isolated simulated HTTP cases, local HTTP controller/session integration tests",
+                            "G5.5: three server-bound fresh quotes with stable source hashes and local identity, prior actual gateway loss/session lock and no-fallback test, deployed locked/unauthorized review rejection"
+                        ],
+    "supportingEvidence":  [
+                               "paytm-holiday-identity-accepted-20261124.json",
+                               "paytm-transport-failure-accepted-20261123.json",
+                               "paytm-error-reconnect-accepted-20261123.json",
+                               "paytm-quote-quality-integration-20261123.json"
+                           ],
+    "limitations":  [
+                        "No malformed payload injection into live broker or running application; isolated native JVM uses copied deployed bytecode and Jackson",
+                        "Pilot RELIANCE only, not all500 or all account segments",
+                        "Unique NSE EQ symbol bridge; no direct provider ISIN field; latest published membership file, not same-day membership claim",
+                        "No trading authorization, profit claim, unattended session lifecycle or G6 acceptance"
+                    ],
+    "ordersEnabled":  false,
+    "accepted":  24,
+    "total":  30,
+    "percent":  80
+}

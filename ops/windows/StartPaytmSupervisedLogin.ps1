@@ -179,7 +179,7 @@ try {
   if(-not $TestTransportFailure){$report.quoteBatch=Get-PaytmQuoteBatchAssessment -Samples $report.quoteSamples -SecurityId $QuoteSecurityId -RequireFresh:$RequireFreshQuotes}
   Save-SupervisedReport
   if($RequireFreshQuotes -and -not $report.quoteBatch.passed){throw 'SUPERVISED_FRESH_QUOTES_NOT_OBSERVED'}
-  $report.status=if($fresh -eq 3){'SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING'}else{'SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING'}
+  $report.status=if($fresh -eq 3 -and $BindReviewIdentity){'SUPERVISED_IDENTITY_BOUND_FRESH_QUOTES_PASSED'}elseif($fresh -eq 3){'SUPERVISED_QUOTE_READ_PASSED_MAPPING_PENDING'}else{'SUPERVISED_QUOTE_CAPTURED_FRESHNESS_PENDING'}
  }
  if($TestTransportFailure){
   $report.stage='TRANSPORT_FAILURE';Save-SupervisedReport

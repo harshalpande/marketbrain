@@ -226,7 +226,7 @@
         {
           "id": "G5.3",
           "goal": "Stale, missing and malformed quote rejection accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-g5-pilot-accepted-20261125.json"
         },
         {
           "id": "G5.4",
@@ -236,7 +236,7 @@
         {
           "id": "G5.5",
           "goal": "Application quote provenance and no-fallback/read-only integration accepted",
-          "evidence": null
+          "evidence": "docs/evidence/paytm-g5-pilot-accepted-20261125.json"
         }
       ]
     },
