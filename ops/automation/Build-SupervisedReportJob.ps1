@@ -10,6 +10,8 @@ $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedLifecycl
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmQuoteBatch.ps1'))
 $probe+="`n"+([IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/PaytmQuoteMapping.ps1')) -replace '(?m)^#Requires[^\r\n]*','')
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedIdentityProbe.ps1'))
+$probe+="`n"+'$script:deployedQualitySource=@'+"'`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'DeployedQuoteQualityProbe.java'))+"`n'@`n"
+$probe+=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedDeployedQualityProbe.ps1'))
 $fixtures=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '../windows/TestPaytmQuoteBatch.ps1'))
 $fixtures=($fixtures -split '\r?\n'|Where-Object {$_ -notmatch '^#Requires|^\. |^Write-Host'}) -join "`n"
 $probe+="`nfunction Invoke-SupervisedQuoteFixtures {`ntry {`n"+$fixtures+@'
@@ -25,7 +27,8 @@ if($Mode -eq 'FailureFixture'){
  $quality=Invoke-SupervisedQuoteFixtures
  $identity=Invoke-SupervisedIdentityProbe
  $review=Invoke-SupervisedReviewBoundaryProbe
- $batch=@{test='BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY';passed=($boundary.passed -and $quality.passed -and $identity.passed -and $review.passed);boundary=$boundary;quoteFixtures=$quality;identity=$identity;reviewBoundary=$review;ordersEnabled=$false}
+ $deployed=Invoke-SupervisedDeployedQualityProbe
+ $batch=@{test='BOUNDARY_QUOTE_VALIDATION_AND_IDENTITY';passed=($boundary.passed -and $quality.passed -and $identity.passed -and $review.passed -and $deployed.passed);boundary=$boundary;quoteFixtures=$quality;identity=$identity;reviewBoundary=$review;deployedQuality=$deployed;ordersEnabled=$false}
  [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
  if(-not $batch.passed){exit 1}
  exit 0
