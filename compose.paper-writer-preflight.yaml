@@ -10,6 +10,7 @@ services:
       MARKETBRAIN_DB_PASSWORD: ${MARKETBRAIN_DB_PASSWORD:?Set the existing database password locally}
       MARKETBRAIN_EXECUTION_MODE: PAPER
       MARKETBRAIN_PREFLIGHT_SCHEMA: ${MARKETBRAIN_PREFLIGHT_SCHEMA:-public}
+      MARKETBRAIN_PREFLIGHT_KIND: ${MARKETBRAIN_PREFLIGHT_KIND:-WRITER}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     read_only: true

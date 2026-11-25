@@ -1,0 +1,21 @@
+{
+    "date":  "2026-11-25",
+    "status":  "PUBLISHER_INSTALLATION_REHEARSAL_ACCEPTED",
+    "collectionJobId":  "d18e2b0a-9698-42e5-919b-dfe14ed4d008",
+    "sourceFile":  "paper-delivery-20261125-210423-8311e17efade.json",
+    "sourceSha256":  "C1A188326A59309C5E2D5C8C40772AF7947026DE8908A378A209769B8BB2C997",
+    "runId":  "8311e17efade446690d292ac4c6339ed",
+    "testedRevision":  "1392ec4063afeca29bfaaf33302767827eb3607d",
+    "sourceHashesVerified":  38,
+    "prepareChecks":  41,
+    "restartChecks":  6,
+    "failures":  0,
+    "elapsedSeconds":  188.2039786,
+    "temporaryContainersRemoved":  3,
+    "applicationDatabaseAccessed":  false,
+    "productionRolesInstalled":  false,
+    "telegramCalls":  0,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80
+}

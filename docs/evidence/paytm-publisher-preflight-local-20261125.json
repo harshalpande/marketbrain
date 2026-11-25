@@ -1,0 +1,13 @@
+{
+    "date":  "2026-11-25",
+    "status":  "PUBLISHER_PREFLIGHT_LOCAL_PASSED_RUNTIME_CATALOG_PENDING",
+    "javaTests":  30,
+    "offlinePowerShellAssertions":  117,
+    "collectorProjectionTestsPassed":  true,
+    "collectorGeneratedArtifactChecked":  true,
+    "applicationDatabaseAccessed":  false,
+    "publisherActivated":  false,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80
+}

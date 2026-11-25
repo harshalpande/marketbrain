@@ -1,6 +1,8 @@
 # Definitions only; no database, application or Docker activity on import.
-function Assert-PaperWriterCatalog($Result,[string]$Schema) {
-    if($Result.version -cne 'PAPER_WRITER_PREFLIGHT_V1' -or $Result.status -cne 'CATALOG_REVIEW_COMPLETE_APPLICATION_ACTIVATION_BLOCKED' -or
+function Assert-PaperWriterCatalog($Result,[string]$Schema,[switch]$Publisher) {
+    $expectedVersion=if($Publisher){'PAPER_PUBLISHER_PREFLIGHT_V1'}else{'PAPER_WRITER_PREFLIGHT_V1'}
+    if($Publisher -and ($Result.publisherActivated -isnot [bool] -or $Result.publisherActivated -or $Result.target.database -cnotmatch '^[a-z][a-z0-9_]{0,62}$' -or $Result.target.databaseOid -is [string] -or $Result.target.databaseOid -is [bool] -or $Result.target.databaseOid -le 0)){throw 'Invalid publisher target or activation evidence.'}
+    if($Result.version -cne $expectedVersion -or $Result.status -cne 'CATALOG_REVIEW_COMPLETE_APPLICATION_ACTIVATION_BLOCKED' -or
        $Result.scope -cne 'CONFIGURED_DATABASE_CATALOG_ONLY_NOT_RUNTIME_IDENTITY_OR_INSTALLATION_PROOF'){throw 'Wrong catalog report contract.'}
     foreach($field in @('applicationDatabaseWritesPerformed','applicationWriterActivated','actionExecutionEnabled')) {
         if($Result.$field -isnot [bool] -or $Result.$field){throw "Unsafe catalog flag: $field"}

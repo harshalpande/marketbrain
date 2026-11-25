@@ -1,17 +1,19 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidatePattern('^[a-z][a-z0-9_]{0,62}$')][string]$Schema='public',
-      [ValidateRange(60,1800)][int]$BuildTimeoutSeconds=1800)
+      [ValidateRange(60,1800)][int]$BuildTimeoutSeconds=1800,[switch]$Publisher)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'NumericalHistoryEvidence.ps1')
 . (Join-Path $PSScriptRoot 'PaperWriterPreflight.ps1')
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $id=[guid]::NewGuid().ToString('N');$project='mb-writer-preflight-'+$id;$docker=$null;$runAttempted=$false
 $priorSchema=$env:MARKETBRAIN_PREFLIGHT_SCHEMA
+$priorKind=$env:MARKETBRAIN_PREFLIGHT_KIND
 $watch=[Diagnostics.Stopwatch]::StartNew()
 $report=[ordered]@{version='PAPER_WRITER_PREFLIGHT_BUNDLE_V1';status='RUNNING';runId=$id;updatedAtUtc=$null;elapsedSeconds=0;revision=$null;manifest=@{};events=@();steps=@();catalog=$null;failure=$null;cleanup=$null;schema=$Schema;configurationSource='Repository .env and existing process overrides; running-service target identity not verified';applicationRestartRequested=$false;databaseWritesRequested=$false;applicationWriterActivated=$false;actionExecutionEnabled=$false}
 [void](New-Item -ItemType Directory -Path $OutputDirectory -Force)
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-writer-preflight-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))
+if($Publisher){$report.version='PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1';$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-publisher-preflight-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
 if($path.Length+41 -ge 260 -or (Test-Path -LiteralPath $path)){throw 'Unsafe or existing evidence path.'}
 function Save { $report.elapsedSeconds=$watch.Elapsed.TotalSeconds;Save-NumericalHistoryReport $report $path -Compact }
 function Stage([int]$Percent,[string]$Message) {
@@ -38,6 +40,7 @@ try {
     $docker=[string]$dockerCommands[0].Source
     if(-not [IO.Path]::IsPathRooted($docker) -or -not (Test-Path -LiteralPath $docker -PathType Leaf)){throw 'Docker executable unavailable.'}
     $env:MARKETBRAIN_PREFLIGHT_SCHEMA=$Schema
+    $env:MARKETBRAIN_PREFLIGHT_KIND=if($Publisher){'PUBLISHER'}else{'WRITER'}
     Stage 10 'Checking standalone Compose configuration without printing credentials.'
     $r=Compose 'configuration' @('config','--quiet') 30
     if($r.exitCode -ne 0 -or $r.timedOut){throw 'Compose configuration failed. Review .env locally; do not share credentials.'}
@@ -50,15 +53,16 @@ try {
     # Only the Java JSON contract is retained. Reject arbitrary native stdout rather than embedding it.
     if($r.stdout.Length -gt 100000 -or $r.timedOut){throw 'Inspector deadline/output limit exceeded.'}
     $parsed=$r.stdout|ConvertFrom-Json
-    if($parsed.version -cne 'PAPER_WRITER_PREFLIGHT_V1'){throw 'Unexpected inspector output.'}
+    $expectedVersion=if($Publisher){'PAPER_PUBLISHER_PREFLIGHT_V1'}else{'PAPER_WRITER_PREFLIGHT_V1'}
+    if($parsed.version -cne $expectedVersion){throw 'Unexpected inspector output.'}
     if($r.exitCode -ne 0 -or $parsed.status -cne 'CATALOG_REVIEW_COMPLETE_APPLICATION_ACTIVATION_BLOCKED') {
         $report.failure='Inspector stopped; no automatic retry.'
         $report.catalog=@{status='STOPPED_REVIEW_REQUIRED';failureType=[string]$parsed.failureType;sqlState=[string]$parsed.sqlState}
         throw 'Catalog inspection stopped. Sanitized exception type and SQLSTATE saved where available.'
     }
-    Assert-PaperWriterCatalog $parsed $Schema
+    Assert-PaperWriterCatalog $parsed $Schema -Publisher:$Publisher
     $report.catalog=$parsed;$report.status='CATALOG_EVIDENCE_CAPTURED_INSTALLATION_REVIEW_REQUIRED'
-    Stage 95 ('Catalog report captured; {0} installation findings require review. Writer remains disabled.' -f @($parsed.installationBlockers).Count)
+    Stage 95 ('Catalog report captured; {0} installation findings require review. No roles or application settings changed.' -f @($parsed.installationBlockers).Count)
 } catch {
     $report.status='STOPPED_REVIEW_REQUIRED'
     # Avoid serializing exceptions that can contain expanded environment values.
@@ -73,6 +77,7 @@ try {
         } catch {$report.cleanup=@{project=$project;status='CLEANUP_REVIEW_REQUIRED'};$report.status='STOPPED_CLEANUP_REVIEW_REQUIRED'}
     }
     $env:MARKETBRAIN_PREFLIGHT_SCHEMA=$priorSchema
+    $env:MARKETBRAIN_PREFLIGHT_KIND=$priorKind
     Stage 100 $report.status
     Write-Progress -Activity 'Paper writer application catalog preflight' -Completed
     Write-Host "Share this ONE file: $path"

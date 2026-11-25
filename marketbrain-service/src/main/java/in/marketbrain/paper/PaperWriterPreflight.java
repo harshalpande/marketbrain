@@ -8,6 +8,10 @@ import java.util.*;
 /** Standalone catalog inspection, not a Spring bean, installer, health probe or approval writer. */
 public final class PaperWriterPreflight {
     static final String VERSION = "PAPER_WRITER_PREFLIGHT_V1";
+    static final String PUBLISHER_VERSION = "PAPER_PUBLISHER_PREFLIGHT_V1";
+    static final String TARGET = "SELECT current_database() AS \"database\", oid::bigint AS \"databaseOid\" FROM pg_catalog.pg_database WHERE datname=current_database()";
+    static final String PUBLISHER_COLLISIONS = "SELECT rolname AS \"roleName\",rolcanlogin AS \"login\",rolsuper AS \"superuser\" FROM pg_catalog.pg_roles WHERE rolname IN ('marketbrain-paper-publisher','marketbrain-paper-publisher-helper') ORDER BY rolname LIMIT 3";
+    static final String PUBLISHER_FUNCTIONS = "SELECT p.proname AS \"functionName\",p.prosecdef AS \"securityDefiner\",pg_catalog.has_function_privilege('public',p.oid,'EXECUTE') AS \"publicExecute\" FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=? AND p.proname IN ('paper_publish_enqueue','paper_publish_lock','paper_publish_transition') ORDER BY p.proname,p.oid LIMIT 21";
     static final List<String> TABLES = List.of("paper_approval_proposal", "paper_approval_token",
             "telegram_binding", "paper_portfolio", "paper_ledger_account", "paper_ledger_command",
             "paper_ledger_position", "instrument", "paper_approval_delivery", "paper_approval_key_binding",
@@ -97,6 +101,9 @@ public final class PaperWriterPreflight {
     static boolean yes(Map<String,Object> row, String key) { return Boolean.TRUE.equals(row.get(key)); }
 
     static Map<String,Object> inspect(Connection c, String schema) throws SQLException {
+        return inspect(c,schema,false);
+    }
+    static Map<String,Object> inspect(Connection c, String schema, boolean publisher) throws SQLException {
         validateSchema(schema);
         c.setReadOnly(true);
         c.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
@@ -124,18 +131,19 @@ public final class PaperWriterPreflight {
                 if (yes(row,"rowSecurity") || yes(row,"forceRowSecurity")) blockers.add("ROW_SECURITY_REQUIRES_REVIEW:"+name);
                 if (yes(row,"publicWrite") || yes(row,"publicSelect")) blockers.add("PUBLIC_TABLE_ACCESS_REQUIRES_IMPACT_REVIEW:"+name);
             }
-            var roles = query(c, COLLISIONS);
-            var functions = query(c, FUNCTIONS, schema);
+            var roles = query(c, publisher?PUBLISHER_COLLISIONS:COLLISIONS);
+            var functions = query(c, publisher?PUBLISHER_FUNCTIONS:FUNCTIONS, schema);
             var schemas = query(c, PUBLIC_SCHEMAS);
             var definers = query(c, PUBLIC_DEFINERS);
             if (!roles.isEmpty()) blockers.add("PROPOSED_ROLE_NAME_COLLISION_DO_NOT_ADOPT");
-            if (!functions.isEmpty()) blockers.add("EXISTING_WRITER_FUNCTIONS_DO_NOT_REPLACE");
+            if (!functions.isEmpty()) blockers.add(publisher?"EXISTING_PUBLISHER_FUNCTIONS_DO_NOT_REPLACE":"EXISTING_WRITER_FUNCTIONS_DO_NOT_REPLACE");
             if (!schemas.isEmpty()) blockers.add("PUBLIC_SCHEMA_CREATE_REQUIRES_IMPACT_REVIEW");
             if (!definers.isEmpty()) blockers.add("PUBLIC_SECURITY_DEFINER_REQUIRES_IMPACT_REVIEW");
             boolean bounded = functions.size()>=21 || schemas.size()>=21 || definers.size()>=21;
             if (bounded) blockers.add("CATALOG_LIST_BOUND_REACHED_REVIEW_INCOMPLETE");
             Map<String,Object> result = new LinkedHashMap<>();
-            result.put("version",VERSION);
+            result.put("version",publisher?PUBLISHER_VERSION:VERSION);
+            if(publisher){result.put("target",one(query(c,TARGET)));result.put("publisherActivated",false);}
             result.put("status","CATALOG_REVIEW_COMPLETE_APPLICATION_ACTIVATION_BLOCKED");
             result.put("session",session); result.put("schema",namespace); result.put("tables",tables);
             result.put("proposedRoleCollisions",roles); result.put("writerFunctionCollisions",functions);
@@ -166,17 +174,19 @@ public final class PaperWriterPreflight {
         return p;
     }
     public static void main(String[] args) throws Exception {
+        String kind=System.getenv().getOrDefault("MARKETBRAIN_PREFLIGHT_KIND","WRITER");
+        boolean publisher=kind.equals("PUBLISHER");
         long start=System.nanoTime(); Map<String,Object> report=new LinkedHashMap<>(); int exit=1;
-        report.put("version",VERSION); report.put("status","STOPPED_REVIEW_REQUIRED"); report.put("connectionAttempted",false);
+        report.put("version",publisher?PUBLISHER_VERSION:VERSION); report.put("status","STOPPED_REVIEW_REQUIRED"); report.put("connectionAttempted",false);
         report.put("failureType",null); report.put("sqlState",null);
         report.put("applicationDatabaseWritesPerformed",false); report.put("applicationWriterActivated",false); report.put("actionExecutionEnabled",false);
         try {
-            if (args.length!=0 || !"PAPER".equals(System.getenv("MARKETBRAIN_EXECUTION_MODE"))) throw new IllegalArgumentException("PAPER-only inspector");
+            if (!Set.of("WRITER","PUBLISHER").contains(kind)||args.length!=0 || !"PAPER".equals(System.getenv("MARKETBRAIN_EXECUTION_MODE"))) throw new IllegalArgumentException("PAPER-only inspector");
             String schema=System.getenv().getOrDefault("MARKETBRAIN_PREFLIGHT_SCHEMA","public"); validateSchema(schema);
             String url=validateUrl(System.getenv("MARKETBRAIN_DB_URL"));
             var props=properties(System.getenv("MARKETBRAIN_DB_USERNAME"),System.getenv("MARKETBRAIN_DB_PASSWORD"));
             report.put("connectionAttempted",true);
-            try (var c=DriverManager.getConnection(url,props)) { report.putAll(inspect(c,schema)); }
+            try (var c=DriverManager.getConnection(url,props)) { report.putAll(inspect(c,schema,publisher)); }
             exit=0;
         } catch(Exception e) {
             // Do not expose connection strings, usernames, passwords, provider errors or stack traces.

@@ -36,6 +36,9 @@ class PaperWriterPreflightTest {
                         case PaperWriterPreflight.SCHEMA -> List.of(namespace);
                         case PaperWriterPreflight.TABLE -> {var t=new LinkedHashMap<>(table);t.put("tableName",args.get(2));yield absent?List.of():List.of(t);}
                         case PaperWriterPreflight.COLLISIONS -> roles;
+                        case PaperWriterPreflight.PUBLISHER_COLLISIONS -> roles;
+                        case PaperWriterPreflight.PUBLISHER_FUNCTIONS -> functions;
+                        case PaperWriterPreflight.TARGET -> List.of(row("database","marketbrain","databaseOid",42L));
                         case PaperWriterPreflight.FUNCTIONS -> functions;
                         case PaperWriterPreflight.PUBLIC_SCHEMAS -> schemas;
                         case PaperWriterPreflight.PUBLIC_DEFINERS -> definers;
@@ -63,6 +66,19 @@ class PaperWriterPreflightTest {
         var order=inOrder(f.c);order.verify(f.c).setReadOnly(true);order.verify(f.c).setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);order.verify(f.c).setAutoCommit(false);order.verify(f.c).prepareStatement(PaperWriterPreflight.SESSION);
         verify(f.c).rollback();verify(f.c,never()).commit();verify(f.c,never()).createStatement();
         assertEquals(18,f.statements.size());for(var p:f.statements){verify(p).setQueryTimeout(5);verify(p).setMaxRows(21);verify(p).close();verify(p,never()).executeUpdate();}
+    }
+    @Test void publisherInspectionUsesDedicatedNamesAndCapturesTargetReadOnly()throws Exception {
+        var f=new Fixture();var r=PaperWriterPreflight.inspect(f.c,"public",true);
+        assertEquals("PAPER_PUBLISHER_PREFLIGHT_V1",r.get("version"));assertEquals(false,r.get("publisherActivated"));
+        assertEquals(row("database","marketbrain","databaseOid",42L),r.get("target"));
+        verify(f.c).prepareStatement(PaperWriterPreflight.PUBLISHER_COLLISIONS);verify(f.c).prepareStatement(PaperWriterPreflight.PUBLISHER_FUNCTIONS);
+        verify(f.c,never()).prepareStatement(PaperWriterPreflight.COLLISIONS);verify(f.c,never()).prepareStatement(PaperWriterPreflight.FUNCTIONS);
+        verify(f.c).rollback();verify(f.c,never()).commit();verify(f.c,never()).createStatement();
+    }
+    @Test void publisherCollisionsAreReportedWithoutAdoption()throws Exception {
+        var f=new Fixture();f.roles=List.of(row("roleName","marketbrain-paper-publisher"));f.functions=List.of(row("functionName","paper_publish_lock"));
+        var r=PaperWriterPreflight.inspect(f.c,"public",true);
+        assertTrue(blockers(r).contains("PROPOSED_ROLE_NAME_COLLISION_DO_NOT_ADOPT"));assertTrue(blockers(r).contains("EXISTING_PUBLISHER_FUNCTIONS_DO_NOT_REPLACE"));verify(f.c,never()).commit();
     }
     @ParameterizedTest @ValueSource(strings={"readOnly","repeatableRead","unchangedSessionIdentity"})
     void sessionGuardStopsBeforeOtherReads(String field)throws Exception {
@@ -127,7 +143,8 @@ class PaperWriterPreflightTest {
         assertEquals(true,service.get("read_only"));assertEquals(List.of("ALL"),service.get("cap_drop"));
         assertEquals(List.of("no-new-privileges:true"),service.get("security_opt"));
         var env=(Map<String,Object>)service.get("environment");
-        assertEquals(Set.of("MARKETBRAIN_DB_URL","MARKETBRAIN_DB_USERNAME","MARKETBRAIN_DB_PASSWORD","MARKETBRAIN_EXECUTION_MODE","MARKETBRAIN_PREFLIGHT_SCHEMA"),env.keySet());
+        assertEquals(Set.of("MARKETBRAIN_DB_URL","MARKETBRAIN_DB_USERNAME","MARKETBRAIN_DB_PASSWORD","MARKETBRAIN_EXECUTION_MODE","MARKETBRAIN_PREFLIGHT_SCHEMA","MARKETBRAIN_PREFLIGHT_KIND"),env.keySet());
+        assertEquals("${MARKETBRAIN_PREFLIGHT_KIND:-WRITER}",env.get("MARKETBRAIN_PREFLIGHT_KIND"));
         assertEquals("PAPER",env.get("MARKETBRAIN_EXECUTION_MODE"));
         String dockerfile=Files.readString(Path.of("Dockerfile.paper-writer-preflight"));
         assertTrue(dockerfile.contains("USER 65532:65532"));assertTrue(dockerfile.contains("in.marketbrain.paper.PaperWriterPreflight"));

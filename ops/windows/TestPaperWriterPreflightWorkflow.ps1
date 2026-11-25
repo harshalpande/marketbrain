@@ -28,6 +28,7 @@ function Invoke-PaperCatalogProcess([string]$Executable,[string[]]$Arguments,[st
     if($Arguments -contains 'rev-parse'){$out='a'*40}
     elseif($Arguments -contains 'run') {
         $v=Sample;if($script:invalidReport){$v.applicationWriterActivated=$true}
+        if($env:MARKETBRAIN_PREFLIGHT_KIND -ceq 'PUBLISHER'){$v.version='PAPER_PUBLISHER_PREFLIGHT_V1';$v|Add-Member publisherActivated $false;$v|Add-Member target @{database='marketbrain';databaseOid=42}}
         $out=$v|ConvertTo-Json -Depth 8 -Compress
         if($script:failStage -ceq 'run'){$out='{"version":"PAPER_WRITER_PREFLIGHT_V1","status":"STOPPED_REVIEW_REQUIRED","failureType":"SQLException","sqlState":"08001"}';$exitCode=1}
         if($script:failStage -ceq 'timeout'){$timeout=$true;$exitCode=-999}
@@ -56,6 +57,17 @@ foreach($case in @('pass','build','run','timeout','cleanup','invalid')) {
     }
 }
 $tokens=$null;$errors=$null
+$script:failStage='pass';$script:invalidReport=$false
+$beforeKind=$env:MARKETBRAIN_PREFLIGHT_KIND
+& $runner -Publisher -OutputDirectory (Join-Path $testRoot 'publisher')
+$publisherFile=Get-ChildItem (Join-Path $testRoot 'publisher') -Filter 'paper-publisher-preflight-*.json'
+$publisher=Get-Content $publisherFile.FullName -Raw|ConvertFrom-Json
+Check ($publisher.version -ceq 'PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1') 'publisher report separated'
+Assert-PaperWriterCatalog $publisher.catalog 'public' -Publisher
+Check ($publisher.catalog.target.databaseOid -eq 42) 'publisher target captured'
+Check ($env:MARKETBRAIN_PREFLIGHT_KIND -ceq $beforeKind) 'inspection kind restored'
+$publisher.catalog.publisherActivated=$true
+Reject {Assert-PaperWriterCatalog $publisher.catalog 'public' -Publisher} 'publisher activation rejected'
 [void][Management.Automation.Language.Parser]::ParseInput($source,[ref]$tokens,[ref]$errors)
 Check ($errors.Count -eq 0) 'runner syntax parses'
 Write-Host "PASS: $script:assertions offline assertions. No native processes, database or application used. Fixtures: $testRoot"

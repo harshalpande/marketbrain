@@ -103,3 +103,23 @@ Docker Desktop must be running. The existing MarketBrain application may remain 
 Market-hours work: real fresh reference and ACCEPT revalidation after installation/custody/launcher gates are complete. REJECT, expiry, unauthorized-callback and replay logic can be exercised with fixtures off-hours. Tomorrow's market session alone does not remove the remaining integration prerequisites.
 
 Local validation: 36 Java tests passed in a separate Maven build directory, zero failures/errors/skips; 92 offline PowerShell assertions passed. An initial local rerun encountered editor-generated incomplete bytecode; the separate build recompiles the exact sources and avoids that output collision. The installer also rejects unexpected function execution grants inherited from administrative default privileges. Real 47-check database execution remains pending. [Installer evidence](evidence/paytm-publisher-installer-local-20261125.json).
+
+## Publisher catalog preflight after accepted rehearsal
+
+The new 47-check installer suite is accepted from run8311e17efade (full run identity in evidence): 188.204 seconds, 38 source hashes matched1392ec4, three temporary containers removed. Rehearsal rollback, later-failure rollback, disabled roles and collision refusal passed on actual disposable PostgreSQL. Do not rerun it unchanged.
+
+The next off-hours step is GetPaperWriterPreflight.ps1 -Publisher. This selects publisher-specific role/function names in the standalone read-only catalog inspector, records database name/OID, and checks the twelve required relations, schema and PUBLIC privilege findings. The connection is read-only, repeatable-read, bounded to five seconds per query with row limits, and rolled back. No table contents are read and no role, grant, function or application setting is changed. Existing writer mode remains unchanged.
+
+It uses the existing repository .env and process overrides through a separate Compose project. That is configured-database evidence, not proof that the current running service uses the same target. Reconcile database identity before installation. The existing application database user may lack installation authority: report that finding; do not automatically elevate, revoke permissions or adopt existing roles. Public TEMP and other permission findings require scoped interpretation, not blanket permission removal.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\GetPaperWriterPreflight.ps1 -Publisher
+```
+
+Docker Desktop and the configured database must be available. No Paytm login or market hours are needed. This builds only a standalone inspector and leaves the application running. One paper-publisher-preflight JSON is saved; the updated Observe collector can retrieve its allowlisted metadata and source hashes automatically, without raw process logs, expanded environment or credentials. Inspection findings are evidence to review, not automatic installation approval. Production role installation/custody/launcher and real Telegram acceptance still remain.
+
+Local verification: 30 Java tests passed in an isolated Maven output tree, 117 offline PowerShell assertions passed, and collector redaction/hash/newest-selection/malformed-input/early-failure projection tests passed. Generated collector artifact verified within the queue size limit. These do not establish application database catalog acceptance. [Local evidence](evidence/paytm-publisher-preflight-local-20261125.json).

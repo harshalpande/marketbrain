@@ -19,5 +19,19 @@ try {
  $newer=Join-Path $dir ('paytm-supervised-login-'+('b'*32)+'.json');'{}'|Set-Content $newer
  (Get-Item $newer).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(1)
  if($null -ne (Get-PaperDeliveryReport $dir)){throw 'OLDER_DELIVERY_SELECTED'}
+ $catalog=Join-Path $dir 'paper-publisher-preflight-20261125-130000-bbbbbbbbbbbb.json'
+ $c=@{version='PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1';runId='b'*32;revision='a'*40;status='CATALOG_EVIDENCE_CAPTURED_INSTALLATION_REVIEW_REQUIRED';elapsedSeconds=1;failure=$null;steps=@('PRIVATE_VALUE');catalog=@{version='PAPER_PUBLISHER_PREFLIGHT_V1';publisherActivated=$false;target=@{database='marketbrain';databaseOid=42;password='PRIVATE_VALUE'};installationBlockers=@('PROPOSED_ROLE_NAME_COLLISION_DO_NOT_ADOPT');tables=@(@{tableName='instrument';present=$true;extra='PRIVATE_VALUE'})};manifest=@{'compose.paper-writer-preflight.yaml'=('A'*64)};cleanup=@{exitCode=0;timedOut=$false;detail='PRIVATE_VALUE'}}
+ $c|ConvertTo-Json -Depth 8|Set-Content $catalog
+ (Get-Item $catalog).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(2)
+ $r=Get-PaperDeliveryReport $dir
+ if($r.test -ne 'PAPER_PUBLISHER_CATALOG_COLLECTION' -or $r.report.catalog.target.databaseOid -ne 42 -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'CATALOG_PROJECTION_FAILED'}
+ if($r.sha256 -ne (Get-FileHash $catalog).Hash){throw 'CATALOG_HASH_MISMATCH'}
+ $c.catalog.publisherActivated='false';$c|ConvertTo-Json -Depth 8|Set-Content $catalog
+ (Get-Item $catalog).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(2)
+ $rejected=$false;try{Get-PaperDeliveryReport $dir|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'CATALOG_MALFORMED_ACCEPTED'}
+ $c.catalog=$null;$c.revision=$null;$c.failure='PRIVATE_VALUE';$c.status='STOPPED_REVIEW_REQUIRED';$c.manifest=@{}
+ $c|ConvertTo-Json -Depth 8|Set-Content $catalog;(Get-Item $catalog).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(2)
+ $r=Get-PaperDeliveryReport $dir
+ if(-not $r.report.failurePresent -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'EARLY_FAILURE_PROJECTION_FAILED'}
  Write-Host 'PASS: delivery collection projection, hash, redaction, malformed rejection and newest selection.'
-}finally{Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue;if($newer){Remove-Item -LiteralPath $newer -Force -ErrorAction SilentlyContinue};Remove-Item -LiteralPath $dir -ErrorAction SilentlyContinue}
+}finally{Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue;if($catalog){Remove-Item -LiteralPath $catalog -Force -ErrorAction SilentlyContinue};if($newer){Remove-Item -LiteralPath $newer -Force -ErrorAction SilentlyContinue};Remove-Item -LiteralPath $dir -ErrorAction SilentlyContinue}
