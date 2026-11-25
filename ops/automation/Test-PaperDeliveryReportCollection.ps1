@@ -5,7 +5,7 @@ $dir=Join-Path ([IO.Path]::GetTempPath()) ('mb-delivery-collect-'+[guid]::NewGui
 $null=New-Item -ItemType Directory $dir
 $file=Join-Path $dir 'paper-delivery-20261125-120000-aaaaaaaaaaaa.json'
 try {
- $v=@{version='PAPER_DELIVERY_BUNDLE_V1';runId='a'*32;status='FAILED';failure='PRIVATE_VALUE';elapsedSeconds=2;syntheticDatabaseWritesPerformed=$true;applicationDatabaseAccessed=$false;actionExecutionEnabled=$false;prepare=$null;recover=$null;cleanup=@(@{action='PRESERVED_STOP_REQUESTED';detail='PRIVATE_VALUE'});manifest=@{'ops/windows/TestPaperPersistenceBundle.ps1'=('A'*64)};events=@('PRIVATE_VALUE')}
+ $v=@{version='PAPER_DELIVERY_BUNDLE_V1';runId='a'*32;status='FAILED';failure='PRIVATE_VALUE';elapsedSeconds=2;syntheticDatabaseWritesPerformed=$true;applicationDatabaseAccessed=$false;actionExecutionEnabled=$false;prepare=$null;recover=$null;cleanup=@(@{action='PRESERVED_STOP_REQUESTED';detail='PRIVATE_VALUE'});manifest=@{'ops/windows/TestPaperPersistenceBundle.ps1'=('A'*64);codeRevision=('a'*40);dockerExecutable='PRIVATE_VALUE';verificationImage='PRIVATE_VALUE';databaseImage='PRIVATE_VALUE'};events=@('PRIVATE_VALUE')}
  $v|ConvertTo-Json -Depth 7|Set-Content $file
  $r=Get-PaperDeliveryReport $dir
  if(-not $r.passed -or -not $r.report.failurePresent -or ($r|ConvertTo-Json -Depth 8).Contains('PRIVATE_VALUE')){throw 'FAILED_REPORT_PROJECTION'}

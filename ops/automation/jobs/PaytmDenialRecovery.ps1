@@ -94,7 +94,7 @@ function Get-PaperDeliveryReport([string]$Directory='C:\MarketBrainData\Review')
  }
  $safe.cleanup=@($v.cleanup|ForEach-Object {if($_.action -cnotmatch '^[A-Z_]{1,100}$'){throw 'DELIVERY_REPORT_FIELD_REJECTED'};@{action=$_.action}})
  $safe.manifest=[ordered]@{}
- foreach($p in $v.manifest.PSObject.Properties){if($p.Name -cnotmatch '^(ops/windows|marketbrain-service)/[A-Za-z0-9/_.-]{1,200}$' -or $p.Value -cnotmatch '^[A-Fa-f0-9]{64}$'){throw 'DELIVERY_MANIFEST_REJECTED'};$safe.manifest[$p.Name]=$p.Value}
+ foreach($p in $v.manifest.PSObject.Properties){if($p.Name -eq 'codeRevision'){if($p.Value -cnotmatch '^[a-f0-9]{40}$'){throw 'DELIVERY_MANIFEST_REJECTED'};$safe.manifest.codeRevision=$p.Value;continue};if($p.Name -in @('dockerExecutable','verificationImage','databaseImage')){continue};if($p.Name -cnotmatch '^(ops/windows|marketbrain-service)/[A-Za-z0-9/_.-]{1,200}$' -or $p.Value -cnotmatch '^[A-Fa-f0-9]{64}$'){throw 'DELIVERY_MANIFEST_REJECTED'};$safe.manifest[$p.Name]=$p.Value}
  return @{test='PAPER_DELIVERY_REPORT_COLLECTION';passed=$true;status='REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED';sourceFile=$file.Name;sha256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes));report=$safe;ordersEnabled=$false}
 }
 
