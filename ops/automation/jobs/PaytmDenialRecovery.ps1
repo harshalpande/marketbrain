@@ -125,7 +125,24 @@ function Get-PublisherCatalogProjection($v,[byte[]]$bytes,[string]$name) {
  $safe.catalog.installationBlockers=@($v.catalog.installationBlockers|Where-Object {$null -ne $_}|ForEach-Object {if($_ -cnotmatch '^[A-Za-z0-9_:]{1,150}$'){throw 'CATALOG_BLOCKER_REJECTED'};$_})
  $safe.cleanup=Project $v.cleanup;$safe.manifest=[ordered]@{}
  foreach($p in $v.manifest.PSObject.Properties){if($p.Name -cnotmatch '^(compose\.paper-writer-preflight\.yaml|(?:ops/windows|marketbrain-service)/[A-Za-z0-9/_.-]{1,200})$' -or $p.Value -cnotmatch '^[A-Fa-f0-9]{64}$'){throw 'CATALOG_MANIFEST_REJECTED'};$safe.manifest[$p.Name]=$p.Value}
+ if(@($safe.steps|Where-Object {$_.stage -eq 'configuration' -and $_.timedOut}).Count){$safe.dockerProbe=Get-PublisherDockerProbe}
  return @{test='PAPER_PUBLISHER_CATALOG_COLLECTION';passed=$true;status='REPORT_COLLECTED_NOT_AUTOMATICALLY_ACCEPTED';sourceFile=$name;sha256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes));report=$safe;ordersEnabled=$false}
+}
+function Get-PublisherDockerProbe {
+ $rows=@();$d=@(Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue)
+ if(-not $d.Count){return @{available=$false;checks=@()}}
+ foreach($a in @(@('compose','version','--short'),@('version','--format','{{.Server.Version}}'))) {
+  $p=[Diagnostics.Process]::new();$p.StartInfo.FileName=$d[0].Source;$p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true
+  $p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true
+  foreach($s in $a){[void]$p.StartInfo.ArgumentList.Add($s)}
+  $w=[Diagnostics.Stopwatch]::StartNew()
+  try{[void]$p.Start();$o=$p.StandardOutput.ReadToEndAsync();$e=$p.StandardError.ReadToEndAsync();$done=$p.WaitForExit(20000)
+   if(-not $done){$p.Kill($true);[void]$p.WaitForExit(3000)}
+   $drained=$o.Wait(3000) -and $e.Wait(3000)
+   $rows+=@{stage=($a[0]+'-version');timedOut=(-not $done);exitCode=$(if($done){$p.ExitCode}else{-999});elapsedSeconds=$w.Elapsed.TotalSeconds;outputDrained=$drained}
+  }catch{$rows+=@{stage=($a[0]+'-version');probeFailed=$true}}
+  finally{try{if(-not $p.HasExited){$p.Kill($true)}}catch{};$p.Dispose()}
+ };return @{available=$true;checks=$rows;configurationRead=$false;databaseAccessed=$false}
 }
 
 # Read-only, fixed-task diagnostics. Never return task arguments, event messages or credentials.
