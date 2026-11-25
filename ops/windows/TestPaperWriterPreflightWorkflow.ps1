@@ -26,6 +26,7 @@ function Invoke-PaperCatalogProcess([string]$Executable,[string[]]$Arguments,[st
     $script:nativeCalls+=,@($Arguments)
     $out='';$exitCode=0;$timeout=$false
     if($Arguments -contains 'rev-parse'){$out='a'*40}
+    elseif($Arguments -contains 'version'){$out='29.0.1';if($script:failStage -eq 'engine' -and $Arguments[0] -eq 'version'){$exitCode=1};if($script:failStage -eq 'plugin' -and $Arguments[0] -eq 'compose'){$exitCode=-999;$timeout=$true}}
     elseif($Arguments -contains 'run') {
         $v=Sample;if($script:invalidReport){$v.applicationWriterActivated=$true}
         if($env:MARKETBRAIN_PREFLIGHT_KIND -ceq 'PUBLISHER'){$v.version='PAPER_PUBLISHER_PREFLIGHT_V1';$v|Add-Member publisherActivated $false;$v|Add-Member target @{database='marketbrain';databaseOid=42}}
@@ -34,11 +35,12 @@ function Invoke-PaperCatalogProcess([string]$Executable,[string[]]$Arguments,[st
         if($script:failStage -ceq 'timeout'){$timeout=$true;$exitCode=-999}
     }
     if(($script:failStage -ceq 'build' -and $Arguments -contains 'build') -or ($script:failStage -ceq 'cleanup' -and $Arguments -contains 'down')){$exitCode=1}
+    if($script:failStage -eq 'configuration' -and $Arguments -contains 'config'){$exitCode=-999;$timeout=$true}
     return [pscustomobject]@{stdout=$out;stderr='SECRET_TOKEN_DO_NOT_SERIALIZE';exitCode=$exitCode;timedOut=$timeout;elapsedSeconds=0.1}
 }
 function Get-Command {param($Name,$CommandType,$ErrorAction);[pscustomobject]@{Source=(Get-Process -Id $PID).Path}}
 function Test-Path {param($LiteralPath,$PathType);if($LiteralPath -eq (Join-Path $repo '.env')){return $true};if($PathType){Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath -PathType $PathType}else{Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath}}
-foreach($case in @('pass','build','run','timeout','cleanup','invalid')) {
+foreach($case in @('pass','engine','plugin','configuration','build','run','timeout','cleanup','invalid')) {
     $script:nativeCalls=@();$script:failStage=$case;$script:invalidReport=($case -ceq 'invalid')
     $dir=Join-Path $testRoot $case
     if($case -ceq 'pass'){& $runner -OutputDirectory $dir}else{Reject {& $runner -OutputDirectory $dir} 'runner failure propagated'}
@@ -49,13 +51,15 @@ foreach($case in @('pass','build','run','timeout','cleanup','invalid')) {
     if($case -ceq 'pass'){Check ($r.status -ceq 'CATALOG_EVIDENCE_CAPTURED_INSTALLATION_REVIEW_REQUIRED') 'success retains installation gate';Check (@($r.catalog.installationBlockers).Count -eq 1) 'findings retained'}
     else{Check ($r.status -like 'STOPPED*') 'failure not success'}
     $runs=@($script:nativeCalls|Where-Object {$_ -contains 'run'});Check ($runs.Count -le 1) 'no inference or inspection loop'
-    if($case -ceq 'build'){Check ($runs.Count -eq 0) 'failed build never reads database'}
+    if($case -in @('engine','plugin','configuration','build')){Check ($runs.Count -eq 0) 'failed prerequisite/build never reads database';Check (@($script:nativeCalls|Where-Object {$_ -contains 'down'}).Count -eq 0) 'no cleanup before container attempt'}
     else{Check (@($script:nativeCalls|Where-Object {$_ -contains 'down'}).Count -eq 1) 'only owned inspector cleanup'}
     foreach($call in $script:nativeCalls|Where-Object {$_ -contains 'compose'}) {
         Check (-not ($call -contains 'up') -and -not ($call -contains 'restart') -and -not ($call -contains 'prune')) 'no application restart or global cleanup'
-        Check (($call -join ' ') -match 'compose.paper-writer-preflight.yaml') 'standalone compose only'
+        if($call -notcontains 'version'){Check (($call -join ' ') -match 'compose.paper-writer-preflight.yaml') 'standalone compose only'}
     }
 }
+$codes=@{engine='DOCKER_ENGINE_UNAVAILABLE';plugin='COMPOSE_PLUGIN_TIMEOUT';configuration='COMPOSE_CONFIGURATION_TIMEOUT'}
+foreach($case in $codes.Keys){$r=Get-Content (Get-ChildItem (Join-Path $testRoot $case) -Filter '*.json').FullName -Raw|ConvertFrom-Json;Check ($r.failureCode -ceq $codes[$case]) 'exact prerequisite failure code'}
 $tokens=$null;$errors=$null
 $script:failStage='pass';$script:invalidReport=$false
 $beforeKind=$env:MARKETBRAIN_PREFLIGHT_KIND

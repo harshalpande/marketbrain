@@ -12,6 +12,7 @@ $priorKind=$env:MARKETBRAIN_PREFLIGHT_KIND
 $watch=[Diagnostics.Stopwatch]::StartNew()
 $report=[ordered]@{version='PAPER_WRITER_PREFLIGHT_BUNDLE_V1';status='RUNNING';runId=$id;updatedAtUtc=$null;elapsedSeconds=0;revision=$null;manifest=@{};events=@();steps=@();catalog=$null;failure=$null;cleanup=$null;schema=$Schema;configurationSource='Repository .env and existing process overrides; running-service target identity not verified';applicationRestartRequested=$false;databaseWritesRequested=$false;applicationWriterActivated=$false;actionExecutionEnabled=$false}
 [void](New-Item -ItemType Directory -Path $OutputDirectory -Force)
+$report.failureCode=$null
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-writer-preflight-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))
 if($Publisher){$report.version='PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1';$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-publisher-preflight-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
 if($path.Length+41 -ge 260 -or (Test-Path -LiteralPath $path)){throw 'Unsafe or existing evidence path.'}
@@ -27,6 +28,12 @@ function Compose([string]$Name,[string[]]$Arguments,[int]$Limit) {
     $report.steps+=@{stage=$Name;exitCode=$r.exitCode;timedOut=$r.timedOut;elapsedSeconds=$r.elapsedSeconds;stdoutCharacters=$r.stdout.Length;stderrCharacters=$r.stderr.Length};Save
     return $r
 }
+function Prerequisite([string]$Name,[string[]]$Arguments,[int]$Limit) {
+    $r=Invoke-PaperCatalogProcess $docker $Arguments $repo $Limit
+    $report.steps+=@{stage=$Name;exitCode=$r.exitCode;timedOut=$r.timedOut;elapsedSeconds=$r.elapsedSeconds;stdoutCharacters=$r.stdout.Length;stderrCharacters=$r.stderr.Length};Save
+    if($r.timedOut){$report.failureCode=$Name.ToUpperInvariant().Replace('-','_')+'_TIMEOUT';throw 'Docker prerequisite timed out.'}
+    if($r.exitCode -ne 0 -or [string]::IsNullOrWhiteSpace($r.stdout)){$report.failureCode=$Name.ToUpperInvariant().Replace('-','_')+'_UNAVAILABLE';throw 'Docker prerequisite unavailable.'}
+}
 try {
     Stage 0 'Read-only catalog inspection. No application restart, account mutation, provider or model call.'
     if($Schema.StartsWith('pg_') -or $Schema -ceq 'information_schema'){throw 'Unsupported schema.'}
@@ -41,9 +48,12 @@ try {
     if(-not [IO.Path]::IsPathRooted($docker) -or -not (Test-Path -LiteralPath $docker -PathType Leaf)){throw 'Docker executable unavailable.'}
     $env:MARKETBRAIN_PREFLIGHT_SCHEMA=$Schema
     $env:MARKETBRAIN_PREFLIGHT_KIND=if($Publisher){'PUBLISHER'}else{'WRITER'}
+    Stage 5 'Checking Docker engine and Compose plugin independently before configuration.'
+    Prerequisite 'docker-engine' @('version','--format','{{.Server.Version}}') 60
+    Prerequisite 'compose-plugin' @('compose','version','--short') 60
     Stage 10 'Checking standalone Compose configuration without printing credentials.'
-    $r=Compose 'configuration' @('config','--quiet') 30
-    if($r.exitCode -ne 0 -or $r.timedOut){throw 'Compose configuration failed. Review .env locally; do not share credentials.'}
+    $r=Compose 'configuration' @('config','--quiet') 90
+    if($r.exitCode -ne 0 -or $r.timedOut){$report.failureCode=if($r.timedOut){'COMPOSE_CONFIGURATION_TIMEOUT'}else{'COMPOSE_CONFIGURATION_REJECTED'};throw 'Compose configuration failed. Review .env locally; do not share credentials.'}
     Stage 20 'Building the standalone inspector; existing MarketBrain containers remain untouched.'
     $r=Compose 'inspector-build' @('build','paper-writer-preflight') $BuildTimeoutSeconds
     if($r.exitCode -ne 0 -or $r.timedOut){throw 'Inspector build failed. Stage/exit/timing saved; sensitive raw output deliberately withheld.'}
@@ -68,6 +78,7 @@ try {
     # Avoid serializing exceptions that can contain expanded environment values.
     $report.failure='Stopped during '+[string]$report.events[-1].message+' See stage exit codes and sanitized catalog failure, if available.'
     Write-Warning 'Preflight stopped; share the single report. No automatic retry or permission change.'
+    if($report.failureCode){Write-Warning ('Failure code: '+$report.failureCode)}
 } finally {
     if($runAttempted -and $docker) {
         try {

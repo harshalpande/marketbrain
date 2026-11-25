@@ -1,0 +1,23 @@
+{
+    "date":  "2026-11-25",
+    "status":  "CATALOG_CONFIG_TIMEOUT_CONFIRMED_HANDLING_FIXED_RERUN_PENDING",
+    "failedRunId":  "c22faf688482445382c225f3714a5ac3",
+    "sourceSha256":  "D39514713152C8DC2E8945807515D8448764BC0C6BCA92FB4EDB40B1D1214651",
+    "collectionJobId":  "b0cfcbc0-c2ba-4e1f-b8ae-f3c519534a63",
+    "probeJobId":  "b5d848e2-7aa2-440b-84b5-4a4d0b5d5f26",
+    "failedStage":  "configuration",
+    "exitCode":  -999,
+    "stageElapsedSeconds":  30.5291038,
+    "stdoutCharacters":  0,
+    "stderrCharacters":  0,
+    "laterComposeVersionSeconds":  0.3423969,
+    "laterDockerServerVersionSeconds":  0.0841939,
+    "laterVersionChecksPassed":  true,
+    "underlyingStallCauseEstablished":  false,
+    "offlineWorkflowAssertions":  155,
+    "applicationDatabaseAccessed":  false,
+    "applicationRestartRequested":  false,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80
+}

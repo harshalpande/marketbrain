@@ -103,7 +103,7 @@ function Get-PublisherCatalogProjection($v,[byte[]]$bytes,[string]$name) {
  if($v.version -cne 'PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1' -or $v.runId -cnotmatch '^[a-f0-9]{32}$'){throw 'CATALOG_SCOPE_REJECTED'}
  function Project($value) {
   $out=[ordered]@{}
-  foreach($key in @('version','status','scope','stage','schemaName','resolvedSchema','database','roleName','functionName','tableName','kind','failureType','sqlState')) {
+  foreach($key in @('version','status','scope','stage','failureCode','schemaName','resolvedSchema','database','roleName','functionName','tableName','kind','failureType','sqlState')) {
    if($null -ne $value.$key){if([string]$value.$key -cnotmatch '^[A-Za-z0-9_:-]{1,150}$'){throw 'CATALOG_FIELD_REJECTED'};$out[$key]=$value.$key}
   }
   foreach($key in @('readOnly','repeatableRead','unchangedSessionIdentity','superuser','createRole','createDatabase','replication','bypassRls','login','publicDatabaseCreate','publicDatabaseTemp','currentRoleCreate','currentRoleOwnerMembership','publicCreate','present','rowSecurity','forceRowSecurity','currentRoleSelect','publicSelect','publicWrite','securityDefiner','publicExecute','catalogListBoundReached','publisherActivated','connectionAttempted','applicationDatabaseWritesPerformed','applicationWriterActivated','actionExecutionEnabled','applicationRestartRequested','databaseWritesRequested','timedOut')) {
