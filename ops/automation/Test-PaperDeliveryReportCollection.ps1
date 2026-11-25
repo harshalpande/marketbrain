@@ -26,6 +26,10 @@ try {
  $r=Get-PaperDeliveryReport $dir
  if($r.test -ne 'PAPER_PUBLISHER_CATALOG_COLLECTION' -or $r.report.catalog.target.databaseOid -ne 42 -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'CATALOG_PROJECTION_FAILED'}
  if($r.sha256 -ne (Get-FileHash $catalog).Hash){throw 'CATALOG_HASH_MISMATCH'}
+ $c.steps=@(@{stage='inspector-build';exitCode=1;timedOut=$false;stderrCharacters=42;stderr='PRIVATE_VALUE'})
+ $c|ConvertTo-Json -Depth 8|Set-Content $catalog;(Get-Item $catalog).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(2)
+ $r=Get-PaperDeliveryReport $dir
+ if($r.report.steps[0].exitCode -ne 1 -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'STEP_PROJECTION_FAILED'}
  $c.catalog.publisherActivated='false';$c|ConvertTo-Json -Depth 8|Set-Content $catalog
  (Get-Item $catalog).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(2)
  $rejected=$false;try{Get-PaperDeliveryReport $dir|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'CATALOG_MALFORMED_ACCEPTED'}

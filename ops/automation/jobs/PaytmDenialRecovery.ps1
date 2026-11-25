@@ -103,19 +103,21 @@ function Get-PublisherCatalogProjection($v,[byte[]]$bytes,[string]$name) {
  if($v.version -cne 'PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1' -or $v.runId -cnotmatch '^[a-f0-9]{32}$'){throw 'CATALOG_SCOPE_REJECTED'}
  function Project($value) {
   $out=[ordered]@{}
-  foreach($key in @('version','status','scope','schemaName','resolvedSchema','database','roleName','functionName','tableName','kind','failureType','sqlState')) {
+  foreach($key in @('version','status','scope','stage','schemaName','resolvedSchema','database','roleName','functionName','tableName','kind','failureType','sqlState')) {
    if($null -ne $value.$key){if([string]$value.$key -cnotmatch '^[A-Za-z0-9_:-]{1,150}$'){throw 'CATALOG_FIELD_REJECTED'};$out[$key]=$value.$key}
   }
   foreach($key in @('readOnly','repeatableRead','unchangedSessionIdentity','superuser','createRole','createDatabase','replication','bypassRls','login','publicDatabaseCreate','publicDatabaseTemp','currentRoleCreate','currentRoleOwnerMembership','publicCreate','present','rowSecurity','forceRowSecurity','currentRoleSelect','publicSelect','publicWrite','securityDefiner','publicExecute','catalogListBoundReached','publisherActivated','connectionAttempted','applicationDatabaseWritesPerformed','applicationWriterActivated','actionExecutionEnabled','applicationRestartRequested','databaseWritesRequested','timedOut')) {
    if($null -ne $value.$key){if($value.$key -isnot [bool]){throw 'CATALOG_FIELD_REJECTED'};$out[$key]=$value.$key}
   }
-  foreach($key in @('databaseOid','serverVersionNumber','elapsedSeconds','providerCalls','telegramCalls','modelCalls','exitCode')) {
+  foreach($key in @('databaseOid','serverVersionNumber','elapsedSeconds','providerCalls','telegramCalls','modelCalls','exitCode','stdoutCharacters','stderrCharacters')) {
    if($null -ne $value.$key){if($value.$key -is [string] -or $value.$key -is [bool]){throw 'CATALOG_FIELD_REJECTED'};$out[$key]=[decimal]$value.$key}
   };return $out
  }
  $safe=Project $v;$safe.runId=$v.runId;$safe.failurePresent=[bool]$v.failure;$safe.revision=$v.revision
  if($null -ne $v.revision -and $v.revision -cnotmatch '^[a-f0-9]{40}$'){throw 'CATALOG_REVISION_REJECTED'}
  $safe.catalog=Project $v.catalog
+ if(@($v.steps).Count -gt 12){throw 'CATALOG_STEP_BOUND_REJECTED'}
+ $safe.steps=@($v.steps|Where-Object {$null -ne $_}|ForEach-Object {Project $_})
  foreach($key in @('session','schema','target')){$safe.catalog[$key]=Project $v.catalog.$key}
  foreach($key in @('tables','proposedRoleCollisions','writerFunctionCollisions','publicCreateSchemas','publicCallableDefiners')) {
   if(@($v.catalog.$key).Count -gt 21){throw 'CATALOG_BOUND_REJECTED'};$safe.catalog[$key]=@($v.catalog.$key|Where-Object {$null -ne $_}|ForEach-Object {Project $_})
