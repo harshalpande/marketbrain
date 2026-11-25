@@ -79,3 +79,27 @@ Publisher credentials have a separate process-owned buffer and control socket at
 The next deployment milestone must provision the production publisher/helper roles and functions, verify exact grants, preserve the existing bound key, provision its separate credential and private socket directory, and add a bounded authenticated operator launcher. Only then enable combined ACCEPT/REJECT/expiry delivery. Keep marketbrain.paper.publisher.enabled absent/false until that deployment is complete. No application rebuild or new spare test is needed for this source-only milestone; pull the committed sources only.
 
 Local validation: 95 Java tests passed with zero failures/errors, including existing writer/callback regressions, publisher role identity and secret erasure, locked startup, separate credentials and explicit socket selection, and rejection of invalid execution/provider/credential configurations. Spring socket binding is mocked in these local configuration tests; Linux socket deployment and production authentication are not established. [Wiring evidence](evidence/paytm-publisher-wiring-local-20261125.json).
+
+## Off-hours installation rehearsal
+
+PaperPublisherInstallation is the shared administrative transaction engine. It is not a startup migration or an operator command and is not invoked against the application database in this release. It requires a dedicated administrative connection and exact database name/OID/schema. It rejects existing publisher/helper roles and existing publication function names, refuses schemas with PUBLIC CREATE, bounds statement and lock waits, and locks dependencies before changing anything. It grants only the reviewed table/column permissions and the three restricted function entrypoints. Existing role/function definitions are not silently adopted, replaced or dropped. No blanket revocation of unrelated application permissions occurs.
+
+REHEARSE_ROLLBACK executes the installation and rolls it back. INSTALL_DISABLED commits both roles as NOLOGIN without passwords; it does not activate the application. The disposable fixture alone subsequently enables its synthetic login to test operations. Production password provisioning, existing-role reconciliation and operator launcher remain pending. A failed production connection/commit must be reconciled, never blindly rerun.
+
+The 47-check isolated suite adds five cases: wrong database OID refusal, full rehearsal rollback, rollback of newly created roles after a later SQL failure, disabled-login verification and rejection of reinstallation over existing roles. Existing permission, atomic batch, replay, expiry, delivery and restart checks now exercise this shared installer. Only disposable PostgreSQL containers are touched; fake HTTP means no Paytm/Telegram requests. The previous accepted 42-check report does not establish acceptance of these new installation cases.
+
+Run outside market hours after pulling the latest code:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\TestPaperPersistenceBundle.ps1 -ApprovalDelivery
+```
+
+Docker Desktop must be running. The existing MarketBrain application may remain running; this does not rebuild or restart it. One paper-delivery JSON contains the result and can be collected by the existing automation queue. The suite itself is not yet a remote execution job; do not claim it was submitted automatically. Expect several minutes, with progress and bounded stage timeouts.
+
+Market-hours work: real fresh reference and ACCEPT revalidation after installation/custody/launcher gates are complete. REJECT, expiry, unauthorized-callback and replay logic can be exercised with fixtures off-hours. Tomorrow's market session alone does not remove the remaining integration prerequisites.
+
+Local validation: 36 Java tests passed in a separate Maven build directory, zero failures/errors/skips; 92 offline PowerShell assertions passed. An initial local rerun encountered editor-generated incomplete bytecode; the separate build recompiles the exact sources and avoids that output collision. The installer also rejects unexpected function execution grants inherited from administrative default privileges. Real 47-check database execution remains pending. [Installer evidence](evidence/paytm-publisher-installer-local-20261125.json).

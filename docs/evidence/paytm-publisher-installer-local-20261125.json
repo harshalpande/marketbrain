@@ -1,0 +1,36 @@
+{
+    "date":  "2026-11-25",
+    "status":  "PUBLISHER_INSTALLER_LOCAL_PASSED_ISOLATED_DATABASE_PENDING",
+    "javaTests":  36,
+    "javaBuild":  "separate temporary Maven build to avoid editor output interference",
+    "suites":  [
+                   {
+                       "name":  "PaperPublisherInstallationTest",
+                       "tests":  15
+                   },
+                   {
+                       "name":  "PaperRestrictedDeliveryTest",
+                       "tests":  3
+                   },
+                   {
+                       "name":  "PaperPublisherRuntimeTest",
+                       "tests":  7
+                   },
+                   {
+                       "name":  "PaperPublisherConfigurationTest",
+                       "tests":  11
+                   }
+               ],
+    "offlinePowerShellAssertions":  92,
+    "databaseChecksPrepared":  47,
+    "databasePrepareChecks":  41,
+    "databaseRestartChecks":  6,
+    "databaseChecksExecuted":  false,
+    "productionDatabaseAccessed":  false,
+    "productionRolesInstalled":  false,
+    "publisherLoginEnabled":  false,
+    "telegramCalls":  0,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80
+}

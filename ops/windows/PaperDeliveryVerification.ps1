@@ -15,7 +15,8 @@ function Assert-PaperDeliveryPhase($Result,[string]$Phase,[string]$Schema){
         'sent_evidence_and_ciphertext_are_immutable','delivered_accept_runs_quote_adapter_and_review_only','delivered_reject_makes_no_quote_request',
         'wrong_provider_instrument_has_no_fallback','disabled_provider_mapping_blocks_quote_call','fresh_snapshot_with_old_trade_is_blocked',
         'callback_retry_after_ack_failure_reuses_receipt',
-        'publisher_restricted_interface_installs','publisher_role_has_no_direct_write_authority','publisher_direct_table_mutations_denied',
+        'publisher_install_wrong_database_refused','publisher_install_rehearsal_rolls_back','publisher_install_failure_rolls_back_roles',
+        'publisher_restricted_interface_installs','publisher_install_leaves_login_disabled','publisher_install_reentry_refused','publisher_role_has_no_direct_write_authority','publisher_direct_table_mutations_denied',
         'publisher_stranger_cannot_execute','publisher_wrong_policy_rejected','publisher_restricted_batch_commits','publisher_restricted_replay_preserves_tokens',
         'publisher_conflicting_batch_rolls_back','publisher_account_revision_change_rejected','publisher_expiry_blocks_enqueue_and_send',
         'publisher_revoked_recipient_never_sends','publisher_durable_restart_fixture_prepared','prepare_delivery_restart_fixture'

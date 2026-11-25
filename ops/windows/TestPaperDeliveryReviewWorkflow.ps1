@@ -6,9 +6,9 @@ $ErrorActionPreference='Stop'
 $script:deliveryStart=$script:count
 $java=Get-Content -LiteralPath (Join-Path $PSScriptRoot '../../marketbrain-service/src/main/java/in/marketbrain/paper/PaperDeliveryVerification.java') -Raw
 $script:deliveryNames=@([regex]::Matches($java,'check\("([a-z0-9_]+)"')|ForEach-Object {$_.Groups[1].Value})
-Check ($script:deliveryNames.Count -eq 42) '42 fixed delivery declarations'
+Check ($script:deliveryNames.Count -eq 47) '47 fixed delivery declarations'
 function Sample([string]$Phase){
-    $names=if($Phase -ceq '--prepare'){@($script:deliveryNames|Select-Object -First 36)}else{@($script:deliveryNames|Select-Object -Last 6)}
+    $names=if($Phase -ceq '--prepare'){@($script:deliveryNames|Select-Object -First 41)}else{@($script:deliveryNames|Select-Object -Last 6)}
     @{version='PAPER_DELIVERY_REVIEW_V1';phase=$Phase;schema=$schema;status='ISOLATED_DELIVERY_CHECKS_PASSED';checkCount=$names.Count;failedCount=0;elapsedSeconds=1;
       checks=@($names|ForEach-Object {@{name=$_;passed=$true;elapsedMillis=1}});applicationDatabaseAccessed=$false;actionExecutionEnabled=$false;syntheticDatabaseWritesPerformed=$true;
       providerCalls=0;telegramCalls=0;modelCalls=0;httpTransport='FAKE_NO_NETWORK';cashPaise=10000000;reservedCashPaise=0;ledgerRevision=0;orderCount=0;fillCount=0;decisionCount=1;
@@ -31,7 +31,7 @@ Reject {& $run -ApprovalReview -ApprovalDelivery -OutputDirectory (Join-Path $te
 $file=Get-ChildItem -LiteralPath (Join-Path $testRoot 'delivery-pass') -Filter 'paper-delivery-*.json'|Select-Object -First 1
 $ok=Get-Content -LiteralPath $file.FullName -Raw|ConvertFrom-Json
 Check ($ok.version -ceq 'PAPER_DELIVERY_BUNDLE_V1' -and $ok.status -ceq 'ISOLATED_DELIVERY_PASSED_LIVE_TRANSPORT_AND_EXECUTION_BLOCKED') 'delivery result distinguished'
-Check ($ok.prepare.checkCount -eq 36 -and $ok.recover.checkCount -eq 6) 'new suite selected'
+Check ($ok.prepare.checkCount -eq 41 -and $ok.recover.checkCount -eq 6) 'new suite selected'
 Check (@($ok.cleanup|Where-Object action -eq 'REMOVED_SYNTHETIC_CONTAINER_AND_ANONYMOUS_VOLUMES').Count -eq 3) 'owned cleanup'
 $script:failMock=$true;$script:mockContainers=@{}
 Reject {& $run -ApprovalDelivery -OutputDirectory (Join-Path $testRoot 'delivery-fail')} 'failure propagated'

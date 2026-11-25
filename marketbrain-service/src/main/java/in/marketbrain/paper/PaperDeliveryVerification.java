@@ -65,7 +65,12 @@ public final class PaperDeliveryVerification {
         check("fresh_snapshot_with_old_trade_is_blocked",()->{var f=new Fixture();f.delivery.enqueue(proposal("p"));f.delivery.dispatch("p");f.quotePayload=f.quotePayload.replace(Long.toString(T.toEpochMilli()),Long.toString(T.minusSeconds(60).toEpochMilli()));if(!f.action(true).contains("QUOTE_TIME_INVALID"))throw new AssertionError("Old trade trusted");});
         check("callback_retry_after_ack_failure_reuses_receipt",()->{var f=new Fixture();f.delivery.enqueue(proposal("p"));f.delivery.dispatch("p");String first=f.action(true);f.time.at=T.plusSeconds(200);eq(f.action(true),first);eq(f.quotes.get(),1);});
         final PaperPublisherVerification[] publisher=new PaperPublisherVerification[1];
+        check("publisher_install_wrong_database_refused",()->{PaperPublisherVerification.wrongTarget(restart);});
+        check("publisher_install_rehearsal_rolls_back",()->{PaperPublisherVerification.rehearsal(restart,false);});
+        check("publisher_install_failure_rolls_back_roles",()->{PaperPublisherVerification.rehearsal(restart,true);});
         check("publisher_restricted_interface_installs",()->{publisher[0]=new PaperPublisherVerification(restart,true);});
+        check("publisher_install_leaves_login_disabled",()->{eq(publisher[0].disabledInstallVerified,true);});
+        check("publisher_install_reentry_refused",()->{publisher[0].reentryDenied();});
         check("publisher_role_has_no_direct_write_authority",()->{try(var c=publisher[0].connection(false)){PaperPaytmReviewPublisher.verifyRole(c);}});
         check("publisher_direct_table_mutations_denied",()->{var f=publisher[0];for(String table:List.of("paper_portfolio","paper_ledger_account","paper_ledger_order","paper_ledger_fill","paper_approval_proposal","paper_approval_token","paper_approval_delivery","telegram_binding"))f.denied("DELETE FROM "+table+" WHERE false",false);f.denied("UPDATE paper_portfolio SET id=id WHERE false",false);});
         check("publisher_stranger_cannot_execute",()->{publisher[0].denied("SELECT paper_publish_lock('PAYTM_TEST_00000000000000000000000000000001_ACCEPT')",true);});
