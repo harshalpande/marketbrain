@@ -3,6 +3,7 @@ param([switch]$Check)
 $ErrorActionPreference='Stop'
 $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Collect-SupervisedLoginReport.ps1'))
 $probe=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedBoundaryProbe.ps1'))
+$probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Collect-PaperDeliveryReport.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedGatewayObservation.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedGatewayStartupProbe.ps1'))
 $probe+="`n"+[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'SupervisedUniverseProbe.ps1'))
@@ -43,6 +44,10 @@ if($Mode -eq 'Apply'){
  [IO.File]::WriteAllText($ResultPath,($batch|ConvertTo-Json -Depth 8))
  if(-not $lifecycle.passed){exit 1}
  exit 0
+}
+if($Mode -eq 'Observe'){
+ $delivery=Get-PaperDeliveryReport
+ if($null -ne $delivery){[IO.File]::WriteAllText($ResultPath,($delivery|ConvertTo-Json -Depth 8));exit 0}
 }
 
 '@
