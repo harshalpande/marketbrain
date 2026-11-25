@@ -14,8 +14,12 @@ function Assert-PaperDeliveryPhase($Result,[string]$Phase,[string]$Schema){
         'wrong_key_blocks_without_sending_or_token_reissue','lost_acknowledgement_is_uncertain_and_not_resent','sending_after_crash_is_not_automatically_retried',
         'sent_evidence_and_ciphertext_are_immutable','delivered_accept_runs_quote_adapter_and_review_only','delivered_reject_makes_no_quote_request',
         'wrong_provider_instrument_has_no_fallback','disabled_provider_mapping_blocks_quote_call','fresh_snapshot_with_old_trade_is_blocked',
-        'callback_retry_after_ack_failure_reuses_receipt','prepare_delivery_restart_fixture'
-    )}elseif($Phase -ceq '--recover'){@('restart_pending_delivery_can_send_once','restart_sent_and_uncertain_are_not_resent','restart_review_and_account_remain_unchanged')}else{throw 'Unknown delivery phase.'}
+        'callback_retry_after_ack_failure_reuses_receipt',
+        'publisher_restricted_interface_installs','publisher_role_has_no_direct_write_authority','publisher_direct_table_mutations_denied',
+        'publisher_stranger_cannot_execute','publisher_wrong_policy_rejected','publisher_restricted_batch_commits','publisher_restricted_replay_preserves_tokens',
+        'publisher_conflicting_batch_rolls_back','publisher_account_revision_change_rejected','publisher_expiry_blocks_enqueue_and_send',
+        'publisher_revoked_recipient_never_sends','publisher_durable_restart_fixture_prepared','prepare_delivery_restart_fixture'
+    )}elseif($Phase -ceq '--recover'){@('publisher_restart_pending_claims_once','publisher_restart_no_resend_of_sent_or_uncertain','publisher_restart_authority_and_account_unchanged','restart_pending_delivery_can_send_once','restart_sent_and_uncertain_are_not_resent','restart_review_and_account_remain_unchanged')}else{throw 'Unknown delivery phase.'}
     Assert-PaperExact $Result.pendingCount $(if($Phase -ceq '--prepare'){1}else{0}) 'pendingCount'
     Assert-PaperExact $Result.checkCount $expected.Count 'checkCount'
     if(@($Result.checks).Count -ne $expected.Count){throw 'Missing delivery checks.'}

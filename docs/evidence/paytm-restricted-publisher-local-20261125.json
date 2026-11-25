@@ -1,0 +1,20 @@
+{
+    "date":  "2026-11-25",
+    "status":  "RESTRICTED_PUBLISHER_LOCAL_PASSED_SQL_RUNTIME_PENDING",
+    "javaTests":  51,
+    "offlinePowerShellAssertions":  92,
+    "databaseChecksPrepared":  42,
+    "databaseChecksExecuted":  false,
+    "productionRolesCreated":  false,
+    "productionFunctionsInstalled":  false,
+    "telegramCalls":  0,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80,
+    "functions":  [
+                      "paper_publish_enqueue",
+                      "paper_publish_lock",
+                      "paper_publish_transition"
+                  ],
+    "scope":  "Local Java fixtures and mocked workflow; real PostgreSQL tests await spare run"
+}

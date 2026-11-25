@@ -28,7 +28,7 @@ public final class PaperPaytmReviewPublisher {
         };
         PaperApprovalStorage.verify(guarded,existingBoundKey); // Never bind or replace the key here.
         var review=new PaperApprovalReview(guarded,quotes,quotes.clock(),PaperReviewTestPolicy.paytmPolicy());
-        return new PaperPaytmReviewPublisher(guarded,quotes,new PaperApprovalDelivery(guarded,review,sender,quotes.clock(),existingBoundKey));
+        return new PaperPaytmReviewPublisher(guarded,quotes,PaperApprovalDelivery.restrictedPublisher(guarded,review,sender,quotes.clock(),existingBoundKey));
     }
     PaperPaytmReviewPublisher(Connections connections,PaytmPaperReviewAdapter quotes,PaperApprovalDelivery delivery) {
         this.connections=Objects.requireNonNull(connections);this.quotes=Objects.requireNonNull(quotes);
@@ -44,6 +44,12 @@ public final class PaperPaytmReviewPublisher {
                 for(int i=3;i<=8;i++)if(r.getBoolean(i)||r.wasNull())throw new SQLException("PUBLISHER_ROLE_TOO_PRIVILEGED");
             }
         }
+        try(var s=c.prepareStatement("SELECT bool_or(has_table_privilege(current_user,t,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') "
+                +"OR has_any_column_privilege(current_user,t,'INSERT,UPDATE,REFERENCES')) FROM unnest(ARRAY["
+                +"'paper_portfolio','paper_ledger_account','paper_ledger_order','paper_ledger_fill','paper_approval_proposal','paper_approval_token','paper_approval_delivery','telegram_binding']) t")) {
+            s.setQueryTimeout(10);
+            try(var r=s.executeQuery()){if(!r.next()||r.getBoolean(1)||r.wasNull())throw new SQLException("PUBLISHER_DIRECT_WRITE_PRIVILEGE_REJECTED");}
+        }
     }
     /** One real reference read for three test proposals; recipient/revision come from stored state. */
     public Plan prepare(String batchId,long portfolioId,String symbol)throws SQLException {
@@ -58,7 +64,7 @@ public final class PaperPaytmReviewPublisher {
             begin(c);
             try {
                 long user,chat;
-                try(var s=statement(c,"SELECT telegram_user_id,telegram_chat_id FROM telegram_binding WHERE binding_key='PRIMARY' AND active=TRUE FOR SHARE");var r=s.executeQuery()) {
+                try(var s=statement(c,"SELECT telegram_user_id,telegram_chat_id FROM telegram_binding WHERE binding_key='PRIMARY' AND active=TRUE");var r=s.executeQuery()) {
                     if(!r.next())throw new IllegalStateException("ACTIVE_PRIVATE_BINDING_REQUIRED");
                     user=r.getLong(1);chat=r.getLong(2);
                 }
@@ -71,7 +77,7 @@ public final class PaperPaytmReviewPublisher {
                     String id="PAYTM_TEST_"+batchId+"_"+test;
                     var terms=new Approval(id,id,symbol,Side.BUY,1,q.pricePaise(),low,high,0,now,now.plusSeconds(100));
                     var p=new Proposal(id,portfolioId,q.instrumentId(),revision,user,chat,terms,PaperReviewTestPolicy.paytmPolicy().id());
-                    var account=snapshot(c,p,true);
+                    var account=snapshot(c,p,false); // enqueue function takes locks and rechecks the revision.
                     if(!account.consistent()||account.revision()!=revision||account.cash()-account.reserved()<high)
                         throw new IllegalStateException("ACCOUNT_NOT_READY_FOR_REVIEW");
                     proposals.add(p);
