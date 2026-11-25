@@ -42,6 +42,13 @@ class PaytmSupervisedSessionTest {
         var browser=session.browser(URI.create(url).getQuery().substring(5));
         session.callback("state="+browser.location().getQuery().split("state=")[1]+"&requestToken=test",browser.binding());
     }
+    @Test void reviewClockRequiresAuthenticatedLiveAnchor(){
+        var session=create();assertThatThrownBy(session::reviewInstant).hasMessage("SUPERVISED_SESSION_LOCKED");
+        session.start("key","secret",vps.toEpochMilli());assertThatThrownBy(session::reviewInstant).hasMessage("PAYTM_READ_ACCESS_REQUIRED");
+        session.close();login(session);ticks.set(Duration.ofSeconds(2).toNanos());assertThat(session.reviewInstant()).isEqualTo(vps.plusSeconds(2));
+        ticks.set(Duration.ofMinutes(20).toNanos());assertThatThrownBy(session::reviewInstant).hasMessage("SUPERVISED_SESSION_EXPIRED");
+        assertThatThrownBy(session::reviewInstant).hasMessage("SUPERVISED_SESSION_LOCKED");
+    }
     @Test void optInReplayConsumesSameCallbackOnlyOnceAndDoesNotRetainIt(){
         var session=create();
         var url=session.start("key","secret",vps.toEpochMilli(),true);

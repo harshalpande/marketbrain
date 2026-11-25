@@ -127,6 +127,12 @@ public final class PaytmSupervisedSession implements AutoCloseable {
             close();throw new IllegalStateException(failure);
         }
     }
+    /** Internal review clock: never substitutes laptop wall time or a previous session anchor. */
+    synchronized Instant reviewInstant() {
+        alive();
+        if (!"READ_ACCESS_VERIFIED".equals(state)) throw new IllegalStateException("PAYTM_READ_ACCESS_REQUIRED");
+        return clock.instant();
+    }
     private void alive() {
         if (clock == null) throw new IllegalStateException("SUPERVISED_SESSION_LOCKED");
         try { clock.instant(); } catch (RuntimeException e) { failure="SUPERVISED_SESSION_EXPIRED";close(); throw new IllegalStateException("SUPERVISED_SESSION_EXPIRED"); }

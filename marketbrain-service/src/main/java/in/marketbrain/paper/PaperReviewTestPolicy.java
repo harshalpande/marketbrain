@@ -14,4 +14,9 @@ public final class PaperReviewTestPolicy {
     public static void requireExact(PaperApprovalReview.PolicyVersion policy) {
         if (!policy().equals(policy)) throw new IllegalArgumentException("Approved review-only policy required");
     }
+    /** Separate provider identity prevents reusing an earlier UPSTOX proposal under Paytm. Not activated here. */
+    public static PaperApprovalReview.PolicyVersion paytmPolicy() {
+        return new PaperApprovalReview.PolicyVersion("PAPER_PAYTM_TEST_100S_V1", "PAYTM",
+                new PaperAccountEngineering.Policy(15000, 50, 1, 500000, 2, 1), Duration.ofSeconds(100));
+    }
 }

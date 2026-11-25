@@ -1,0 +1,19 @@
+{
+    "date":  "2026-11-25",
+    "status":  "LOCAL_ADAPTER_VERIFIED_RUNTIME_INTEGRATION_PENDING",
+    "tests":  133,
+    "failures":  0,
+    "errors":  0,
+    "skipped":  0,
+    "scope":  "Local Java fixtures and regressions only",
+    "telegramActivated":  false,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "acceptedCheckpoints":  24,
+    "totalCheckpoints":  30,
+    "remaining":  [
+                      "Opt-in callback wiring",
+                      "Bounded proposal publisher and storage integration",
+                      "Combined real Telegram review and final cleanup evidence"
+                  ]
+}
