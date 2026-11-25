@@ -34,10 +34,20 @@ public final class PaperWriterConnector implements PaperLedgerStore.Connections 
     private final SecretSource secrets;
     private final boolean activationAuthorized;
     private final Dialer dialer;
+    private final String role;
+    /** Separate fixed publisher identity; never a caller-supplied database role. */
+    public static PaperWriterConnector publisher(Target target, SecretSource secrets, boolean enabled) {
+        return new PaperWriterConnector(target,secrets,enabled,DriverManager::getConnection,PaperPaytmReviewPublisher.ROLE);
+    }
     public PaperWriterConnector(Target target, SecretSource secrets, boolean activationAuthorized) {
         this(target, secrets, activationAuthorized, DriverManager::getConnection);
     }
     PaperWriterConnector(Target target, SecretSource secrets, boolean activationAuthorized, Dialer dialer) {
+        this(target,secrets,activationAuthorized,dialer,ROLE);
+    }
+    PaperWriterConnector(Target target, SecretSource secrets, boolean activationAuthorized, Dialer dialer, String role) {
+        if (!java.util.Set.of(ROLE,PaperPaytmReviewPublisher.ROLE).contains(role)) throw new IllegalArgumentException("Unknown paper role");
+        this.role=role;
         this.target = Objects.requireNonNull(target); this.secrets = Objects.requireNonNull(secrets);
         this.activationAuthorized = activationAuthorized; this.dialer = Objects.requireNonNull(dialer);
     }
@@ -61,7 +71,7 @@ public final class PaperWriterConnector implements PaperLedgerStore.Connections 
             if (password == null || password.length < 32 || password.length > 256)
                 throw new SQLException("Invalid credential");
             for (char ch : password) if (ch < 33 || ch > 126) throw new SQLException("Invalid credential");
-            properties.setProperty("user", ROLE);
+            properties.setProperty("user", role);
             properties.setProperty("password", new String(password));
             // Explicit policy, never an automatic downgrade from TLS after failure.
             properties.setProperty("sslmode", target.transport() == Transport.VERIFIED_TLS ? "verify-full" : "disable");
@@ -71,14 +81,14 @@ public final class PaperWriterConnector implements PaperLedgerStore.Connections 
             properties.setProperty("connectTimeout", "10");
             properties.setProperty("socketTimeout", "15");
             properties.setProperty("loginTimeout", "15");
-            properties.setProperty("ApplicationName", "marketbrain-paper-review-writer");
+            properties.setProperty("ApplicationName", role.equals(ROLE)?"marketbrain-paper-review-writer":role);
             connection = dialer.connect("jdbc:postgresql://" + target.host() + ":" + target.port() + "/" + target.database(), properties);
             properties.clear(); Arrays.fill(password, '\0');
             connection.setReadOnly(true);
             try (Statement statement = connection.createStatement()) {
                 statement.setQueryTimeout(5);
                 try (ResultSet row = statement.executeQuery(IDENTITY_SQL)) {
-                    if (!row.next() || !ROLE.equals(row.getString(1)) || !ROLE.equals(row.getString(2))
+                    if (!row.next() || !role.equals(row.getString(1)) || !role.equals(row.getString(2))
                             || !target.database().equals(row.getString(3)) || row.getLong(4) != target.databaseOid()
                             || (target.transport() == Transport.VERIFIED_TLS && !row.getBoolean(5))
                             || !row.getBoolean(6) || row.next())

@@ -1,0 +1,43 @@
+{
+    "date":  "2026-11-25",
+    "status":  "PUBLISHER_APPLICATION_WIRING_LOCAL_PASSED_DEPLOYMENT_PENDING",
+    "javaTests":  95,
+    "suites":  [
+                   {
+                       "name":  "PaperPublisherRuntimeTest",
+                       "tests":  7
+                   },
+                   {
+                       "name":  "PaperPublisherConfigurationTest",
+                       "tests":  11
+                   },
+                   {
+                       "name":  "PaperWriterConnectorTest",
+                       "tests":  26
+                   },
+                   {
+                       "name":  "PaperTelegramReviewConfigurationTest",
+                       "tests":  28
+                   },
+                   {
+                       "name":  "PaperRestrictedDeliveryTest",
+                       "tests":  3
+                   },
+                   {
+                       "name":  "PaperPaytmReviewPublisherTest",
+                       "tests":  12
+                   },
+                   {
+                       "name":  "PaperRuntimeCredentialTest",
+                       "tests":  8
+                   }
+               ],
+    "startupControlSocketMocked":  true,
+    "productionDatabaseAccessed":  false,
+    "publisherRoleProvisioned":  false,
+    "publisherActivated":  false,
+    "telegramCalls":  0,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80
+}

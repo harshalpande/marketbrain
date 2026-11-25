@@ -13,6 +13,7 @@ import java.util.Arrays;
 public final class PaperRuntimeControl {
     public static final Path DIRECTORY = Path.of("/run/marketbrain-writer");
     public static final Path SOCKET = DIRECTORY.resolve("control.sock");
+    public static final Path PUBLISHER_SOCKET = Path.of("/run/marketbrain-publisher/control.sock");
     private PaperRuntimeControl() {}
 
     static void pause(long deadline) throws IOException {
@@ -70,9 +71,9 @@ public final class PaperRuntimeControl {
         byte[] secret = null;
         int exit = 1;
         try {
-            if (args.length != 1) throw new IllegalArgumentException();
+            Path selected = controlSocket(args);
             if (args[0].equals("UNLOCK")) secret = System.in.readNBytes(65);
-            String state = request(SOCKET, args[0], secret);
+            String state = request(selected, args[0], secret);
             System.out.println("{\"version\":\"PAPER_RUNTIME_CONTROL_V1\",\"state\":\"" + state
                     + "\",\"databaseAuthenticationVerified\":false,\"actionExecutionEnabled\":false}");
             if (!state.equals("REFUSED")) exit = 0;
@@ -80,5 +81,10 @@ public final class PaperRuntimeControl {
             System.out.println("{\"version\":\"PAPER_RUNTIME_CONTROL_V1\",\"state\":\"UNAVAILABLE\",\"actionExecutionEnabled\":false}");
         } finally { if (secret != null) Arrays.fill(secret, (byte)0); }
         System.exit(exit);
+    }
+    static Path controlSocket(String[] args) {
+        if(args.length==1)return SOCKET;
+        if(args.length==2 && "--publisher".equals(args[1]))return PUBLISHER_SOCKET;
+        throw new IllegalArgumentException("Invalid control target");
     }
 }

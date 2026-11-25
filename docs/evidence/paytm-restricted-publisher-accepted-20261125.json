@@ -1,0 +1,20 @@
+{
+    "date":  "2026-11-25",
+    "status":  "RESTRICTED_PUBLISHER_DATABASE_ACCEPTED",
+    "runId":  "2fcd6e606e0247f0bc017ed6bc2867b9",
+    "collectionJobId":  "55ccab81-966c-442d-b48b-526c2351ac61",
+    "sourceFile":  "paper-delivery-20261125-185910-2fcd6e606e02.json",
+    "sourceSha256":  "A493A6711D6E48EAC32D5E21A0E2B6B63B37DC07E4FF2210D6E08616E8FAD048",
+    "testedRevision":  "7b216bf820f0de96c44bdf15e742204270984c50",
+    "sourceHashesVerified":  37,
+    "prepareChecks":  36,
+    "restartChecks":  6,
+    "failures":  0,
+    "elapsedSeconds":  175.3054819,
+    "temporaryContainersRemoved":  3,
+    "applicationDatabaseAccessed":  false,
+    "telegramCalls":  0,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80
+}
