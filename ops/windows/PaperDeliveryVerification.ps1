@@ -7,6 +7,7 @@ function Assert-PaperDeliveryPhase($Result,[string]$Phase,[string]$Schema){
     Assert-PaperExact $Result.cashPaise 10000000 'cashPaise';Assert-PaperExact $Result.decisionCount 1 'decisionCount'
     Assert-PaperExact $Result.deliveryCount 3 'deliveryCount';Assert-PaperExact $Result.uncertainCount 1 'uncertainCount'
     $expected=if($Phase -ceq '--prepare'){@(
+        'batch_three_proposals_commit_atomically','batch_later_failure_rolls_back_earlier_inserts','batch_replay_does_not_reissue_tokens',
         'enqueue_commits_proposal_tokens_and_delivery_together','enqueue_replay_keeps_original_tokens','conflicting_publication_identity_rejected',
         'outbox_insert_failure_rolls_back_proposal_and_tokens','concurrent_enqueue_has_one_durable_publication','revoked_recipient_cannot_enqueue',
         'acknowledged_delivery_is_not_resent','concurrent_dispatch_claims_one_send','expired_delivery_never_sends','revoked_binding_before_dispatch_never_sends',

@@ -27,18 +27,31 @@ public final class PaperApprovalDelivery {
     }
     /** Same id + exact proposal reconciles an uncertain enqueue, never issues new tokens. */
     public String enqueue(Proposal proposal)throws SQLException {
+        return enqueueBatch(List.of(proposal)).getFirst();
+    }
+    /** At most three review fixtures, committed together. Deterministic locking avoids reversed-batch deadlocks. */
+    public List<String> enqueueBatch(List<Proposal> proposals)throws SQLException {
+        if(proposals==null||proposals.isEmpty()||proposals.size()>3||proposals.stream().anyMatch(Objects::isNull)
+                ||proposals.stream().map(Proposal::id).distinct().count()!=proposals.size())
+            throw new IllegalArgumentException("Bounded distinct review batch required");
+        var batch=proposals.stream().sorted(Comparator.comparing(Proposal::id)).toList();
         try(var c=connections.open()){begin(c);try{
+            var states=new LinkedHashMap<String,String>();
+            for(var proposal:batch) states.put(proposal.id(),enqueue(c,proposal));
+            c.commit();return proposals.stream().map(p->states.get(p.id())).toList();
+        }catch(Exception failure){c.rollback();throw failure;}}
+    }
+    private String enqueue(Connection c,Proposal proposal)throws SQLException {
             // Serialize identical publishers without locking all portfolios. Collision only causes waiting.
             try(var s=statement(c,"SELECT pg_advisory_xact_lock(hashtextextended(?,0))",proposal.id())){s.execute();}
             binding(c,proposal.userId(),proposal.chatId(),true);
             try(var s=statement(c,"SELECT p.payload,d.state FROM paper_approval_proposal p JOIN paper_approval_delivery d ON d.proposal_id=p.id WHERE p.id=?",proposal.id());var r=s.executeQuery()){
-                if(r.next()){if(!encode(proposal).equals(r.getString(1)))throw new IllegalArgumentException("Proposal identity conflict");String state=r.getString(2);c.commit();return state;}
+                if(r.next()){if(!encode(proposal).equals(r.getString(1)))throw new IllegalArgumentException("Proposal identity conflict");return r.getString(2);}
             }
             Tokens tokens=review.issue(c,proposal);
             String sealed=vault.seal(encode(tokens),proposal.id());
             update(c,"INSERT INTO paper_approval_delivery(proposal_id,encrypted_tokens,state,created_at) VALUES(?,?,'PENDING',?)",proposal.id(),sealed,Timestamp.from(clock.instant()));
-            c.commit();return "PENDING";
-        }catch(Exception failure){c.rollback();throw failure;}}
+            return "PENDING";
     }
     /** One explicitly selected proposal, no full-table poll or unbounded worker queue. */
     public String dispatch(String proposalId)throws SQLException {

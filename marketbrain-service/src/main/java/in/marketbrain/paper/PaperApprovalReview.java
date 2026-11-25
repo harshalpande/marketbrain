@@ -135,7 +135,7 @@ public final class PaperApprovalReview {
             return new Pending(p,r.getString(7),r.getString(10),r.getString(8),r.getString(9)==null?null:decode(r.getString(9),Receipt.class));
         }
     }
-    private static Snapshot snapshot(Connection c,Proposal p,boolean lock)throws SQLException {
+    static Snapshot snapshot(Connection c,Proposal p,boolean lock)throws SQLException {
         // Same account lock order as PaperLedgerStore. No full journal replay or unbounded count.
         long legacy;
         try(var s=statement(c,"SELECT current_cash FROM paper_portfolio WHERE id=? AND active=TRUE AND execution_mode='PAPER'"+(lock?" FOR UPDATE":""),p.portfolioId);var r=s.executeQuery()) {require(r.next(),"Account unavailable");legacy=r.getBigDecimal(1).movePointRight(2).longValueExact();}

@@ -1,0 +1,25 @@
+{
+    "date":  "2026-11-25",
+    "status":  "PUBLISHER_LOCAL_PASSED_DATABASE_AND_RUNTIME_PENDING",
+    "javaTests":  115,
+    "offlinePowerShellAssertions":  92,
+    "postgresqlChecksPrepared":  27,
+    "postgresqlChecksExecuted":  false,
+    "publisherRoleInstalled":  false,
+    "publisherActivated":  false,
+    "telegramCalls":  0,
+    "providerCalls":  0,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80,
+    "quoteBudget":  {
+                        "reference":  1,
+                        "accept":  1,
+                        "sessionLimitUnchanged":  3
+                    },
+    "pending":  [
+                    "Real disposable PostgreSQL batch verification",
+                    "Publisher role grants and custody",
+                    "Runtime wiring and combined Telegram owner actions"
+                ]
+}

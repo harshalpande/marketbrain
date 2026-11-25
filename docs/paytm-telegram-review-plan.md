@@ -25,3 +25,27 @@ PAYTM requires PROCESS_MEMORY credentials and the exact PAPER_PAYTM_TEST_100S_V1
 Storage inspection confirms the restricted writer can record decisions through review functions but cannot issue proposals. Existing PaperApprovalDelivery can atomically issue tokens and enqueue encrypted delivery using separate authorized connections. Integrating that issuer and its bounded permissions is the next step; do not enable review on the spare machine before the combined deployment is ready.
 
 Wiring validation: 103 targeted tests passed (12 new configuration cases), zero failures/errors/skips. See [wiring evidence](evidence/paytm-review-wiring-local-20261125.json).
+
+## Publisher implementation and next verification
+
+PaperPaytmReviewPublisher is an internal factory, not an enabled bean or HTTP endpoint. It prepares three BUY quantity-one review fixtures with case-labelled IDs, using a single Paytm reference quote, the active PRIMARY Telegram binding and the current ledger revision. The reference must be at most 15 seconds old and at most Rs5000; the upper price zone is capped at that notional. All have the approved 100-second window. The account must be consistent with enough unreserved cash for the zone. This is test review, not an AI-generated trading recommendation.
+
+One reference fetch plus one fresh ACCEPT fetch uses two of the existing three session quote calls. The launcher must leave at least five seconds between provider calls. REJECT, expiry and replay require no extra provider fetch. Natural stale or out-of-zone conditions must be recorded as blocked, never treated as an accepted review.
+
+The publisher verifies an existing bound encryption key and requires the separate marketbrain-paper-publisher role, rejecting a superuser, database/role creator, replication/bypass role or proposal-table owner/member. This account is NOT created by this change. Exact grants, credential custody, application wiring and combined runtime activation remain pending. The existing review writer cannot be used as publisher; no broad permission or owner-datasource fallback was introduced.
+
+A prepared plan contains no button tokens. The future launcher must preserve that exact plan before dispatch; retry uses the original IDs/terms, never reprices or generates a new batch silently. enqueueBatch commits all three proposals/tokens/encrypted deliveries in one transaction, locks IDs in sorted order, and rejects duplicate or oversized batches. Each explicit dispatch uses the existing durable one-send claim. A SENDING or UNCERTAIN result needs reconciliation, not automatic resend.
+
+Local verification: 115 Java tests, 92 offline PowerShell assertions (56 existing persistence plus 36 delivery assertions); zero failing assertions in final runs. These are fixtures, not PostgreSQL acceptance. Docker is unavailable on the development laptop. The updated disposable PostgreSQL suite adds actual three-item atomic enqueue, second-item rollback and token-preserving replay checks: 24 prepare checks plus three restart checks. It still uses fake HTTP and cannot call Paytm or Telegram.
+
+Run on the spare laptop with Docker Desktop running:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\TestPaperPersistenceBundle.ps1 -ApprovalDelivery
+```
+
+This builds only the verification image and disposable database; it does not rebuild/restart MarketBrain. It produces one paper-delivery JSON. The existing automation allowlist does not yet expose this Docker suite; do not claim it was remotely submitted. Database batch acceptance and publisher-role deployment are separate from real G6 acceptance.

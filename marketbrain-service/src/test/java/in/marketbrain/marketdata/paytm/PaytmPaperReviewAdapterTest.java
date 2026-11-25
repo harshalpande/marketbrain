@@ -51,4 +51,16 @@ class PaytmPaperReviewAdapterTest {
         assertThat(p.limits()).isEqualTo(new PaperAccountEngineering.Policy(15000,50,1,500000,2,1));
         assertThat(PaperReviewTestPolicy.policy().provider()).isEqualTo("UPSTOX");assertThatThrownBy(()->PaperReviewTestPolicy.requireExact(p)).isInstanceOf(IllegalArgumentException.class);
     }
+    @ParameterizedTest @ValueSource(strings={"valid","stale","wrongId"})
+    void proposalReferenceUsesRealBindingAndFreshness(String mode){
+        var guard=mock(PaytmSupervisedController.class);when(guard.reviewInstant()).thenReturn(NOW);
+        Map<String,Object> q=new HashMap<>(Map.of("fresh",!mode.equals("stale"),"status","FRESH_QUOTE_OBSERVED","ordersEnabled",false,
+            "securityId",mode.equals("wrongId")?1:2885,"exchange","NSE","scripType","EQUITY","timestampEpoch","PAYTM_1980_SECONDS","lastPrice",new BigDecimal("1375.60")));
+        q.put("tradeEpochMilliseconds",NOW.minusSeconds(2).toEpochMilli());q.put("observedEpochMilliseconds",NOW.toEpochMilli());q.put("ageMilliseconds",2000);
+        when(guard.readBoundQuote(2885)).thenReturn(q);
+        try(var adapter=new PaytmPaperReviewAdapter(guard,new PaytmUniverseMatch(s->List.of(PaytmUniverseMatchTest.row())),PaytmReviewIdentityTest.source(PaytmReviewIdentityTest.master(),PaytmReviewIdentityTest.members()))){
+            if(mode.equals("valid")){var ref=adapter.reference("RELIANCE");assertThat(ref.quote().instrumentId()).isEqualTo(1);assertThat(ref.identity().get("symbol")).isEqualTo("RELIANCE");}
+            else assertThatThrownBy(()->adapter.reference("RELIANCE")).hasMessage("PAYTM_REVIEW_QUOTE_UNAVAILABLE");
+        }
+    }
 }

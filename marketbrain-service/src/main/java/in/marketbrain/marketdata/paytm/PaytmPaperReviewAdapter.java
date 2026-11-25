@@ -25,30 +25,37 @@ public final class PaytmPaperReviewAdapter implements PaperApprovalReview.QuoteS
         };
     }
     public Clock clock(){return clock;}
+    public record Reference(PaperApprovalReview.MarketQuote quote, Map<String,Object> identity) {
+        public Reference { identity=Map.copyOf(identity); }
+    }
+    public Reference reference(String symbol) { return fetch(symbol,null); }
     @Override public PaperApprovalReview.MarketQuote latest(PaperApprovalReview.Proposal proposal) {
+        return fetch(proposal.terms().symbol(),proposal).quote();
+    }
+    private Reference fetch(String symbol, PaperApprovalReview.Proposal proposal) {
         try {
             var policy=PaperReviewTestPolicy.paytmPolicy();
             Instant before=clock.instant();
-            if(!proposal.policyId().equals(policy.id())||before.isBefore(proposal.terms().createdAt())||!before.isBefore(proposal.terms().expiresAt())
-                    ||Duration.between(proposal.terms().createdAt(),proposal.terms().expiresAt()).compareTo(policy.maxProposalLifetime())>0)
+            if(proposal!=null && (!proposal.policyId().equals(policy.id())||before.isBefore(proposal.terms().createdAt())||!before.isBefore(proposal.terms().expiresAt())
+                    ||Duration.between(proposal.terms().createdAt(),proposal.terms().expiresAt()).compareTo(policy.maxProposalLifetime())>0))
                 throw new IllegalArgumentException();
             // Resolve again at callback time; never reuse the previously captured quote or caller security ID.
-            var bound=identity.resolve(proposal.terms().symbol(),universe.inspect(proposal.terms().symbol()));
+            var bound=identity.resolve(symbol,universe.inspect(symbol));
             Map<String,Object> evidence=bound.evidence();
-            if(number(evidence.get("instrumentId"))!=proposal.instrumentId()||!proposal.terms().symbol().equals(evidence.get("symbol")))throw new IllegalArgumentException();
+            if(proposal!=null && (number(evidence.get("instrumentId"))!=proposal.instrumentId()||!symbol.equals(evidence.get("symbol"))))throw new IllegalArgumentException();
             Map<String,Object> quote=session.readBoundQuote(bound.securityId());
             Instant now=clock.instant();
-            if(!now.isBefore(proposal.terms().expiresAt())||!Boolean.TRUE.equals(quote.get("fresh"))||!Boolean.FALSE.equals(quote.get("ordersEnabled"))
+            if((proposal!=null && !now.isBefore(proposal.terms().expiresAt()))||!Boolean.TRUE.equals(quote.get("fresh"))||!Boolean.FALSE.equals(quote.get("ordersEnabled"))
                     ||!"FRESH_QUOTE_OBSERVED".equals(quote.get("status"))||number(quote.get("securityId"))!=bound.securityId()
                     ||!"NSE".equals(quote.get("exchange"))||!"EQUITY".equals(quote.get("scripType"))||!"PAYTM_1980_SECONDS".equals(quote.get("timestampEpoch")))throw new IllegalArgumentException();
             Instant traded=Instant.ofEpochMilli(number(quote.get("tradeEpochMilliseconds"))),received=Instant.ofEpochMilli(number(quote.get("observedEpochMilliseconds")));
-            if(traded.isBefore(proposal.terms().createdAt())||traded.isAfter(received)||received.isBefore(before)||received.isAfter(now)
+            if((proposal!=null && traded.isBefore(proposal.terms().createdAt()))||traded.isAfter(received)||received.isBefore(before)||received.isAfter(now)
                     ||Duration.between(traded,now).toMillis()>policy.limits().maxQuoteAgeMillis()
                     ||number(quote.get("ageMilliseconds"))!=Duration.between(traded,received).toMillis())throw new IllegalArgumentException();
             if(!(quote.get("lastPrice") instanceof Number value))throw new IllegalArgumentException();
             long paise=new BigDecimal(value.toString()).movePointRight(2).longValueExact();
             if(paise<=0)throw new IllegalArgumentException();
-            return new PaperApprovalReview.MarketQuote(proposal.instrumentId(),proposal.terms().symbol(),"PAYTM",paise,traded,received);
+            return new Reference(new PaperApprovalReview.MarketQuote(bound.instrumentId(),symbol,"PAYTM",paise,traded,received),evidence);
         }catch(RuntimeException unavailable){
             // Provider/file contents, credentials and underlying exception details never enter Telegram receipts.
             throw new IllegalStateException("PAYTM_REVIEW_QUOTE_UNAVAILABLE");
