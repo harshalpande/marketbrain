@@ -1470,3 +1470,20 @@ Owner acceptance, if any:
 
 ### 2026-11-19: queued real transport test prepared
 Exact-revision/hash delivery, bounded execution, structured evidence and progress implemented. Local queue/executor/TLS integration tests pass; one attended bootstrap and spare runtime acceptance remain. G3 80%, Paytm readiness 14/30. See maintenance-automation.md.
+
+## Accepted publisher catalog and running-container reconciliation (25 November 2026)
+
+Automatic job 0a3907fa-3a03-4d4b-9a86-b657bb1a7073 collected run eda33eeede73479f88f99640dcd4edfa. The configured catalog inspection passed in 102.484 seconds; all seven source hashes match 26eaea6. All twelve tables are present, no publisher role/function collisions or PUBLIC grants requiring remediation were found, and inspector cleanup passed. The sole installation finding is ROLE_PROVISIONING_REQUIRES_AUTHORIZED_ADMIN. Keep the application account restricted; use a separate PostgreSQL administrator for eventual provisioning. No database writes, application restart, broker or Telegram calls occurred.
+
+The next off-hours command binds the same read-only inspector to the single running MarketBrain container's three database environment variables, retains those values only locally, checks its workspace/PAPER mode, rechecks container identity/start time/image and database settings after inspection, and requires database marketbrain/OID 16389 from the accepted report. It restores prior process variables on both success and failure. Ambiguous containers, stopped services, alternate Spring environment overrides and target mismatch stop the run. It does not prove the Spring datasource has no file/command-line override, or uniquely identify a PostgreSQL cluster; those limitations remain for installation reconciliation. The application must be running for this new check. No administrator password is needed.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\GetPaperWriterPreflight.ps1 -Publisher -RunningApplication `
+    -ExpectedDatabase marketbrain -ExpectedDatabaseOid 16389
+```
+
+One publisher-preflight report is retained and collected automatically on request. A positive runtimeConfigurationMatched means the running container's database environment and the inspected target matched, not that installation occurred. Production installation, dedicated credential custody, operator launcher and real Telegram acceptance remain pending. Local validation: 173 offline workflow assertions plus collector projection/redaction tests passed; generated queue artifact checked. No Java code changed. G1-G6 remains 24/30 (80%): 100/100/80/100/100/0. Do not rerun the accepted 47-check disposable suite unchanged.

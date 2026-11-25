@@ -1,0 +1,29 @@
+{
+    "version":  1,
+    "observedDate":  "2026-11-25",
+    "jobId":  "0a3907fa-3a03-4d4b-9a86-b657bb1a7073",
+    "sourceFile":  "paper-publisher-preflight-20261125-230525-eda33eeede73.json",
+    "sourceSha256":  "0A2C190A3DA9C269FA0D7F6B269CB5E87FF2DE05D5AF202271374C4D5EB73358",
+    "revision":  "26eaea699fffe99ed3f5a922c7d366b54c3049db",
+    "runId":  "eda33eeede73479f88f99640dcd4edfa",
+    "status":  "CATALOG_EVIDENCE_CAPTURED_INSTALLATION_REVIEW_REQUIRED",
+    "elapsedSeconds":  102.4841422,
+    "sourceHashesVerified":  7,
+    "requiredTablesPresent":  12,
+    "roleCollisions":  0,
+    "functionCollisions":  0,
+    "database":  "marketbrain",
+    "databaseOid":  16389,
+    "installationBlockers":  [
+                                 "ROLE_PROVISIONING_REQUIRES_AUTHORIZED_ADMIN"
+                             ],
+    "cleanupPassed":  true,
+    "databaseWrites":  false,
+    "applicationRestart":  false,
+    "ordersEnabled":  false,
+    "runtimeConfigurationReconciliation":  "PREPARED_NOT_RUN",
+    "localWorkflowAssertions":  173,
+    "readinessCheckpointsAccepted":  24,
+    "readinessCheckpointsTotal":  30,
+    "g6Percent":  0
+}

@@ -1,4 +1,28 @@
 # Definitions only; no database, application or Docker activity on import.
+function Get-PaperCatalogRuntimeEnvironment($Container,[string]$Repository) {
+    if($Container.Id -cnotmatch '^[a-f0-9]{64}$' -or $Container.State.Running -isnot [bool] -or -not $Container.State.Running -or -not $Container.State.StartedAt){throw 'RUNTIME_CONTAINER_NOT_RUNNING'}
+    $labels=$Container.Config.Labels
+    if($labels.'com.docker.compose.service' -cne 'marketbrain-service' -or
+       [string]::IsNullOrWhiteSpace($labels.'com.docker.compose.project.working_dir') -or
+       [IO.Path]::GetFullPath($labels.'com.docker.compose.project.working_dir').TrimEnd('\','/') -ine [IO.Path]::GetFullPath($Repository).TrimEnd('\','/')){throw 'RUNTIME_WORKSPACE_MISMATCH'}
+    $values=@{}
+    foreach($entry in $Container.Config.Env) {
+        $pair=([string]$entry).Split('=',2)
+        if($pair.Count -ne 2 -or $values.ContainsKey($pair[0])){throw 'RUNTIME_ENVIRONMENT_AMBIGUOUS'}
+        $values[$pair[0]]=$pair[1]
+    }
+    # Refuse alternate Spring overrides rather than claiming these three variables are authoritative.
+    if(@($values.Keys|Where-Object {$_ -match '^(SPRING_|JAVA_TOOL_OPTIONS$|JDK_JAVA_OPTIONS$|_JAVA_OPTIONS$)'}).Count){throw 'RUNTIME_ALTERNATE_CONFIGURATION_REQUIRES_REVIEW'}
+    if($values.MARKETBRAIN_EXECUTION_MODE -cne 'PAPER'){throw 'RUNTIME_PAPER_MODE_REQUIRED'}
+    $selected=@{}
+    foreach($key in @('MARKETBRAIN_DB_URL','MARKETBRAIN_DB_USERNAME','MARKETBRAIN_DB_PASSWORD')) {
+        if([string]::IsNullOrWhiteSpace($values[$key])){throw 'RUNTIME_DATABASE_CONFIGURATION_MISSING'}
+        $selected[$key]=$values[$key]
+    }
+    if($selected.MARKETBRAIN_DB_URL -notmatch '^jdbc:postgresql://'){throw 'RUNTIME_DATABASE_URL_UNSUPPORTED'}
+    return $selected
+}
+
 function Assert-PaperWriterCatalog($Result,[string]$Schema,[switch]$Publisher) {
     $expectedVersion=if($Publisher){'PAPER_PUBLISHER_PREFLIGHT_V1'}else{'PAPER_WRITER_PREFLIGHT_V1'}
     if($Publisher -and ($Result.publisherActivated -isnot [bool] -or $Result.publisherActivated -or $Result.target.database -cnotmatch '^[a-z][a-z0-9_]{0,62}$' -or $Result.target.databaseOid -is [string] -or $Result.target.databaseOid -is [bool] -or $Result.target.databaseOid -le 0)){throw 'Invalid publisher target or activation evidence.'}

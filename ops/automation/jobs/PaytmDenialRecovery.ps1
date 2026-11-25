@@ -114,6 +114,7 @@ function Get-PublisherCatalogProjection($v,[byte[]]$bytes,[string]$name) {
   };return $out
  }
  $safe=Project $v;$safe.runId=$v.runId;$safe.failurePresent=[bool]$v.failure;$safe.revision=$v.revision
+ if($null -ne $v.runtimeConfigurationMatched){if($v.runtimeConfigurationMatched -isnot [bool]){throw 'CATALOG_FIELD_REJECTED'};$safe.runtimeConfigurationMatched=$v.runtimeConfigurationMatched}
  if($null -ne $v.revision -and $v.revision -cnotmatch '^[a-f0-9]{40}$'){throw 'CATALOG_REVISION_REJECTED'}
  $safe.catalog=Project $v.catalog
  if(@($v.steps).Count -gt 12){throw 'CATALOG_STEP_BOUND_REJECTED'}

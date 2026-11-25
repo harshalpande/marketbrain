@@ -597,3 +597,5 @@ Daily routine on days worked:
 5. Re-estimate weekly from completed subitems and unresolved dependencies. Do not turn a deadline into permission to lower quality gates.
 
 Next decision: approve detailed risk/fill rules and the initial evidence/implementation work slice including G13/G14 feasibility. The owner has accepted the parent goals and alignment clarifications. **That documentation approval does not silently authorize application implementation or any broker transaction.**
+
+- 25 November: publisher catalog run eda33eeede73 accepted (12 tables, no collisions, 7 source hashes, cleanup passed). Admin role provisioning remains pending. Running-container configuration reconciliation prepared; 173 offline assertions passed. See [review plan](paytm-telegram-review-plan.md) and [acceptance evidence](evidence/paytm-publisher-catalog-accepted-20261125.json). G1-G6 stays 24/30; G6 0%.

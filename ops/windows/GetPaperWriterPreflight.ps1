@@ -1,7 +1,9 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param([string]$OutputDirectory='C:\MarketBrainData\Review',[ValidatePattern('^[a-z][a-z0-9_]{0,62}$')][string]$Schema='public',
-      [ValidateRange(60,1800)][int]$BuildTimeoutSeconds=1800,[switch]$Publisher)
+      [ValidateRange(60,1800)][int]$BuildTimeoutSeconds=1800,[switch]$Publisher,[switch]$RunningApplication,
+      [ValidatePattern('^[a-z][a-z0-9_]{0,62}$')][string]$ExpectedDatabase,
+      [ValidateRange(1,4294967295)][long]$ExpectedDatabaseOid)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'NumericalHistoryEvidence.ps1')
 . (Join-Path $PSScriptRoot 'PaperWriterPreflight.ps1')
@@ -9,10 +11,12 @@ $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $id=[guid]::NewGuid().ToString('N');$project='mb-writer-preflight-'+$id;$docker=$null;$runAttempted=$false
 $priorSchema=$env:MARKETBRAIN_PREFLIGHT_SCHEMA
 $priorKind=$env:MARKETBRAIN_PREFLIGHT_KIND
+$priorDatabase=@{};$runtimeBefore=$null;$runtimeValues=$null
 $watch=[Diagnostics.Stopwatch]::StartNew()
 $report=[ordered]@{version='PAPER_WRITER_PREFLIGHT_BUNDLE_V1';status='RUNNING';runId=$id;updatedAtUtc=$null;elapsedSeconds=0;revision=$null;manifest=@{};events=@();steps=@();catalog=$null;failure=$null;cleanup=$null;schema=$Schema;configurationSource='Repository .env and existing process overrides; running-service target identity not verified';applicationRestartRequested=$false;databaseWritesRequested=$false;applicationWriterActivated=$false;actionExecutionEnabled=$false}
 [void](New-Item -ItemType Directory -Path $OutputDirectory -Force)
 $report.failureCode=$null
+$report.runtimeConfigurationMatched=$false
 $path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-writer-preflight-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))
 if($Publisher){$report.version='PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1';$path=Join-Path (Resolve-Path -LiteralPath $OutputDirectory).Path ('paper-publisher-preflight-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),$id.Substring(0,12))}
 if($path.Length+41 -ge 260 -or (Test-Path -LiteralPath $path)){throw 'Unsafe or existing evidence path.'}
@@ -36,6 +40,7 @@ function Prerequisite([string]$Name,[string[]]$Arguments,[int]$Limit) {
 }
 try {
     Stage 0 'Read-only catalog inspection. No application restart, account mutation, provider or model call.'
+    if($RunningApplication -and (-not $Publisher -or -not $ExpectedDatabase -or -not $ExpectedDatabaseOid)){throw 'RunningApplication requires Publisher and the reviewed expected database name/OID.'}
     if($Schema.StartsWith('pg_') -or $Schema -ceq 'information_schema'){throw 'Unsupported schema.'}
     if(-not (Test-Path -LiteralPath (Join-Path $repo '.env') -PathType Leaf)){throw 'Existing repository .env is required. Do not share it.'}
     $git=Invoke-PaperCatalogProcess 'git' @('-C',$repo,'rev-parse','HEAD') $repo 10
@@ -51,6 +56,18 @@ try {
     Stage 5 'Checking Docker engine and Compose plugin independently before configuration.'
     Prerequisite 'docker-engine' @('version','--format','{{.Server.Version}}') 60
     Prerequisite 'compose-plugin' @('compose','version','--short') 60
+    if($RunningApplication) {
+        Stage 8 'Binding inspector configuration to the single running application; secrets remain local.'
+        $r=Invoke-PaperCatalogProcess $docker @('ps','--no-trunc','-q','--filter','label=com.docker.compose.service=marketbrain-service') $repo 30
+        $ids=@($r.stdout.Trim() -split '\r?\n'|Where-Object {$_})
+        if($r.exitCode -ne 0 -or $r.timedOut -or $ids.Count -ne 1 -or $ids[0] -cnotmatch '^[a-f0-9]{64}$'){$report.failureCode='RUNTIME_DISCOVERY_FAILED';throw 'Application discovery failed.'}
+        $r=Invoke-PaperCatalogProcess $docker @('inspect',$ids[0]) $repo 30
+        if($r.exitCode -ne 0 -or $r.timedOut -or $r.stdout.Length -gt 1048576){$report.failureCode='RUNTIME_INSPECTION_FAILED';throw 'Application inspection failed.'}
+        $containers=@($r.stdout|ConvertFrom-Json);if($containers.Count -ne 1){throw 'Unexpected container count.'};$runtimeBefore=$containers[0]
+        $runtimeValues=Get-PaperCatalogRuntimeEnvironment $runtimeBefore $repo
+        foreach($key in $runtimeValues.Keys){$priorDatabase[$key]=[Environment]::GetEnvironmentVariable($key,'Process');[Environment]::SetEnvironmentVariable($key,$runtimeValues[$key],'Process')}
+        $report.configurationSource='Running container database environment; not proof of Spring datasource override absence'
+    }
     Stage 10 'Checking standalone Compose configuration without printing credentials.'
     $r=Compose 'configuration' @('config','--quiet') 90
     if($r.exitCode -ne 0 -or $r.timedOut){$report.failureCode=if($r.timedOut){'COMPOSE_CONFIGURATION_TIMEOUT'}else{'COMPOSE_CONFIGURATION_REJECTED'};throw 'Compose configuration failed. Review .env locally; do not share credentials.'}
@@ -71,6 +88,16 @@ try {
         throw 'Catalog inspection stopped. Sanitized exception type and SQLSTATE saved where available.'
     }
     Assert-PaperWriterCatalog $parsed $Schema -Publisher:$Publisher
+    if($RunningApplication) {
+        if($parsed.target.database -cne $ExpectedDatabase -or $parsed.target.databaseOid -ne $ExpectedDatabaseOid){$report.failureCode='RUNTIME_DATABASE_IDENTITY_MISMATCH';throw 'Database identity differs from reviewed evidence.'}
+        $r=Invoke-PaperCatalogProcess $docker @('inspect',$runtimeBefore.Id) $repo 30
+        if($r.exitCode -ne 0 -or $r.timedOut -or $r.stdout.Length -gt 1048576){$report.failureCode='RUNTIME_RECHECK_FAILED';throw 'Runtime recheck failed.'}
+        $after=@($r.stdout|ConvertFrom-Json);if($after.Count -ne 1){throw 'Runtime recheck ambiguous.'}
+        $afterValues=Get-PaperCatalogRuntimeEnvironment $after[0] $repo
+        if($after[0].Id -cne $runtimeBefore.Id -or $after[0].Image -cne $runtimeBefore.Image -or $after[0].State.StartedAt -cne $runtimeBefore.State.StartedAt){throw 'Runtime changed during inspection.'}
+        foreach($key in $runtimeValues.Keys){if($afterValues[$key] -cne $runtimeValues[$key]){throw 'Runtime database configuration changed.'}}
+        $report.runtimeConfigurationMatched=$true
+    }
     $report.catalog=$parsed;$report.status='CATALOG_EVIDENCE_CAPTURED_INSTALLATION_REVIEW_REQUIRED'
     Stage 95 ('Catalog report captured; {0} installation findings require review. No roles or application settings changed.' -f @($parsed.installationBlockers).Count)
 } catch {
@@ -89,6 +116,8 @@ try {
     }
     $env:MARKETBRAIN_PREFLIGHT_SCHEMA=$priorSchema
     $env:MARKETBRAIN_PREFLIGHT_KIND=$priorKind
+    foreach($key in $priorDatabase.Keys){if($null -eq $priorDatabase[$key]){Remove-Item -LiteralPath ('Env:\'+$key) -ErrorAction SilentlyContinue}else{[Environment]::SetEnvironmentVariable($key,$priorDatabase[$key],'Process')}}
+    $runtimeValues=$null;$runtimeBefore=$null;$after=$null;$afterValues=$null
     Stage 100 $report.status
     Write-Progress -Activity 'Paper writer application catalog preflight' -Completed
     Write-Host "Share this ONE file: $path"

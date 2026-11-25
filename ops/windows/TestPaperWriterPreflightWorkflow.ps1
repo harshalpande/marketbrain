@@ -26,6 +26,8 @@ function Invoke-PaperCatalogProcess([string]$Executable,[string[]]$Arguments,[st
     $script:nativeCalls+=,@($Arguments)
     $out='';$exitCode=0;$timeout=$false
     if($Arguments -contains 'rev-parse'){$out='a'*40}
+    elseif($Arguments[0] -eq 'ps'){$out='b'*64}
+    elseif($Arguments[0] -eq 'inspect'){$out=@(RuntimeSample)|ConvertTo-Json -Depth 10 -Compress;if($script:failStage -eq 'runtime-stopped'){$v=RuntimeSample;$v.State.Running=$false;$out=@($v)|ConvertTo-Json -Depth 10 -Compress}}
     elseif($Arguments -contains 'version'){$out='29.0.1';if($script:failStage -eq 'engine' -and $Arguments[0] -eq 'version'){$exitCode=1};if($script:failStage -eq 'plugin' -and $Arguments[0] -eq 'compose'){$exitCode=-999;$timeout=$true}}
     elseif($Arguments -contains 'run') {
         $v=Sample;if($script:invalidReport){$v.applicationWriterActivated=$true}
@@ -61,6 +63,25 @@ foreach($case in @('pass','engine','plugin','configuration','build','run','timeo
 $codes=@{engine='DOCKER_ENGINE_UNAVAILABLE';plugin='COMPOSE_PLUGIN_TIMEOUT';configuration='COMPOSE_CONFIGURATION_TIMEOUT'}
 foreach($case in $codes.Keys){$r=Get-Content (Get-ChildItem (Join-Path $testRoot $case) -Filter '*.json').FullName -Raw|ConvertFrom-Json;Check ($r.failureCode -ceq $codes[$case]) 'exact prerequisite failure code'}
 $tokens=$null;$errors=$null
+function RuntimeSample {
+    [pscustomobject]@{Id=('b'*64);Image='sha256:fixture';State=[pscustomobject]@{Running=$true;StartedAt='fixture-start'};Config=[pscustomobject]@{Labels=@{'com.docker.compose.service'='marketbrain-service';'com.docker.compose.project.working_dir'=$repo};Env=@('MARKETBRAIN_EXECUTION_MODE=PAPER','MARKETBRAIN_DB_URL=jdbc:postgresql://host.docker.internal:5432/marketbrain','MARKETBRAIN_DB_USERNAME=fixture','MARKETBRAIN_DB_PASSWORD=LOCAL_ONLY_SECRET')}}
+}
+$envValues=Get-PaperCatalogRuntimeEnvironment (RuntimeSample) $repo
+Check ($envValues.Count -eq 3) 'only database settings selected'
+foreach($mutation in @({param($c)$c.State.Running=$false},{param($c)$c.Id='invalid'},{param($c)$c.Config.Labels['com.docker.compose.project.working_dir']='C:\wrong'},{param($c)$c.Config.Env+='SPRING_DATASOURCE_URL=alternate'},{param($c)$c.Config.Env+='MARKETBRAIN_DB_PASSWORD=duplicate'},{param($c)$c.Config.Env=@($c.Config.Env|Where-Object {$_ -notlike 'MARKETBRAIN_DB_PASSWORD=*'})})) {
+    $c=RuntimeSample;& $mutation $c;Reject {Get-PaperCatalogRuntimeEnvironment $c $repo} 'ambiguous or stopped runtime rejected'
+}
+$priorPassword=$env:MARKETBRAIN_DB_PASSWORD
+foreach($case in @('runtime-pass','runtime-stopped','runtime-wrong-database')) {
+    $script:failStage=$case;$script:invalidReport=$false;$dir=Join-Path $testRoot $case
+    $expectedOid=if($case -eq 'runtime-wrong-database'){43}else{42}
+    if($case -eq 'runtime-pass'){& $runner -Publisher -RunningApplication -ExpectedDatabase marketbrain -ExpectedDatabaseOid $expectedOid -OutputDirectory $dir}
+    else{Reject {& $runner -Publisher -RunningApplication -ExpectedDatabase marketbrain -ExpectedDatabaseOid $expectedOid -OutputDirectory $dir} 'runtime mismatch stops'}
+    $raw=Get-Content (Get-ChildItem $dir -Filter '*.json').FullName -Raw;$r=$raw|ConvertFrom-Json
+    Check ($r.runtimeConfigurationMatched -eq ($case -eq 'runtime-pass')) 'runtime acceptance only after checks'
+    Check (-not $raw.Contains('LOCAL_ONLY_SECRET')) 'runtime credentials absent from evidence'
+    Check ($env:MARKETBRAIN_DB_PASSWORD -ceq $priorPassword) 'database environment restored on success and failure'
+}
 $script:failStage='pass';$script:invalidReport=$false
 $beforeKind=$env:MARKETBRAIN_PREFLIGHT_KIND
 & $runner -Publisher -OutputDirectory (Join-Path $testRoot 'publisher')

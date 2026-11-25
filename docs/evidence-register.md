@@ -865,3 +865,5 @@ Never infer total project completion from an intelligence scorecard's `100 - sco
 
 ### 2026-11-19: queued execution local evidence
 Nine relay tests plus executor and real local HTTPS/PowerShell queue fixtures passed: returned failure evidence, immutable identity, hash rejection, lost completion ACK without replay, and a second reviewed source version. Fixtures substitute source download and do not establish spare runtime acceptance. G3 remains 80%, total 14/30.
+
+- 25 November: publisher catalog run eda33eeede73 accepted (12 tables, no collisions, 7 source hashes, cleanup passed). Admin role provisioning remains pending. Running-container configuration reconciliation prepared; 173 offline assertions passed. See [review plan](paytm-telegram-review-plan.md) and [acceptance evidence](evidence/paytm-publisher-catalog-accepted-20261125.json). G1-G6 stays 24/30; G6 0%.
