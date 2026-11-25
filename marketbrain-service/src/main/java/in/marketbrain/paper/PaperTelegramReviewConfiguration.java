@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import javax.sql.DataSource;
+import in.marketbrain.marketdata.paytm.PaytmPaperReviewAdapter;
+import in.marketbrain.marketdata.paytm.PaytmSupervisedController;
+import org.springframework.jdbc.core.JdbcTemplate;
 import java.nio.file.Path;
 import java.time.*;
 import java.util.Arrays;
@@ -22,8 +25,10 @@ public class PaperTelegramReviewConfiguration {
 
     @Bean Settings paperReviewSettings(Environment environment, MarketBrainProperties app) {
         try {
+            String provider = environment.getProperty("marketbrain.paper.review.quote-provider", "UPSTOX");
+            if (!java.util.Set.of("UPSTOX", "PAYTM").contains(provider)) throw new IllegalArgumentException();
             if (!"PAPER".equals(app.executionMode()) || app.telegram() == null || !app.telegram().isConfigured()
-                    || app.upstox() == null || !app.upstox().isConfigured()
+                    || (provider.equals("UPSTOX") && (app.upstox() == null || !app.upstox().isConfigured()))
                     || !"REVIEW_ONLY".equals(required(environment, "activation"))
                     || !"PRIVATE_SAME_MACHINE".equals(required(environment, "transport")))
                 throw new IllegalArgumentException();
@@ -46,9 +51,11 @@ public class PaperTelegramReviewConfiguration {
                     Math.toIntExact(number(environment, "max-slippage-bps")), number(environment, "max-quantity"),
                     number(environment, "max-order-notional-paise"), Math.toIntExact(number(environment, "max-approvals")),
                     Math.toIntExact(number(environment, "max-fills")));
-            var policy = new PaperApprovalReview.PolicyVersion(required(environment, "policy-id"), "UPSTOX", limits,
+            var policy = new PaperApprovalReview.PolicyVersion(required(environment, "policy-id"), provider, limits,
                     Duration.ofSeconds(number(environment, "max-proposal-lifetime-seconds")));
-            if (memory) PaperReviewTestPolicy.requireExact(policy);
+            if (provider.equals("PAYTM")) {
+                if (!memory || !PaperReviewTestPolicy.paytmPolicy().equals(policy)) throw new IllegalArgumentException();
+            } else if (memory) PaperReviewTestPolicy.requireExact(policy);
             return new Settings(target, path, policy, memory);
         } catch (Exception invalid) {
             throw new IllegalStateException("Paper Telegram review opt-in configuration is incomplete or invalid; no review activated");
@@ -69,13 +76,26 @@ public class PaperTelegramReviewConfiguration {
         return new PaperApprovalHttp.BoundedTransport();
     }
 
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "marketbrain.paper.review", name = "quote-provider", havingValue = "PAYTM")
+    PaytmPaperReviewAdapter paytmPaperReviewAdapter(PaytmSupervisedController session, DataSource source) {
+        return PaytmPaperReviewAdapter.create(session, new JdbcTemplate(source));
+    }
+
     @Bean PaperApprovalCallback paperApprovalCallback(Settings settings, PaperApprovalHttp.BoundedTransport transport,
-            MarketBrainProperties app, DataSource applicationReadSource, ObjectProvider<PaperRuntimeCredential> runtime) {
-        Clock clock = Clock.systemUTC();
+            MarketBrainProperties app, DataSource applicationReadSource, ObjectProvider<PaperRuntimeCredential> runtime, ObjectProvider<PaytmPaperReviewAdapter> paytm) {
+        Clock clock;
+        PaperApprovalReview.QuoteSource quotes;
+        if (settings.policy().provider().equals("PAYTM")) {
+            var adapter = paytm.getObject();
+            clock = adapter.clock(); quotes = adapter;
+        } else {
+        clock = Clock.systemUTC();
         // General datasource is used ONLY for the existing read-only instrument-key lookup, never review writes.
-        var quotes = PaperApprovalHttp.upstox(transport,
+        quotes = PaperApprovalHttp.upstox(transport,
                 PaperApprovalHttp.jdbcInstrumentKeys(applicationReadSource::getConnection),
                 () -> app.upstox().analyticsToken(), clock);
+        }
         if (settings.processMemory()) {
             PaperRuntimeCredential credential = runtime.getObject();
             var connector = new PaperWriterConnector(settings.target(), credential, true);

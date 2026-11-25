@@ -1,0 +1,21 @@
+{
+    "date":  "2026-11-25",
+    "status":  "LOCAL_CALLBACK_WIRING_VERIFIED_RUNTIME_PENDING",
+    "tests":  103,
+    "failures":  0,
+    "errors":  0,
+    "skipped":  0,
+    "scope":  "Local Spring context, adapter, policy and approval engine fixtures",
+    "provider":  "PAYTM",
+    "policy":  "PAPER_PAYTM_TEST_100S_V1",
+    "credentialMode":  "PROCESS_MEMORY",
+    "startupRequiresSupervisedController":  true,
+    "upstoxFallback":  false,
+    "windowsClockFallback":  false,
+    "publisherActivated":  false,
+    "spareDeploymentPerformed":  false,
+    "ordersEnabled":  false,
+    "g6Percent":  0,
+    "acceptedCheckpoints":  24,
+    "totalCheckpoints":  30
+}
