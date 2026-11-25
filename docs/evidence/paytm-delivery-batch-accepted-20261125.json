@@ -1,0 +1,23 @@
+{
+    "date":  "2026-11-25",
+    "status":  "ISOLATED_DELIVERY_DATABASE_ACCEPTED_PUBLISHER_DEPLOYMENT_PENDING",
+    "sourceFile":  "paper-delivery-20261125-161509-01d3d99010e5.json",
+    "sourceSha256":  "886300E86B34D3973A9A77DC780252DEA0D4FC37FE7A123B83BBE9419528C03E",
+    "runId":  "01d3d99010e54e1fa17283750e784293",
+    "queueJob":  "ca796dc9-769f-4e14-b2ed-8501ddd9e1db",
+    "codeRevision":  "b60d185358ab2cd3c7ccd4672f5300a404397c98",
+    "sourceHashesMatched":  30,
+    "elapsedSeconds":  426.674957,
+    "prepareChecks":  24,
+    "restartChecks":  3,
+    "failedChecks":  0,
+    "cleanupContainers":  3,
+    "applicationDatabaseAccessed":  false,
+    "providerCalls":  0,
+    "telegramCalls":  0,
+    "orders":  0,
+    "fills":  0,
+    "g6Percent":  0,
+    "paytmReadinessPercent":  80,
+    "scope":  "Real isolated PostgreSQL transactions and restart; fake HTTP, not live Telegram or publisher-role deployment"
+}

@@ -49,3 +49,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 ```
 
 This builds only the verification image and disposable database; it does not rebuild/restart MarketBrain. It produces one paper-delivery JSON. The existing automation allowlist does not yet expose this Docker suite; do not claim it was remotely submitted. Database batch acceptance and publisher-role deployment are separate from real G6 acceptance.
+
+## 25 November: database batch accepted and next implementation contract
+
+The isolated suite above is accepted: 24 prepare and 3 restart checks, 426.675 seconds, all 30 CRLF source hashes matched to b60d185. Do not rerun it unchanged. Read-only automation now collects the latest delivery report; this does not add remote Docker execution to the job allowlist.
+
+The next deployment change must separate publisher operations from unrestricted table access. Inspection found that issuance locks portfolio/ledger rows and directly inserts proposal/token/outbox rows. Non-owner identity alone is not proof of restricted privileges. Do not grant portfolio/ledger UPDATE merely to satisfy FOR UPDATE; do not reuse the application owner or broaden the review writer.
+
+Implement fixed-search-path, restricted publisher operations for atomic enqueue, durable dispatch claim and acknowledgement. Each operation must bind the active private recipient, exact policy, account revision and immutable proposal identity; no order/fill/reservation operations. Only the dedicated publisher receives execution permission. Claim must preserve no-resend behavior after uncertain outcomes. Test denied direct table mutations, wrong caller, conflicting/replayed batches, expired/revoked messages and crash recovery in the disposable database before any production role installation. Then integrate local credential/key custody and one combined Telegram test. No new secret input or spare-machine configuration change is needed for the design/fixture stage.
