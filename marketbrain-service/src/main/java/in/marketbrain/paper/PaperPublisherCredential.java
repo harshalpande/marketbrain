@@ -86,13 +86,14 @@ public final class PaperPublisherCredential {
         report.put("commitOutcome","NOT_ATTEMPTED");report.put("actionExecutionEnabled",false);
         Properties props=null;int exit=1;long start=System.nanoTime();
         try {
-            if(args.length!=1||!Set.of("--stage-disabled","--verify-only").contains(args[0]))throw new IllegalArgumentException("Explicit mode required");
+            if(args.length!=1||!Set.of("--stage-disabled","--verify-only","--plan-access").contains(args[0]))throw new IllegalArgumentException("Explicit mode required");
             var request=read(System.in);props=PaperPublisherRehearsal.properties(request.connection());
             props.setProperty("ApplicationName","marketbrain-publisher-credential");
             try(var c=DriverManager.getConnection(request.connection().url(),props)){
-                boolean verifyOnly=args[0].equals("--verify-only");
+                boolean verifyOnly=!args[0].equals("--stage-disabled");
                 execute(c,request.connection().target(),request.verifier(),verifyOnly,report);
-                if(verifyOnly)report.putAll(reviewAccess(c));
+                if(args[0].equals("--plan-access"))report.putAll(PaperPublisherAccessPlan.observe(c));
+                else if(verifyOnly)report.putAll(reviewAccess(c));
             }exit=0;
         }catch(Exception e){report.put("failureType",e.getClass().getSimpleName());if(e instanceof SQLException s&&s.getSQLState()!=null&&s.getSQLState().matches("[A-Z0-9]{5}"))report.put("sqlState",s.getSQLState());}
         finally{if(props!=null)props.clear();}

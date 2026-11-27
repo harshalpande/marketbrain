@@ -23,6 +23,7 @@ function Invoke-PaperCatalogProcess($Executable,[string[]]$Arguments,$WorkingDir
         Check ($InputText.Contains('LOCAL_ADMIN_SECRET')) 'secret supplied only through stdin'
         Check ($Arguments -contains '--read-only' -and $Arguments -contains '--cap-drop=ALL') 'restricted client'
         $v=@{version='PAPER_PUBLISHER_CREDENTIAL_V1';status='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED';disabledStateVerified=$true;credentialVerified=$true;commitOutcome='COMMITTED';loginEnabled=$false;actionExecutionEnabled=$false};if($Arguments -contains '--verify-only'){$v.status='HBA_RULE_INVENTORY_CAPTURED';$v.commitOutcome='NOT_ATTEMPTED'}
+        if($Arguments -contains '--plan-access'){$v.status='PUBLISHER_HBA_PLAN_READY';$v.originalHash='A'*64;$v.candidateHash='B'*64;$v.commitOutcome='EXISTING_MATCH_NO_CHANGE'}
         if($script:case -eq 'unsafe'){$v.loginEnabled=$true}
         if($script:case -eq 'timeout'){$timeout=$true;$code=-999}
     if($script:case -eq 'sql'){$code=1;$v.status='STOPPED_REVIEW_REQUIRED';$v.commitOutcome='NOT_ATTEMPTED';$v.failureType='PSQLException';$v.sqlState='28P01'};if($script:case -eq 'after-commit'){$code=1;$v.status='STOPPED_REVIEW_REQUIRED'}
@@ -51,17 +52,18 @@ function Read-PaperCredential($p,$e){return ,(New-Object byte[] 48)}
 function New-PaperCredentialVerifier($b){return 'PRIVATE_VERIFIER'}
 @{version='PAPER_PUBLISHER_CUSTODY_BUNDLE_V1';status='PUBLISHER_CUSTODY_VERIFIED_DATABASE_STAGING_PENDING';custodyVerified=$true;custodyRetained=$true;acceptedInstallationSha256=$installHash}|ConvertTo-Json|Set-Content $preflight
 $hash=(Get-FileHash $preflight).Hash
-foreach($script:case in @('pass','verify','stopped','build','unsafe','timeout','sql','unknown','after-commit','hash')) {
+foreach($script:case in @('pass','plan','verify','stopped','build','unsafe','timeout','sql','unknown','after-commit','hash')) {
     $script:calls=@();$failed=$false;$directory=Join-Path $root $script:case
     [void](New-Item -ItemType Directory -Path $directory -Force);Copy-Item $installation $directory
     $expectedHash=if($script:case -eq 'hash'){'D'*64}else{$hash}
-    try{& $runner -AcceptedCustodySha256 $expectedHash -CustodyPath $preflight -OutputDirectory $directory -VerifyOnly:($script:case -eq 'verify')}catch{$failed=$true}
-    Check ($failed -eq ($script:case -notin @('pass','verify'))) 'failure propagation'
+    try{& $runner -AcceptedCustodySha256 $expectedHash -CustodyPath $preflight -OutputDirectory $directory -VerifyOnly:($script:case -eq 'verify') -PlanAccess:($script:case -eq 'plan')}catch{$failed=$true}
+    Check ($failed -eq ($script:case -notin @('pass','plan','verify'))) 'failure propagation'
     $files=@(Get-ChildItem $directory -Filter 'paper-publisher-credential-*.json');Check ($files.Count -eq 1) 'single report'
     $raw=Get-Content $files[0].FullName -Raw;$r=$raw|ConvertFrom-Json
     Check (-not $raw.Contains('LOCAL_ADMIN_SECRET') -and -not $raw.Contains('LOCAL_APP_SECRET')) 'report redaction';Check (-not $raw.Contains('PRIVATE_VERIFIER')) 'verifier redaction'
     Check (-not $r.applicationRestartRequested -and -not $r.actionExecutionEnabled) 'no activation requested'
     Check (@($script:calls|Where-Object {$_ -contains 'run'}).Count -le 1) 'no automatic retries'
+    if($script:case -eq 'plan'){Check ($r.verifyOnly -and -not $r.databaseWritesRequested -and $r.status -eq 'PUBLISHER_HBA_PLAN_READY') 'plan is read-only'}
     if($script:case -eq 'pass'){Check ($r.status -eq 'PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED' -and $r.catalog.disabledStateVerified -and $r.runtimeConfigurationMatched) 'successful rollback and runtime recheck'}
     if($script:case -eq 'verify'){Check (-not $r.databaseWritesRequested -and $r.commitOutcome -eq 'NOT_ATTEMPTED') 'verify-only cannot request commit'}
     if($script:case -in @('unknown','timeout')){Check ($r.commitOutcome -eq 'UNKNOWN_AFTER_ATTEMPT') 'uncertain commit retained'}

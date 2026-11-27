@@ -1,8 +1,9 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param([Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$AcceptedCustodySha256,
-      [string]$CustodyPath,[string]$OutputDirectory='C:\MarketBrainData\Review',[switch]$VerifyOnly)
+      [string]$CustodyPath,[string]$OutputDirectory='C:\MarketBrainData\Review',[switch]$VerifyOnly,[switch]$PlanAccess)
 $ErrorActionPreference='Stop'
+if($PlanAccess){$VerifyOnly=$true}
 . (Join-Path $PSScriptRoot 'PaperPublisherCustody.ps1')
 . (Join-Path $PSScriptRoot 'NumericalHistoryEvidence.ps1')
 . (Join-Path $PSScriptRoot 'PaperWriterPreflight.ps1')
@@ -55,7 +56,7 @@ try {
     if($g.exitCode -ne 0 -or $g.stdout.Trim() -cnotmatch '^[a-f0-9]{40}$'){throw 'Revision unavailable.'};$report.revision=$g.stdout.Trim()
     $g=Invoke-PaperCatalogProcess 'git' @('-C',$repo,'status','--porcelain') $repo 10
     if($g.exitCode -ne 0 -or $g.stdout.Trim()){throw 'Preserve and review local changes first.'}
-    foreach($f in @('ops/windows/StagePaperPublisherCredential.ps1','ops/windows/PaperPublisherCustody.ps1','ops/windows/PaperWriterCredential.ps1','ops/windows/PaperWriterCustody.ps1','ops/windows/PaperWriterHbaStage.ps1','ops/windows/PaperStorageKey.ps1','ops/windows/PaperWriterInstallation.ps1','ops/windows/PaperWriterConnectionReview.ps1','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherCredential.java','ops/windows/PaperWriterPreflight.ps1','ops/windows/NumericalHistoryEvidence.ps1','marketbrain-service/Dockerfile.paper-writer-preflight','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherRehearsal.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherInstall.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherInstallation.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperWriterPreflight.java','marketbrain-service/src/main/resources/paper/approval-publisher-v1.sql')){$report.manifest[$f]=(Get-FileHash -LiteralPath (Join-Path $repo $f)).Hash}
+    foreach($f in @('ops/windows/StagePaperPublisherCredential.ps1','ops/windows/PaperPublisherCustody.ps1','ops/windows/PaperWriterCredential.ps1','ops/windows/PaperWriterCustody.ps1','ops/windows/PaperWriterHbaStage.ps1','ops/windows/PaperStorageKey.ps1','ops/windows/PaperWriterInstallation.ps1','ops/windows/PaperWriterConnectionReview.ps1','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherAccessPlan.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherCredential.java','ops/windows/PaperWriterPreflight.ps1','ops/windows/NumericalHistoryEvidence.ps1','marketbrain-service/Dockerfile.paper-writer-preflight','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherRehearsal.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherInstall.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperPublisherInstallation.java','marketbrain-service/src/main/java/in/marketbrain/paper/PaperWriterPreflight.java','marketbrain-service/src/main/resources/paper/approval-publisher-v1.sql')){$report.manifest[$f]=(Get-FileHash -LiteralPath (Join-Path $repo $f)).Hash}
     $docker=[string](@(Get-Command docker.exe -CommandType Application -ErrorAction Stop)[0].Source)
     $ids=@((Native 'runtime-discovery' @('ps','--no-trunc','-q','--filter','label=com.docker.compose.service=marketbrain-service')).Trim() -split '\r?\n'|Where-Object {$_})
     if($ids.Count -ne 1 -or $ids[0] -cnotmatch '^[a-f0-9]{64}$'){throw 'Running application ambiguous.'}
@@ -78,7 +79,7 @@ try {
     SameRuntime (Inspect $before.Id)
     Stage 65 'Rehearse password staging, verify rollback, commit and read back. Login remains disabled.'
     $report.databaseWritesRequested=(-not $VerifyOnly);$report.commitOutcome=if($VerifyOnly){'NOT_ATTEMPTED'}else{'UNKNOWN_AFTER_ATTEMPT'};$attempted=$true;Save
-    $mode=if($VerifyOnly){'--verify-only'}else{'--stage-disabled'}
+    $mode=if($PlanAccess){'--plan-access'}elseif($VerifyOnly){'--verify-only'}else{'--stage-disabled'}
     $raw=Native 'installation' @('run','--rm','-i','--name',$name,'--read-only','--cap-drop=ALL','--security-opt=no-new-privileges:true','--pids-limit=64','--memory=256m','--cpus=1','--tmpfs','/tmp:rw,noexec,nosuid,size=16m','--add-host','host.docker.internal:host-gateway','--entrypoint','java',$imageId,'-Xmx128m','-cp','/verification/classes:/verification/lib/*','in.marketbrain.paper.PaperPublisherCredential',$mode) 180 $payload
     $payload=$null;$secure.Dispose();$secure=$null
     if($raw.Length -gt 8192){throw 'Rehearsal output too large.'}
@@ -89,11 +90,12 @@ try {
     }
     if($receipt.PSObject.Properties['commitOutcome'] -and $receipt.commitOutcome -cin @('NOT_ATTEMPTED','UNKNOWN_AFTER_ATTEMPT','COMMITTED','EXISTING_MATCH_NO_CHANGE')){$report.commitOutcome=$receipt.commitOutcome}
     if($report.failureCode){throw 'Installation process failed; do not retry. Use VerifyOnly to reconcile.'}
-    $expected=if($VerifyOnly){'HBA_RULE_INVENTORY_CAPTURED'}else{'PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED'}
+    $expected=if($PlanAccess){'PUBLISHER_HBA_PLAN_READY'}elseif($VerifyOnly){'HBA_RULE_INVENTORY_CAPTURED'}else{'PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED'}
     if($receipt.version -cne 'PAPER_PUBLISHER_CREDENTIAL_V1' -or $receipt.status -cne $expected -or $receipt.disabledStateVerified -isnot [bool] -or -not $receipt.disabledStateVerified){throw 'Disabled state unverified.'}
     if($receipt.credentialVerified -isnot [bool] -or -not $receipt.credentialVerified){throw 'Credential readback unverified.'}
     foreach($flag in @('loginEnabled','actionExecutionEnabled')){if($receipt.$flag -isnot [bool] -or $receipt.$flag){throw 'Unsafe installation receipt.'}}
     if(-not $VerifyOnly -and $report.commitOutcome -cnotin @('COMMITTED','EXISTING_MATCH_NO_CHANGE')){throw 'Commit not established.'}
+    if($PlanAccess -and ($receipt.originalHash -cnotmatch '^[A-F0-9]{64}$' -or $receipt.candidateHash -cnotmatch '^[A-F0-9]{64}$' -or $receipt.originalHash -ceq $receipt.candidateHash)){throw 'Plan hashes invalid.'}
     $report.catalog=$receipt
     SameRuntime (Inspect $before.Id);$report.runtimeConfigurationMatched=$true
     $report.status=$expected
@@ -108,5 +110,5 @@ finally {
     Stage 100 $report.status;Write-Progress -Activity 'Disabled publisher credential staging' -Completed
     Write-Host "Share this ONE file: $path"
 }
-if($report.status -cnotin @('PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED','HBA_RULE_INVENTORY_CAPTURED')){throw 'Credential staging needs review. Preserve custody and report; use VerifyOnly after an uncertain result.'}
+if($report.status -cnotin @('PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED','HBA_RULE_INVENTORY_CAPTURED','PUBLISHER_HBA_PLAN_READY')){throw 'Credential staging needs review. Preserve custody and report; use VerifyOnly after an uncertain result.'}
 
