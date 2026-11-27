@@ -56,14 +56,16 @@ function Assert-PaperWriterCatalog($Result,[string]$Schema,[switch]$Publisher) {
        [double]::IsNaN([double]$Result.elapsedSeconds) -or [double]::IsInfinity([double]$Result.elapsedSeconds) -or $Result.elapsedSeconds -lt 0){throw 'Invalid catalog timing.'}
 }
 
-function Invoke-PaperCatalogProcess([string]$Executable,[string[]]$Arguments,[string]$WorkingDirectory,[int]$LimitSeconds) {
+function Invoke-PaperCatalogProcess([string]$Executable,[string[]]$Arguments,[string]$WorkingDirectory,[int]$LimitSeconds,[string]$InputText) {
     $p=[Diagnostics.Process]::new();$p.StartInfo.FileName=$Executable;$p.StartInfo.WorkingDirectory=$WorkingDirectory
     $p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true
     $p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true
+    if($InputText){$p.StartInfo.RedirectStandardInput=$true;$p.StartInfo.StandardInputEncoding=[Text.UTF8Encoding]::new($false)}
     foreach($a in $Arguments){[void]$p.StartInfo.ArgumentList.Add($a)}
     $watch=[Diagnostics.Stopwatch]::StartNew();$heartbeat=0;$done=$false
     try {
         [void]$p.Start();$out=$p.StandardOutput.ReadToEndAsync();$err=$p.StandardError.ReadToEndAsync()
+        if($InputText){$write=$p.StandardInput.WriteAsync($InputText);if(-not $write.Wait(10000)){throw 'Process input deadline exceeded.'};$p.StandardInput.Close()}
         while($watch.Elapsed.TotalSeconds -lt $LimitSeconds) {
             if($p.WaitForExit(250)){$done=$true;break}
             if($watch.Elapsed.TotalSeconds-$heartbeat -ge 10){$heartbeat=$watch.Elapsed.TotalSeconds;Write-Host ('  Stage running: {0:N0}s / {1}s limit' -f $heartbeat,$LimitSeconds)}

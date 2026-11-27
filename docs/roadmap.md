@@ -599,3 +599,5 @@ Daily routine on days worked:
 Next decision: approve detailed risk/fill rules and the initial evidence/implementation work slice including G13/G14 feasibility. The owner has accepted the parent goals and alignment clarifications. **That documentation approval does not silently authorize application implementation or any broker transaction.**
 
 - 25 November: publisher catalog run eda33eeede73 accepted (12 tables, no collisions, 7 source hashes, cleanup passed). Admin role provisioning remains pending. Running-container configuration reconciliation prepared; 173 offline assertions passed. See [review plan](paytm-telegram-review-plan.md) and [acceptance evidence](evidence/paytm-publisher-catalog-accepted-20261125.json). G1-G6 stays 24/30; G6 0%.
+
+- 27 November: running-container publisher catalog accepted (81.814s, seven hashes, twelve tables, cleanup). Administrator rollback-only rehearsal launcher prepared: 60 Java tests and 267 PowerShell assertions passed. [Next command and boundaries](paytm-telegram-review-plan.md); [evidence](evidence/paytm-publisher-runtime-accepted-20261127.json). No production installation yet; G1-G6 80%, G6 0%.

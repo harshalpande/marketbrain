@@ -1,0 +1,31 @@
+{
+    "version":  1,
+    "date":  "2026-11-27",
+    "jobId":  "2b94de3f-923b-4028-af9d-51a6b2b235c8",
+    "sourceFile":  "paper-publisher-preflight-20261127-112749-690ac3065fc6.json",
+    "sha256":  "34E499B1809ABD30070C1E8330F5DA5060A183B22E67E98C1BDF282FFEA5FB30",
+    "revision":  "3bb8ae9d8f880f5747d3a40101b4e72beb0c5d62",
+    "runId":  "690ac3065fc64749b16376fbf369ce4e",
+    "runtimeConfigurationMatched":  true,
+    "database":  "marketbrain",
+    "databaseOid":  16389,
+    "elapsedSeconds":  81.8142975,
+    "sourceHashesMatched":  7,
+    "requiredTables":  12,
+    "collisions":  0,
+    "cleanupPassed":  true,
+    "installationBlockers":  [
+                                 "ROLE_PROVISIONING_REQUIRES_AUTHORIZED_ADMIN"
+                             ],
+    "administratorRehearsal":  "PREPARED_NOT_RUN",
+    "javaTestsPassed":  60,
+    "rehearsalLauncherAssertions":  94,
+    "preflightRegressionAssertions":  173,
+    "realStdinTransportPassed":  true,
+    "collectorTestsPassed":  true,
+    "productionInstallPerformed":  false,
+    "ordersEnabled":  false,
+    "g1ToG6Accepted":  24,
+    "g1ToG6Total":  30,
+    "g6Percent":  0
+}

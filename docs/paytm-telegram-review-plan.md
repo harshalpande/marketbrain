@@ -146,3 +146,25 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 ```
 
 One publisher-preflight report is retained and collected automatically on request. A positive runtimeConfigurationMatched means the running container's database environment and the inspected target matched, not that installation occurred. Production installation, dedicated credential custody, operator launcher and real Telegram acceptance remain pending. Local validation: 173 offline workflow assertions plus collector projection/redaction tests passed; generated queue artifact checked. No Java code changed. G1-G6 remains 24/30 (80%): 100/100/80/100/100/0. Do not rerun the accepted 47-check disposable suite unchanged.
+## 27 November 2026: running-configuration acceptance and administrator rehearsal
+
+Collected automatically via job 2b94de3f-923b-4028-af9d-51a6b2b235c8: paper-publisher-preflight-20261127-112749-690ac3065fc6.json, SHA256 34E499B1809ABD30070C1E8330F5DA5060A183B22E67E98C1BDF282FFEA5FB30. Runtime configuration matched marketbrain/OID 16389; all twelve required tables, seven source hashes against 3bb8ae9, and cleanup passed. Elapsed 81.814 seconds. The only remaining catalog finding is administrator role-provisioning authority. This accepts container-environment reconciliation, not proof of all Spring configuration overrides or installed publisher permissions.
+
+Next: TestPaperPublisherInstallation.ps1 builds the standalone Java client without replacing the application. It requires the exact accepted preflight SHA256, resolves the single running PAPER container, reuses its existing database URL locally, and prompts once for PostgreSQL administrator credentials. It sends the request through stdin, with no password argument, Docker environment, saved password file or raw native output in evidence. No Windows administrator password or broker login is requested. Credentials necessarily exist temporarily in local process memory.
+
+After the local REHEARSE confirmation, PaperPublisherRehearsal reads the administrator catalog, requires the exact database name/OID and no unresolved catalog findings, invokes the already tested installation engine only in REHEARSE_ROLLBACK mode, then compares the catalog after rollback. It has no commit option. Temporary catalog writes are explicitly reported as requested; application account/order rows are not mutated. It rechecks application container identity/start time/image and database environment. Failed or timed-out attempts are not retried. Only its uniquely named disposable client container is eligible for cleanup; built images are retained. On failure, share/collect the report before another attempt. No HBA, firewall, service, secret custody or application settings are changed.
+
+Run in PowerShell 7 on the spare laptop, with Docker, PostgreSQL and MarketBrain running. Avoid simultaneous schema/role administration during the short rehearsal. No market hours are required:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\TestPaperPublisherInstallation.ps1 `
+    -AcceptedPreflightSha256 '34E499B1809ABD30070C1E8330F5DA5060A183B22E67E98C1BDF282FFEA5FB30'
+```
+
+The newest publisher-preflight report in C:\MarketBrainData\Review must match that hash; otherwise pass its original path with -PreflightPath. Expected result: PUBLISHER_REHEARSAL_PASSED_INSTALLATION_PENDING. One paper-publisher-rehearsal JSON supports automatic collection. The script itself requires local interactive credentials; it is not an unattended queue operation. Successful rehearsal enables preparation of the explicit disabled-role commit and credential/socket provisioning. It does not install roles, send Telegram or enable trades.
+
+Validation: 60 Java tests passed (15 new rehearsal, 15 existing installer, 30 preflight), 94 mocked rehearsal-launcher assertions, 173 preflight regression assertions, real local stdin/EOF transport, and collector redaction/rehearsal selection tests. No Docker/PostgreSQL execution occurred on the development laptop. The previously accepted 47-check PostgreSQL suite tested the unchanged engine; it does not establish production rehearsal acceptance. G1-G6 remains 24/30 = 80%, with G6 0% until the combined real Telegram batch passes.

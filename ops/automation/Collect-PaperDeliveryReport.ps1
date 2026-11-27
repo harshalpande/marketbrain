@@ -1,13 +1,13 @@
 # Read-only projection of the newest delivery bundle; never return Docker output or credential material.
 function Get-PaperDeliveryReport([string]$Directory='C:\MarketBrainData\Review') {
- $files=@(Get-ChildItem -LiteralPath $Directory -File | Where-Object {$_.Name -cmatch '^(paper-(delivery|publisher-preflight)-[0-9]{8}-[0-9]{6}-[a-f0-9]{12}|paytm-supervised-(login|deployment)-[a-f0-9]{32})\.json$'} | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1)
- if($files.Count -ne 1 -or $files[0].Name -cnotmatch '^paper-(delivery|publisher-preflight)-'){return $null}
+ $files=@(Get-ChildItem -LiteralPath $Directory -File | Where-Object {$_.Name -cmatch '^(paper-(delivery|publisher-preflight|publisher-rehearsal)-[0-9]{8}-[0-9]{6}-[a-f0-9]{12}|paytm-supervised-(login|deployment)-[a-f0-9]{32})\.json$'} | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1)
+ if($files.Count -ne 1 -or $files[0].Name -cnotmatch '^paper-(delivery|publisher-preflight|publisher-rehearsal)-'){return $null}
  $file=$files[0]
  if($file.Length -gt 2097152 -or $file.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'DELIVERY_REPORT_FILE_REJECTED'}
  $bytes=[IO.File]::ReadAllBytes($file.FullName)
  if($bytes.Length -gt 2097152){throw 'DELIVERY_REPORT_FILE_REJECTED'}
  $v=[Text.Encoding]::UTF8.GetString($bytes)|ConvertFrom-Json
- if($file.Name -cmatch '^paper-publisher-preflight-'){return Get-PublisherCatalogProjection $v $bytes $file.Name}
+ if($file.Name -cmatch '^paper-publisher-(preflight|rehearsal)-'){return Get-PublisherCatalogProjection $v $bytes $file.Name}
  if($v.version -cne 'PAPER_DELIVERY_BUNDLE_V1' -or $v.runId -cnotmatch '^[a-f0-9]{32}$'){throw 'DELIVERY_REPORT_SCOPE_REJECTED'}
  $safe=[ordered]@{version=$v.version;runId=$v.runId;failurePresent=([bool]$v.failure)}
  foreach($n in @('status')){if($v.$n -cnotmatch '^[A-Z_]{1,100}$'){throw 'DELIVERY_REPORT_FIELD_REJECTED'};$safe[$n]=$v.$n}
@@ -32,13 +32,13 @@ function Get-PaperDeliveryReport([string]$Directory='C:\MarketBrainData\Review')
 }
 
 function Get-PublisherCatalogProjection($v,[byte[]]$bytes,[string]$name) {
- if($v.version -cne 'PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1' -or $v.runId -cnotmatch '^[a-f0-9]{32}$'){throw 'CATALOG_SCOPE_REJECTED'}
+ if($v.version -cnotin @('PAPER_PUBLISHER_PREFLIGHT_BUNDLE_V1','PAPER_PUBLISHER_REHEARSAL_BUNDLE_V1') -or $v.runId -cnotmatch '^[a-f0-9]{32}$'){throw 'CATALOG_SCOPE_REJECTED'}
  function Project($value) {
   $out=[ordered]@{}
   foreach($key in @('version','status','scope','stage','failureCode','schemaName','resolvedSchema','database','roleName','functionName','tableName','kind','failureType','sqlState')) {
    if($null -ne $value.$key){if([string]$value.$key -cnotmatch '^[A-Za-z0-9_:-]{1,150}$'){throw 'CATALOG_FIELD_REJECTED'};$out[$key]=$value.$key}
   }
-  foreach($key in @('readOnly','repeatableRead','unchangedSessionIdentity','superuser','createRole','createDatabase','replication','bypassRls','login','publicDatabaseCreate','publicDatabaseTemp','currentRoleCreate','currentRoleOwnerMembership','publicCreate','present','rowSecurity','forceRowSecurity','currentRoleSelect','publicSelect','publicWrite','securityDefiner','publicExecute','catalogListBoundReached','publisherActivated','connectionAttempted','applicationDatabaseWritesPerformed','applicationWriterActivated','actionExecutionEnabled','applicationRestartRequested','databaseWritesRequested','timedOut')) {
+  foreach($key in @('rollbackVerified','committed','loginEnabled','readOnly','repeatableRead','unchangedSessionIdentity','superuser','createRole','createDatabase','replication','bypassRls','login','publicDatabaseCreate','publicDatabaseTemp','currentRoleCreate','currentRoleOwnerMembership','publicCreate','present','rowSecurity','forceRowSecurity','currentRoleSelect','publicSelect','publicWrite','securityDefiner','publicExecute','catalogListBoundReached','publisherActivated','connectionAttempted','applicationDatabaseWritesPerformed','applicationWriterActivated','actionExecutionEnabled','applicationRestartRequested','databaseWritesRequested','timedOut')) {
    if($null -ne $value.$key){if($value.$key -isnot [bool]){throw 'CATALOG_FIELD_REJECTED'};$out[$key]=$value.$key}
   }
   foreach($key in @('databaseOid','serverVersionNumber','elapsedSeconds','providerCalls','telegramCalls','modelCalls','exitCode','stdoutCharacters','stderrCharacters')) {

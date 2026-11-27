@@ -42,5 +42,11 @@ try {
  $c|ConvertTo-Json -Depth 8|Set-Content $catalog;(Get-Item $catalog).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(2)
  $r=Get-PaperDeliveryReport $dir
  if(-not $r.report.failurePresent -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'EARLY_FAILURE_PROJECTION_FAILED'}
+ $c.version='PAPER_PUBLISHER_REHEARSAL_BUNDLE_V1';$c.status='PUBLISHER_REHEARSAL_PASSED_INSTALLATION_PENDING';$c.catalog=@{version='PAPER_PUBLISHER_REHEARSAL_V1';rollbackVerified=$true;committed=$false;loginEnabled=$false;password='PRIVATE_VALUE'}
+ $rehearsal=Join-Path $dir 'paper-publisher-rehearsal-20261127-120000-cccccccccccc.json'
+ $c|ConvertTo-Json -Depth 8|Set-Content $rehearsal;(Get-Item $rehearsal).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(3)
+ $r=Get-PaperDeliveryReport $dir
+ if($r.sourceFile -notlike 'paper-publisher-rehearsal-*' -or -not $r.report.catalog.rollbackVerified -or $r.report.catalog.committed -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'REHEARSAL_COLLECTION_FAILED'}
+ Remove-Item -LiteralPath $rehearsal
  Write-Host 'PASS: delivery collection projection, hash, redaction, malformed rejection and newest selection.'
 }finally{Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue;if($catalog){Remove-Item -LiteralPath $catalog -Force -ErrorAction SilentlyContinue};if($newer){Remove-Item -LiteralPath $newer -Force -ErrorAction SilentlyContinue};Remove-Item -LiteralPath $dir -ErrorAction SilentlyContinue}
