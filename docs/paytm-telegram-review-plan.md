@@ -168,3 +168,25 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 The newest publisher-preflight report in C:\MarketBrainData\Review must match that hash; otherwise pass its original path with -PreflightPath. Expected result: PUBLISHER_REHEARSAL_PASSED_INSTALLATION_PENDING. One paper-publisher-rehearsal JSON supports automatic collection. The script itself requires local interactive credentials; it is not an unattended queue operation. Successful rehearsal enables preparation of the explicit disabled-role commit and credential/socket provisioning. It does not install roles, send Telegram or enable trades.
 
 Validation: 60 Java tests passed (15 new rehearsal, 15 existing installer, 30 preflight), 94 mocked rehearsal-launcher assertions, 173 preflight regression assertions, real local stdin/EOF transport, and collector redaction/rehearsal selection tests. No Docker/PostgreSQL execution occurred on the development laptop. The previously accepted 47-check PostgreSQL suite tested the unchanged engine; it does not establish production rehearsal acceptance. G1-G6 remains 24/30 = 80%, with G6 0% until the combined real Telegram batch passes.
+## 27 November: administrator rehearsal accepted; disabled installation prepared
+
+Automatic collection job d422bfb3-0304-4fb2-a8b7-39d830848a1f returned paper-publisher-rehearsal-20261127-130549-0d602fa13a3c.json (SHA256 3CBE4E7DDB623512D0540D8EA5E7E49D3CAAEC41AD575CB421FD7E3D8F1D718A). All eight source hashes match e0c127a. Rollback verified, committed=false, loginEnabled=false, application runtime unchanged, cleanup passed. Total 172.217s including build/prompts; Java rehearsal 3.978s. This accepts the real administrator rollback transaction. No persistent publisher installation or Telegram delivery occurred.
+
+InstallPaperPublisher.ps1 now requires that exact accepted rehearsal report. It resolves and rechecks the running container, builds a separate client and sends credentials via stdin as before. Installation confirms a current restorable backup locally, requests INSTALL_DISABLED, repeats the fresh administrator catalog/rehearsal, commits exactly the existing two NOLOGIN/passwordless roles and three publisher functions, and runs a separate read-only verification transaction. The application stays running; avoid concurrent role/schema administration. No user tables, application settings, HBA/firewall, password custody or login activation are changed. No broker or Telegram requests are made.
+
+Readback checks exact target/admin identity, two restricted passwordless NOLOGIN roles, absent role memberships, no schema CREATE exposure, the three exact function signatures/bodies/owners/search paths/language/return types, execute-grant boundaries, and absence of direct publisher table/column writes. It does not certify future credential routing or helper privileges after arbitrary administrator changes. No existing publisher objects are silently adopted by installation. VerifyOnly can inspect the expected disabled state without calling the installer or committing.
+
+Before the process can attempt installation, its checkpoint says UNKNOWN_AFTER_ATTEMPT. A returned commit acknowledgment changes this to COMMITTED even if later readback fails. A timeout or missing response is never interpreted as rollback. Do not rerun installation after an exception; fetch the report and use the same command with -VerifyOnly for reconciliation. The read-only mode requires the accepted rehearsal hash too and does not enable login. Both modes save one paper-publisher-install JSON for automatic collection; credentials stay local.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\InstallPaperPublisher.ps1 `
+    -AcceptedRehearsalSha256 '3CBE4E7DDB623512D0540D8EA5E7E49D3CAAEC41AD575CB421FD7E3D8F1D718A'
+```
+
+Use PowerShell 7 on the spare laptop with Docker, PostgreSQL and MarketBrain running. Confirm BACKED_UP only if a current restorable database backup exists, then INSTALL_DISABLED; enter PostgreSQL administrator credentials locally. Windows elevation and market hours are not required. Success: PUBLISHER_DISABLED_VERIFIED_CREDENTIALS_PENDING. It clears persistent permission installation only; separate publisher credential/socket provisioning and the authenticated operator launcher remain before the real combined Telegram test.
+
+Local checks: 46 Java tests (16 new verification/commit-outcome tests, 15 existing installation and 15 rehearsal tests), 154 offline installer assertions, collector projection/redaction tests and generated-job consistency. Actual production commit/readback remain untested until the spare run. The shared installation engine and rollback path were previously accepted against real PostgreSQL. G1-G6 stays 24/30 = 80%; G6 remains 0% until its end-to-end real Telegram checkpoint passes.

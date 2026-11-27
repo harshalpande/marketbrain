@@ -48,5 +48,11 @@ try {
  $r=Get-PaperDeliveryReport $dir
  if($r.sourceFile -notlike 'paper-publisher-rehearsal-*' -or -not $r.report.catalog.rollbackVerified -or $r.report.catalog.committed -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'REHEARSAL_COLLECTION_FAILED'}
  Remove-Item -LiteralPath $rehearsal
+ $c.version='PAPER_PUBLISHER_INSTALL_BUNDLE_V1';$c.status='STOPPED_REVIEW_REQUIRED';$c.commitOutcome='COMMITTED';$c.verifyOnly=$false;$c.catalog=@{version='PAPER_PUBLISHER_INSTALL_V1';disabledStateVerified=$false;commitOutcome='COMMITTED';password='PRIVATE_VALUE'}
+ $installation=Join-Path $dir 'paper-publisher-install-20261127-140000-dddddddddddd.json'
+ $c|ConvertTo-Json -Depth 8|Set-Content $installation;(Get-Item $installation).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(4)
+ $r=Get-PaperDeliveryReport $dir
+ if($r.sourceFile -notlike 'paper-publisher-install-*' -or $r.report.commitOutcome -ne 'COMMITTED' -or $r.report.catalog.disabledStateVerified -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'INSTALLATION_COMMIT_EVIDENCE_LOST'}
+ Remove-Item -LiteralPath $installation
  Write-Host 'PASS: delivery collection projection, hash, redaction, malformed rejection and newest selection.'
 }finally{Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue;if($catalog){Remove-Item -LiteralPath $catalog -Force -ErrorAction SilentlyContinue};if($newer){Remove-Item -LiteralPath $newer -Force -ErrorAction SilentlyContinue};Remove-Item -LiteralPath $dir -ErrorAction SilentlyContinue}
