@@ -1,0 +1,27 @@
+{
+    "version":  1,
+    "date":  "2026-11-27",
+    "jobId":  "5a937481-d403-43fc-9676-f890d171e871",
+    "sourceFile":  "paper-publisher-install-20261127-134129-2c472ba2753f.json",
+    "sourceSha256":  "8E0BAD905192D14F9C6E9FC90DA33451C35405E0557EB9AF9AE51545D55BAE1F",
+    "revision":  "06a3e741d6dee361550fa602792bd8888c974325",
+    "verifiedSourceHashCount":  9,
+    "status":  "PUBLISHER_DISABLED_VERIFIED_CREDENTIALS_PENDING",
+    "commitOutcome":  "COMMITTED",
+    "disabledStateVerified":  true,
+    "loginEnabled":  false,
+    "runtimeConfigurationMatched":  true,
+    "cleanupPassed":  true,
+    "elapsedSeconds":  213.4154446,
+    "javaElapsedSeconds":  2.424099907,
+    "actionExecutionEnabled":  false,
+    "next":  "Local publisher custody prepared; spare acceptance pending",
+    "localValidation":  {
+                            "windowsAssertions":  14,
+                            "collectorTestsPassed":  true,
+                            "mockedLauncherAssertions":  40
+                        },
+    "paytmAcceptedCheckpoints":  24,
+    "paytmTotalCheckpoints":  30,
+    "G6Percent":  0
+}

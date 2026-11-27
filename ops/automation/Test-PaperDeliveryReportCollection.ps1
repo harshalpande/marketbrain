@@ -54,5 +54,15 @@ try {
  $r=Get-PaperDeliveryReport $dir
  if($r.sourceFile -notlike 'paper-publisher-install-*' -or $r.report.commitOutcome -ne 'COMMITTED' -or $r.report.catalog.disabledStateVerified -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'INSTALLATION_COMMIT_EVIDENCE_LOST'}
  Remove-Item -LiteralPath $installation
+ $custody=Join-Path $dir 'paper-publisher-custody-20261127-150000-eeeeeeeeeeee.json'
+ $c.version='PAPER_PUBLISHER_CUSTODY_BUNDLE_V1';$c.status='PUBLISHER_CUSTODY_VERIFIED_DATABASE_STAGING_PENDING';$c.catalog=$null;$c.failure=$null
+ $c.custodyCreated=$true;$c.custodyVerified=$true;$c.custodyRetained=$true;$c.databaseContacted=$false;$c.secret='PRIVATE_VALUE'
+ $c|ConvertTo-Json -Depth 8|Set-Content $custody;(Get-Item $custody).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(5)
+ $r=Get-PaperDeliveryReport $dir
+ if($r.sourceFile -notlike 'paper-publisher-custody-*' -or -not $r.report.custodyVerified -or $r.report.databaseContacted -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'CUSTODY_COLLECTION_FAILED'}
+ if($r.sha256 -ne (Get-FileHash $custody).Hash){throw 'CUSTODY_HASH_MISMATCH'}
+ $c.custodyVerified='true';$c|ConvertTo-Json -Depth 8|Set-Content $custody;(Get-Item $custody).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(5)
+ $rejected=$false;try{Get-PaperDeliveryReport $dir|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'CUSTODY_MALFORMED_ACCEPTED'}
+ Remove-Item -LiteralPath $custody
  Write-Host 'PASS: delivery collection projection, hash, redaction, malformed rejection and newest selection.'
 }finally{Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue;if($catalog){Remove-Item -LiteralPath $catalog -Force -ErrorAction SilentlyContinue};if($newer){Remove-Item -LiteralPath $newer -Force -ErrorAction SilentlyContinue};Remove-Item -LiteralPath $dir -ErrorAction SilentlyContinue}

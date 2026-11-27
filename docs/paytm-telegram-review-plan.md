@@ -190,3 +190,23 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 Use PowerShell 7 on the spare laptop with Docker, PostgreSQL and MarketBrain running. Confirm BACKED_UP only if a current restorable database backup exists, then INSTALL_DISABLED; enter PostgreSQL administrator credentials locally. Windows elevation and market hours are not required. Success: PUBLISHER_DISABLED_VERIFIED_CREDENTIALS_PENDING. It clears persistent permission installation only; separate publisher credential/socket provisioning and the authenticated operator launcher remain before the real combined Telegram test.
 
 Local checks: 46 Java tests (16 new verification/commit-outcome tests, 15 existing installation and 15 rehearsal tests), 154 offline installer assertions, collector projection/redaction tests and generated-job consistency. Actual production commit/readback remain untested until the spare run. The shared installation engine and rollback path were previously accepted against real PostgreSQL. G1-G6 stays 24/30 = 80%; G6 remains 0% until its end-to-end real Telegram checkpoint passes.
+## 27 November: disabled installation accepted; publisher custody prepared
+
+The production report paper-publisher-install-20261127-134129-2c472ba2753f.json was automatically collected by job 5a937481-d403-43fc-9676-f890d171e871. Its SHA256 is 8E0BAD905192D14F9C6E9FC90DA33451C35405E0557EB9AF9AE51545D55BAE1F. All nine source hashes match 06a3e74; commit acknowledged, exact disabled/passwordless roles and functions verified, running application configuration unchanged, cleanup passed. Total 213.415 seconds including prompts; Java install/readback 2.424 seconds.
+
+InitializePaperPublisherCredential.ps1 prepares only local custody at C:\MarketBrainData\Secrets\PaperPublisher\publisher.dpapi. It generates a 48-byte payload using the established writer envelope format with a separate publisher purpose and installation hash, encrypts using Windows CurrentUser DPAPI, verifies private ACLs and decrypt/readback, and clears temporary buffers. Existing valid ciphertext is reused under an exclusive lock; damaged or differently bound files stop without replacement. Existing approval-writer credentials are not accessed. Use the same Windows user for later staging. Preserve this file and user profile; never upload the encrypted credential or password.
+
+Run in PowerShell 7 on the spare laptop under the usual Windows user. Neither market hours, Docker nor database administrator input is needed. The accepted installation report must still exist in the review folder; an explicit -InstallationPath can select its original path. The hash below is mandatory. This verifies prior evidence, not current database state; subsequent database staging must revalidate the live catalog.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\InitializePaperPublisherCredential.ps1 `
+    -AcceptedInstallationSha256 '8E0BAD905192D14F9C6E9FC90DA33451C35405E0557EB9AF9AE51545D55BAE1F'
+```
+
+Expected: PUBLISHER_CUSTODY_VERIFIED_DATABASE_STAGING_PENDING. One sanitized report is available for automatic collection. Failures preserve files and report unknown creation/retention where appropriate. This stage performs no database contact/password staging, login activation or application restart. Next: separately stage the publisher SCRAM credential while retaining NOLOGIN, then verify the dedicated connection and prepare the bounded operator launcher. No Telegram or trade activation yet.
+
+Local validation: 14 real Windows DPAPI/ACL assertions, 40 mocked launcher assertions (accepted evidence, changed hash, enabled login, failed verification, dirty worktree and private failure), collector custody selection/hash/redaction/type checks, and generated automation artifact consistency. Spare custody acceptance pending. G1 100%, G2 100%, G3 80%, G4 100%, G5 100%, G6 0%; 24/30=80% remains unchanged until end-to-end acceptance.
