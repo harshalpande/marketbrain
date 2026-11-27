@@ -22,7 +22,7 @@ function Invoke-PaperCatalogProcess($Executable,[string[]]$Arguments,$WorkingDir
     elseif($Arguments[0] -eq 'run') {
         Check ($InputText.Contains('LOCAL_ADMIN_SECRET')) 'secret supplied only through stdin'
         Check ($Arguments -contains '--read-only' -and $Arguments -contains '--cap-drop=ALL') 'restricted client'
-        $v=@{version='PAPER_PUBLISHER_CREDENTIAL_V1';status='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED';disabledStateVerified=$true;credentialVerified=$true;commitOutcome='COMMITTED';loginEnabled=$false;actionExecutionEnabled=$false};if($Arguments -contains '--verify-only'){$v.status='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED';$v.commitOutcome='NOT_ATTEMPTED'}
+        $v=@{version='PAPER_PUBLISHER_CREDENTIAL_V1';status='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED';disabledStateVerified=$true;credentialVerified=$true;commitOutcome='COMMITTED';loginEnabled=$false;actionExecutionEnabled=$false};if($Arguments -contains '--verify-only'){$v.status='HBA_RULE_INVENTORY_CAPTURED';$v.commitOutcome='NOT_ATTEMPTED'}
         if($script:case -eq 'unsafe'){$v.loginEnabled=$true}
         if($script:case -eq 'timeout'){$timeout=$true;$code=-999}
     if($script:case -eq 'sql'){$code=1;$v.status='STOPPED_REVIEW_REQUIRED';$v.commitOutcome='NOT_ATTEMPTED';$v.failureType='PSQLException';$v.sqlState='28P01'};if($script:case -eq 'after-commit'){$code=1;$v.status='STOPPED_REVIEW_REQUIRED'}

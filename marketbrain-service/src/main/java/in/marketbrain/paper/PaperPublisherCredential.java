@@ -59,6 +59,28 @@ public final class PaperPublisherCredential {
         report.put("status","PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED");report.put("disabledStateVerified",true);
         report.put("loginEnabled",false);report.put("credentialVerified",true);
     }
+    // Read the rules from the same Docker client route used by the administrator.
+    // PostgreSQL exposes the parsed disk configuration here. Authentication is a later test.
+    static Map<String,Object> reviewAccess(Connection c)throws SQLException {
+        String sql="""
+            SELECT CASE WHEN family(inet_client_addr())=4 THEN 'IPV4' ELSE 'IPV6' END,
+              EXISTS(SELECT FROM pg_catalog.pg_hba_file_rules WHERE error IS NOT NULL),
+              EXISTS(SELECT FROM pg_catalog.pg_hba_file_rules WHERE type LIKE 'host%'
+                AND database=ARRAY[current_database()::text] AND user_name=ARRAY['marketbrain-paper-publisher']
+                AND address=host(inet_client_addr()) AND netmask IN ('255.255.255.255','ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')
+                AND auth_method='scram-sha-256'),
+              EXISTS(SELECT FROM pg_catalog.pg_hba_file_rules WHERE type LIKE 'host%'
+                AND 'marketbrain-paper-publisher'=ANY(user_name) AND auth_method='reject')
+            """;
+        var blockers=new ArrayList<String>();
+        try(var s=c.createStatement()){s.setQueryTimeout(10);try(var r=s.executeQuery(sql)){
+            if(!r.next())throw new SQLException("HBA_REVIEW_EMPTY");
+            if(r.getBoolean(2))blockers.add("HBA_PARSE_ERRORS");
+            if(!r.getBoolean(3))blockers.add("EXACT_SOURCE_SCRAM_RULE_ABSENT");
+            if(!r.getBoolean(4))blockers.add("PUBLISHER_REJECT_RULE_ABSENT");
+            return Map.of("scope",r.getString(1),"installationBlockers",blockers,"status","HBA_RULE_INVENTORY_CAPTURED");
+        }}
+    }
     public static void main(String[] args)throws Exception {
         var report=new LinkedHashMap<String,Object>();report.put("version","PAPER_PUBLISHER_CREDENTIAL_V1");report.put("status","STOPPED_REVIEW_REQUIRED");
         report.put("commitOutcome","NOT_ATTEMPTED");report.put("actionExecutionEnabled",false);
@@ -67,7 +89,11 @@ public final class PaperPublisherCredential {
             if(args.length!=1||!Set.of("--stage-disabled","--verify-only").contains(args[0]))throw new IllegalArgumentException("Explicit mode required");
             var request=read(System.in);props=PaperPublisherRehearsal.properties(request.connection());
             props.setProperty("ApplicationName","marketbrain-publisher-credential");
-            try(var c=DriverManager.getConnection(request.connection().url(),props)){execute(c,request.connection().target(),request.verifier(),args[0].equals("--verify-only"),report);}exit=0;
+            try(var c=DriverManager.getConnection(request.connection().url(),props)){
+                boolean verifyOnly=args[0].equals("--verify-only");
+                execute(c,request.connection().target(),request.verifier(),verifyOnly,report);
+                if(verifyOnly)report.putAll(reviewAccess(c));
+            }exit=0;
         }catch(Exception e){report.put("failureType",e.getClass().getSimpleName());if(e instanceof SQLException s&&s.getSQLState()!=null&&s.getSQLState().matches("[A-Z0-9]{5}"))report.put("sqlState",s.getSQLState());}
         finally{if(props!=null)props.clear();}
         report.put("elapsedSeconds",(System.nanoTime()-start)/1e9);System.out.println(new ObjectMapper().writeValueAsString(report));System.exit(exit);

@@ -89,14 +89,14 @@ try {
     }
     if($receipt.PSObject.Properties['commitOutcome'] -and $receipt.commitOutcome -cin @('NOT_ATTEMPTED','UNKNOWN_AFTER_ATTEMPT','COMMITTED','EXISTING_MATCH_NO_CHANGE')){$report.commitOutcome=$receipt.commitOutcome}
     if($report.failureCode){throw 'Installation process failed; do not retry. Use VerifyOnly to reconcile.'}
-    $expected='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED'
+    $expected=if($VerifyOnly){'HBA_RULE_INVENTORY_CAPTURED'}else{'PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED'}
     if($receipt.version -cne 'PAPER_PUBLISHER_CREDENTIAL_V1' -or $receipt.status -cne $expected -or $receipt.disabledStateVerified -isnot [bool] -or -not $receipt.disabledStateVerified){throw 'Disabled state unverified.'}
     if($receipt.credentialVerified -isnot [bool] -or -not $receipt.credentialVerified){throw 'Credential readback unverified.'}
     foreach($flag in @('loginEnabled','actionExecutionEnabled')){if($receipt.$flag -isnot [bool] -or $receipt.$flag){throw 'Unsafe installation receipt.'}}
     if(-not $VerifyOnly -and $report.commitOutcome -cnotin @('COMMITTED','EXISTING_MATCH_NO_CHANGE')){throw 'Commit not established.'}
     $report.catalog=$receipt
     SameRuntime (Inspect $before.Id);$report.runtimeConfigurationMatched=$true
-    $report.status='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED'
+    $report.status=$expected
 }catch{$report.status='STOPPED_REVIEW_REQUIRED';$report.failure='Installation or verification stopped; inspect evidence and use VerifyOnly for uncertain state. No automatic retry.'}
 finally {
     $payload=$null;$runtime=$null;$verifier=$null;if($secure){$secure.Dispose()};if($custodyLock){$custodyLock.Dispose()};foreach($b in @($credentialBytes,$entropy)){if($null -ne $b){[Array]::Clear($b,0,$b.Length)}}
@@ -108,5 +108,5 @@ finally {
     Stage 100 $report.status;Write-Progress -Activity 'Disabled publisher credential staging' -Completed
     Write-Host "Share this ONE file: $path"
 }
-if($report.status -cne 'PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED'){throw 'Credential staging needs review. Preserve custody and report; use VerifyOnly after an uncertain result.'}
+if($report.status -cnotin @('PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED','HBA_RULE_INVENTORY_CAPTURED')){throw 'Credential staging needs review. Preserve custody and report; use VerifyOnly after an uncertain result.'}
 
