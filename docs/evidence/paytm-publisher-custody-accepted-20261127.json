@@ -1,0 +1,21 @@
+{
+    "version":  1,
+    "date":  "2026-11-27",
+    "jobId":  "45838b9f-c363-41be-957e-5b61b80af865",
+    "sourceFile":  "paper-publisher-custody-20261127-155400-44648730ff4d.json",
+    "sourceSha256":  "5D46FA88EFC3D4CA5A429939D7D58CAD6ADD1BA0B78F53FBA8324ACBF84603CF",
+    "revision":  "5f687945138c97fe81a0a9ce0e637327f49d5781",
+    "verifiedSourceHashCount":  10,
+    "status":  "PUBLISHER_CUSTODY_VERIFIED_DATABASE_STAGING_PENDING",
+    "custodyCreated":  true,
+    "custodyVerified":  true,
+    "custodyRetained":  true,
+    "databaseContacted":  false,
+    "elapsedSeconds":  0.8267591,
+    "next":  "Disabled database credential staging prepared; spare acceptance pending",
+    "localJavaTests":  53,
+    "localLauncherAssertions":  164,
+    "paytmAcceptedCheckpoints":  24,
+    "paytmTotalCheckpoints":  30,
+    "G6Percent":  0
+}

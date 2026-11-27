@@ -22,12 +22,16 @@ public final class PaperPublisherInstall {
     static void check(boolean valid)throws SQLException{if(!valid)throw new SQLException("PUBLISHER_DISABLED_STATE_NOT_VERIFIED");}
     static void verify(Connection c,PaperPublisherInstallation.Target target)throws Exception {
         check(c.getAutoCommit());c.setReadOnly(true);c.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);c.setAutoCommit(false);
+        try { verifyInTransaction(c,target,null); } finally {c.rollback();}
+    }
+    static void verifyInTransaction(Connection c,PaperPublisherInstallation.Target target,String verifier)throws Exception {
+        if(verifier!=null)PaperPublisherCredential.validateVerifier(verifier);
         try(var s=c.createStatement()) {
             s.setQueryTimeout(10);
             try(var r=s.executeQuery("SELECT current_database(),d.oid::bigint,current_user=session_user AND r.rolsuper FROM pg_catalog.pg_database d JOIN pg_catalog.pg_roles r ON r.rolname=current_user WHERE d.datname=current_database()")) {
                 check(r.next()&&target.database().equals(r.getString(1))&&target.databaseOid()==r.getLong(2)&&r.getBoolean(3));
             }
-            try(var r=s.executeQuery("SELECT count(*),coalesce(bool_and(NOT rolcanlogin AND NOT rolsuper AND NOT rolcreatedb AND NOT rolcreaterole AND NOT rolinherit AND NOT rolreplication AND NOT rolbypassrls AND rolpassword IS NULL),false) FROM pg_catalog.pg_authid WHERE rolname IN ('marketbrain-paper-publisher','marketbrain-paper-publisher-helper')")) {
+            try(var r=s.executeQuery("SELECT count(*),coalesce(bool_and(NOT rolcanlogin AND NOT rolsuper AND NOT rolcreatedb AND NOT rolcreaterole AND NOT rolinherit AND NOT rolreplication AND NOT rolbypassrls AND (rolpassword IS NULL"+(verifier==null?"":" OR (rolname='marketbrain-paper-publisher' AND rolpassword='"+verifier+"')")+")),false) FROM pg_catalog.pg_authid WHERE rolname IN ('marketbrain-paper-publisher','marketbrain-paper-publisher-helper')")) {
                 check(r.next()&&r.getInt(1)==2&&r.getBoolean(2));
             }
             try(var r=s.executeQuery("SELECT count(*) FROM pg_catalog.pg_auth_members m JOIN pg_catalog.pg_roles r ON r.oid=m.roleid OR r.oid=m.member WHERE r.rolname IN ('marketbrain-paper-publisher','marketbrain-paper-publisher-helper')")) {check(r.next()&&r.getInt(1)==0);}
@@ -59,7 +63,7 @@ public final class PaperPublisherInstall {
             try(var p=c.prepareStatement("SELECT count(*),coalesce(bool_or(pg_catalog.has_table_privilege('marketbrain-paper-publisher',c.oid,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR pg_catalog.has_any_column_privilege('marketbrain-paper-publisher',c.oid,'INSERT,UPDATE,REFERENCES')),false) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=? AND c.relkind IN ('r','p','v','m','f')")) {
                 p.setQueryTimeout(10);p.setString(1,target.schema());try(var r=p.executeQuery()){check(r.next()&&r.getInt(1)>=12&&r.getInt(1)<=512&&!r.getBoolean(2));}
             }
-        }finally{c.rollback();}
+        }
     }
     static void execute(Connection c,PaperPublisherInstallation.Target target,boolean verifyOnly,Map<String,Object> report)throws Exception {
         if(!verifyOnly) {

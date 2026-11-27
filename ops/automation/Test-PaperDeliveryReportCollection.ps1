@@ -64,5 +64,12 @@ try {
  $c.custodyVerified='true';$c|ConvertTo-Json -Depth 8|Set-Content $custody;(Get-Item $custody).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(5)
  $rejected=$false;try{Get-PaperDeliveryReport $dir|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'CUSTODY_MALFORMED_ACCEPTED'}
  Remove-Item -LiteralPath $custody
+ $credential=Join-Path $dir 'paper-publisher-credential-20261127-160000-ffffffffffff.json'
+ $c.version='PAPER_PUBLISHER_CREDENTIAL_BUNDLE_V1';$c.status='PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED';$c.custodyVerified=$true
+ $c.catalog=@{version='PAPER_PUBLISHER_CREDENTIAL_V1';credentialVerified=$true;loginEnabled=$false;commitOutcome='EXISTING_MATCH_NO_CHANGE';verifier='PRIVATE_VALUE'}
+ $c|ConvertTo-Json -Depth 8|Set-Content $credential;(Get-Item $credential).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(6)
+ $r=Get-PaperDeliveryReport $dir
+ if(-not $r.report.catalog.credentialVerified -or $r.report.catalog.commitOutcome -ne 'EXISTING_MATCH_NO_CHANGE' -or ($r|ConvertTo-Json -Depth 9).Contains('PRIVATE_VALUE')){throw 'CREDENTIAL_COLLECTION_FAILED'}
+ Remove-Item -LiteralPath $credential
  Write-Host 'PASS: delivery collection projection, hash, redaction, malformed rejection and newest selection.'
 }finally{Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue;if($catalog){Remove-Item -LiteralPath $catalog -Force -ErrorAction SilentlyContinue};if($newer){Remove-Item -LiteralPath $newer -Force -ErrorAction SilentlyContinue};Remove-Item -LiteralPath $dir -ErrorAction SilentlyContinue}

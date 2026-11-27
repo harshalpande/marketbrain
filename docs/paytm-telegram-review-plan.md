@@ -210,3 +210,23 @@ if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
 Expected: PUBLISHER_CUSTODY_VERIFIED_DATABASE_STAGING_PENDING. One sanitized report is available for automatic collection. Failures preserve files and report unknown creation/retention where appropriate. This stage performs no database contact/password staging, login activation or application restart. Next: separately stage the publisher SCRAM credential while retaining NOLOGIN, then verify the dedicated connection and prepare the bounded operator launcher. No Telegram or trade activation yet.
 
 Local validation: 14 real Windows DPAPI/ACL assertions, 40 mocked launcher assertions (accepted evidence, changed hash, enabled login, failed verification, dirty worktree and private failure), collector custody selection/hash/redaction/type checks, and generated automation artifact consistency. Spare custody acceptance pending. G1 100%, G2 100%, G3 80%, G4 100%, G5 100%, G6 0%; 24/30=80% remains unchanged until end-to-end acceptance.
+## 27 November: custody accepted; disabled password staging prepared
+
+Automatic job 45838b9f-c363-41be-957e-5b61b80af865 fetched paper-publisher-custody-20261127-155400-44648730ff4d.json, SHA256 5D46FA88EFC3D4CA5A429939D7D58CAD6ADD1BA0B78F53FBA8324ACBF84603CF. All ten source hashes match 5f68794. Custody created, verified and retained in 0.8267591 seconds; no database contact or runtime activation.
+
+StagePaperPublisherCredential.ps1 requires this custody hash and the original accepted installation JSON. It exclusively locks and reads the existing publisher DPAPI file under the same Windows user, never creating/replacing it. An isolated Docker Java client receives administrator credentials and the generated SCRAM verifier via stdin only. Fresh target/admin/role/function/grant checks run in each transaction. No publisher sessions may exist; helper remains passwordless and both roles remain NOLOGIN. Existing different password is rejected, matching password is verified without rotation.
+
+For a missing credential, the client stages it in a rollback transaction, proves it remains missing, commits it in a new transaction and separately verifies the match. All checks are bounded; roles/schema must not be concurrently administered. PostgreSQL administrator credentials are entered locally, not sent to the queue. No application rows, HBA/firewall settings, runtime configuration, Telegram messages or broker operations are changed. Current service must remain running so its database configuration can be checked before and after.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location "$env:USERPROFILE\Documents\workspace\marketbrain"
+git -c gc.auto=0 -c maintenance.auto=false pull --ff-only origin main
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed.' }
+& .\ops\windows\StagePaperPublisherCredential.ps1 `
+    -AcceptedCustodySha256 '5D46FA88EFC3D4CA5A429939D7D58CAD6ADD1BA0B78F53FBA8324ACBF84603CF'
+```
+
+Run PowerShell 7 under the custody-owning Windows user with Docker, PostgreSQL and MarketBrain running. Type STAGE_DISABLED when prompted, then enter the PostgreSQL administrator username/password. No market hours needed. Expected PUBLISHER_CREDENTIAL_VERIFIED_LOGIN_DISABLED. One sanitized JSON is collected automatically; raw process output, password and verifier are excluded. On failure preserve custody and report. If outcome is uncertain, append -VerifyOnly to reconcile without staging; do not rerun the mutation blindly. The earlier InstallPaperPublisher -VerifyOnly expects passwordless roles and is no longer the appropriate check after password staging.
+
+Local validation: 53 Java tests (7 new credential tests plus 46 installer/rehearsal regressions), 164 mocked launcher assertions, collector selection/redaction and generated job consistency. No actual PostgreSQL execution on the development laptop. Runtime staging acceptance remains pending. Next after acceptance: dedicated connection activation and bounded operator launcher, then combined real Telegram ACCEPT/REJECT/expiry. G1 100%, G2 100%, G3 80%, G4 100%, G5 100%, G6 0%; 24/30=80%.
